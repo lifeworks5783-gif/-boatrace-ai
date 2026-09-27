@@ -6,6 +6,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: ファイルを読み込む
@@ -16,10 +17,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: result.pyを実行
+      - name: レース結果一覧を取得
         run: python collectors/result.py
-      - name: 詳細データ取得テスト
-        run: python collectors/detail_test.py
+
+      - name: 12R・72艇の詳細データを取得
+        run: python collectors/boat_results.py
+
       - name: CSVを保存
         uses: actions/upload-artifact@v4
         with:
