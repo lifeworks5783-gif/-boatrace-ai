@@ -1,13 +1,19 @@
-name: 前日全場収集テスト
+name: 前日全場自動収集
 
 on:
+  # 毎日 日本時間 4:30 に自動実行
+  schedule:
+    - cron: "30 4 * * *"
+      timezone: "Asia/Tokyo"
+
+  # 今まで通り手動実行も可能
   workflow_dispatch:
 
 jobs:
   collect:
     runs-on: ubuntu-latest
 
-    # GitHub側の強制終了を60分まで延長
+    # 最大60分
     timeout-minutes: 60
 
     steps:
@@ -29,7 +35,7 @@ jobs:
 
           echo "======================================"
           echo "前日全場収集を開始します"
-          echo "最大実行時間：55分"
+          echo "最大収集時間：55分"
           echo "======================================"
 
           timeout --signal=TERM 55m python -u collectors/daily_all.py
