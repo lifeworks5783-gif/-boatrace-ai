@@ -1,6 +1,12 @@
 from urllib.request import Request, urlopen
 from html.parser import HTMLParser
+from pathlib import Path
+import csv
 import re
+
+
+DATE = "20260926"
+VENUE_CODE = "02"
 
 
 class TableParser(HTMLParser):
@@ -37,9 +43,19 @@ class TableParser(HTMLParser):
             self.in_row = False
 
 
+def yen_to_int(text):
+    return int(
+        text.replace("¥", "")
+            .replace("￥", "")
+            .replace(",", "")
+            .replace("円", "")
+            .strip()
+    )
+
+
 url = (
     "https://www.boatrace.jp/owpc/pc/race/"
-    "resultlist?hd=20260926&jcd=02"
+    f"resultlist?hd={DATE}&jcd={VENUE_CODE}"
 )
 
 request = Request(
@@ -66,24 +82,49 @@ for row in parser.rows:
     if (
         re.fullmatch(r"\d{1,2}R", race)
         and len(row) >= 5
-        and any("¥" in cell for cell in row)
+        and any("¥" in cell or "￥" in cell for cell in row)
     ):
         results.append({
+            "date": DATE,
+            "venue_code": VENUE_CODE,
             "race": race,
-            "trifecta": row[1],
-            "trifecta_pay": row[2],
-            "exacta": row[3],
-            "exacta_pay": row[4],
+            "trifecta": row[1].replace(" ", ""),
+            "trifecta_pay": yen_to_int(row[2]),
+            "exacta": row[3].replace(" ", ""),
+            "exacta_pay": yen_to_int(row[4]),
         })
 
 
+output_dir = Path("data")
+output_dir.mkdir(exist_ok=True)
+
+output_file = output_dir / f"results_{DATE}_{VENUE_CODE}.csv"
+
+with output_file.open(
+    "w",
+    newline="",
+    encoding="utf-8-sig"
+) as f:
+
+    writer = csv.DictWriter(
+        f,
+        fieldnames=[
+            "date",
+            "venue_code",
+            "race",
+            "trifecta",
+            "trifecta_pay",
+            "exacta",
+            "exacta_pay",
+        ]
+    )
+
+    writer.writeheader()
+    writer.writerows(results)
+
+
 print("取得レース数:", len(results))
+print("CSV保存先:", output_file)
 
 for result in results:
-    print(
-        result["race"],
-        "3連単:", result["trifecta"],
-        "払戻:", result["trifecta_pay"],
-        "2連単:", result["exacta"],
-        "払戻:", result["exacta_pay"],
-    )
+    print(result)
