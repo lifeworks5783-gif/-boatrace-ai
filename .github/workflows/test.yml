@@ -2,11 +2,16 @@ name: 前日全場収集テスト
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+
+    # ジョブ全体は最大60分
+    timeout-minutes: 60
 
     steps:
       - name: ファイルを読み込む
@@ -18,11 +23,14 @@ jobs:
           python-version: "3.12"
 
       - name: 前日の開催場・全レース・全艇を収集
+        timeout-minutes: 55
         run: python collectors/daily_all.py
 
       - name: CSVを保存
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-all-results
+          name: boatrace-results
           path: data/*.csv
           retention-days: 30
+          if-no-files-found: warn
