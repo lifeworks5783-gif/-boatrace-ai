@@ -51,6 +51,10 @@ class DetailParser(HTMLParser):
             self.in_row = False
 
 
+# =========================
+# BOAT RACE公式ページ取得
+# =========================
+
 url = (
     "https://www.boatrace.jp/owpc/pc/race/"
     f"raceresult?hd={DATE}&jcd={VENUE_CODE}&rno={RACE_NO}"
@@ -74,9 +78,9 @@ parser = DetailParser()
 parser.feed(html)
 
 
-# -------------------------
+# =========================
 # 着順・選手情報を取得
-# -------------------------
+# =========================
 
 rank_translate = str.maketrans(
     "１２３４５６",
@@ -126,9 +130,9 @@ for row in parser.rows:
         }
 
 
-# -------------------------
+# =========================
 # ST・進入コースを取得
-# -------------------------
+# =========================
 
 start_info = {}
 
@@ -161,19 +165,31 @@ try:
             boat = token
             st = None
 
-            for j in range(
-                i + 1,
-                min(i + 5, len(start_tokens))
-            ):
+            j = i + 1
+
+            while j < len(start_tokens):
 
                 candidate = start_tokens[j]
 
-                if re.fullmatch(
+                # 次の艇番まで来たら終了
+                if candidate in [
+                    "1", "2", "3",
+                    "4", "5", "6"
+                ]:
+                    break
+
+                # ".09 まくり差し" のような文字列からも
+                # ST部分だけ抜き出す
+                st_match = re.search(
                     r"(?:F|L)?\.?\d{2}",
                     candidate
-                ):
-                    st = candidate
+                )
+
+                if st_match:
+                    st = st_match.group(0)
                     break
+
+                j += 1
 
             if st is not None:
                 course += 1
@@ -191,9 +207,9 @@ except ValueError:
     )
 
 
-# -------------------------
-# 6艇を結合して表示
-# -------------------------
+# =========================
+# 6艇分を結合して表示
+# =========================
 
 print(
     "取得艇数:",
