@@ -12,6 +12,7 @@ VENUE_CODE = "02"
 class TableParser(HTMLParser):
     def __init__(self):
         super().__init__()
+
         self.rows = []
         self.current_row = []
         self.current_cell = ""
@@ -40,18 +41,23 @@ class TableParser(HTMLParser):
         elif tag == "tr" and self.in_row:
             if self.current_row:
                 self.rows.append(self.current_row)
+
             self.in_row = False
 
 
 def yen_to_int(text):
     return int(
         text.replace("¥", "")
-            .replace("￥", "")
-            .replace(",", "")
-            .replace("円", "")
-            .strip()
+        .replace("￥", "")
+        .replace(",", "")
+        .replace("円", "")
+        .strip()
     )
 
+
+# =========================
+# BOAT RACE公式結果一覧取得
+# =========================
 
 url = (
     "https://www.boatrace.jp/owpc/pc/race/"
@@ -66,28 +72,46 @@ request = Request(
 )
 
 with urlopen(request, timeout=20) as response:
-    html = response.read().decode("utf-8", errors="replace")
+    html = response.read().decode(
+        "utf-8",
+        errors="replace"
+    )
+
 
 parser = TableParser()
 parser.feed(html)
 
+
+# =========================
+# 1R〜12R抽出
+# =========================
+
 results = []
 
 for row in parser.rows:
+
     if not row:
         continue
 
-    race = row[0].replace(" ", "")
+    race_text = row[0].replace(" ", "")
 
     if (
-        re.fullmatch(r"\d{1,2}R", race)
+        re.fullmatch(r"\d{1,2}R", race_text)
         and len(row) >= 5
-        and any("¥" in cell or "￥" in cell for cell in row)
+        and any(
+            "¥" in cell or "￥" in cell
+            for cell in row
+        )
     ):
+
+        race_no = int(
+            race_text.replace("R", "")
+        )
+
         results.append({
             "date": DATE,
             "venue_code": VENUE_CODE,
-            "race": race,
+            "race": race_no,
             "trifecta": row[1].replace(" ", ""),
             "trifecta_pay": yen_to_int(row[2]),
             "exacta": row[3].replace(" ", ""),
@@ -95,10 +119,27 @@ for row in parser.rows:
         })
 
 
+# =========================
+# データ件数チェック
+# =========================
+
+if len(results) != 12:
+    raise RuntimeError(
+        f"取得レース数が異常です: {len(results)}件"
+    )
+
+
+# =========================
+# CSV保存
+# =========================
+
 output_dir = Path("data")
 output_dir.mkdir(exist_ok=True)
 
-output_file = output_dir / f"results_{DATE}_{VENUE_CODE}.csv"
+output_file = (
+    output_dir
+    / f"results_{DATE}_{VENUE_CODE}.csv"
+)
 
 with output_file.open(
     "w",
@@ -122,6 +163,10 @@ with output_file.open(
     writer.writeheader()
     writer.writerows(results)
 
+
+# =========================
+# ログ表示
+# =========================
 
 print("取得レース数:", len(results))
 print("CSV保存先:", output_file)
