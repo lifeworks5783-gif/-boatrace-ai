@@ -1,13 +1,23 @@
 from urllib.request import Request, urlopen
 from html.parser import HTMLParser
 from pathlib import Path
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import csv
 import re
 import time
 
 
-DATE = "20260926"
 VENUE_CODE = "02"
+
+JST = ZoneInfo("Asia/Tokyo")
+
+TARGET_DATE = (
+    datetime.now(JST).date()
+    - timedelta(days=1)
+)
+
+DATE = TARGET_DATE.strftime("%Y%m%d")
 
 RACE_NUMBERS = range(1, 13)
 
@@ -23,38 +33,76 @@ class DetailParser(HTMLParser):
         self.in_cell = False
         self.tokens = []
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(
+        self,
+        tag,
+        attrs
+    ):
+
         if tag == "tr":
             self.in_row = True
             self.current_row = []
 
-        elif tag in ("td", "th") and self.in_row:
+        elif (
+            tag in ("td", "th")
+            and self.in_row
+        ):
             self.in_cell = True
             self.current_cell = ""
 
-    def handle_data(self, data):
-        text = " ".join(data.split())
+    def handle_data(
+        self,
+        data
+    ):
+
+        text = " ".join(
+            data.split()
+        )
 
         if text:
-            self.tokens.append(text)
+            self.tokens.append(
+                text
+            )
 
         if self.in_cell:
             self.current_cell += data
 
-    def handle_endtag(self, tag):
-        if tag in ("td", "th") and self.in_cell:
-            text = " ".join(self.current_cell.split())
-            self.current_row.append(text)
+    def handle_endtag(
+        self,
+        tag
+    ):
+
+        if (
+            tag in ("td", "th")
+            and self.in_cell
+        ):
+
+            text = " ".join(
+                self.current_cell.split()
+            )
+
+            self.current_row.append(
+                text
+            )
+
             self.in_cell = False
 
-        elif tag == "tr" and self.in_row:
+        elif (
+            tag == "tr"
+            and self.in_row
+        ):
+
             if self.current_row:
-                self.rows.append(self.current_row)
+                self.rows.append(
+                    self.current_row
+                )
 
             self.in_row = False
 
 
-def fetch_race(race_no):
+def fetch_race(
+    race_no
+):
 
     url = (
         "https://www.boatrace.jp/owpc/pc/race/"
@@ -66,7 +114,8 @@ def fetch_race(race_no):
     request = Request(
         url,
         headers={
-            "User-Agent": "Mozilla/5.0"
+            "User-Agent":
+                "Mozilla/5.0"
         }
     )
 
@@ -75,24 +124,35 @@ def fetch_race(race_no):
         timeout=20
     ) as response:
 
-        html = response.read().decode(
-            "utf-8",
-            errors="replace"
+        html = (
+            response
+            .read()
+            .decode(
+                "utf-8",
+                errors="replace"
+            )
         )
 
     parser = DetailParser()
-    parser.feed(html)
+
+    parser.feed(
+        html
+    )
 
     return parser
 
 
-def extract_racers(parser):
+def extract_racers(
+    parser
+):
 
     racers = {}
 
-    rank_translate = str.maketrans(
-        "１２３４５６",
-        "123456"
+    rank_translate = (
+        str.maketrans(
+            "１２３４５６",
+            "123456"
+        )
     )
 
     for row in parser.rows:
@@ -102,11 +162,16 @@ def extract_racers(parser):
 
         finish = (
             row[0]
-            .translate(rank_translate)
+            .translate(
+                rank_translate
+            )
             .strip()
         )
 
-        boat = row[1].strip()
+        boat = (
+            row[1]
+            .strip()
+        )
 
         if (
             boat in [
@@ -119,8 +184,10 @@ def extract_racers(parser):
             )
         ):
 
-            racer_text = " ".join(
-                row[2].split()
+            racer_text = (
+                " ".join(
+                    row[2].split()
+                )
             )
 
             match = re.match(
@@ -143,12 +210,15 @@ def extract_racers(parser):
 
             if len(row) >= 4:
                 race_time = (
-                    row[3].strip()
+                    row[3]
+                    .strip()
                 )
 
             racers[boat] = {
-                "finish": finish,
-                "boat": boat,
+                "finish":
+                    finish,
+                "boat":
+                    boat,
                 "registration_no":
                     registration_no,
                 "racer_name":
@@ -160,7 +230,9 @@ def extract_racers(parser):
     return racers
 
 
-def extract_start_info(parser):
+def extract_start_info(
+    parser
+):
 
     start_info = {}
 
@@ -184,16 +256,23 @@ def extract_start_info(parser):
         return start_info
 
 
-    start_tokens = parser.tokens[
-        start_index + 1:end_index
-    ]
+    start_tokens = (
+        parser.tokens[
+            start_index + 1:
+            end_index
+        ]
+    )
 
     course = 0
     i = 0
 
-    while i < len(start_tokens):
+    while i < len(
+        start_tokens
+    ):
 
-        token = start_tokens[i]
+        token = (
+            start_tokens[i]
+        )
 
         if token in [
             "1", "2", "3",
@@ -201,12 +280,16 @@ def extract_start_info(parser):
         ]:
 
             boat = token
+
             course += 1
 
             st = None
+
             j = i + 1
 
-            while j < len(start_tokens):
+            while j < len(
+                start_tokens
+            ):
 
                 candidate = (
                     start_tokens[j]
@@ -224,16 +307,21 @@ def extract_start_info(parser):
                 )
 
                 if st_match:
+
                     st = (
-                        st_match.group(0)
+                        st_match
+                        .group(0)
                     )
+
                     break
 
                 j += 1
 
             start_info[boat] = {
-                "course": course,
-                "st": st,
+                "course":
+                    course,
+                "st":
+                    st,
             }
 
         i += 1
@@ -242,7 +330,59 @@ def extract_start_info(parser):
 
 
 # =========================
-# 1R〜12Rを取得
+# 対象日表示
+# =========================
+
+print(
+    "日本時間:",
+    datetime.now(JST)
+)
+
+print(
+    "自動取得対象日:",
+    DATE
+)
+
+print(
+    "対象会場コード:",
+    VENUE_CODE
+)
+
+
+# =========================
+# 1Rを先に確認
+# =========================
+
+first_parser = fetch_race(1)
+
+first_racers = extract_racers(
+    first_parser
+)
+
+if len(first_racers) == 0:
+
+    print(
+        "対象日は戸田非開催、"
+        "または結果未掲載です。"
+    )
+
+    print(
+        "詳細CSVは作成しません。"
+    )
+
+    raise SystemExit(0)
+
+
+if len(first_racers) != 6:
+
+    raise RuntimeError(
+        "1Rの選手数が異常です: "
+        f"{len(first_racers)}艇"
+    )
+
+
+# =========================
+# 1R〜12R取得
 # =========================
 
 all_results = []
@@ -253,13 +393,23 @@ for race_no in RACE_NUMBERS:
         f"{race_no}R 取得開始"
     )
 
-    parser = fetch_race(
-        race_no
-    )
+    if race_no == 1:
 
-    racers = extract_racers(
-        parser
-    )
+        parser = first_parser
+
+        racers = first_racers
+
+    else:
+
+        parser = fetch_race(
+            race_no
+        )
+
+        racers = (
+            extract_racers(
+                parser
+            )
+        )
 
     start_info = (
         extract_start_info(
@@ -267,9 +417,8 @@ for race_no in RACE_NUMBERS:
         )
     )
 
-    # 今回のテストでは
-    # 各レース6艇取れることを確認
     if len(racers) != 6:
+
         raise RuntimeError(
             f"{race_no}Rの選手数が"
             f"異常です: "
@@ -281,22 +430,29 @@ for race_no in RACE_NUMBERS:
         "4", "5", "6"
     ]:
 
-        racer = racers.get(boat)
+        racer = racers.get(
+            boat
+        )
 
-        start = start_info.get(
-            boat,
-            {}
+        start = (
+            start_info.get(
+                boat,
+                {}
+            )
         )
 
         if racer is None:
             continue
 
         all_results.append({
-            "date": DATE,
+            "date":
+                DATE,
             "venue_code":
                 VENUE_CODE,
-            "race": race_no,
-            "boat": int(boat),
+            "race":
+                race_no,
+            "boat":
+                int(boat),
             "course":
                 start.get(
                     "course"
@@ -314,7 +470,9 @@ for race_no in RACE_NUMBERS:
                     "finish"
                 ],
             "st":
-                start.get("st"),
+                start.get(
+                    "st"
+                ),
             "race_time":
                 racer[
                     "race_time"
@@ -325,8 +483,8 @@ for race_no in RACE_NUMBERS:
         f"{race_no}R 取得完了"
     )
 
-    # 公式サイトへの負荷を抑える
-    time.sleep(1)
+    if race_no != 12:
+        time.sleep(1)
 
 
 # =========================
@@ -342,10 +500,47 @@ if len(all_results) != 72:
 
 
 # =========================
+# データ品質チェック
+# =========================
+
+for race_no in RACE_NUMBERS:
+
+    race_rows = [
+        row
+        for row in all_results
+        if row["race"]
+        == race_no
+    ]
+
+    if len(race_rows) != 6:
+
+        raise RuntimeError(
+            f"{race_no}Rが"
+            f"{len(race_rows)}艇です"
+        )
+
+    boats = sorted(
+        row["boat"]
+        for row in race_rows
+    )
+
+    if boats != [
+        1, 2, 3, 4, 5, 6
+    ]:
+
+        raise RuntimeError(
+            f"{race_no}Rの艇番に"
+            "異常があります"
+        )
+
+
+# =========================
 # CSV保存
 # =========================
 
-output_dir = Path("data")
+output_dir = Path(
+    "data"
+)
 
 output_dir.mkdir(
     exist_ok=True
@@ -390,7 +585,7 @@ with output_file.open(
 
 
 # =========================
-# 最終確認
+# 最終ログ
 # =========================
 
 print(
@@ -399,6 +594,11 @@ print(
 
 print(
     "全レース取得成功"
+)
+
+print(
+    "対象日:",
+    DATE
 )
 
 print(
