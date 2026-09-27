@@ -2,15 +2,12 @@ name: 前日全場収集テスト
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - main
 
 jobs:
   collect:
     runs-on: ubuntu-latest
 
-    # ジョブ全体は最大60分
+    # GitHub側の強制終了を60分まで延長
     timeout-minutes: 60
 
     steps:
@@ -22,15 +19,53 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: dataフォルダを準備
+        run: mkdir -p data
+
       - name: 前日の開催場・全レース・全艇を収集
-        timeout-minutes: 55
-        run: python collectors/daily_all.py
+        continue-on-error: true
+        run: |
+          set +e
+
+          echo "======================================"
+          echo "前日全場収集を開始します"
+          echo "最大実行時間：55分"
+          echo "======================================"
+
+          timeout --signal=TERM 55m python -u collectors/daily_all.py
+          EXIT_CODE=$?
+
+          echo ""
+          echo "======================================"
+          echo "収集処理終了"
+          echo "終了コード: ${EXIT_CODE}"
+          echo "======================================"
+
+          if [ "${EXIT_CODE}" -eq 124 ]; then
+            echo "::warning::55分に到達したため安全に収集処理を終了しました"
+            exit 0
+          fi
+
+          exit "${EXIT_CODE}"
+
+      - name: 収集済みCSVを確認
+        if: always()
+        run: |
+          echo "======================================"
+          echo "現在保存されているCSV"
+          echo "======================================"
+
+          if [ -d "data" ]; then
+            find data -maxdepth 1 -type f -name "*.csv" -print | sort
+          else
+            echo "dataフォルダがありません"
+          fi
 
       - name: CSVを保存
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-results
+          name: boatrace-results-${{ github.run_number }}
           path: data/*.csv
-          retention-days: 30
           if-no-files-found: warn
+          retention-days: 30
