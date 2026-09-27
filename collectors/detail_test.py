@@ -234,4 +234,11 @@ for boat in [
             racer["race_time"],
     }
 
-    print(result)
+    print(f"艇{result['boat']}")
+    print(f"  コース: {result['course']}")
+    print(f"  登録番号: {result['registration_no']}")
+    print(f"  選手名: {result['racer_name']}")
+    print(f"  着順: {result['finish']}")
+    print(f"  ST: {result['st']}")
+    print(f"  レースタイム: {result['race_time']}")
+    print("--------------------")
