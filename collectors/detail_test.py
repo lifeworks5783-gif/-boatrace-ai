@@ -1,5 +1,7 @@
 from urllib.request import Request, urlopen
 from html.parser import HTMLParser
+from pathlib import Path
+import csv
 import re
 
 
@@ -17,7 +19,6 @@ class DetailParser(HTMLParser):
         self.current_cell = ""
         self.in_row = False
         self.in_cell = False
-
         self.tokens = []
 
     def handle_starttag(self, tag, attrs):
@@ -79,7 +80,7 @@ parser.feed(html)
 
 
 # =========================
-# 着順・選手情報を取得
+# 着順・選手情報取得
 # =========================
 
 rank_translate = str.maketrans(
@@ -131,7 +132,7 @@ for row in parser.rows:
 
 
 # =========================
-# ST・進入コースを取得
+# ST・進入コース取得
 # =========================
 
 start_info = {}
@@ -164,22 +165,18 @@ try:
 
             boat = token
             st = None
-
             j = i + 1
 
             while j < len(start_tokens):
 
                 candidate = start_tokens[j]
 
-                # 次の艇番まで来たら終了
                 if candidate in [
                     "1", "2", "3",
                     "4", "5", "6"
                 ]:
                     break
 
-                # ".09 まくり差し" のような文字列からも
-                # ST部分だけ抜き出す
                 st_match = re.search(
                     r"(?:F|L)?\.?\d{2}",
                     candidate
@@ -202,19 +199,14 @@ try:
         i += 1
 
 except ValueError:
-    print(
-        "スタート情報を取得できませんでした"
-    )
+    print("スタート情報を取得できませんでした")
 
 
 # =========================
-# 6艇分を結合して表示
+# 6艇分を結合
 # =========================
 
-print(
-    "取得艇数:",
-    len(racers)
-)
+results = []
 
 for boat in [
     "1", "2", "3",
@@ -222,34 +214,71 @@ for boat in [
 ]:
 
     racer = racers.get(boat)
-    start = start_info.get(
-        boat,
-        {}
-    )
+    start = start_info.get(boat, {})
 
     if racer is None:
         continue
 
-    result = {
+    results.append({
         "date": DATE,
         "venue_code": VENUE_CODE,
         "race": RACE_NO,
         "boat": boat,
-        "course": start.get(
-            "course"
-        ),
-        "registration_no":
-            racer["registration_no"],
-        "racer_name":
-            racer["racer_name"],
-        "finish":
-            racer["finish"],
-        "st":
-            start.get("st"),
-        "race_time":
-            racer["race_time"],
-    }
+        "course": start.get("course"),
+        "registration_no": racer["registration_no"],
+        "racer_name": racer["racer_name"],
+        "finish": racer["finish"],
+        "st": start.get("st"),
+        "race_time": racer["race_time"],
+    })
 
+
+# =========================
+# CSV保存
+# =========================
+
+output_dir = Path("data")
+output_dir.mkdir(exist_ok=True)
+
+output_file = (
+    output_dir
+    / f"boat_results_{DATE}_{VENUE_CODE}_{RACE_NO}R.csv"
+)
+
+with output_file.open(
+    "w",
+    newline="",
+    encoding="utf-8-sig"
+) as f:
+
+    writer = csv.DictWriter(
+        f,
+        fieldnames=[
+            "date",
+            "venue_code",
+            "race",
+            "boat",
+            "course",
+            "registration_no",
+            "racer_name",
+            "finish",
+            "st",
+            "race_time",
+        ]
+    )
+
+    writer.writeheader()
+    writer.writerows(results)
+
+
+# =========================
+# ログ表示
+# =========================
+
+print("取得艇数:", len(results))
+print("CSV保存先:", output_file)
+
+for result in results:
     print(f"艇{result['boat']}")
     print(f"  コース: {result['course']}")
     print(f"  登録番号: {result['registration_no']}")
