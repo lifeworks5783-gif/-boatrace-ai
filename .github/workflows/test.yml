@@ -17,4 +17,11 @@ jobs:
           python-version: "3.12"
 
       - name: result.pyを実行
-        run: python collectors/result.py
+        run: python collectors/result.     
+　　　  - name: CSVを保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-results
+          path: data/*.csv
+          retention-days: 30
+
