@@ -1,12 +1,12 @@
-name: 開催場検出テスト
+name: 前日全場収集テスト
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
 
     steps:
       - name: ファイルを読み込む
@@ -17,12 +17,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 前日の開催場を自動検出
-        run: python collectors/venue_test.py
+      - name: 前日の開催場・全レース・全艇を収集
+        run: python collectors/daily_all.py
 
       - name: CSVを保存
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-venues
+          name: boatrace-all-results
           path: data/*.csv
           retention-days: 30
