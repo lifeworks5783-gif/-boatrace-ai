@@ -1,0 +1,20 @@
+name: Python動作テスト
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: result.pyを実行
+        run: python collectors/result.py
