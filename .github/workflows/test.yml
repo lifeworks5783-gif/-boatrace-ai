@@ -33,19 +33,19 @@ jobs:
         run: |
           set +e
 
-          echo "======================================"
+          echo "========================================"
           echo "前日全場収集を開始します"
           echo "最大収集時間：55分"
-          echo "======================================"
+          echo "========================================"
 
           timeout --signal=TERM 55m python -u collectors/daily_all.py
           EXIT_CODE=$?
 
           echo ""
-          echo "======================================"
+          echo "========================================"
           echo "収集処理終了"
           echo "終了コード: ${EXIT_CODE}"
-          echo "======================================"
+          echo "========================================"
 
           if [ "${EXIT_CODE}" -eq 124 ]; then
             echo "::warning::55分に到達したため安全に収集処理を終了しました"
@@ -54,24 +54,40 @@ jobs:
 
           exit "${EXIT_CODE}"
 
-      - name: 収集済みCSVを確認
+      - name: 収集データを自動検証
         if: always()
         run: |
-          echo "======================================"
-          echo "現在保存されているCSV"
-          echo "======================================"
+          echo "========================================"
+          echo "日次データ品質検証を開始します"
+          echo "========================================"
+
+          python -u collectors/validate_daily.py
+
+          echo ""
+          echo "========================================"
+          echo "日次データ品質検証 PASS"
+          echo "========================================"
+
+      - name: 収集済みファイルを確認
+        if: always()
+        run: |
+          echo "========================================"
+          echo "現在保存されているデータファイル"
+          echo "========================================"
 
           if [ -d "data" ]; then
-            find data -maxdepth 1 -type f -name "*.csv" -print | sort
+            find data -maxdepth 1 -type f \( -name "*.csv" -o -name "*.json" \) -print | sort
           else
             echo "dataフォルダがありません"
           fi
 
-      - name: CSVを保存
+      - name: CSVと検証結果を保存
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: boatrace-results-${{ github.run_number }}
-          path: data/*.csv
+          path: |
+            data/*.csv
+            data/*.json
           if-no-files-found: warn
           retention-days: 30
