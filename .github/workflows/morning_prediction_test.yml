@@ -1,25 +1,30 @@
-name: 朝予測パイプライン最終テスト
+name: 毎日朝予測・本番
 
 permissions:
   contents: write
 
 on:
+  schedule:
+    # 日本時間 毎日03:00
+    - cron: "0 18 * * *"
+
   workflow_dispatch:
 
 concurrency:
-  group: morning-prediction-test-${{ github.ref }}
+  group: morning-prediction-production-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   morning_prediction:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: ファイルを読み込む
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
 
       - name: Pythonを準備
         uses: actions/setup-python@v5
@@ -31,14 +36,63 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4 lhafile
 
-      - name: dataフォルダを準備
+      - name: 日本時間の対象日を設定
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+
+          echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
+
+          YEAR=${TARGET_DATE:0:4}
+          MONTH=${TARGET_DATE:4:2}
+          DAY=${TARGET_DATE:6:2}
+
+          echo "YEAR=${YEAR}" >> "$GITHUB_ENV"
+          echo "MONTH=${MONTH}" >> "$GITHUB_ENV"
+          echo "DAY=${DAY}" >> "$GITHUB_ENV"
+
+          echo "========================================"
+          echo "本日の予測対象日: ${TARGET_DATE}"
+          echo "========================================"
+
+      - name: 作業フォルダを準備
         run: |
           mkdir -p data
+          mkdir -p features
+
+      - name: 30日・90日履歴特徴量を更新
+        run: |
+          echo "========================================"
+          echo "STEP 1 履歴特徴量更新"
+          echo "========================================"
+
+          python -u collectors/build_history_features.py \
+            --as-of "${TARGET_DATE}"
+
+      - name: 前日結果反映を確認
+        run: |
+          echo "========================================"
+          echo "履歴鮮度確認"
+          echo "========================================"
+
+          cat features/history_features_manifest.json
+
+          if ! grep -q '"history_stale_days": 0' \
+            features/history_features_manifest.json; then
+
+            echo ""
+            echo "ERROR:"
+            echo "前日までの結果が完全に反映されていません"
+            echo "古い履歴では予測を実行しません"
+            exit 1
+          fi
+
+          echo ""
+          echo "前日結果反映: PASS"
 
       - name: 当日基本データを収集
         run: |
           echo "========================================"
-          echo "STEP 1 当日基本データ収集"
+          echo "STEP 2 当日基本データ収集"
           echo "========================================"
 
           python -u collectors/today_basic.py
@@ -46,127 +100,143 @@ jobs:
       - name: 朝版prediction_inputを生成
         run: |
           echo "========================================"
-          echo "STEP 2 朝版prediction_input生成"
+          echo "STEP 3 朝prediction_input生成"
           echo "========================================"
 
           python -u collectors/build_prediction_input.py \
             --stage morning
 
-      - name: 30日90日履歴特徴量を結合
+      - name: 30日・90日履歴を当日データへ結合
         run: |
           echo "========================================"
-          echo "STEP 3 履歴特徴量結合"
+          echo "STEP 4 履歴特徴量結合"
           echo "========================================"
 
           python -u collectors/enrich_prediction_input.py \
-            --date 20260930 \
+            --date "${TARGET_DATE}" \
             --stage morning
+
+      - name: 結合結果を確認
+        run: |
+          FILE="data/prediction_input_enriched_validation_morning_${TARGET_DATE}.json"
+
+          test -s "${FILE}"
+
+          cat "${FILE}"
+
+          if ! grep -q '"status": "PASS"' "${FILE}"; then
+            echo ""
+            echo "ERROR: 履歴特徴量結合がPASSしていません"
+            exit 1
+          fi
+
+          echo ""
+          echo "履歴特徴量結合: PASS"
 
       - name: 朝予測スコアを生成
         run: |
           echo "========================================"
-          echo "STEP 4 朝予測スコア生成"
+          echo "STEP 5 朝予測スコア生成"
           echo "========================================"
 
           python -u collectors/build_morning_prediction.py \
-            --date 20260930
+            --date "${TARGET_DATE}"
 
-      - name: 朝予測検証結果を表示
+      - name: 朝予測結果を検証
         run: |
-          echo "========================================"
-          echo "朝予測 検証結果"
-          echo "========================================"
+          VALIDATION="data/morning_predictions_validation_${TARGET_DATE}.json"
+          JSON_FILE="data/morning_predictions_${TARGET_DATE}.json"
+          CSV_FILE="data/morning_predictions_${TARGET_DATE}.csv"
 
-          test -s data/morning_predictions_20260930.json
-          test -s data/morning_predictions_20260930.csv
-          test -s data/morning_predictions_validation_20260930.json
+          test -s "${VALIDATION}"
+          test -s "${JSON_FILE}"
+          test -s "${CSV_FILE}"
 
-          cat data/morning_predictions_validation_20260930.json
-
-      - name: 予測一覧を一部表示
-        run: |
           echo "========================================"
-          echo "朝予測CSV 先頭部分"
+          echo "朝予測検証結果"
           echo "========================================"
 
-          head -n 25 \
-            data/morning_predictions_20260930.csv
+          cat "${VALIDATION}"
 
-      - name: JSON構文を確認
-        run: |
-          echo "========================================"
-          echo "JSON構文確認"
-          echo "========================================"
-
-          python -m json.tool \
-            data/morning_predictions_20260930.json \
-            > /dev/null
-
-          python -m json.tool \
-            data/morning_predictions_validation_20260930.json \
-            > /dev/null
-
-          echo "JSON構文: PASS"
-
-      - name: 朝予測結果をGitHubへ保存
-        run: |
-          echo "========================================"
-          echo "朝予測結果をGitHubへ保存"
-          echo "========================================"
-
-          git config user.name "boatrace-data-bot"
-          git config user.email "boatrace-data-bot@users.noreply.github.com"
-
-          git add \
-            data/program_entries_20260930.csv \
-            data/program_races_20260930.csv \
-            data/program_manifest_20260930.json \
-            data/program_validation_20260930.json \
-            data/prediction_input_morning_20260930.json \
-            data/prediction_input_validation_morning_20260930.json \
-            data/prediction_input_enriched_morning_20260930.json \
-            data/prediction_input_enriched_validation_morning_20260930.json \
-            data/morning_predictions_20260930.json \
-            data/morning_predictions_20260930.csv \
-            data/morning_predictions_validation_20260930.json
-
-          if git diff --cached --quiet; then
-            echo "変更はありません"
-            exit 0
+          if ! grep -q '"status": "PASS"' "${VALIDATION}"; then
+            echo ""
+            echo "ERROR: 朝予測検証がPASSしていません"
+            exit 1
           fi
 
-          git commit -m \
-            "Build morning predictions 20260930"
+          python -m json.tool \
+            "${JSON_FILE}" \
+            > /dev/null
 
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-
-          git push origin HEAD:"${GITHUB_REF_NAME}"
+          python -m json.tool \
+            "${VALIDATION}" \
+            > /dev/null
 
           echo ""
-          echo "朝予測結果 GitHub保存完了"
+          echo "朝予測検証: PASS"
+
+      - name: 本日の保存フォルダを作成
+        run: |
+          PREDICTION_DEST="predictions/${YEAR}/${MONTH}/${DAY}"
+          INPUT_DEST="daily_inputs/${YEAR}/${MONTH}/${DAY}"
+
+          echo "PREDICTION_DEST=${PREDICTION_DEST}" >> "$GITHUB_ENV"
+          echo "INPUT_DEST=${INPUT_DEST}" >> "$GITHUB_ENV"
+
+          mkdir -p "${PREDICTION_DEST}"
+          mkdir -p "${INPUT_DEST}"
+
+      - name: 朝予測を長期保存フォルダへコピー
+        run: |
+          cp \
+            "data/morning_predictions_${TARGET_DATE}.json" \
+            "${PREDICTION_DEST}/"
+
+          cp \
+            "data/morning_predictions_${TARGET_DATE}.csv" \
+            "${PREDICTION_DEST}/"
+
+          cp \
+            "data/morning_predictions_validation_${TARGET_DATE}.json" \
+            "${PREDICTION_DEST}/"
+
+          echo "========================================"
+          echo "朝予測保存内容"
+          echo "========================================"
+
+          find "${PREDICTION_DEST}" \
+            -maxdepth 1 \
+            -type f \
+            -print \
+            | sort
+
+      - name: 当日入力データを保存
+        run: |
+          cp \
+            "data/program_entries_${TARGET_DATE}.csv" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/program_races_${TARGET_DATE}.csv" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/program_manifest_${TARGET_DATE}.json" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/program_validation_${TARGET_DATE}.json" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/prediction_input_validation_morning_${TARGET_DATE}.json" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/prediction_input_enriched_validation_morning_${TARGET_DATE}.json" \
+            "${INPUT_DEST}/"
 
       - name: 朝予測成果物をArtifactへ短期保存
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-morning-prediction-${{ github.run_number }}
-          path: |
-            data/morning_predictions_20260930.json
-            data/morning_predictions_20260930.csv
-            data/morning_predictions_validation_20260930.json
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: 最終確認
-        run: |
-          echo "========================================"
-          echo "朝予測パイプライン 最終テスト完了"
-          echo "========================================"
-
-          echo "当日基本データ収集: PASS"
-          echo "朝prediction_input生成: PASS"
-          echo "30日・90日履歴結合: PASS"
-          echo "864艇スコア生成: PASS"
-          echo "144レース順位付け: PASS"
-          echo "結果漏洩防止: 有効"
-          echo ""
-          echo "次工程: 10月1日用の自動実行版へ移行"
+          name: boatrace-morning-prediction-${{
