@@ -15,7 +15,6 @@ from pathlib import Path
 
 import lhafile
 
-
 JST = timezone(timedelta(hours=9))
 DATA_DIR = Path("data")
 
@@ -28,27 +27,12 @@ VENUES = {
     "21": "芦屋", "22": "福岡", "23": "唐津", "24": "大村",
 }
 
-STADIUM_BEGIN = re.compile(
-    rb"^(\d{2})KBGN\s*$"
-)
+STADIUM_BEGIN = re.compile(rb"^(\d{2})KBGN\s*$")
+STADIUM_END = re.compile(rb"^(\d{2})KEND\s*$")
+RACE_HEADER = re.compile(r"^\s*(\d{1,2})R(?:\s|$)")
+RESULT_ROW = re.compile(r"^\s*(\S+)\s+([1-6])\s+(\d{4})\s+(.+?)\s*$")
 
-STADIUM_END = re.compile(
-    rb"^(\d{2})KEND\s*$"
-)
-
-RACE_HEADER = re.compile(
-    r"^\s*(\d{1,2})R(?:\s|$)"
-)
-
-RESULT_ROW = re.compile(
-    r"^\s*(\S+)\s+([1-6])\s+(\d{4})\s+(.+?)\s*$"
-)
-
-VENUE_FIELDS = [
-    "date",
-    "venue_code",
-    "venue_name",
-]
+VENUE_FIELDS = ["date", "venue_code", "venue_name"]
 
 RESULT_FIELDS = [
     "date",
@@ -100,20 +84,11 @@ def decode(data):
     )
 
 
-def compact_name(text):
-    return re.sub(
-        r"\s+",
-        "",
-        normalize(text),
-    )
-
-
 def safe_int(value):
     try:
         return int(
             str(value).strip()
         )
-
     except (
         TypeError,
         ValueError,
@@ -122,11 +97,11 @@ def safe_int(value):
 
 
 def safe_float(value):
-    text = str(
+    value = str(
         value
     ).strip()
 
-    if text in {
+    if value in {
         "",
         ".",
         "-",
@@ -135,9 +110,8 @@ def safe_float(value):
 
     try:
         return float(
-            text
+            value
         )
-
     except ValueError:
         return None
 
@@ -227,24 +201,6 @@ def normalize_st(value):
     return ""
 
 
-def normalize_race_time(parts):
-    value = "".join(
-        parts
-    ).strip()
-
-    if not value:
-        return ""
-
-    if not any(
-        char.isdigit()
-        for char
-        in value
-    ):
-        return ""
-
-    return value
-
-
 def build_url(target_date):
     dt = datetime.strptime(
         target_date,
@@ -276,7 +232,6 @@ def fetch(
         1,
         retries + 1,
     ):
-
         try:
             request = (
                 urllib.request.Request(
@@ -343,21 +298,22 @@ def extract_lzh(data):
                 "LZH内にファイルがありません"
             )
 
-        payloads = [
-            archive.read(
+        parts = []
+
+        for name in sorted(
+            names
+        ):
+            payload = archive.read(
                 name
             )
-            for name
-            in sorted(
-                names
-            )
-        ]
+
+            if payload:
+                parts.append(
+                    payload
+                )
 
         result = b"".join(
-            payload
-            for payload
-            in payloads
-            if payload
+            parts
         )
 
         if not result:
@@ -421,66 +377,48 @@ def parse_result_row(raw):
     if not name_match:
         return None
 
-    racer_name = compact_name(
-        name_match.group(1)
+    racer_name = re.sub(
+        r"\s+",
+        "",
+        name_match.group(1),
     )
 
-    numeric_part = (
-        rest[
-            len(
-                name_match.group(1)
-            ):
-        ]
-    )
+    numeric_part = rest[
+        len(
+            name_match.group(1)
+        ):
+    ]
 
     fields = (
         numeric_part.split()
     )
 
-    # Kファイル艇別結果の並び
-    # motor_no
-    # boat_no
-    # exhibition_time
-    # course
-    # st
-    # race_time
+    # Kファイル艇別結果
+    # motor_no / boat_no / exhibition_time / course / st / race_time
     if len(
         fields
     ) < 5:
         return None
 
-    motor_no = safe_int(
-        fields[0]
-    )
+    race_time = "".join(
+        fields[5:]
+    ).strip()
 
-    boat_no = safe_int(
-        fields[1]
-    )
-
-    exhibition_time = (
-        safe_float(
-            fields[2]
+    if (
+        race_time
+        and not any(
+            char.isdigit()
+            for char in race_time
         )
-    )
-
-    course = safe_int(
-        fields[3]
-    )
-
-    st = normalize_st(
-        fields[4]
-    )
-
-    race_time = (
-        normalize_race_time(
-            fields[5:]
-        )
-    )
+    ):
+        race_time = ""
 
     return {
         "boat": boat,
 
-        "course": course,
+        "course": safe_int(
+            fields[3]
+        ),
 
         "registration_no": (
             registration_no
@@ -490,21 +428,25 @@ def parse_result_row(raw):
             racer_name
         ),
 
-        "motor_no": (
-            motor_no
+        "motor_no": safe_int(
+            fields[0]
         ),
 
-        "boat_no": (
-            boat_no
+        "boat_no": safe_int(
+            fields[1]
         ),
 
         "exhibition_time": (
-            exhibition_time
+            safe_float(
+                fields[2]
+            )
         ),
 
         "finish": finish,
 
-        "st": st,
+        "st": normalize_st(
+            fields[4]
+        ),
 
         "race_time": (
             race_time
@@ -517,10 +459,6 @@ def payout_from_line(
     label,
     arity,
 ):
-    flat = normalize(
-        text
-    )
-
     combo_pattern = "-".join(
         [
             r"[1-6]"
@@ -534,7 +472,7 @@ def payout_from_line(
         rf"({combo_pattern})"
         rf"\s*"
         rf"([\d,]+)",
-        flat,
+        normalize(text),
     )
 
     if not match:
@@ -570,17 +508,14 @@ def write_csv(
         newline="",
     ) as f:
 
-        writer = (
-            csv.DictWriter(
-                f,
-                fieldnames=fields,
-            )
+        writer = csv.DictWriter(
+            f,
+            fieldnames=fields,
         )
 
         writer.writeheader()
 
         for row in rows:
-
             writer.writerow(
                 {
                     field: row.get(
@@ -604,7 +539,6 @@ def filter_complete_races(
     boats_by_race = {}
 
     for row in boats:
-
         boats_by_race.setdefault(
             row[
                 "race_id"
@@ -615,13 +549,11 @@ def filter_complete_races(
         )
 
     valid_race_ids = set()
-
     excluded = []
 
     for key in sorted(
         races
     ):
-
         race = races[
             key
         ]
@@ -630,17 +562,18 @@ def filter_complete_races(
             "race_id"
         ]
 
-        rows = boats_by_race.get(
-            race_id,
-            [],
+        rows = (
+            boats_by_race.get(
+                race_id,
+                [],
+            )
         )
 
-        numbers = {
+        boat_numbers = {
             row[
                 "boat"
             ]
-            for row
-            in rows
+            for row in rows
             if row.get(
                 "boat"
             )
@@ -651,7 +584,7 @@ def filter_complete_races(
             len(
                 rows
             ) == 6
-            and numbers
+            and boat_numbers
             == {
                 1,
                 2,
@@ -673,7 +606,7 @@ def filter_complete_races(
             )
 
         elif len(
-            numbers
+            boat_numbers
         ) != len(
             rows
         ):
@@ -709,7 +642,7 @@ def filter_complete_races(
                 ),
 
                 "boat_numbers": sorted(
-                    numbers
+                    boat_numbers
                 ),
 
                 "reason": reason,
@@ -720,8 +653,7 @@ def filter_complete_races(
         races[
             key
         ]
-        for key
-        in sorted(
+        for key in sorted(
             races
         )
         if races[
@@ -734,8 +666,7 @@ def filter_complete_races(
 
     complete_boats = [
         row
-        for row
-        in boats
+        for row in boats
         if row[
             "race_id"
         ]
@@ -747,13 +678,11 @@ def filter_complete_races(
             row[
                 "venue_code"
             ],
-
             int(
                 row[
                     "race"
                 ]
             ),
-
             int(
                 row[
                     "boat"
@@ -766,8 +695,7 @@ def filter_complete_races(
         row[
             "venue_code"
         ]
-        for row
-        in complete_races
+        for row in complete_races
     }
 
     complete_venues = [
@@ -786,8 +714,7 @@ def filter_complete_races(
                 )
             ),
         }
-        for code
-        in sorted(
+        for code in sorted(
             valid_venues
         )
     ]
@@ -814,13 +741,10 @@ def parse_payload(
     target_date,
 ):
     venues_seen = {}
-
     races = {}
-
     boats = []
 
     current_venue = None
-
     current_race = None
 
     for raw in payload.splitlines():
@@ -832,7 +756,6 @@ def parse_payload(
         )
 
         if begin:
-
             current_venue = (
                 begin
                 .group(1)
@@ -855,9 +778,7 @@ def parse_payload(
         if STADIUM_END.match(
             raw
         ):
-
             current_venue = None
-
             current_race = None
 
             continue
@@ -878,7 +799,6 @@ def parse_payload(
         )
 
         if header:
-
             current_race = int(
                 header.group(1)
             )
@@ -945,7 +865,6 @@ def parse_payload(
         )
 
         if parsed is not None:
-
             boats.append(
                 {
                     "date": (
@@ -987,7 +906,6 @@ def parse_payload(
         )
 
         if trifecta:
-
             race[
                 "trifecta"
             ] = trifecta
@@ -1008,7 +926,6 @@ def parse_payload(
         )
 
         if exacta:
-
             race[
                 "exacta"
             ] = exacta
@@ -1049,8 +966,7 @@ def basic_validate(
         row[
             "race_id"
         ]
-        for row
-        in races
+        for row in races
     ]
 
     if len(
@@ -1069,13 +985,11 @@ def basic_validate(
             row[
                 "race_id"
             ],
-
             row[
                 "boat"
             ],
         )
-        for row
-        in boats
+        for row in boats
     ]
 
     if len(
@@ -1090,16 +1004,12 @@ def basic_validate(
         )
 
     counts = {}
-
-    number_sets = {}
+    boat_sets = {}
 
     for row in boats:
-
-        race_id = (
-            row[
-                "race_id"
-            ]
-        )
+        race_id = row[
+            "race_id"
+        ]
 
         counts[
             race_id
@@ -1111,7 +1021,7 @@ def basic_validate(
             + 1
         )
 
-        number_sets.setdefault(
+        boat_sets.setdefault(
             race_id,
             set(),
         ).add(
@@ -1130,7 +1040,7 @@ def basic_validate(
                 0,
             )
             != 6
-            or number_sets.get(
+            or boat_sets.get(
                 race_id,
                 set(),
             )
@@ -1147,14 +1057,13 @@ def basic_validate(
 
     if bad_races:
         raise RuntimeError(
-            "6艇揃っていないレースが残っています: "
+            "6艇揃っていないレースが"
+            f"残っています: "
             f"{len(bad_races)}件"
         )
 
     bad_motor = []
-
     bad_boat = []
-
     bad_exhibition = []
 
     for row in boats:
@@ -1171,12 +1080,15 @@ def basic_validate(
             "exhibition_time"
         )
 
+        # 3桁のボートNoも正式に存在するため
+        # 1～999を正常範囲とする。
         if (
-            motor_no is not None
+            motor_no
+            is not None
             and not (
                 1
                 <= motor_no
-                <= 99
+                <= 999
             )
         ):
             bad_motor.append(
@@ -1184,21 +1096,20 @@ def basic_validate(
                     row[
                         "race_id"
                     ],
-
                     row[
                         "boat"
                     ],
-
                     motor_no,
                 )
             )
 
         if (
-            boat_no is not None
+            boat_no
+            is not None
             and not (
                 1
                 <= boat_no
-                <= 99
+                <= 999
             )
         ):
             bad_boat.append(
@@ -1206,11 +1117,9 @@ def basic_validate(
                     row[
                         "race_id"
                     ],
-
                     row[
                         "boat"
                     ],
-
                     boat_no,
                 )
             )
@@ -1229,17 +1138,14 @@ def basic_validate(
                     row[
                         "race_id"
                     ],
-
                     row[
                         "boat"
                     ],
-
                     exhibition,
                 )
             )
 
     if bad_motor:
-
         raise RuntimeError(
             "motor_no値異常: "
             f"{len(bad_motor)}件 "
@@ -1247,7 +1153,6 @@ def basic_validate(
         )
 
     if bad_boat:
-
         raise RuntimeError(
             "boat_no値異常: "
             f"{len(bad_boat)}件 "
@@ -1255,7 +1160,6 @@ def basic_validate(
         )
 
     if bad_exhibition:
-
         raise RuntimeError(
             "exhibition_time値異常: "
             f"{len(bad_exhibition)}件 "
@@ -1267,8 +1171,7 @@ def basic_validate(
             "motor_no"
         )
         is not None
-        for row
-        in boats
+        for row in boats
     )
 
     boat_count = sum(
@@ -1276,8 +1179,7 @@ def basic_validate(
             "boat_no"
         )
         is not None
-        for row
-        in boats
+        for row in boats
     )
 
     exhibition_count = sum(
@@ -1285,8 +1187,7 @@ def basic_validate(
             "exhibition_time"
         )
         is not None
-        for row
-        in boats
+        for row in boats
     )
 
     print("")
@@ -1299,12 +1200,12 @@ def basic_validate(
     )
 
     print(
-        "motor_no取得: "
+        f"motor_no取得: "
         f"{motor_count}/{len(boats)}"
     )
 
     print(
-        "boat_no取得: "
+        f"boat_no取得: "
         f"{boat_count}/{len(boats)}"
     )
 
@@ -1347,9 +1248,7 @@ def write_excluded_json(
     )
 
     payload = {
-        "target_date": (
-            target_date
-        ),
+        "target_date": target_date,
 
         "excluded_count": len(
             LAST_EXCLUDED_RACES
@@ -1422,14 +1321,12 @@ def main():
     )
 
     try:
-
         datetime.strptime(
             target_date,
             "%Y%m%d",
         )
 
     except ValueError:
-
         print(
             "ERROR: "
             "日付はYYYYMMDD形式で指定してください",
@@ -1463,7 +1360,6 @@ def main():
     )
 
     try:
-
         payload = extract_lzh(
             fetch(
                 url
@@ -1575,7 +1471,6 @@ def main():
         return 0
 
     except Exception as exc:
-
         print(
             f"ERROR: {exc}",
             file=sys.stderr,
