@@ -1,0 +1,77 @@
+name: 直前情報＋予測入力テスト
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test_prediction_pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: dataフォルダを準備
+        run: mkdir -p data
+
+      - name: 直前情報を5レースだけテスト収集
+        run: |
+          echo "========================================"
+          echo "直前情報5レーステスト"
+          echo "========================================"
+
+          python -u collectors/today_beforeinfo.py \
+            --mode sample \
+            --sample-count 5
+
+      - name: 直前版prediction_inputを生成
+        run: |
+          echo "========================================"
+          echo "直前版prediction_input生成"
+          echo "========================================"
+
+          python -u collectors/build_prediction_input.py \
+            --stage live
+
+      - name: テスト結果確認
+        run: |
+          echo "========================================"
+          echo "生成ファイル"
+          echo "========================================"
+
+          find data -type f \
+            \( \
+              -name "beforeinfo_*.csv" \
+              -o -name "beforeinfo_*.json" \
+              -o -name "prediction_input_live_*.json" \
+              -o -name "prediction_input_validation_live_*.json" \
+            \) \
+            -print | sort
+
+          echo ""
+          echo "========================================"
+          echo "prediction pipeline TEST PASS"
+          echo "========================================"
+
+      - name: テスト成果物を保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: prediction-pipeline-test-${{ github.run_number }}
+          path: |
+            data/beforeinfo_*.csv
+            data/beforeinfo_*.json
+            data/prediction_input_live_*.json
+            data/prediction_input_validation_live_*.json
+          if-no-files-found: error
+          retention-days: 7
