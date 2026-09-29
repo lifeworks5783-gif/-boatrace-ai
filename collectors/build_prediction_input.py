@@ -8,38 +8,27 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-
 JST = timezone(timedelta(hours=9))
-
 DATA_DIR = Path("data")
-
-
-# ============================================================
-# 予測時点では絶対に混入させない結果系データ
-# ============================================================
 
 FORBIDDEN_KEYS = {
     "finish",
-    "着順",
     "actual_course",
-    "実コース",
     "actual_st",
-    "実ST",
     "race_time",
-    "レースタイム",
     "trifecta",
     "trifecta_pay",
     "exacta",
     "exacta_pay",
     "payout",
+    "着順",
+    "実コース",
+    "実ST",
+    "レースタイム",
     "払戻",
     "決まり手",
 }
 
-
-# ============================================================
-# 基本ユーティリティ
-# ============================================================
 
 def safe_float(value):
     if value is None:
@@ -52,11 +41,7 @@ def safe_float(value):
 
     try:
         number = float(text)
-
-        if math.isnan(number):
-            return None
-
-        return number
+        return None if math.isnan(number) else number
 
     except (ValueError, TypeError):
         return None
@@ -85,9 +70,7 @@ def safe_bool(value):
     if value is None:
         return False
 
-    text = str(value).strip().lower()
-
-    return text in {
+    return str(value).strip().lower() in {
         "true",
         "1",
         "yes",
@@ -103,34 +86,57 @@ def mean(values):
         if value is not None
     ]
 
-    if not valid:
-        return None
-
-    return sum(valid) / len(valid)
+    return (
+        sum(valid) / len(valid)
+        if valid
+        else None
+    )
 
 
 def round_or_none(
     value,
     digits=3,
 ):
-    if value is None:
-        return None
+    return (
+        None
+        if value is None
+        else round(value, digits)
+    )
 
-    return round(value, digits)
 
+def read_csv(
+    path: Path,
+) -> list[dict]:
 
-def read_csv(path: Path) -> list[dict]:
     with path.open(
         "r",
         encoding="utf-8",
         newline="",
     ) as f:
-        return list(csv.DictReader(f))
+        return list(
+            csv.DictReader(f)
+        )
 
 
-# ============================================================
-# ファイル探索
-# ============================================================
+def write_json(
+    path: Path,
+    data,
+) -> None:
+
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    path.write_text(
+        json.dumps(
+            data,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
 
 def archive_day_dir(
     target_date: str,
@@ -155,13 +161,18 @@ def find_file(
     archive_subdir: str,
     required: bool = True,
 ):
-    direct = DATA_DIR / filename
+    direct = (
+        DATA_DIR
+        / filename
+    )
 
     if direct.exists():
         return direct
 
     archived = (
-        archive_day_dir(target_date)
+        archive_day_dir(
+            target_date
+        )
         / archive_subdir
         / filename
     )
@@ -171,21 +182,17 @@ def find_file(
 
     if required:
         raise FileNotFoundError(
-            f"必要ファイルが見つかりません: "
-            f"{filename}"
+            f"必要ファイルが見つかりません: {filename}"
         )
 
     return None
 
 
-# ============================================================
-# ランク計算
-# ============================================================
-
 def rank_desc(
     boats: list[dict],
     field: str,
-):
+) -> dict[int, int]:
+
     pairs = []
 
     for boat in boats:
@@ -208,8 +215,8 @@ def rank_desc(
 
     result = {}
 
-    current_rank = 0
     previous_value = None
+    current_rank = 0
 
     for index, (
         boat_no,
@@ -224,7 +231,10 @@ def rank_desc(
         ):
             current_rank = index
 
-        result[boat_no] = current_rank
+        result[boat_no] = (
+            current_rank
+        )
+
         previous_value = value
 
     return result
@@ -233,7 +243,8 @@ def rank_desc(
 def rank_asc(
     boats: list[dict],
     field: str,
-):
+) -> dict[int, int]:
+
     pairs = []
 
     for boat in boats:
@@ -255,8 +266,8 @@ def rank_asc(
 
     result = {}
 
-    current_rank = 0
     previous_value = None
+    current_rank = 0
 
     for index, (
         boat_no,
@@ -271,15 +282,28 @@ def rank_asc(
         ):
             current_rank = index
 
-        result[boat_no] = current_rank
+        result[boat_no] = (
+            current_rank
+        )
+
         previous_value = value
 
     return result
 
 
-# ============================================================
-# データ結合
-# ============================================================
+def build_base_entry_map(
+    rows: list[dict],
+):
+    return {
+        (
+            row["race_id"],
+            safe_int(
+                row.get("boat")
+            ),
+        ): row
+        for row in rows
+    }
+
 
 def build_beforeinfo_maps(
     race_rows: list[dict],
@@ -293,29 +317,18 @@ def build_beforeinfo_maps(
     entry_map = {
         (
             row["race_id"],
-            safe_int(row["boat"]),
+            safe_int(
+                row.get("boat")
+            ),
         ): row
         for row in entry_rows
     }
 
-    return race_map, entry_map
+    return (
+        race_map,
+        entry_map,
+    )
 
-
-def build_base_entry_map(
-    rows: list[dict],
-):
-    return {
-        (
-            row["race_id"],
-            safe_int(row["boat"]),
-        ): row
-        for row in rows
-    }
-
-
-# ============================================================
-# 1レース分を予測入力化
-# ============================================================
 
 def build_race(
     race: dict,
@@ -324,344 +337,393 @@ def build_race(
     before_entry_map: dict,
     stage: str,
 ):
-    race_id = race["race_id"]
+    race_id = (
+        race["race_id"]
+    )
 
-    live_race = before_race_map.get(
-        race_id
+    live_race = (
+        before_race_map.get(
+            race_id
+        )
     )
 
     boats = []
 
-    for boat_no in range(1, 7):
-        base = base_entry_map.get(
-            (
-                race_id,
-                boat_no,
+    for boat_no in range(
+        1,
+        7,
+    ):
+        base = (
+            base_entry_map.get(
+                (
+                    race_id,
+                    boat_no,
+                )
             )
         )
 
         if base is None:
             continue
 
-        live = before_entry_map.get(
-            (
-                race_id,
-                boat_no,
+        live = (
+            before_entry_map.get(
+                (
+                    race_id,
+                    boat_no,
+                )
             )
         )
 
-        row = {
-            "boat": boat_no,
+        boats.append(
+            {
+                "boat": boat_no,
 
-            "racer": {
-                "registration_no": safe_int(
-                    base.get(
-                        "registration_no"
-                    )
-                ),
-                "name": base.get(
-                    "racer_name",
-                    "",
-                ),
-                "age": safe_int(
-                    base.get("age")
-                ),
-                "branch": base.get(
-                    "branch",
-                    "",
-                ),
-                "grade": base.get(
-                    "grade",
-                    "",
-                ),
-            },
-
-            "official_stats": {
-                "national_win_rate": safe_float(
-                    base.get(
-                        "national_win_rate"
-                    )
-                ),
-                "national_top2_rate": safe_float(
-                    base.get(
-                        "national_top2_rate"
-                    )
-                ),
-                "local_win_rate": safe_float(
-                    base.get(
-                        "local_win_rate"
-                    )
-                ),
-                "local_top2_rate": safe_float(
-                    base.get(
-                        "local_top2_rate"
-                    )
-                ),
-            },
-
-            "motor": {
-                "motor_no": safe_int(
-                    base.get(
-                        "motor_no"
-                    )
-                ),
-                "official_top2_rate": safe_float(
-                    base.get(
-                        "motor_top2_rate"
-                    )
-                ),
-            },
-
-            "boat_machine": {
-                "boat_no": safe_int(
-                    base.get(
-                        "boat_no"
-                    )
-                ),
-                "official_top2_rate": safe_float(
-                    base.get(
-                        "boat_top2_rate"
-                    )
-                ),
-            },
-
-            "series": {
-                "results_raw": base.get(
-                    "series_results_raw",
-                    "",
-                ),
-                "early_race_raw": base.get(
-                    "early_race_raw",
-                    "",
-                ),
-            },
-
-            "morning_weight_kg": safe_float(
-                base.get(
-                    "weight_kg"
-                )
-            ),
-
-            "beforeinfo": {
-                "available": (
-                    live is not None
-                ),
-                "weight_kg": (
-                    safe_float(
-                        live.get(
-                            "weight_kg"
+                "racer": {
+                    "registration_no": safe_int(
+                        base.get(
+                            "registration_no"
                         )
-                    )
-                    if live
-                    else None
-                ),
-                "exhibition_time": (
-                    safe_float(
-                        live.get(
-                            "exhibition_time"
-                        )
-                    )
-                    if live
-                    else None
-                ),
-                "tilt": (
-                    safe_float(
-                        live.get("tilt")
-                    )
-                    if live
-                    else None
-                ),
-                "exhibition_course": (
-                    safe_int(
-                        live.get(
-                            "exhibition_course"
-                        )
-                    )
-                    if live
-                    else None
-                ),
-                "exhibition_st_raw": (
-                    live.get(
-                        "exhibition_st_raw",
+                    ),
+                    "name": base.get(
+                        "racer_name",
                         "",
-                    )
-                    if live
-                    else ""
-                ),
-                "exhibition_st_seconds": (
-                    safe_float(
-                        live.get(
-                            "exhibition_st_seconds"
-                        )
-                    )
-                    if live
-                    else None
-                ),
-                "exhibition_st_flag": (
-                    live.get(
-                        "exhibition_st_flag",
+                    ),
+                    "age": safe_int(
+                        base.get("age")
+                    ),
+                    "branch": base.get(
+                        "branch",
                         "",
-                    )
-                    if live
-                    else ""
-                ),
-                "change_parts": (
-                    live.get(
-                        "change_parts",
+                    ),
+                    "grade": base.get(
+                        "grade",
                         "",
-                    )
-                    if live
-                    else ""
-                ),
-                "is_miss": (
-                    safe_bool(
-                        live.get(
-                            "is_miss"
+                    ),
+                },
+
+                "official_stats": {
+                    "national_win_rate": safe_float(
+                        base.get(
+                            "national_win_rate"
                         )
+                    ),
+                    "national_top2_rate": safe_float(
+                        base.get(
+                            "national_top2_rate"
+                        )
+                    ),
+                    "local_win_rate": safe_float(
+                        base.get(
+                            "local_win_rate"
+                        )
+                    ),
+                    "local_top2_rate": safe_float(
+                        base.get(
+                            "local_top2_rate"
+                        )
+                    ),
+                },
+
+                "motor": {
+                    "motor_no": safe_int(
+                        base.get(
+                            "motor_no"
+                        )
+                    ),
+                    "official_top2_rate": safe_float(
+                        base.get(
+                            "motor_top2_rate"
+                        )
+                    ),
+                },
+
+                "boat_machine": {
+                    "boat_no": safe_int(
+                        base.get(
+                            "boat_no"
+                        )
+                    ),
+                    "official_top2_rate": safe_float(
+                        base.get(
+                            "boat_top2_rate"
+                        )
+                    ),
+                },
+
+                "series": {
+                    "results_raw": base.get(
+                        "series_results_raw",
+                        "",
+                    ),
+                    "early_race_raw": base.get(
+                        "early_race_raw",
+                        "",
+                    ),
+                },
+
+                "morning_weight_kg": safe_float(
+                    base.get(
+                        "weight_kg"
                     )
-                    if live
-                    else False
                 ),
-            },
 
-            # 30日・90日履歴は
-            # 次の開発段階でGitHub集計値を接続する。
-            # 「0」ではなく unavailable とする。
-            "history": {
-                "racer_30d_available": False,
-                "racer_90d_available": False,
-                "motor_30d_available": False,
-                "motor_90d_available": False,
+                "beforeinfo": {
+                    "available": (
+                        live is not None
+                    ),
 
-                "racer_30d": None,
-                "racer_90d": None,
-                "motor_30d": None,
-                "motor_90d": None,
-            },
-        }
+                    "weight_kg": (
+                        safe_float(
+                            live.get(
+                                "weight_kg"
+                            )
+                        )
+                        if live
+                        else None
+                    ),
 
-        boats.append(row)
+                    "exhibition_time": (
+                        safe_float(
+                            live.get(
+                                "exhibition_time"
+                            )
+                        )
+                        if live
+                        else None
+                    ),
 
-    # ========================================================
-    # レース内相対評価
-    # ========================================================
+                    "tilt": (
+                        safe_float(
+                            live.get(
+                                "tilt"
+                            )
+                        )
+                        if live
+                        else None
+                    ),
+
+                    "exhibition_course": (
+                        safe_int(
+                            live.get(
+                                "exhibition_course"
+                            )
+                        )
+                        if live
+                        else None
+                    ),
+
+                    "exhibition_st_raw": (
+                        live.get(
+                            "exhibition_st_raw",
+                            "",
+                        )
+                        if live
+                        else ""
+                    ),
+
+                    "exhibition_st_seconds": (
+                        safe_float(
+                            live.get(
+                                "exhibition_st_seconds"
+                            )
+                        )
+                        if live
+                        else None
+                    ),
+
+                    "exhibition_st_flag": (
+                        live.get(
+                            "exhibition_st_flag",
+                            "",
+                        )
+                        if live
+                        else ""
+                    ),
+
+                    "change_parts": (
+                        live.get(
+                            "change_parts",
+                            "",
+                        )
+                        if live
+                        else ""
+                    ),
+
+                    "is_miss": (
+                        safe_bool(
+                            live.get(
+                                "is_miss"
+                            )
+                        )
+                        if live
+                        else False
+                    ),
+                },
+
+                "history": {
+                    "racer_30d_available": False,
+                    "racer_90d_available": False,
+                    "motor_30d_available": False,
+                    "motor_90d_available": False,
+
+                    "racer_30d": None,
+                    "racer_90d": None,
+                    "motor_30d": None,
+                    "motor_90d": None,
+                },
+            }
+        )
 
     flat_boats = []
 
     for boat in boats:
         flat_boats.append(
             {
-                "boat": boat["boat"],
+                "boat": (
+                    boat["boat"]
+                ),
 
-                "national_win_rate":
+                "national_win_rate": (
                     boat[
                         "official_stats"
                     ][
                         "national_win_rate"
-                    ],
+                    ]
+                ),
 
-                "local_win_rate":
+                "local_win_rate": (
                     boat[
                         "official_stats"
                     ][
                         "local_win_rate"
-                    ],
+                    ]
+                ),
 
-                "motor_top2_rate":
+                "motor_top2_rate": (
                     boat[
                         "motor"
                     ][
                         "official_top2_rate"
-                    ],
+                    ]
+                ),
 
-                "boat_top2_rate":
+                "boat_top2_rate": (
                     boat[
                         "boat_machine"
                     ][
                         "official_top2_rate"
-                    ],
+                    ]
+                ),
 
-                "exhibition_time":
+                "exhibition_time": (
                     boat[
                         "beforeinfo"
                     ][
                         "exhibition_time"
-                    ],
+                    ]
+                ),
             }
         )
 
-    national_rank = rank_desc(
-        flat_boats,
-        "national_win_rate",
+    national_rank = (
+        rank_desc(
+            flat_boats,
+            "national_win_rate",
+        )
     )
 
-    local_rank = rank_desc(
-        flat_boats,
-        "local_win_rate",
+    local_rank = (
+        rank_desc(
+            flat_boats,
+            "local_win_rate",
+        )
     )
 
-    motor_rank = rank_desc(
-        flat_boats,
-        "motor_top2_rate",
+    motor_rank = (
+        rank_desc(
+            flat_boats,
+            "motor_top2_rate",
+        )
     )
 
-    boat_rank = rank_desc(
-        flat_boats,
-        "boat_top2_rate",
+    boat_rank = (
+        rank_desc(
+            flat_boats,
+            "boat_top2_rate",
+        )
     )
 
-    exhibition_rank = rank_asc(
-        flat_boats,
-        "exhibition_time",
+    exhibition_rank = (
+        rank_asc(
+            flat_boats,
+            "exhibition_time",
+        )
     )
 
-    national_mean = mean(
-        [
-            item[
-                "national_win_rate"
+    national_mean = (
+        mean(
+            [
+                row[
+                    "national_win_rate"
+                ]
+                for row
+                in flat_boats
             ]
-            for item in flat_boats
-        ]
+        )
     )
 
-    local_mean = mean(
-        [
-            item[
-                "local_win_rate"
+    local_mean = (
+        mean(
+            [
+                row[
+                    "local_win_rate"
+                ]
+                for row
+                in flat_boats
             ]
-            for item in flat_boats
-        ]
+        )
     )
 
-    motor_mean = mean(
-        [
-            item[
-                "motor_top2_rate"
+    motor_mean = (
+        mean(
+            [
+                row[
+                    "motor_top2_rate"
+                ]
+                for row
+                in flat_boats
             ]
-            for item in flat_boats
-        ]
+        )
     )
 
-    boat_mean = mean(
-        [
-            item[
-                "boat_top2_rate"
+    boat_mean = (
+        mean(
+            [
+                row[
+                    "boat_top2_rate"
+                ]
+                for row
+                in flat_boats
             ]
-            for item in flat_boats
-        ]
+        )
     )
 
-    exhibition_mean = mean(
-        [
-            item[
-                "exhibition_time"
+    exhibition_mean = (
+        mean(
+            [
+                row[
+                    "exhibition_time"
+                ]
+                for row
+                in flat_boats
             ]
-            for item in flat_boats
-        ]
+        )
     )
 
     for boat in boats:
-        boat_no = boat["boat"]
+        boat_no = (
+            boat["boat"]
+        )
 
         national = (
             boat[
@@ -704,32 +766,37 @@ def build_race(
         )
 
         boat["relative"] = {
-            "national_win_rank":
+            "national_win_rank": (
                 national_rank.get(
                     boat_no
-                ),
+                )
+            ),
 
-            "local_win_rank":
+            "local_win_rank": (
                 local_rank.get(
                     boat_no
-                ),
+                )
+            ),
 
-            "motor_top2_rank":
+            "motor_top2_rank": (
                 motor_rank.get(
                     boat_no
-                ),
+                )
+            ),
 
-            "boat_top2_rank":
+            "boat_top2_rank": (
                 boat_rank.get(
                     boat_no
-                ),
+                )
+            ),
 
-            "exhibition_time_rank":
+            "exhibition_time_rank": (
                 exhibition_rank.get(
                     boat_no
-                ),
+                )
+            ),
 
-            "national_win_vs_field":
+            "national_win_vs_field": (
                 round_or_none(
                     (
                         national
@@ -737,13 +804,13 @@ def build_race(
                     )
                     if (
                         national is not None
-                        and national_mean
-                        is not None
+                        and national_mean is not None
                     )
                     else None
-                ),
+                )
+            ),
 
-            "local_win_vs_field":
+            "local_win_vs_field": (
                 round_or_none(
                     (
                         local
@@ -751,13 +818,13 @@ def build_race(
                     )
                     if (
                         local is not None
-                        and local_mean
-                        is not None
+                        and local_mean is not None
                     )
                     else None
-                ),
+                )
+            ),
 
-            "motor_top2_vs_field":
+            "motor_top2_vs_field": (
                 round_or_none(
                     (
                         motor
@@ -765,13 +832,13 @@ def build_race(
                     )
                     if (
                         motor is not None
-                        and motor_mean
-                        is not None
+                        and motor_mean is not None
                     )
                     else None
-                ),
+                )
+            ),
 
-            "boat_top2_vs_field":
+            "boat_top2_vs_field": (
                 round_or_none(
                     (
                         boat_rate
@@ -779,39 +846,27 @@ def build_race(
                     )
                     if (
                         boat_rate is not None
-                        and boat_mean
-                        is not None
+                        and boat_mean is not None
                     )
                     else None
-                ),
+                )
+            ),
 
-            # 展示タイムは小さい方が良いため
-            # 平均 - 本艇 とする。
-            # 正なら場内平均より速い。
-            "exhibition_time_advantage":
+            "exhibition_time_advantage": (
                 round_or_none(
                     (
                         exhibition_mean
                         - exhibition
                     )
                     if (
-                        exhibition
-                        is not None
-                        and exhibition_mean
-                        is not None
+                        exhibition is not None
+                        and exhibition_mean is not None
                     )
                     else None,
                     3,
-                ),
+                )
+            ),
         }
-
-    # ========================================================
-    # 直前情報
-    # ========================================================
-
-    before_available = (
-        live_race is not None
-    )
 
     weather = None
 
@@ -821,35 +876,42 @@ def build_race(
                 "weather",
                 "",
             ),
+
             "air_temperature_c": safe_float(
                 live_race.get(
                     "air_temperature_c"
                 )
             ),
+
             "water_temperature_c": safe_float(
                 live_race.get(
                     "water_temperature_c"
                 )
             ),
+
             "wind_speed_mps": safe_float(
                 live_race.get(
                     "wind_speed_mps"
                 )
             ),
+
             "wind_direction_code": safe_int(
                 live_race.get(
                     "wind_direction_code"
                 )
             ),
+
             "wind_direction": live_race.get(
                 "wind_direction",
                 "",
             ),
+
             "wave_height_cm": safe_float(
                 live_race.get(
                     "wave_height_cm"
                 )
             ),
+
             "stabilizer": safe_bool(
                 live_race.get(
                     "stabilizer"
@@ -857,41 +919,52 @@ def build_race(
             ),
         }
 
-    race_object = {
+    return {
         "race_id": race_id,
+
         "date": race.get(
             "date",
             "",
         ),
+
         "venue_code": race.get(
             "venue_code",
             "",
         ),
+
         "venue_name": race.get(
             "venue_name",
             "",
         ),
+
         "race": safe_int(
-            race.get("race")
+            race.get(
+                "race"
+            )
         ),
+
         "race_name": race.get(
             "race_name",
             "",
         ),
+
         "distance_m": safe_int(
             race.get(
                 "distance_m"
             )
         ),
+
         "deadline": race.get(
             "deadline",
             "",
         ),
+
         "series_day": safe_int(
             race.get(
                 "series_day"
             )
         ),
+
         "fixed_course": (
             safe_bool(
                 live_race.get(
@@ -910,38 +983,43 @@ def build_race(
 
         "beforeinfo_status": (
             "ready"
-            if before_available
+            if live_race is not None
             else "not_available"
         ),
 
         "weather": weather,
 
         "field_summary": {
-            "national_win_rate_mean":
+            "national_win_rate_mean": (
                 round_or_none(
                     national_mean
-                ),
+                )
+            ),
 
-            "local_win_rate_mean":
+            "local_win_rate_mean": (
                 round_or_none(
                     local_mean
-                ),
+                )
+            ),
 
-            "motor_top2_rate_mean":
+            "motor_top2_rate_mean": (
                 round_or_none(
                     motor_mean
-                ),
+                )
+            ),
 
-            "boat_top2_rate_mean":
+            "boat_top2_rate_mean": (
                 round_or_none(
                     boat_mean
-                ),
+                )
+            ),
 
-            "exhibition_time_mean":
+            "exhibition_time_mean": (
                 round_or_none(
                     exhibition_mean,
                     3,
-                ),
+                )
+            ),
         },
 
         "history_status": {
@@ -954,12 +1032,6 @@ def build_race(
         "boats": boats,
     }
 
-    return race_object
-
-
-# ============================================================
-# リーク検査
-# ============================================================
 
 def scan_forbidden_keys(
     obj,
@@ -972,6 +1044,7 @@ def scan_forbidden_keys(
         dict,
     ):
         for key, value in obj.items():
+
             if key in FORBIDDEN_KEYS:
                 found.append(
                     f"{path}.{key}"
@@ -988,7 +1061,9 @@ def scan_forbidden_keys(
         obj,
         list,
     ):
-        for index, value in enumerate(obj):
+        for index, value in enumerate(
+            obj
+        ):
             found.extend(
                 scan_forbidden_keys(
                     value,
@@ -998,10 +1073,6 @@ def scan_forbidden_keys(
 
     return found
 
-
-# ============================================================
-# 全体検証
-# ============================================================
 
 def validate_output(
     races: list[dict],
@@ -1014,7 +1085,9 @@ def validate_output(
         for race in races
     ]
 
-    if len(race_ids) != len(
+    if len(
+        race_ids
+    ) != len(
         set(race_ids)
     ):
         errors.append(
@@ -1022,27 +1095,32 @@ def validate_output(
         )
 
     for race in races:
+
         if len(
             race["boats"]
         ) != 6:
             errors.append(
-                f"{race['race_id']}: "
-                "6艇揃っていません"
+                f"{race['race_id']}: 6艇揃っていません"
             )
 
         boat_numbers = [
             boat["boat"]
-            for boat in race["boats"]
+            for boat
+            in race["boats"]
         ]
 
         if set(
             boat_numbers
         ) != {
-            1, 2, 3, 4, 5, 6
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
         }:
             errors.append(
-                f"{race['race_id']}: "
-                "艇番1～6が不完全"
+                f"{race['race_id']}: 艇番1～6が不完全"
             )
 
         if (
@@ -1064,12 +1142,13 @@ def validate_output(
 
             if ready_count != 6:
                 errors.append(
-                    f"{race['race_id']}: "
-                    "直前情報が6艇揃っていません"
+                    f"{race['race_id']}: 直前情報が6艇揃っていません"
                 )
 
-    forbidden = scan_forbidden_keys(
-        races
+    forbidden = (
+        scan_forbidden_keys(
+            races
+        )
     )
 
     if forbidden:
@@ -1085,8 +1164,7 @@ def validate_output(
         for race in races
         if race[
             "beforeinfo_status"
-        ]
-        != "ready"
+        ] != "ready"
     )
 
     ready = (
@@ -1096,8 +1174,7 @@ def validate_output(
 
     if morning_only:
         warnings.append(
-            f"直前情報未取得: "
-            f"{morning_only}レース"
+            f"直前情報未取得: {morning_only}レース"
         )
 
     return {
@@ -1106,48 +1183,37 @@ def validate_output(
             if not errors
             else "FAIL"
         ),
-        "race_count": len(races),
-        "beforeinfo_ready_races": ready,
-        "morning_only_races": morning_only,
+
+        "race_count": (
+            len(races)
+        ),
+
+        "beforeinfo_ready_races": (
+            ready
+        ),
+
+        "morning_only_races": (
+            morning_only
+        ),
+
         "errors": errors,
         "warnings": warnings,
     }
 
 
-# ============================================================
-# JSON出力
-# ============================================================
-
-def write_json(
-    path: Path,
-    data,
-):
-    path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    path.write_text(
-        json.dumps(
-            data,
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-
-
-# ============================================================
-# MAIN
-# ============================================================
-
 def main():
-    parser = argparse.ArgumentParser()
+    parser = (
+        argparse.ArgumentParser(
+            description=(
+                "BOAT RACE prediction_input generator"
+            )
+        )
+    )
 
     parser.add_argument(
         "--date",
         default=None,
-        help="YYYYMMDD",
+        help="対象日 YYYYMMDD",
     )
 
     parser.add_argument(
@@ -1156,4 +1222,152 @@ def main():
             "morning",
             "live",
         ],
+        default="morning",
+    )
+
+    args = (
+        parser.parse_args()
+    )
+
+    target_date = (
+        args.date
+        if args.date
+        else datetime.now(
+            JST
+        ).strftime(
+            "%Y%m%d"
+        )
+    )
+
+    stage = (
+        args.stage
+    )
+
+    races_path = (
+        find_file(
+            target_date,
+            f"program_races_{target_date}.csv",
+            "pre_race/base",
+            required=True,
+        )
+    )
+
+    entries_path = (
+        find_file(
+            target_date,
+            f"program_entries_{target_date}.csv",
+            "pre_race/base",
+            required=True,
+        )
+    )
+
+    base_races = (
+        read_csv(
+            races_path
+        )
+    )
+
+    base_entries = (
+        read_csv(
+            entries_path
+        )
+    )
+
+    before_races_path = (
+        find_file(
+            target_date,
+            f"beforeinfo_races_{target_date}.csv",
+            "pre_race/beforeinfo",
+            required=False,
+        )
+    )
+
+    before_entries_path = (
+        find_file(
+            target_date,
+            f"beforeinfo_entries_{target_date}.csv",
+            "pre_race/beforeinfo",
+            required=False,
+        )
+    )
+
+    before_races = (
+        read_csv(
+            before_races_path
+        )
+        if before_races_path
+        else []
+    )
+
+    before_entries = (
+        read_csv(
+            before_entries_path
+        )
+        if before_entries_path
+        else []
+    )
+
+    (
+        before_race_map,
+        before_entry_map,
+    ) = (
+        build_beforeinfo_maps(
+            before_races,
+            before_entries,
+        )
+    )
+
+    base_entry_map = (
+        build_base_entry_map(
+            base_entries
+        )
+    )
+
+    output_races = []
+
+    for race in base_races:
+        output_races.append(
+            build_race(
+                race=race,
+                base_entry_map=base_entry_map,
+                before_race_map=before_race_map,
+                before_entry_map=before_entry_map,
+                stage=stage,
+            )
+        )
+
+    output_races.sort(
+        key=lambda x: (
+            x["venue_code"],
+            x["race"],
+        )
+    )
+
+    validation = (
+        validate_output(
+            output_races
+        )
+    )
+
+    generated_at = (
+        datetime.now(
+            JST
+        ).isoformat()
+    )
+
+    package = {
+        "schema_version": "1.0",
+
+        "target_date": (
+            target_date
+        ),
+
+        "prediction_stage": (
+            stage
+        ),
+
+        "generated_at": (
+            generated_at
+        ),
+
        
