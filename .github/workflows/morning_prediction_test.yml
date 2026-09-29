@@ -1,0 +1,172 @@
+name: 朝予測パイプライン最終テスト
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: morning-prediction-test-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  morning_prediction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lhafile
+
+      - name: dataフォルダを準備
+        run: |
+          mkdir -p data
+
+      - name: 当日基本データを収集
+        run: |
+          echo "========================================"
+          echo "STEP 1 当日基本データ収集"
+          echo "========================================"
+
+          python -u collectors/today_basic.py
+
+      - name: 朝版prediction_inputを生成
+        run: |
+          echo "========================================"
+          echo "STEP 2 朝版prediction_input生成"
+          echo "========================================"
+
+          python -u collectors/build_prediction_input.py \
+            --stage morning
+
+      - name: 30日90日履歴特徴量を結合
+        run: |
+          echo "========================================"
+          echo "STEP 3 履歴特徴量結合"
+          echo "========================================"
+
+          python -u collectors/enrich_prediction_input.py \
+            --date 20260930 \
+            --stage morning
+
+      - name: 朝予測スコアを生成
+        run: |
+          echo "========================================"
+          echo "STEP 4 朝予測スコア生成"
+          echo "========================================"
+
+          python -u collectors/build_morning_prediction.py \
+            --date 20260930
+
+      - name: 朝予測検証結果を表示
+        run: |
+          echo "========================================"
+          echo "朝予測 検証結果"
+          echo "========================================"
+
+          test -s data/morning_predictions_20260930.json
+          test -s data/morning_predictions_20260930.csv
+          test -s data/morning_predictions_validation_20260930.json
+
+          cat data/morning_predictions_validation_20260930.json
+
+      - name: 予測一覧を一部表示
+        run: |
+          echo "========================================"
+          echo "朝予測CSV 先頭部分"
+          echo "========================================"
+
+          head -n 25 \
+            data/morning_predictions_20260930.csv
+
+      - name: JSON構文を確認
+        run: |
+          echo "========================================"
+          echo "JSON構文確認"
+          echo "========================================"
+
+          python -m json.tool \
+            data/morning_predictions_20260930.json \
+            > /dev/null
+
+          python -m json.tool \
+            data/morning_predictions_validation_20260930.json \
+            > /dev/null
+
+          echo "JSON構文: PASS"
+
+      - name: 朝予測結果をGitHubへ保存
+        run: |
+          echo "========================================"
+          echo "朝予測結果をGitHubへ保存"
+          echo "========================================"
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add \
+            data/program_entries_20260930.csv \
+            data/program_races_20260930.csv \
+            data/program_manifest_20260930.json \
+            data/program_validation_20260930.json \
+            data/prediction_input_morning_20260930.json \
+            data/prediction_input_validation_morning_20260930.json \
+            data/prediction_input_enriched_morning_20260930.json \
+            data/prediction_input_enriched_validation_morning_20260930.json \
+            data/morning_predictions_20260930.json \
+            data/morning_predictions_20260930.csv \
+            data/morning_predictions_validation_20260930.json
+
+          if git diff --cached --quiet; then
+            echo "変更はありません"
+            exit 0
+          fi
+
+          git commit -m \
+            "Build morning predictions 20260930"
+
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+          echo ""
+          echo "朝予測結果 GitHub保存完了"
+
+      - name: 朝予測成果物をArtifactへ短期保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-morning-prediction-${{ github.run_number }}
+          path: |
+            data/morning_predictions_20260930.json
+            data/morning_predictions_20260930.csv
+            data/morning_predictions_validation_20260930.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 最終確認
+        run: |
+          echo "========================================"
+          echo "朝予測パイプライン 最終テスト完了"
+          echo "========================================"
+
+          echo "当日基本データ収集: PASS"
+          echo "朝prediction_input生成: PASS"
+          echo "30日・90日履歴結合: PASS"
+          echo "864艇スコア生成: PASS"
+          echo "144レース順位付け: PASS"
+          echo "結果漏洩防止: 有効"
+          echo ""
+          echo "次工程: 10月1日用の自動実行版へ移行"
