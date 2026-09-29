@@ -1,0 +1,432 @@
+name: 軽量版前日結果・比較テスト
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compare_fast_results:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install lhafile
+
+      - name: dataフォルダを準備
+        run: mkdir -p data
+
+      - name: 9月28日を軽量版で収集
+        run: |
+          echo "========================================"
+          echo "軽量版Kファイル収集テスト"
+          echo "対象日: 20260928"
+          echo "========================================"
+
+          python -u collectors/daily_results_fast.py \
+            --date 20260928
+
+      - name: 既存validatorで品質検証
+        run: |
+          echo "========================================"
+          echo "既存の日次validatorで検証"
+          echo "========================================"
+
+          python -u collectors/validate_daily.py \
+            --date 20260928
+
+      - name: 保存済み9月28日データと比較
+        run: |
+          python - <<'PY'
+          import csv
+          import re
+          import sys
+          from pathlib import Path
+
+
+          TARGET = "20260928"
+
+          NEW_DIR = Path("data")
+          OLD_DIR = Path("archive/2026/09/28")
+
+
+          def read_csv(path):
+              if not path.exists():
+                  raise RuntimeError(
+                      f"ファイルがありません: {path}"
+                  )
+
+              with path.open(
+                  "r",
+                  encoding="utf-8-sig",
+                  newline="",
+              ) as f:
+                  return list(csv.DictReader(f))
+
+
+          def text(value):
+              if value is None:
+                  return ""
+              return str(value).strip()
+
+
+          def integer(value):
+              s = text(value).replace(",", "")
+
+              if not s:
+                  return None
+
+              try:
+                  return int(float(s))
+              except ValueError:
+                  return s
+
+
+          def race_id(value):
+              s = text(value)
+
+              parts = re.split(
+                  r"[-_]",
+                  s,
+              )
+
+              if len(parts) == 3:
+                  return (
+                      f"{parts[0]}-"
+                      f"{parts[1].zfill(2)}-"
+                      f"{parts[2].zfill(2)}"
+                  )
+
+              return s
+
+
+          def racer_name(value):
+              return re.sub(
+                  r"[\s　]+",
+                  "",
+                  text(value),
+              )
+
+
+          def st_value(value):
+              s = text(value).upper()
+
+              if not s:
+                  return ("", None)
+
+              if s.startswith("F"):
+                  raw = s[1:].lstrip(".")
+
+                  try:
+                      return (
+                          "F",
+                          -float(
+                              "0." + raw
+                          ),
+                      )
+                  except ValueError:
+                      return ("F", s)
+
+              if s.startswith("L"):
+                  return ("L", s)
+
+              try:
+                  return (
+                      "",
+                      round(
+                          float(s),
+                          4,
+                      ),
+                  )
+              except ValueError:
+                  return ("RAW", s)
+
+
+          def race_time_value(value):
+              s = text(value)
+
+              if not s:
+                  return None
+
+              s = (
+                  s.replace("’", "'")
+                  .replace("′", "'")
+                  .replace("”", '"')
+                  .replace("″", '"')
+              )
+
+              m = re.match(
+                  r"^(\d+)\.(\d{1,2})\.(\d)$",
+                  s,
+              )
+
+              if m:
+                  return (
+                      int(m.group(1)) * 60
+                      + int(m.group(2))
+                      + int(m.group(3)) / 10
+                  )
+
+              m = re.match(
+                  r"^(\d+)'(\d{1,2})[\".]?(\d)?$",
+                  s,
+              )
+
+              if m:
+                  tenths = (
+                      int(m.group(3))
+                      if m.group(3)
+                      else 0
+                  )
+
+                  return (
+                      int(m.group(1)) * 60
+                      + int(m.group(2))
+                      + tenths / 10
+                  )
+
+              return s
+
+
+          def venue_normalized(row):
+              return (
+                  text(row.get("date")),
+                  text(row.get("venue_code")).zfill(2),
+                  text(row.get("venue_name")),
+              )
+
+
+          def result_normalized(row):
+              return (
+                  text(row.get("date")),
+                  text(row.get("venue_code")).zfill(2),
+                  text(row.get("venue_name")),
+                  integer(row.get("race")),
+                  race_id(row.get("race_id")),
+                  text(row.get("trifecta")),
+                  integer(row.get("trifecta_pay")),
+                  text(row.get("exacta")),
+                  integer(row.get("exacta_pay")),
+              )
+
+
+          def boat_normalized(row):
+              return (
+                  text(row.get("date")),
+                  text(row.get("venue_code")).zfill(2),
+                  text(row.get("venue_name")),
+                  integer(row.get("race")),
+                  race_id(row.get("race_id")),
+                  integer(row.get("boat")),
+                  integer(row.get("course")),
+                  text(row.get("registration_no")),
+                  racer_name(row.get("racer_name")),
+                  text(row.get("finish")),
+                  st_value(row.get("st")),
+                  race_time_value(row.get("race_time")),
+              )
+
+
+          tests = [
+              (
+                  "開催場",
+                  NEW_DIR / f"venues_{TARGET}.csv",
+                  OLD_DIR / f"venues_{TARGET}.csv",
+                  venue_normalized,
+              ),
+              (
+                  "レース結果",
+                  NEW_DIR / f"results_{TARGET}_all.csv",
+                  OLD_DIR / f"results_{TARGET}_all.csv",
+                  result_normalized,
+              ),
+              (
+                  "艇別結果",
+                  NEW_DIR / f"boat_results_{TARGET}_all.csv",
+                  OLD_DIR / f"boat_results_{TARGET}_all.csv",
+                  boat_normalized,
+              ),
+          ]
+
+
+          failed = False
+
+          print(
+              "========================================"
+          )
+          print(
+              "旧方式 vs 軽量版 比較"
+          )
+          print(
+              "========================================"
+          )
+
+
+          for (
+              label,
+              new_path,
+              old_path,
+              normalizer,
+          ) in tests:
+
+              new_rows = read_csv(
+                  new_path
+              )
+
+              old_rows = read_csv(
+                  old_path
+              )
+
+              new_values = sorted(
+                  normalizer(row)
+                  for row in new_rows
+              )
+
+              old_values = sorted(
+                  normalizer(row)
+                  for row in old_rows
+              )
+
+              print("")
+              print(
+                  f"【{label}】"
+              )
+
+              print(
+                  f"旧方式: {len(old_values)}件"
+              )
+
+              print(
+                  f"軽量版: {len(new_values)}件"
+              )
+
+
+              if len(
+                  old_values
+              ) != len(
+                  new_values
+              ):
+                  failed = True
+
+                  print(
+                      "NG: 件数不一致"
+                  )
+
+                  continue
+
+
+              old_set = set(
+                  old_values
+              )
+
+              new_set = set(
+                  new_values
+              )
+
+
+              missing = (
+                  old_set
+                  - new_set
+              )
+
+              extra = (
+                  new_set
+                  - old_set
+              )
+
+
+              if not missing and not extra:
+                  print(
+                      "PASS: 内容一致"
+                  )
+
+              else:
+                  failed = True
+
+                  print(
+                      "NG: 内容不一致"
+                  )
+
+                  print(
+                      f"軽量版に無い行: "
+                      f"{len(missing)}件"
+                  )
+
+                  print(
+                      f"軽量版にだけある行: "
+                      f"{len(extra)}件"
+                  )
+
+                  if missing:
+                      print("")
+                      print(
+                          "旧方式のみ・先頭3件:"
+                      )
+
+                      for row in list(
+                          missing
+                      )[:3]:
+                          print(
+                              row
+                          )
+
+                  if extra:
+                      print("")
+                      print(
+                          "軽量版のみ・先頭3件:"
+                      )
+
+                      for row in list(
+                          extra
+                      )[:3]:
+                          print(
+                              row
+                          )
+
+
+          print("")
+          print(
+              "========================================"
+          )
+
+
+          if failed:
+              print(
+                  "比較結果: FAIL"
+              )
+
+              print(
+                  "旧方式はまだ停止しません"
+              )
+
+              sys.exit(1)
+
+
+          print(
+              "比較結果: PASS"
+          )
+
+          print(
+              "軽量版は旧方式と互換性あり"
+          )
+
+          print(
+              "========================================"
+          )
+          PY
+
+      - name: 完了
+        run: |
+          echo "========================================"
+          echo "軽量版結果収集 比較テスト PASS"
+          echo "旧方式置換の準備完了"
+          echo "========================================"
