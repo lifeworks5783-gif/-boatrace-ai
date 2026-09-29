@@ -32,23 +32,65 @@ jobs:
           echo "必要ファイル確認"
           echo "========================================"
 
-          test -s data/prediction_input_morning_20260930.json
-          test -s features/racer_features.csv
-          test -s features/racer_course_features.csv
-          test -s features/racer_venue_features.csv
-          test -s features/motor_features.csv
-          test -s features/boat_features.csv
-          test -s features/history_features_manifest.json
-          test -s collectors/enrich_prediction_input.py
+          MISSING=0
 
-          echo "当日予測入力: OK"
-          echo "選手特徴量: OK"
-          echo "選手×コース特徴量: OK"
-          echo "選手×場特徴量: OK"
-          echo "モーター特徴量: OK"
-          echo "ボート特徴量: OK"
-          echo "特徴量manifest: OK"
-          echo "結合プログラム: OK"
+          check_file () {
+            FILE="$1"
+            LABEL="$2"
+
+            if [ -s "$FILE" ]; then
+              echo "OK   : ${LABEL}"
+              echo "       ${FILE}"
+            else
+              echo "NG   : ${LABEL}"
+              echo "       ${FILE}"
+              MISSING=$((MISSING + 1))
+            fi
+          }
+
+          check_file \
+            "data/prediction_input_morning_20260930.json" \
+            "当日朝予測入力"
+
+          check_file \
+            "features/racer_features.csv" \
+            "選手特徴量"
+
+          check_file \
+            "features/racer_course_features.csv" \
+            "選手×コース特徴量"
+
+          check_file \
+            "features/racer_venue_features.csv" \
+            "選手×場特徴量"
+
+          check_file \
+            "features/motor_features.csv" \
+            "モーター特徴量"
+
+          check_file \
+            "features/boat_features.csv" \
+            "ボート特徴量"
+
+          check_file \
+            "features/history_features_manifest.json" \
+            "特徴量manifest"
+
+          check_file \
+            "collectors/enrich_prediction_input.py" \
+            "結合プログラム"
+
+          echo ""
+          echo "不足ファイル数: ${MISSING}"
+
+          if [ "${MISSING}" -ne 0 ]; then
+            echo ""
+            echo "ERROR: 必要ファイルが不足しています"
+            exit 1
+          fi
+
+          echo ""
+          echo "必要ファイル確認: PASS"
 
       - name: 当日864艇へ履歴特徴量を結合
         run: |
@@ -65,12 +107,6 @@ jobs:
           echo "========================================"
           echo "結合検証結果"
           echo "========================================"
-
-          test -s \
-            data/prediction_input_enriched_morning_20260930.json
-
-          test -s \
-            data/prediction_input_enriched_validation_morning_20260930.json
 
           cat \
             data/prediction_input_enriched_validation_morning_20260930.json
