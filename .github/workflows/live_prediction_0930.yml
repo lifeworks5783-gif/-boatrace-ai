@@ -1,0 +1,259 @@
+name: 9月30日・直前予測自動テスト
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    # 9/30 08:00〜08:45 JST
+    - cron: "0,15,30,45 23 29 9 *"
+
+    # 9/30 09:00〜21:45 JST
+    - cron: "0,15,30,45 0-12 30 9 *"
+
+  workflow_dispatch:
+
+concurrency:
+  group: boatrace-live-prediction-0930
+  cancel-in-progress: false
+
+jobs:
+  live_prediction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lhafile
+
+      - name: 日本時間を設定
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+          RUN_STAMP=$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S)
+          NOW_ISO=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M:%S%:z)
+
+          echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
+          echo "RUN_STAMP=${RUN_STAMP}" >> "$GITHUB_ENV"
+          echo "NOW_ISO=${NOW_ISO}" >> "$GITHUB_ENV"
+
+          YEAR=${TARGET_DATE:0:4}
+          MONTH=${TARGET_DATE:4:2}
+          DAY=${TARGET_DATE:6:2}
+
+          echo "YEAR=${YEAR}" >> "$GITHUB_ENV"
+          echo "MONTH=${MONTH}" >> "$GITHUB_ENV"
+          echo "DAY=${DAY}" >> "$GITHUB_ENV"
+
+          echo "対象日: ${TARGET_DATE}"
+          echo "実行時刻: ${NOW_ISO}"
+
+      - name: 9月30日以外は終了
+        if: env.TARGET_DATE != '20260930'
+        run: |
+          echo "9月30日専用テストのため処理しません"
+
+      - name: 直前情報を収集
+        if: env.TARGET_DATE == '20260930'
+        run: |
+          echo "========================================"
+          echo "直前情報収集"
+          echo "========================================"
+
+          mkdir -p data
+
+          python -u collectors/today_beforeinfo.py
+
+      - name: 直前候補レース数を確認
+        if: env.TARGET_DATE == '20260930'
+        run: |
+          FILE="data/beforeinfo_races_${TARGET_DATE}.csv"
+
+          if [ ! -f "${FILE}" ]; then
+            echo "HAS_CANDIDATES=false" >> "$GITHUB_ENV"
+            echo "直前候補: 0R"
+            exit 0
+          fi
+
+          LINES=$(wc -l < "${FILE}")
+          COUNT=$((LINES - 1))
+
+          if [ "${COUNT}" -le 0 ]; then
+            echo "HAS_CANDIDATES=false" >> "$GITHUB_ENV"
+            echo "直前候補: 0R"
+          else
+            echo "HAS_CANDIDATES=true" >> "$GITHUB_ENV"
+            echo "直前候補: ${COUNT}R"
+          fi
+
+      - name: live prediction_inputを生成
+        if: env.HAS_CANDIDATES == 'true'
+        run: |
+          python -u collectors/build_prediction_input.py \
+            --stage live
+
+      - name: 30日90日履歴を直前データへ結合
+        if: env.HAS_CANDIDATES == 'true'
+        run: |
+          python -u collectors/enrich_prediction_input.py \
+            --date "${TARGET_DATE}" \
+            --stage live
+
+      - name: 直前最終予測を生成
+        if: env.HAS_CANDIDATES == 'true'
+        run: |
+          echo "========================================"
+          echo "直前最終予測"
+          echo "========================================"
+
+          python -u collectors/build_live_prediction.py \
+            --date "${TARGET_DATE}" \
+            --now "${NOW_ISO}"
+
+      - name: 直前予測状態を確認
+        if: env.HAS_CANDIDATES == 'true'
+        run: |
+          FILE="data/live_predictions_validation_current_${TARGET_DATE}.json"
+
+          test -s "${FILE}"
+
+          cat "${FILE}"
+
+          if grep -q '"status": "PASS"' "${FILE}"; then
+            echo "HAS_LIVE_PREDICTION=true" >> "$GITHUB_ENV"
+            echo "直前予測: PASS"
+
+          elif grep -q '"status": "NO_DATA"' "${FILE}"; then
+            echo "HAS_LIVE_PREDICTION=false" >> "$GITHUB_ENV"
+            echo "今回は保存対象の直前予測なし"
+
+          else
+            echo "直前予測検証: FAIL"
+            exit 1
+          fi
+
+      - name: 保存フォルダを作成
+        if: env.HAS_LIVE_PREDICTION == 'true'
+        run: |
+          LIVE_DEST="predictions/${YEAR}/${MONTH}/${DAY}/live"
+          SNAPSHOT_DEST="${LIVE_DEST}/snapshots/${RUN_STAMP}"
+          INPUT_DEST="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/snapshots/${RUN_STAMP}"
+
+          echo "LIVE_DEST=${LIVE_DEST}" >> "$GITHUB_ENV"
+          echo "SNAPSHOT_DEST=${SNAPSHOT_DEST}" >> "$GITHUB_ENV"
+          echo "INPUT_DEST=${INPUT_DEST}" >> "$GITHUB_ENV"
+
+          mkdir -p "${LIVE_DEST}"
+          mkdir -p "${SNAPSHOT_DEST}"
+          mkdir -p "${INPUT_DEST}"
+
+      - name: 直前予測を保存フォルダへコピー
+        if: env.HAS_LIVE_PREDICTION == 'true'
+        run: |
+          cp \
+            "data/live_predictions_current_${TARGET_DATE}.json" \
+            "${SNAPSHOT_DEST}/"
+
+          cp \
+            "data/live_predictions_current_${TARGET_DATE}.csv" \
+            "${SNAPSHOT_DEST}/"
+
+          cp \
+            "data/live_predictions_validation_current_${TARGET_DATE}.json" \
+            "${SNAPSHOT_DEST}/"
+
+          cp \
+            "data/live_predictions_final_${TARGET_DATE}.json" \
+            "${LIVE_DEST}/"
+
+          cp \
+            "data/live_predictions_final_${TARGET_DATE}.csv" \
+            "${LIVE_DEST}/"
+
+      - name: 直前入力元も保存
+        if: env.HAS_LIVE_PREDICTION == 'true'
+        run: |
+          cp \
+            "data/beforeinfo_races_${TARGET_DATE}.csv" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/beforeinfo_entries_${TARGET_DATE}.csv" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/beforeinfo_validation_${TARGET_DATE}.json" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/prediction_input_validation_live_${TARGET_DATE}.json" \
+            "${INPUT_DEST}/"
+
+          cp \
+            "data/prediction_input_enriched_validation_live_${TARGET_DATE}.json" \
+            "${INPUT_DEST}/"
+
+      - name: GitHubへ保存
+        if: env.HAS_LIVE_PREDICTION == 'true'
+        run: |
+          echo "========================================"
+          echo "直前予測 GitHub保存"
+          echo "========================================"
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add "${LIVE_DEST}"
+          git add "${INPUT_DEST}"
+
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+
+          git commit -m \
+            "Live prediction ${TARGET_DATE} ${RUN_STAMP}"
+
+          git push origin HEAD:main
+
+          echo ""
+          echo "直前予測 GitHub保存: PASS"
+
+      - name: 直前予測をArtifactへ短期保存
+        if: env.HAS_LIVE_PREDICTION == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-live-${{ github.run_number }}
+          path: |
+            data/live_predictions_current_*.json
+            data/live_predictions_current_*.csv
+            data/live_predictions_final_*.json
+            data/live_predictions_final_*.csv
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 最終確認
+        if: env.HAS_LIVE_PREDICTION == 'true'
+        run: |
+          echo "========================================"
+          echo "9月30日 直前予測処理 完了"
+          echo "========================================"
+
+          echo "対象日: ${TARGET_DATE}"
+          echo "直前情報収集: PASS"
+          echo "履歴特徴量結合: PASS"
+          echo "直前予測: PASS"
+          echo "結果漏洩防止: 有効"
+          echo "GitHub保存: PASS"
