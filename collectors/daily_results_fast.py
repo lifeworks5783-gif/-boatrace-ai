@@ -20,30 +20,12 @@ JST = timezone(timedelta(hours=9))
 DATA_DIR = Path("data")
 
 VENUES = {
-    "01": "桐生",
-    "02": "戸田",
-    "03": "江戸川",
-    "04": "平和島",
-    "05": "多摩川",
-    "06": "浜名湖",
-    "07": "蒲郡",
-    "08": "常滑",
-    "09": "津",
-    "10": "三国",
-    "11": "びわこ",
-    "12": "住之江",
-    "13": "尼崎",
-    "14": "鳴門",
-    "15": "丸亀",
-    "16": "児島",
-    "17": "宮島",
-    "18": "徳山",
-    "19": "下関",
-    "20": "若松",
-    "21": "芦屋",
-    "22": "福岡",
-    "23": "唐津",
-    "24": "大村",
+    "01": "桐生", "02": "戸田", "03": "江戸川", "04": "平和島",
+    "05": "多摩川", "06": "浜名湖", "07": "蒲郡", "08": "常滑",
+    "09": "津", "10": "三国", "11": "びわこ", "12": "住之江",
+    "13": "尼崎", "14": "鳴門", "15": "丸亀", "16": "児島",
+    "17": "宮島", "18": "徳山", "19": "下関", "20": "若松",
+    "21": "芦屋", "22": "福岡", "23": "唐津", "24": "大村",
 }
 
 STADIUM_BEGIN = re.compile(
@@ -56,6 +38,10 @@ STADIUM_END = re.compile(
 
 RACE_HEADER = re.compile(
     r"^\s*(\d{1,2})R(?:\s|$)"
+)
+
+RESULT_ROW = re.compile(
+    r"^\s*(\S+)\s+([1-6])\s+(\d{4})\s+(.+?)\s*$"
 )
 
 VENUE_FIELDS = [
@@ -114,234 +100,71 @@ def decode(data):
     )
 
 
-def clean_name(text):
+def compact_name(text):
     return re.sub(
-        r"[\s　]+",
+        r"\s+",
         "",
-        text,
+        normalize(text),
     )
 
 
-def parse_int_slice(data):
-    value = normalize(
-        decode(data)
+def safe_int(value):
+    try:
+        return int(
+            str(value).strip()
+        )
+
+    except (
+        TypeError,
+        ValueError,
+    ):
+        return None
+
+
+def safe_float(value):
+    text = str(
+        value
     ).strip()
 
-    if value.isdigit():
-        return int(value)
-
-    return None
-
-
-def parse_float_slice(data):
-    value = normalize(
-        decode(data)
-    ).strip()
-
-    if not value:
+    if text in {
+        "",
+        ".",
+        "-",
+    }:
         return None
 
     try:
-        return float(value)
+        return float(
+            text
+        )
 
     except ValueError:
         return None
 
 
-def build_url(target_date):
-    dt = datetime.strptime(
-        target_date,
-        "%Y%m%d",
+def normalize_finish(value):
+    value = (
+        normalize(value)
+        .strip()
+        .upper()
     )
-
-    return (
-        "https://www1.mbrace.or.jp/"
-        f"od2/K/{dt:%Y%m}/"
-        f"k{dt:%y%m%d}.lzh"
-    )
-
-
-def fetch(
-    url,
-    retries=3,
-):
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 "
-            "(compatible; "
-            "boatrace-ai-data-collector/1.0)"
-        )
-    }
-
-    last_error = None
-
-    for attempt in range(
-        1,
-        retries + 1,
-    ):
-        try:
-            request = urllib.request.Request(
-                url,
-                headers=headers,
-            )
-
-            with urllib.request.urlopen(
-                request,
-                timeout=60,
-            ) as response:
-
-                data = response.read()
-
-            if not data:
-                raise RuntimeError(
-                    "競走成績ファイルが空です"
-                )
-
-            return data
-
-        except urllib.error.HTTPError as exc:
-            last_error = exc
-
-            if exc.code == 404:
-                raise RuntimeError(
-                    "競走成績ファイルが"
-                    f"見つかりません: {url}"
-                ) from exc
-
-        except Exception as exc:
-            last_error = exc
-
-        if attempt < retries:
-            time.sleep(
-                attempt * 2
-            )
-
-    raise RuntimeError(
-        "競走成績ダウンロード失敗: "
-        f"{last_error}"
-    )
-
-
-def extract_lzh(data):
-    try:
-        archive = lhafile.LhaFile(
-            io.BytesIO(
-                data
-            )
-        )
-
-        names = archive.namelist()
-
-        if not names:
-            raise RuntimeError(
-                "LZH内にファイルがありません"
-            )
-
-        parts = []
-
-        for name in sorted(
-            names
-        ):
-            payload = archive.read(
-                name
-            )
-
-            if payload:
-                parts.append(
-                    payload
-                )
-
-        joined = b"".join(
-            parts
-        )
-
-        if not joined:
-            raise RuntimeError(
-                "LZH解凍後データが空です"
-            )
-
-        return joined
-
-    except Exception as exc:
-        raise RuntimeError(
-            f"LZH解凍失敗: {exc}"
-        ) from exc
-
-
-def is_result_row(line):
-    if len(line) < 55:
-        return False
-
-    return (
-        line[6:7] in b"123456"
-        and len(
-            line[8:12]
-        ) == 4
-        and line[8:12].isdigit()
-    )
-
-
-def parse_finish(line):
-    value = normalize(
-        decode(
-            line[2:4]
-        )
-    ).strip().upper()
 
     if value.isdigit():
-        number = int(value)
+        number = int(
+            value
+        )
 
         if 1 <= number <= 6:
-            return str(number)
+            return str(
+                number
+            )
 
     return value
 
 
-def parse_boat(line):
-    return parse_int_slice(
-        line[6:7]
-    )
-
-
-def parse_registration_no(line):
-    return normalize(
-        decode(
-            line[8:12]
-        )
-    ).strip()
-
-
-def parse_motor_no(line):
-    return parse_int_slice(
-        line[29:33]
-    )
-
-
-def parse_boat_no(line):
-    return parse_int_slice(
-        line[33:37]
-    )
-
-
-def parse_exhibition_time(line):
-    return parse_float_slice(
-        line[37:43]
-    )
-
-
-def parse_course(line):
-    return parse_int_slice(
-        line[43:47]
-    )
-
-
-def parse_st(line):
+def normalize_st(value):
     value = (
-        normalize(
-            decode(
-                line[47:55]
-            )
-        )
+        normalize(value)
         .strip()
         .upper()
         .replace(
@@ -350,7 +173,11 @@ def parse_st(line):
         )
     )
 
-    if not value:
+    if value in {
+        "",
+        ".",
+        "-",
+    }:
         return ""
 
     match = re.fullmatch(
@@ -400,80 +227,287 @@ def parse_st(line):
     return ""
 
 
-def parse_race_time(line):
-    if len(line) <= 55:
-        return ""
-
-    value = normalize(
-        decode(
-            line[55:66]
-        )
+def normalize_race_time(parts):
+    value = "".join(
+        parts
     ).strip()
 
-    compact = re.sub(
-        r"\s+",
-        "",
-        value,
-    )
-
-    if not compact:
+    if not value:
         return ""
 
     if not any(
         char.isdigit()
-        for char in compact
+        for char
+        in value
     ):
         return ""
 
-    return compact
+    return value
 
 
-def parse_result_row(line):
+def build_url(target_date):
+    dt = datetime.strptime(
+        target_date,
+        "%Y%m%d",
+    )
+
+    return (
+        "https://www1.mbrace.or.jp/"
+        f"od2/K/{dt:%Y%m}/"
+        f"k{dt:%y%m%d}.lzh"
+    )
+
+
+def fetch(
+    url,
+    retries=3,
+):
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 "
+            "(compatible; "
+            "boatrace-ai-data-collector/1.0)"
+        )
+    }
+
+    last_error = None
+
+    for attempt in range(
+        1,
+        retries + 1,
+    ):
+
+        try:
+            request = (
+                urllib.request.Request(
+                    url,
+                    headers=headers,
+                )
+            )
+
+            with urllib.request.urlopen(
+                request,
+                timeout=60,
+            ) as response:
+
+                data = (
+                    response.read()
+                )
+
+            if not data:
+                raise RuntimeError(
+                    "競走成績ファイルが空です"
+                )
+
+            return data
+
+        except urllib.error.HTTPError as exc:
+            last_error = exc
+
+            if exc.code == 404:
+                raise RuntimeError(
+                    "競走成績ファイルが"
+                    f"見つかりません: {url}"
+                ) from exc
+
+        except Exception as exc:
+            last_error = exc
+
+        if attempt < retries:
+            time.sleep(
+                attempt * 2
+            )
+
+    raise RuntimeError(
+        "競走成績ダウンロード失敗: "
+        f"{last_error}"
+    )
+
+
+def extract_lzh(data):
+    try:
+        archive = (
+            lhafile.LhaFile(
+                io.BytesIO(
+                    data
+                )
+            )
+        )
+
+        names = (
+            archive.namelist()
+        )
+
+        if not names:
+            raise RuntimeError(
+                "LZH内にファイルがありません"
+            )
+
+        payloads = [
+            archive.read(
+                name
+            )
+            for name
+            in sorted(
+                names
+            )
+        ]
+
+        result = b"".join(
+            payload
+            for payload
+            in payloads
+            if payload
+        )
+
+        if not result:
+            raise RuntimeError(
+                "LZH解凍後データが空です"
+            )
+
+        return result
+
+    except Exception as exc:
+        raise RuntimeError(
+            f"LZH解凍失敗: {exc}"
+        ) from exc
+
+
+def parse_result_row(raw):
+    text = normalize(
+        decode(
+            raw
+        )
+    ).rstrip()
+
+    match = RESULT_ROW.match(
+        text
+    )
+
+    if not match:
+        return None
+
+    finish = normalize_finish(
+        match.group(1)
+    )
+
+    boat = safe_int(
+        match.group(2)
+    )
+
+    registration_no = (
+        match.group(3)
+    )
+
+    rest = (
+        match.group(4)
+    )
+
+    if boat not in {
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+    }:
+        return None
+
+    name_match = re.match(
+        r"([^\d]+)",
+        rest,
+    )
+
+    if not name_match:
+        return None
+
+    racer_name = compact_name(
+        name_match.group(1)
+    )
+
+    numeric_part = (
+        rest[
+            len(
+                name_match.group(1)
+            ):
+        ]
+    )
+
+    fields = (
+        numeric_part.split()
+    )
+
+    # Kファイル艇別結果の並び
+    # motor_no
+    # boat_no
+    # exhibition_time
+    # course
+    # st
+    # race_time
+    if len(
+        fields
+    ) < 5:
+        return None
+
+    motor_no = safe_int(
+        fields[0]
+    )
+
+    boat_no = safe_int(
+        fields[1]
+    )
+
+    exhibition_time = (
+        safe_float(
+            fields[2]
+        )
+    )
+
+    course = safe_int(
+        fields[3]
+    )
+
+    st = normalize_st(
+        fields[4]
+    )
+
+    race_time = (
+        normalize_race_time(
+            fields[5:]
+        )
+    )
+
     return {
-        "boat": parse_boat(
-            line
-        ),
+        "boat": boat,
 
-        "course": parse_course(
-            line
-        ),
+        "course": course,
 
         "registration_no": (
-            parse_registration_no(
-                line
-            )
+            registration_no
         ),
 
-        "racer_name": clean_name(
-            decode(
-                line[13:29]
-            )
+        "racer_name": (
+            racer_name
         ),
 
-        "motor_no": parse_motor_no(
-            line
+        "motor_no": (
+            motor_no
         ),
 
-        "boat_no": parse_boat_no(
-            line
+        "boat_no": (
+            boat_no
         ),
 
         "exhibition_time": (
-            parse_exhibition_time(
-                line
-            )
+            exhibition_time
         ),
 
-        "finish": parse_finish(
-            line
-        ),
+        "finish": finish,
 
-        "st": parse_st(
-            line
-        ),
+        "st": st,
 
-        "race_time": parse_race_time(
-            line
+        "race_time": (
+            race_time
         ),
     }
 
@@ -536,14 +570,17 @@ def write_csv(
         newline="",
     ) as f:
 
-        writer = csv.DictWriter(
-            f,
-            fieldnames=fields,
+        writer = (
+            csv.DictWriter(
+                f,
+                fieldnames=fields,
+            )
         )
 
         writer.writeheader()
 
         for row in rows:
+
             writer.writerow(
                 {
                     field: row.get(
@@ -584,6 +621,7 @@ def filter_complete_races(
     for key in sorted(
         races
     ):
+
         race = races[
             key
         ]
@@ -592,30 +630,28 @@ def filter_complete_races(
             "race_id"
         ]
 
-        race_boats = (
-            boats_by_race.get(
-                race_id,
-                [],
-            )
+        rows = boats_by_race.get(
+            race_id,
+            [],
         )
 
-        boat_numbers = {
-            row.get(
+        numbers = {
+            row[
                 "boat"
-            )
+            ]
             for row
-            in race_boats
+            in rows
             if row.get(
                 "boat"
             )
             is not None
         }
 
-        complete = (
+        if (
             len(
-                race_boats
+                rows
             ) == 6
-            and boat_numbers
+            and numbers
             == {
                 1,
                 2,
@@ -624,35 +660,28 @@ def filter_complete_races(
                 5,
                 6,
             }
-        )
-
-        if complete:
+        ):
             valid_race_ids.add(
                 race_id
             )
 
             continue
 
-        if len(
-            race_boats
-        ) == 0:
-
+        if not rows:
             reason = (
                 "艇別結果なし"
             )
 
         elif len(
-            boat_numbers
+            numbers
         ) != len(
-            race_boats
+            rows
         ):
-
             reason = (
                 "艇番重複"
             )
 
         else:
-
             reason = (
                 "6艇未完了"
             )
@@ -676,11 +705,11 @@ def filter_complete_races(
                 "race_id": race_id,
 
                 "boat_rows": len(
-                    race_boats
+                    rows
                 ),
 
                 "boat_numbers": sorted(
-                    boat_numbers
+                    numbers
                 ),
 
                 "reason": reason,
@@ -733,7 +762,7 @@ def filter_complete_races(
         )
     )
 
-    valid_venue_codes = {
+    valid_venues = {
         row[
             "venue_code"
         ]
@@ -759,7 +788,7 @@ def filter_complete_races(
         }
         for code
         in sorted(
-            valid_venue_codes
+            valid_venues
         )
     ]
 
@@ -826,6 +855,7 @@ def parse_payload(
         if STADIUM_END.match(
             raw
         ):
+
             current_venue = None
 
             current_race = None
@@ -867,16 +897,22 @@ def parse_payload(
             ] = {
                 "date": target_date,
 
-                "venue_code": current_venue,
+                "venue_code": (
+                    current_venue
+                ),
 
                 "venue_name": VENUES.get(
                     current_venue,
                     "",
                 ),
 
-                "race": current_race,
+                "race": (
+                    current_race
+                ),
 
-                "race_id": race_id,
+                "race_id": (
+                    race_id
+                ),
 
                 "trifecta": "",
 
@@ -902,23 +938,19 @@ def parse_payload(
         if race is None:
             continue
 
-        if is_result_row(
-            raw
-        ):
-            parsed = (
-                parse_result_row(
-                    raw
-                )
+        parsed = (
+            parse_result_row(
+                raw
             )
+        )
 
-            if parsed[
-                "boat"
-            ] is None:
-                continue
+        if parsed is not None:
 
             boats.append(
                 {
-                    "date": target_date,
+                    "date": (
+                        target_date
+                    ),
 
                     "venue_code": (
                         current_venue
@@ -1059,13 +1091,15 @@ def basic_validate(
 
     counts = {}
 
-    boat_sets = {}
+    number_sets = {}
 
     for row in boats:
 
-        race_id = row[
-            "race_id"
-        ]
+        race_id = (
+            row[
+                "race_id"
+            ]
+        )
 
         counts[
             race_id
@@ -1077,7 +1111,7 @@ def basic_validate(
             + 1
         )
 
-        boat_sets.setdefault(
+        number_sets.setdefault(
             race_id,
             set(),
         ).add(
@@ -1086,25 +1120,20 @@ def basic_validate(
             ]
         )
 
-    bad = []
-
-    for race_id in race_ids:
-
-        count = counts.get(
-            race_id,
-            0,
-        )
-
-        boat_set = (
-            boat_sets.get(
+    bad_races = [
+        race_id
+        for race_id
+        in race_ids
+        if (
+            counts.get(
+                race_id,
+                0,
+            )
+            != 6
+            or number_sets.get(
                 race_id,
                 set(),
             )
-        )
-
-        if (
-            count != 6
-            or boat_set
             != {
                 1,
                 2,
@@ -1113,116 +1142,192 @@ def basic_validate(
                 5,
                 6,
             }
+        )
+    ]
+
+    if bad_races:
+        raise RuntimeError(
+            "6艇揃っていないレースが残っています: "
+            f"{len(bad_races)}件"
+        )
+
+    bad_motor = []
+
+    bad_boat = []
+
+    bad_exhibition = []
+
+    for row in boats:
+
+        motor_no = row.get(
+            "motor_no"
+        )
+
+        boat_no = row.get(
+            "boat_no"
+        )
+
+        exhibition = row.get(
+            "exhibition_time"
+        )
+
+        if (
+            motor_no is not None
+            and not (
+                1
+                <= motor_no
+                <= 99
+            )
         ):
-            bad.append(
+            bad_motor.append(
                 (
-                    race_id,
-                    count,
-                    sorted(
-                        boat_set
-                    ),
+                    row[
+                        "race_id"
+                    ],
+
+                    row[
+                        "boat"
+                    ],
+
+                    motor_no,
                 )
             )
 
-    if bad:
+        if (
+            boat_no is not None
+            and not (
+                1
+                <= boat_no
+                <= 99
+            )
+        ):
+            bad_boat.append(
+                (
+                    row[
+                        "race_id"
+                    ],
+
+                    row[
+                        "boat"
+                    ],
+
+                    boat_no,
+                )
+            )
+
+        if (
+            exhibition
+            is not None
+            and not (
+                5.0
+                <= exhibition
+                <= 10.0
+            )
+        ):
+            bad_exhibition.append(
+                (
+                    row[
+                        "race_id"
+                    ],
+
+                    row[
+                        "boat"
+                    ],
+
+                    exhibition,
+                )
+            )
+
+    if bad_motor:
+
         raise RuntimeError(
-            "6艇揃っていないレースが"
-            f"{len(bad)}件残っています: "
-            f"{bad[:5]}"
+            "motor_no値異常: "
+            f"{len(bad_motor)}件 "
+            f"{bad_motor[:5]}"
         )
 
-    if set(
-        race_ids
-    ) != set(
-        counts
-    ):
+    if bad_boat:
+
         raise RuntimeError(
-            "レース結果と艇別結果の"
-            "race_id集合が一致しません"
+            "boat_no値異常: "
+            f"{len(bad_boat)}件 "
+            f"{bad_boat[:5]}"
+        )
+
+    if bad_exhibition:
+
+        raise RuntimeError(
+            "exhibition_time値異常: "
+            f"{len(bad_exhibition)}件 "
+            f"{bad_exhibition[:5]}"
         )
 
     motor_count = sum(
-        1
-        for row
-        in boats
-        if row.get(
+        row.get(
             "motor_no"
         )
         is not None
-    )
-
-    boat_machine_count = sum(
-        1
         for row
         in boats
-        if row.get(
+    )
+
+    boat_count = sum(
+        row.get(
             "boat_no"
         )
         is not None
+        for row
+        in boats
     )
 
     exhibition_count = sum(
-        1
-        for row
-        in boats
-        if row.get(
+        row.get(
             "exhibition_time"
         )
         is not None
+        for row
+        in boats
     )
 
-    if motor_count == 0:
-        raise RuntimeError(
-            "モーター番号が全件欠損です"
-        )
+    print("")
+    print(
+        "========================================"
+    )
 
-    if boat_machine_count == 0:
-        raise RuntimeError(
-            "ボート番号が全件欠損です"
-        )
+    print(
+        "拡張項目検証"
+    )
 
-    if exhibition_count == 0:
-        raise RuntimeError(
-            "展示タイムが全件欠損です"
-        )
+    print(
+        "motor_no取得: "
+        f"{motor_count}/{len(boats)}"
+    )
 
-    if LAST_EXCLUDED_RACES:
+    print(
+        "boat_no取得: "
+        f"{boat_count}/{len(boats)}"
+    )
 
-        print("")
+    print(
+        "exhibition_time取得: "
+        f"{exhibition_count}/{len(boats)}"
+    )
 
-        print(
-            "========================================"
-        )
+    print(
+        "motor_no値異常: 0"
+    )
 
-        print(
-            "学習対象外レース"
-        )
+    print(
+        "boat_no値異常: 0"
+    )
 
-        print(
-            "除外件数: "
-            f"{len(LAST_EXCLUDED_RACES)}"
-        )
+    print(
+        "exhibition_time値異常: 0"
+    )
 
-        for item in (
-            LAST_EXCLUDED_RACES[:20]
-        ):
-            print(
-                f"- {item['race_id']} "
-                f"{item['reason']} "
-                f"({item['boat_rows']}艇)"
-            )
-
-        if len(
-            LAST_EXCLUDED_RACES
-        ) > 20:
-
-            print(
-                "...以降省略"
-            )
-
-        print(
-            "========================================"
-        )
+    print(
+        "========================================"
+    )
 
 
 def write_excluded_json(
@@ -1242,7 +1347,9 @@ def write_excluded_json(
     )
 
     payload = {
-        "target_date": target_date,
+        "target_date": (
+            target_date
+        ),
 
         "excluded_count": len(
             LAST_EXCLUDED_RACES
@@ -1258,9 +1365,11 @@ def write_excluded_json(
             "同日の正常レースは保存する。"
         ),
 
-        "created_at": datetime.now(
-            JST
-        ).isoformat(),
+        "created_at": (
+            datetime.now(
+                JST
+            ).isoformat()
+        ),
     }
 
     path.write_text(
@@ -1297,15 +1406,10 @@ def main():
         parser.parse_args()
     )
 
-    if args.date:
-
-        target_date = (
-            args.date
-        )
-
-    else:
-
-        target_date = (
+    target_date = (
+        args.date
+        if args.date
+        else (
             datetime.now(
                 JST
             )
@@ -1315,8 +1419,10 @@ def main():
         ).strftime(
             "%Y%m%d"
         )
+    )
 
     try:
+
         datetime.strptime(
             target_date,
             "%Y%m%d",
@@ -1358,12 +1464,10 @@ def main():
 
     try:
 
-        archive_bytes = fetch(
-            url
-        )
-
         payload = extract_lzh(
-            archive_bytes
+            fetch(
+                url
+            )
         )
 
         (
@@ -1422,38 +1526,7 @@ def main():
             )
         )
 
-        motor_count = sum(
-            1
-            for row
-            in boats
-            if row.get(
-                "motor_no"
-            )
-            is not None
-        )
-
-        boat_machine_count = sum(
-            1
-            for row
-            in boats
-            if row.get(
-                "boat_no"
-            )
-            is not None
-        )
-
-        exhibition_count = sum(
-            1
-            for row
-            in boats
-            if row.get(
-                "exhibition_time"
-            )
-            is not None
-        )
-
         print("")
-
         print(
             "========================================"
         )
@@ -1463,7 +1536,8 @@ def main():
         )
 
         print(
-            f"開催場数: {len(venues)}"
+            f"開催場数: "
+            f"{len(venues)}"
         )
 
         print(
@@ -1472,22 +1546,8 @@ def main():
         )
 
         print(
-            f"艇数: {len(boats)}"
-        )
-
-        print(
-            "モーター番号取得: "
-            f"{motor_count}艇"
-        )
-
-        print(
-            "ボート番号取得: "
-            f"{boat_machine_count}艇"
-        )
-
-        print(
-            "展示タイム取得: "
-            f"{exhibition_count}艇"
+            f"艇数: "
+            f"{len(boats)}"
         )
 
         print(
@@ -1496,7 +1556,8 @@ def main():
         )
 
         print(
-            f"除外ログ: {excluded_path}"
+            f"除外ログ: "
+            f"{excluded_path}"
         )
 
         print(
