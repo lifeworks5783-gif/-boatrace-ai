@@ -1,69 +1,60 @@
 name: 前日全場自動収集
 
-# 検証済みデータを同じGitHubリポジトリへ
-# 長期保存できるようにする
 permissions:
   contents: write
 
 on:
-  # 毎日 日本時間 1:00 に自動実行
   schedule:
     - cron: "0 1 * * *"
       timezone: "Asia/Tokyo"
 
-  # 手動実行も可能
   workflow_dispatch:
+
+concurrency:
+  group: daily-results-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   collect:
     runs-on: ubuntu-latest
-
-    # 最大60分
-    timeout-minutes: 60
+    timeout-minutes: 10
 
     steps:
       - name: ファイルを読み込む
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Pythonを準備
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install lhafile
+
       - name: dataフォルダを準備
         run: mkdir -p data
 
-      - name: 前日の開催場・全レース・全艇を収集
-        continue-on-error: true
+      - name: 前日全場結果を軽量収集
         run: |
-          set +e
-
           echo "========================================"
-          echo "前日全場収集を開始します"
-          echo "最大収集時間：55分"
+          echo "前日全場結果・Kファイル軽量収集"
           echo "========================================"
 
-          timeout --signal=TERM 55m python -u collectors/daily_all.py
-          EXIT_CODE=$?
+          python -u collectors/daily_results_fast.py
 
           echo ""
           echo "========================================"
-          echo "収集処理終了"
-          echo "終了コード: ${EXIT_CODE}"
+          echo "軽量収集完了"
           echo "========================================"
-
-          if [ "${EXIT_CODE}" -eq 124 ]; then
-            echo "::warning::55分に到達したため安全に収集処理を終了しました"
-            exit 0
-          fi
-
-          exit "${EXIT_CODE}"
 
       - name: 収集データを自動検証
-        if: always()
         run: |
           echo "========================================"
-          echo "日次データ品質検証を開始します"
+          echo "日次データ品質検証を開始"
           echo "========================================"
 
           python -u collectors/validate_daily.py
@@ -73,45 +64,43 @@ jobs:
           echo "日次データ品質検証 PASS"
           echo "========================================"
 
-      - name: 収集済みファイルを確認
-        if: always()
+      - name: 作成ファイルを確認
         run: |
           echo "========================================"
-          echo "現在保存されているデータファイル"
+          echo "今回作成されたデータ"
           echo "========================================"
 
-          if [ -d "data" ]; then
-            find data -maxdepth 1 -type f \( -name "*.csv" -o -name "*.json" \) -print | sort
-          else
-            echo "dataフォルダがありません"
-          fi
+          find data -maxdepth 1 -type f \
+            \( -name "*.csv" -o -name "*.json" \) \
+            -print | sort
 
-      - name: CSVと検証結果をArtifactへ保存
-        if: always()
+      - name: 結果をArtifactへ短期保存
         uses: actions/upload-artifact@v4
         with:
           name: boatrace-results-${{ github.run_number }}
           path: |
-            data/*.csv
-            data/*.json
-          if-no-files-found: warn
-          retention-days: 90
+            data/venues_*.csv
+            data/results_*_all.csv
+            data/boat_results_*_all.csv
+            data/validation_*.json
+            data/manifest_*.json
+          if-no-files-found: error
+          retention-days: 14
 
       - name: 検証PASSデータをGitHubへ長期保存
-        if: success()
         run: |
-          echo "========================================"
-          echo "長期保存処理を開始します"
-          echo "========================================"
-
-          VALIDATION_FILE=$(find data -maxdepth 1 -type f -name "validation_*.json" | head -n 1)
+          VALIDATION_FILE=$(find data -maxdepth 1 \
+            -type f \
+            -name "validation_*.json" \
+            | head -n 1)
 
           if [ -z "${VALIDATION_FILE}" ]; then
             echo "validationファイルがありません"
             exit 1
           fi
 
-          TARGET_DATE=$(basename "${VALIDATION_FILE}" | sed -E 's/validation_([0-9]{8})\.json/\1/')
+          TARGET_DATE=$(basename "${VALIDATION_FILE}" \
+            | sed -E 's/validation_([0-9]{8})\.json/\1/')
 
           YEAR=${TARGET_DATE:0:4}
           MONTH=${TARGET_DATE:4:2}
@@ -131,7 +120,7 @@ jobs:
           cp "data/manifest_${TARGET_DATE}.json" "${DEST}/"
 
           echo ""
-          echo "長期保存する5ファイル:"
+          echo "保存する5ファイル:"
           find "${DEST}" -maxdepth 1 -type f -print | sort
 
           git config user.name "boatrace-data-bot"
@@ -146,7 +135,10 @@ jobs:
           fi
 
           git commit -m "Archive BOAT RACE data ${TARGET_DATE}"
-          git push
+
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+
+          git push origin HEAD:"${GITHUB_REF_NAME}"
 
           echo ""
           echo "========================================"
