@@ -4,12 +4,10 @@ permissions:
   contents: write
 
 on:
-  # 毎日 日本時間 6:00 に実行
   schedule:
     - cron: "0 6 * * *"
       timezone: "Asia/Tokyo"
 
-  # 手動テスト可能
   workflow_dispatch:
 
 concurrency:
@@ -42,55 +40,43 @@ jobs:
 
       - name: 当日の全国番組表・選手・モーター情報を収集
         run: |
-          echo "========================================"
-          echo "当日予測用基本データ収集を開始"
-          echo "========================================"
-
           python -u collectors/today_basic.py
 
-          echo ""
-          echo "========================================"
-          echo "当日基本データ収集・検証 PASS"
-          echo "========================================"
+      - name: 朝版prediction_inputを生成
+        run: |
+          python -u collectors/build_prediction_input.py --stage morning
 
       - name: 作成ファイルを確認
-        if: always()
         run: |
           echo "========================================"
-          echo "今回作成された当日データ"
+          echo "当日朝データ"
           echo "========================================"
 
-          find data -maxdepth 1 -type f \
+          find data -type f \
             \( \
-              -name "program_races_*.csv" \
-              -o -name "program_entries_*.csv" \
-              -o -name "program_validation_*.json" \
-              -o -name "program_manifest_*.json" \
+              -name "program_*.csv" \
+              -o -name "program_*.json" \
+              -o -name "prediction_input_morning_*.json" \
+              -o -name "prediction_input_validation_morning_*.json" \
             \) \
             -print | sort
 
-      - name: 当日基本データをArtifactへ一時保存
-        if: always()
+      - name: 朝版データをArtifactへ保存
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-today-basic-${{ github.run_number }}
+          name: boatrace-morning-${{ github.run_number }}
           path: |
             data/program_races_*.csv
             data/program_entries_*.csv
             data/program_validation_*.json
             data/program_manifest_*.json
-          if-no-files-found: warn
-
-          # GitHub容量節約のため短期保存
+            data/prediction_input_morning_*.json
+            data/prediction_input_validation_morning_*.json
+          if-no-files-found: error
           retention-days: 14
 
-      - name: 検証PASSデータをGitHubへ保存
-        if: success()
+      - name: 朝版データをGitHubへ長期保存
         run: |
-          echo "========================================"
-          echo "当日基本データの長期保存を開始"
-          echo "========================================"
-
           VALIDATION_FILE=$(find data -maxdepth 1 \
             -type f \
             -name "program_validation_*.json" \
@@ -108,42 +94,35 @@ jobs:
           MONTH=${TARGET_DATE:4:2}
           DAY=${TARGET_DATE:6:2}
 
-          DEST="archive/${YEAR}/${MONTH}/${DAY}/pre_race/base"
+          BASE_DEST="archive/${YEAR}/${MONTH}/${DAY}/pre_race/base"
+          PRED_DEST="archive/${YEAR}/${MONTH}/${DAY}/prediction/morning"
 
-          echo "対象日: ${TARGET_DATE}"
-          echo "保存先: ${DEST}"
+          mkdir -p "${BASE_DEST}"
+          mkdir -p "${PRED_DEST}"
 
-          mkdir -p "${DEST}"
+          cp "data/program_races_${TARGET_DATE}.csv" "${BASE_DEST}/"
+          cp "data/program_entries_${TARGET_DATE}.csv" "${BASE_DEST}/"
+          cp "data/program_validation_${TARGET_DATE}.json" "${BASE_DEST}/"
+          cp "data/program_manifest_${TARGET_DATE}.json" "${BASE_DEST}/"
 
-          cp "data/program_races_${TARGET_DATE}.csv" "${DEST}/"
-          cp "data/program_entries_${TARGET_DATE}.csv" "${DEST}/"
-          cp "data/program_validation_${TARGET_DATE}.json" "${DEST}/"
-          cp "data/program_manifest_${TARGET_DATE}.json" "${DEST}/"
-
-          echo ""
-          echo "保存するファイル:"
-          find "${DEST}" -maxdepth 1 -type f -print | sort
+          cp "data/prediction_input_morning_${TARGET_DATE}.json" "${PRED_DEST}/"
+          cp "data/prediction_input_validation_morning_${TARGET_DATE}.json" "${PRED_DEST}/"
 
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
-          git add "${DEST}"
+          git add "${BASE_DEST}" "${PRED_DEST}"
 
           if git diff --cached --quiet; then
-            echo "同じ内容が既に保存されています"
-            echo "重複コミットは行いません"
+            echo "変更なし"
             exit 0
           fi
 
-          git commit -m "Archive pre-race data ${TARGET_DATE}"
+          git commit -m "Archive morning prediction data ${TARGET_DATE}"
 
-          # 実行中に別の自動収集がコミットしていても
-          # できるだけ安全に追従する
           git pull --rebase origin "${GITHUB_REF_NAME}"
-
           git push origin HEAD:"${GITHUB_REF_NAME}"
 
-          echo ""
           echo "========================================"
-          echo "当日基本データ GitHub保存完了"
+          echo "朝版prediction_input保存完了"
           echo "========================================"
