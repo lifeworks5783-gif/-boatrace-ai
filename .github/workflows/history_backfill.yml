@@ -1,4 +1,4 @@
-name: 過去100日結果バックフィル
+name: 過去100日履歴・拡張データ再構築
 
 permissions:
   contents: write
@@ -11,9 +11,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  backfill:
+  rebuild_history:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: ファイルを読み込む
@@ -31,23 +31,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install lhafile
 
-      - name: 過去100日分を収集
+      - name: dataフォルダを準備
+        run: |
+          mkdir -p data
+          mkdir -p history
+
+      - name: 過去100日を拡張データ付きで再取得
         run: |
           echo "========================================"
-          echo "過去100日バックフィル開始"
-          echo "既存日付は自動スキップ"
+          echo "過去100日 履歴データ再構築"
+          echo "motor_no / boat_no / exhibition_time追加"
           echo "========================================"
 
           python -u collectors/backfill_history.py \
             --days 100 \
+            --force \
             --sleep 0.7
 
       - name: バックフィル結果を確認
         run: |
-          echo "========================================"
-          echo "バックフィルレポート"
-          echo "========================================"
-
           REPORT=$(find history \
             -maxdepth 1 \
             -type f \
@@ -59,6 +61,10 @@ jobs:
             echo "バックフィルレポートがありません"
             exit 1
           fi
+
+          echo "========================================"
+          echo "バックフィル結果"
+          echo "========================================"
 
           python - "${REPORT}" <<'PY'
           import json
@@ -108,21 +114,235 @@ jobs:
 
           if failed:
               print("")
-              print(
-                  "取得失敗日:"
-              )
+              print("取得失敗日:")
 
               for item in failed:
                   print(
                       item.get("date"),
                       item.get("error")
                   )
+
+              raise SystemExit(1)
+
+          print("")
+          print("バックフィル取得 PASS")
           PY
 
-      - name: 取得データ総数を確認
+      - name: 拡張3項目を検証
         run: |
           echo "========================================"
-          echo "archive内の履歴データ確認"
+          echo "100日履歴 拡張項目検証"
+          echo "========================================"
+
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          files = sorted(
+              Path("archive").glob(
+                  "*/*/*/boat_results_*_all.csv"
+              )
+          )
+
+          if len(files) < 90:
+              raise SystemExit(
+                  f"履歴ファイルが90日未満です: {len(files)}"
+              )
+
+          checked_files = 0
+          total_rows = 0
+          motor_rows = 0
+          boat_rows = 0
+          exhibition_rows = 0
+          missing_columns = []
+
+          required = {
+              "motor_no",
+              "boat_no",
+              "exhibition_time",
+          }
+
+          for path in files:
+              with path.open(
+                  "r",
+                  encoding="utf-8-sig",
+                  newline="",
+              ) as f:
+                  reader = csv.DictReader(f)
+
+                  fields = set(
+                      reader.fieldnames
+                      or []
+                  )
+
+                  if not required.issubset(
+                      fields
+                  ):
+                      missing_columns.append(
+                          str(path)
+                      )
+                      continue
+
+                  checked_files += 1
+
+                  for row in reader:
+                      total_rows += 1
+
+                      if str(
+                          row.get(
+                              "motor_no",
+                              ""
+                          )
+                      ).strip():
+                          motor_rows += 1
+
+                      if str(
+                          row.get(
+                              "boat_no",
+                              ""
+                          )
+                      ).strip():
+                          boat_rows += 1
+
+                      if str(
+                          row.get(
+                              "exhibition_time",
+                              ""
+                          )
+                      ).strip():
+                          exhibition_rows += 1
+
+          print(
+              "履歴ファイル数:",
+              len(files)
+          )
+
+          print(
+              "拡張項目対応ファイル:",
+              checked_files
+          )
+
+          print(
+              "総艇データ:",
+              total_rows
+          )
+
+          print(
+              "motor_no取得:",
+              motor_rows
+          )
+
+          print(
+              "boat_no取得:",
+              boat_rows
+          )
+
+          print(
+              "exhibition_time取得:",
+              exhibition_rows
+          )
+
+          if missing_columns:
+              print("")
+              print(
+                  "拡張項目不足ファイル:",
+                  len(missing_columns)
+              )
+
+              for item in (
+                  missing_columns[:10]
+              ):
+                  print(item)
+
+              raise SystemExit(1)
+
+          if total_rows == 0:
+              raise SystemExit(
+                  "艇データが0件です"
+              )
+
+          if motor_rows == 0:
+              raise SystemExit(
+                  "motor_noが全件欠損です"
+              )
+
+          if boat_rows == 0:
+              raise SystemExit(
+                  "boat_noが全件欠損です"
+              )
+
+          if exhibition_rows == 0:
+              raise SystemExit(
+                  "exhibition_timeが全件欠損です"
+              )
+
+          print("")
+          print(
+              "100日履歴 拡張項目検証 PASS"
+          )
+          PY
+
+      - name: 既存validationとmanifestを更新
+        run: |
+          echo "========================================"
+          echo "既存の日次検証情報を再生成"
+          echo "========================================"
+
+          UPDATED=0
+
+          while IFS= read -r VALIDATION_FILE
+          do
+            DIR=$(dirname "${VALIDATION_FILE}")
+
+            TARGET_DATE=$(basename "${VALIDATION_FILE}" \
+              | sed -E 's/validation_([0-9]{8})\.json/\1/')
+
+            VENUES="${DIR}/venues_${TARGET_DATE}.csv"
+            RESULTS="${DIR}/results_${TARGET_DATE}_all.csv"
+            BOATS="${DIR}/boat_results_${TARGET_DATE}_all.csv"
+
+            if [ ! -f "${VENUES}" ] || \
+               [ ! -f "${RESULTS}" ] || \
+               [ ! -f "${BOATS}" ]; then
+
+              echo "${TARGET_DATE}: 必要CSV不足のためSKIP"
+              continue
+            fi
+
+            rm -f data/*.csv data/*.json
+
+            cp "${VENUES}" data/
+            cp "${RESULTS}" data/
+            cp "${BOATS}" data/
+
+            echo ""
+            echo "再検証: ${TARGET_DATE}"
+
+            python -u collectors/validate_daily.py \
+              --date "${TARGET_DATE}"
+
+            cp "data/validation_${TARGET_DATE}.json" \
+              "${DIR}/"
+
+            cp "data/manifest_${TARGET_DATE}.json" \
+              "${DIR}/"
+
+            UPDATED=$((UPDATED + 1))
+
+          done < <(
+            find archive \
+              -type f \
+              -name "validation_*.json" \
+              | sort
+          )
+
+          echo ""
+          echo "再生成した検証日数: ${UPDATED}"
+
+      - name: 100日履歴日数を最終確認
+        run: |
+          echo "========================================"
+          echo "履歴データ最終確認"
           echo "========================================"
 
           RESULT_COUNT=$(find archive \
@@ -135,41 +355,35 @@ jobs:
             -name "boat_results_*_all.csv" \
             | wc -l)
 
-          VENUE_COUNT=$(find archive \
-            -type f \
-            -name "venues_*.csv" \
-            | wc -l)
-
-          echo "結果日数: ${RESULT_COUNT}"
-          echo "艇別結果日数: ${BOAT_COUNT}"
-          echo "開催場ファイル日数: ${VENUE_COUNT}"
+          echo "結果ファイル日数: ${RESULT_COUNT}"
+          echo "艇別結果ファイル日数: ${BOAT_COUNT}"
 
           if [ "${RESULT_COUNT}" -lt 90 ]; then
-            echo "90日未満の結果データしかありません"
+            echo "結果データが90日未満です"
             exit 1
           fi
 
           if [ "${BOAT_COUNT}" -lt 90 ]; then
-            echo "90日未満の艇別結果しかありません"
+            echo "艇別結果が90日未満です"
             exit 1
           fi
 
           echo ""
-          echo "90日集計に必要な期間を確保できています"
+          echo "30日・90日特徴量作成の準備完了"
 
       - name: レポートをArtifactへ短期保存
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-history-backfill-${{ github.run_number }}
+          name: boatrace-history-rebuild-${{ github.run_number }}
           path: |
             history/backfill_report_*.json
           if-no-files-found: error
           retention-days: 7
 
-      - name: 過去データをGitHubへ保存
+      - name: 再構築した100日履歴をGitHubへ保存
         run: |
           echo "========================================"
-          echo "バックフィルデータをGitHubへ保存"
+          echo "100日履歴をGitHubへ保存"
           echo "========================================"
 
           git config user.name "boatrace-data-bot"
@@ -178,11 +392,11 @@ jobs:
           git add archive history
 
           if git diff --cached --quiet; then
-            echo "新規保存データはありません"
+            echo "変更はありません"
             exit 0
           fi
 
-          git commit -m "Backfill 100 days BOAT RACE history"
+          git commit -m "Rebuild 100 day enriched BOAT RACE history"
 
           git pull --rebase origin "${GITHUB_REF_NAME}"
 
@@ -190,5 +404,5 @@ jobs:
 
           echo ""
           echo "========================================"
-          echo "過去100日バックフィル GitHub保存完了"
+          echo "100日拡張履歴 GitHub保存完了"
           echo "========================================"
