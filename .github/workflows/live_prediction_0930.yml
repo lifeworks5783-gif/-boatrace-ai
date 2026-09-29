@@ -144,7 +144,7 @@ jobs:
             exit 1
           fi
 
-      - name: 保存フォルダを作成
+      - name: 直前予測保存フォルダを作成
         if: env.HAS_LIVE_PREDICTION == 'true'
         run: |
           LIVE_DEST="predictions/${YEAR}/${MONTH}/${DAY}/live"
@@ -205,18 +205,36 @@ jobs:
             "data/prediction_input_enriched_validation_live_${TARGET_DATE}.json" \
             "${INPUT_DEST}/"
 
-      - name: GitHubへ保存
-        if: env.HAS_LIVE_PREDICTION == 'true'
+      - name: スマホ用最新予想一覧を生成
+        if: env.TARGET_DATE == '20260930'
         run: |
           echo "========================================"
-          echo "直前予測 GitHub保存"
+          echo "最新予想一覧生成"
+          echo "========================================"
+
+          python -u collectors/build_latest_prediction_view.py \
+            --date "${TARGET_DATE}" \
+            --now "${NOW_ISO}"
+
+          cat predictions/latest.md
+
+      - name: GitHubへ保存
+        if: env.TARGET_DATE == '20260930'
+        run: |
+          echo "========================================"
+          echo "GitHub保存"
           echo "========================================"
 
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
-          git add "${LIVE_DEST}"
-          git add "${INPUT_DEST}"
+          git add predictions/latest.md
+          git add predictions/latest.json
+
+          if [ "${HAS_LIVE_PREDICTION}" = "true" ]; then
+            git add "${LIVE_DEST}"
+            git add "${INPUT_DEST}"
+          fi
 
           if git diff --cached --quiet; then
             echo "変更なし"
@@ -224,12 +242,12 @@ jobs:
           fi
 
           git commit -m \
-            "Live prediction ${TARGET_DATE} ${RUN_STAMP}"
+            "Update live predictions ${TARGET_DATE} ${RUN_STAMP}"
 
           git push origin HEAD:main
 
           echo ""
-          echo "直前予測 GitHub保存: PASS"
+          echo "GitHub保存: PASS"
 
       - name: 直前予測をArtifactへ短期保存
         if: env.HAS_LIVE_PREDICTION == 'true'
@@ -245,15 +263,22 @@ jobs:
           retention-days: 7
 
       - name: 最終確認
-        if: env.HAS_LIVE_PREDICTION == 'true'
+        if: env.TARGET_DATE == '20260930'
         run: |
           echo "========================================"
-          echo "9月30日 直前予測処理 完了"
+          echo "9月30日 最新予想処理 完了"
           echo "========================================"
 
           echo "対象日: ${TARGET_DATE}"
-          echo "直前情報収集: PASS"
-          echo "履歴特徴量結合: PASS"
-          echo "直前予測: PASS"
-          echo "結果漏洩防止: 有効"
-          echo "GitHub保存: PASS"
+          echo "直前情報収集: 完了"
+          echo "スマホ用最新一覧: 更新済み"
+
+          if [ "${HAS_LIVE_PREDICTION}" = "true" ]; then
+            echo "直前予測: PASS"
+          else
+            echo "直前予測: 今回は対象なし"
+          fi
+
+          echo ""
+          echo "確認場所:"
+          echo "predictions/latest.md"
