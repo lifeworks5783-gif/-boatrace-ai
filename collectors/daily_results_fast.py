@@ -14,51 +14,27 @@ from pathlib import Path
 
 import lhafile
 
-
 JST = timezone(timedelta(hours=9))
 DATA_DIR = Path("data")
 
-
 VENUES = {
-    "01": "桐生",
-    "02": "戸田",
-    "03": "江戸川",
-    "04": "平和島",
-    "05": "多摩川",
-    "06": "浜名湖",
-    "07": "蒲郡",
-    "08": "常滑",
-    "09": "津",
-    "10": "三国",
-    "11": "びわこ",
-    "12": "住之江",
-    "13": "尼崎",
-    "14": "鳴門",
-    "15": "丸亀",
-    "16": "児島",
-    "17": "宮島",
-    "18": "徳山",
-    "19": "下関",
-    "20": "若松",
-    "21": "芦屋",
-    "22": "福岡",
-    "23": "唐津",
-    "24": "大村",
+    "01": "桐生", "02": "戸田", "03": "江戸川", "04": "平和島",
+    "05": "多摩川", "06": "浜名湖", "07": "蒲郡", "08": "常滑",
+    "09": "津", "10": "三国", "11": "びわこ", "12": "住之江",
+    "13": "尼崎", "14": "鳴門", "15": "丸亀", "16": "児島",
+    "17": "宮島", "18": "徳山", "19": "下関", "20": "若松",
+    "21": "芦屋", "22": "福岡", "23": "唐津", "24": "大村",
 }
 
+STADIUM_BEGIN = re.compile(rb"^(\d{2})KBGN\s*$")
+STADIUM_END = re.compile(rb"^(\d{2})KEND\s*$")
+RACE_HEADER = re.compile(r"^\s*(\d{1,2})R(?:\s|$)")
 
-STADIUM_BEGIN = re.compile(
-    rb"^(\d{2})KBGN\s*$"
-)
-
-STADIUM_END = re.compile(
-    rb"^(\d{2})KEND\s*$"
-)
-
-RACE_HEADER = re.compile(
-    r"^\s*(\d{1,2})R(?:\s|$)"
-)
-
+VENUE_FIELDS = [
+    "date",
+    "venue_code",
+    "venue_name",
+]
 
 RESULT_FIELDS = [
     "date",
@@ -71,7 +47,6 @@ RESULT_FIELDS = [
     "exacta",
     "exacta_pay",
 ]
-
 
 BOAT_FIELDS = [
     "date",
@@ -89,43 +64,24 @@ BOAT_FIELDS = [
 ]
 
 
-VENUE_FIELDS = [
-    "date",
-    "venue_code",
-    "venue_name",
-]
-
-
-def normalize(
-    text: str,
-) -> str:
-
-    return (
-        unicodedata.normalize(
-            "NFKC",
-            text,
-        )
-        .replace(
-            "　",
-            " ",
-        )
+def normalize(text: str) -> str:
+    return unicodedata.normalize(
+        "NFKC",
+        text,
+    ).replace(
+        "　",
+        " ",
     )
 
 
-def decode(
-    data: bytes,
-) -> str:
-
+def decode(data: bytes) -> str:
     return data.decode(
         "cp932",
         errors="replace",
     )
 
 
-def clean_name(
-    text: str,
-) -> str:
-
+def clean_name(text: str) -> str:
     return re.sub(
         r"[\s　]+",
         "",
@@ -133,10 +89,7 @@ def clean_name(
     )
 
 
-def build_url(
-    target_date: str,
-) -> str:
-
+def build_url(target_date: str) -> str:
     dt = datetime.strptime(
         target_date,
         "%Y%m%d",
@@ -144,8 +97,7 @@ def build_url(
 
     return (
         "https://www1.mbrace.or.jp/"
-        "od2/K/"
-        f"{dt:%Y%m}/"
+        f"od2/K/{dt:%Y%m}/"
         f"k{dt:%y%m%d}.lzh"
     )
 
@@ -170,21 +122,16 @@ def fetch(
         retries + 1,
     ):
         try:
-            request = (
-                urllib.request.Request(
-                    url,
-                    headers=headers,
-                )
+            request = urllib.request.Request(
+                url,
+                headers=headers,
             )
 
             with urllib.request.urlopen(
                 request,
                 timeout=60,
             ) as response:
-
-                data = (
-                    response.read()
-                )
+                data = response.read()
 
             if not data:
                 raise RuntimeError(
@@ -198,8 +145,7 @@ def fetch(
 
             if exc.code == 404:
                 raise RuntimeError(
-                    "競走成績ファイルが"
-                    f"見つかりません: {url}"
+                    f"競走成績ファイルが見つかりません: {url}"
                 ) from exc
 
         except Exception as exc:
@@ -211,27 +157,17 @@ def fetch(
             )
 
     raise RuntimeError(
-        "競走成績ダウンロード失敗: "
-        f"{last_error}"
+        f"競走成績ダウンロード失敗: {last_error}"
     )
 
 
-def extract_lzh(
-    data: bytes,
-) -> bytes:
-
+def extract_lzh(data: bytes) -> bytes:
     try:
-        archive = (
-            lhafile.LhaFile(
-                io.BytesIO(
-                    data
-                )
-            )
+        archive = lhafile.LhaFile(
+            io.BytesIO(data)
         )
 
-        names = (
-            archive.namelist()
-        )
+        names = archive.namelist()
 
         if not names:
             raise RuntimeError(
@@ -240,23 +176,13 @@ def extract_lzh(
 
         parts = []
 
-        for name in sorted(
-            names
-        ):
-            payload = (
-                archive.read(
-                    name
-                )
-            )
+        for name in sorted(names):
+            payload = archive.read(name)
 
             if payload:
-                parts.append(
-                    payload
-                )
+                parts.append(payload)
 
-        joined = b"".join(
-            parts
-        )
+        joined = b"".join(parts)
 
         if not joined:
             raise RuntimeError(
@@ -271,180 +197,154 @@ def extract_lzh(
         ) from exc
 
 
-def is_result_row(
-    line: bytes,
-) -> bool:
-
+def is_result_row(line: bytes) -> bool:
     if len(line) < 55:
         return False
 
-    lane = (
-        line[6:7]
-    )
-
-    registration = (
-        line[8:12]
-    )
-
     return (
-        lane
-        in b"123456"
-        and len(
-            registration
-        ) == 4
-        and registration.isdigit()
+        line[6:7] in b"123456"
+        and len(line[8:12]) == 4
+        and line[8:12].isdigit()
     )
 
 
-def parse_finish(
-    line: bytes,
-) -> str:
-
-    return (
-        normalize(
-            decode(
-                line[2:4]
-            )
+def parse_finish(line: bytes) -> str:
+    value = normalize(
+        decode(
+            line[2:4]
         )
-        .strip()
-    )
-
-
-def parse_boat(
-    line: bytes,
-):
-
-    value = (
-        normalize(
-            decode(
-                line[6:7]
-            )
-        )
-        .strip()
-    )
+    ).strip().upper()
 
     if value.isdigit():
-        return int(
-            value
+        number = int(value)
+
+        if 1 <= number <= 6:
+            return str(number)
+
+    return value
+
+
+def parse_boat(line: bytes):
+    value = normalize(
+        decode(
+            line[6:7]
         )
+    ).strip()
+
+    if value.isdigit():
+        return int(value)
 
     return None
 
 
-def parse_registration_no(
-    line: bytes,
-) -> str:
-
-    return (
-        normalize(
-            decode(
-                line[8:12]
-            )
+def parse_course(line: bytes):
+    value = normalize(
+        decode(
+            line[43:47]
         )
-        .strip()
-    )
-
-
-def parse_course(
-    line: bytes,
-):
-
-    value = (
-        normalize(
-            decode(
-                line[43:47]
-            )
-        )
-        .strip()
-    )
+    ).strip()
 
     if value.isdigit():
-        return int(
-            value
-        )
+        return int(value)
 
     return None
 
 
-def parse_st(
-    line: bytes,
-) -> str:
-
-    return (
-        normalize(
-            decode(
-                line[47:55]
-            )
+def parse_st(line: bytes) -> str:
+    value = normalize(
+        decode(
+            line[47:55]
         )
-        .strip()
+    ).strip().upper().replace(
+        " ",
+        "",
     )
 
-
-def parse_race_time(
-    line: bytes,
-) -> str:
-
-    if len(line) <= 55:
+    if not value:
         return ""
 
-    return (
-        normalize(
-            decode(
-                line[55:66]
-            )
-        )
-        .strip()
+    # 0.13 → .13
+    match = re.fullmatch(
+        r"0\.(\d{2})",
+        value,
     )
+
+    if match:
+        return f".{match.group(1)}"
+
+    # すでに .13 の形式
+    match = re.fullmatch(
+        r"\.(\d{2})",
+        value,
+    )
+
+    if match:
+        return value
+
+    # F0.03 / F.03 → F.03
+    match = re.fullmatch(
+        r"F(?:0)?\.(\d{2})",
+        value,
+    )
+
+    if match:
+        return f"F.{match.group(1)}"
+
+    # L0.03 / L.03 → L.03
+    match = re.fullmatch(
+        r"L(?:0)?\.(\d{2})",
+        value,
+    )
+
+    if match:
+        return f"L.{match.group(1)}"
+
+    if value in {
+        "F",
+        "L",
+    }:
+        return value
+
+    # K等はスタートタイミングではなく
+    # 特殊状態由来なので旧CSV互換として空欄
+    return ""
 
 
 def parse_result_row(
     line: bytes,
 ) -> dict:
 
+    race_time = ""
+
+    if len(line) > 55:
+        race_time = normalize(
+            decode(
+                line[55:66]
+            )
+        ).strip()
+
     return {
-        "boat": (
-            parse_boat(
-                line
+        "boat": parse_boat(line),
+
+        "course": parse_course(line),
+
+        "registration_no": normalize(
+            decode(
+                line[8:12]
+            )
+        ).strip(),
+
+        "racer_name": clean_name(
+            decode(
+                line[13:29]
             )
         ),
 
-        "course": (
-            parse_course(
-                line
-            )
-        ),
+        "finish": parse_finish(line),
 
-        "registration_no": (
-            parse_registration_no(
-                line
-            )
-        ),
+        "st": parse_st(line),
 
-        "racer_name": (
-            clean_name(
-                decode(
-                    line[13:29]
-                )
-            )
-        ),
-
-        "finish": (
-            parse_finish(
-                line
-            )
-        ),
-
-        "st": (
-            parse_st(
-                line
-            )
-        ),
-
-        "race_time": (
-            parse_race_time(
-                line
-            )
-        ),
+        "race_time": race_time,
     }
 
 
@@ -453,54 +353,32 @@ def payout_from_line(
     label: str,
     arity: int,
 ):
-
-    flat = (
-        normalize(
-            text
-        )
-    )
-
-    if label not in flat:
-        return "", ""
+    flat = normalize(text)
 
     combo_pattern = "-".join(
         [
             r"[1-6]"
-        ]
-        * arity
+        ] * arity
     )
 
-    pattern = (
+    match = re.search(
         rf"{re.escape(label)}"
         rf"\s*"
         rf"({combo_pattern})"
         rf"\s*"
-        rf"([\d,]+)"
-    )
-
-    match = re.search(
-        pattern,
+        rf"([\d,]+)",
         flat,
     )
 
     if not match:
         return "", ""
 
-    combination = (
-        match.group(1)
-    )
-
-    payout = (
-        match.group(2)
-        .replace(
+    return (
+        match.group(1),
+        match.group(2).replace(
             ",",
             "",
-        )
-    )
-
-    return (
-        combination,
-        payout,
+        ),
     )
 
 
@@ -509,7 +387,6 @@ def write_csv(
     rows: list[dict],
     fields: list[str],
 ):
-
     path.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -521,11 +398,9 @@ def write_csv(
         newline="",
     ) as f:
 
-        writer = (
-            csv.DictWriter(
-                f,
-                fieldnames=fields,
-            )
+        writer = csv.DictWriter(
+            f,
+            fieldnames=fields,
         )
 
         writer.writeheader()
@@ -547,11 +422,8 @@ def parse_payload(
     payload: bytes,
     target_date: str,
 ):
-
     venues_seen = {}
-
     races = {}
-
     boats = []
 
     current_venue = None
@@ -559,10 +431,8 @@ def parse_payload(
 
     for raw in payload.splitlines():
 
-        begin = (
-            STADIUM_BEGIN.match(
-                raw
-            )
+        begin = STADIUM_BEGIN.match(
+            raw
         )
 
         if begin:
@@ -601,10 +471,8 @@ def parse_payload(
             )
         )
 
-        header = (
-            RACE_HEADER.match(
-                text
-            )
+        header = RACE_HEADER.match(
+            text
         )
 
         if header:
@@ -625,16 +493,24 @@ def parse_payload(
                 )
             ] = {
                 "date": target_date,
+
                 "venue_code": current_venue,
+
                 "venue_name": VENUES.get(
                     current_venue,
                     "",
                 ),
+
                 "race": current_race,
+
                 "race_id": race_id,
+
                 "trifecta": "",
+
                 "trifecta_pay": "",
+
                 "exacta": "",
+
                 "exacta_pay": "",
             }
 
@@ -643,14 +519,10 @@ def parse_payload(
         if current_race is None:
             continue
 
-        key = (
-            current_venue,
-            current_race,
-        )
-
-        race = (
-            races.get(
-                key
+        race = races.get(
+            (
+                current_venue,
+                current_race,
             )
         )
 
@@ -660,47 +532,31 @@ def parse_payload(
         if is_result_row(
             raw
         ):
-            parsed = (
-                parse_result_row(
-                    raw
-                )
+            parsed = parse_result_row(
+                raw
             )
 
-            boat = (
-                parsed[
-                    "boat"
-                ]
-            )
-
-            if boat is None:
+            if parsed[
+                "boat"
+            ] is None:
                 continue
 
             boats.append(
                 {
-                    "date": (
-                        target_date
+                    "date": target_date,
+
+                    "venue_code": current_venue,
+
+                    "venue_name": VENUES.get(
+                        current_venue,
+                        "",
                     ),
 
-                    "venue_code": (
-                        current_venue
-                    ),
+                    "race": current_race,
 
-                    "venue_name": (
-                        VENUES.get(
-                            current_venue,
-                            "",
-                        )
-                    ),
-
-                    "race": (
-                        current_race
-                    ),
-
-                    "race_id": (
-                        race[
-                            "race_id"
-                        ]
-                    ),
+                    "race_id": race[
+                        "race_id"
+                    ],
 
                     **parsed,
                 }
@@ -708,12 +564,13 @@ def parse_payload(
 
             continue
 
-        trifecta, trifecta_pay = (
-            payout_from_line(
-                text,
-                "3連単",
-                3,
-            )
+        (
+            trifecta,
+            trifecta_pay,
+        ) = payout_from_line(
+            text,
+            "3連単",
+            3,
         )
 
         if trifecta:
@@ -727,12 +584,13 @@ def parse_payload(
 
             continue
 
-        exacta, exacta_pay = (
-            payout_from_line(
-                text,
-                "2連単",
-                2,
-            )
+        (
+            exacta,
+            exacta_pay,
+        ) = payout_from_line(
+            text,
+            "2連単",
+            2,
         )
 
         if exacta:
@@ -744,22 +602,15 @@ def parse_payload(
                 "exacta_pay"
             ] = exacta_pay
 
-
-    venue_rows = [
+    venues = [
         {
-            "date": (
-                target_date
-            ),
+            "date": target_date,
 
-            "venue_code": (
+            "venue_code": code,
+
+            "venue_name": venues_seen[
                 code
-            ),
-
-            "venue_name": (
-                venues_seen[
-                    code
-                ]
-            ),
+            ],
         }
         for code
         in sorted(
@@ -767,17 +618,13 @@ def parse_payload(
         )
     ]
 
-
     race_rows = [
-        races[
-            key
-        ]
+        races[key]
         for key
         in sorted(
             races
         )
     ]
-
 
     boats.sort(
         key=lambda row: (
@@ -799,9 +646,8 @@ def parse_payload(
         )
     )
 
-
     return (
-        venue_rows,
+        venues,
         race_rows,
         boats,
     )
@@ -812,7 +658,6 @@ def basic_validate(
     races,
     boats,
 ):
-
     if not venues:
         raise RuntimeError(
             "開催場が0件です"
@@ -828,7 +673,6 @@ def basic_validate(
             "艇別結果が0件です"
         )
 
-
     race_ids = [
         row[
             "race_id"
@@ -836,7 +680,6 @@ def basic_validate(
         for row
         in races
     ]
-
 
     if len(
         race_ids
@@ -848,7 +691,6 @@ def basic_validate(
         raise RuntimeError(
             "race_id重複を検出しました"
         )
-
 
     boat_keys = [
         (
@@ -863,7 +705,6 @@ def basic_validate(
         in boats
     ]
 
-
     if len(
         boat_keys
     ) != len(
@@ -875,15 +716,12 @@ def basic_validate(
             "race_id×boat重複を検出しました"
         )
 
-
     counts = {}
 
     for row in boats:
-        race_id = (
-            row[
-                "race_id"
-            ]
-        )
+        race_id = row[
+            "race_id"
+        ]
 
         counts[
             race_id
@@ -895,14 +733,12 @@ def basic_validate(
             + 1
         )
 
-
     bad = {
         race_id: count
         for race_id, count
         in counts.items()
         if count != 6
     }
-
 
     if bad:
         sample = ", ".join(
@@ -919,7 +755,6 @@ def basic_validate(
             f"({sample})"
         )
 
-
     missing = (
         set(
             race_ids
@@ -928,7 +763,6 @@ def basic_validate(
             counts
         )
     )
-
 
     if missing:
         raise RuntimeError(
@@ -946,7 +780,6 @@ def main():
         )
     )
 
-
     parser.add_argument(
         "--date",
         default=None,
@@ -956,16 +789,10 @@ def main():
         ),
     )
 
-
-    args = (
-        parser.parse_args()
-    )
-
+    args = parser.parse_args()
 
     if args.date:
-        target_date = (
-            args.date
-        )
+        target_date = args.date
 
     else:
         target_date = (
@@ -979,7 +806,6 @@ def main():
             "%Y%m%d"
         )
 
-
     try:
         datetime.strptime(
             target_date,
@@ -988,17 +814,16 @@ def main():
 
     except ValueError:
         print(
-            "ERROR: 日付はYYYYMMDD形式で指定してください",
+            "ERROR: "
+            "日付はYYYYMMDD形式で指定してください",
             file=sys.stderr,
         )
 
         return 1
 
-
     url = build_url(
         target_date
     )
-
 
     print(
         "========================================"
@@ -1020,18 +845,13 @@ def main():
         "========================================"
     )
 
-
     try:
-        archive_bytes = (
-            fetch(
-                url
-            )
+        archive_bytes = fetch(
+            url
         )
 
-        payload = (
-            extract_lzh(
-                archive_bytes
-            )
+        payload = extract_lzh(
+            archive_bytes
         )
 
         (
@@ -1043,69 +863,32 @@ def main():
             target_date,
         )
 
-
         basic_validate(
             venues,
             races,
             boats,
         )
 
-
-        DATA_DIR.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-
-        venues_path = (
-            DATA_DIR
-            / (
-                f"venues_"
-                f"{target_date}.csv"
-            )
-        )
-
-
-        results_path = (
-            DATA_DIR
-            / (
-                f"results_"
-                f"{target_date}"
-                f"_all.csv"
-            )
-        )
-
-
-        boats_path = (
-            DATA_DIR
-            / (
-                f"boat_results_"
-                f"{target_date}"
-                f"_all.csv"
-            )
-        )
-
-
         write_csv(
-            venues_path,
+            DATA_DIR
+            / f"venues_{target_date}.csv",
             venues,
             VENUE_FIELDS,
         )
 
-
         write_csv(
-            results_path,
+            DATA_DIR
+            / f"results_{target_date}_all.csv",
             races,
             RESULT_FIELDS,
         )
 
-
         write_csv(
-            boats_path,
+            DATA_DIR
+            / f"boat_results_{target_date}_all.csv",
             boats,
             BOAT_FIELDS,
         )
-
 
         print("")
 
@@ -1142,7 +925,6 @@ def main():
         )
 
         return 0
-
 
     except Exception as exc:
         print(
