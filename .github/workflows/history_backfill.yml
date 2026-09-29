@@ -1,0 +1,194 @@
+name: 過去100日結果バックフィル
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: history-backfill-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install lhafile
+
+      - name: 過去100日分を収集
+        run: |
+          echo "========================================"
+          echo "過去100日バックフィル開始"
+          echo "既存日付は自動スキップ"
+          echo "========================================"
+
+          python -u collectors/backfill_history.py \
+            --days 100 \
+            --sleep 0.7
+
+      - name: バックフィル結果を確認
+        run: |
+          echo "========================================"
+          echo "バックフィルレポート"
+          echo "========================================"
+
+          REPORT=$(find history \
+            -maxdepth 1 \
+            -type f \
+            -name "backfill_report_*.json" \
+            | sort \
+            | tail -n 1)
+
+          if [ -z "${REPORT}" ]; then
+            echo "バックフィルレポートがありません"
+            exit 1
+          fi
+
+          python - "${REPORT}" <<'PY'
+          import json
+          import sys
+
+          path = sys.argv[1]
+
+          with open(
+              path,
+              "r",
+              encoding="utf-8",
+          ) as f:
+              data = json.load(f)
+
+          print(
+              "開始日:",
+              data.get("start_date")
+          )
+
+          print(
+              "終了日:",
+              data.get("end_date")
+          )
+
+          print(
+              "新規取得成功:",
+              data.get("success_days", 0),
+              "日"
+          )
+
+          print(
+              "既存スキップ:",
+              data.get("skipped_days", 0),
+              "日"
+          )
+
+          print(
+              "取得失敗:",
+              data.get("failed_days", 0),
+              "日"
+          )
+
+          failed = data.get(
+              "failed",
+              []
+          )
+
+          if failed:
+              print("")
+              print(
+                  "取得失敗日:"
+              )
+
+              for item in failed:
+                  print(
+                      item.get("date"),
+                      item.get("error")
+                  )
+          PY
+
+      - name: 取得データ総数を確認
+        run: |
+          echo "========================================"
+          echo "archive内の履歴データ確認"
+          echo "========================================"
+
+          RESULT_COUNT=$(find archive \
+            -type f \
+            -name "results_*_all.csv" \
+            | wc -l)
+
+          BOAT_COUNT=$(find archive \
+            -type f \
+            -name "boat_results_*_all.csv" \
+            | wc -l)
+
+          VENUE_COUNT=$(find archive \
+            -type f \
+            -name "venues_*.csv" \
+            | wc -l)
+
+          echo "結果日数: ${RESULT_COUNT}"
+          echo "艇別結果日数: ${BOAT_COUNT}"
+          echo "開催場ファイル日数: ${VENUE_COUNT}"
+
+          if [ "${RESULT_COUNT}" -lt 90 ]; then
+            echo "90日未満の結果データしかありません"
+            exit 1
+          fi
+
+          if [ "${BOAT_COUNT}" -lt 90 ]; then
+            echo "90日未満の艇別結果しかありません"
+            exit 1
+          fi
+
+          echo ""
+          echo "90日集計に必要な期間を確保できています"
+
+      - name: レポートをArtifactへ短期保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-history-backfill-${{ github.run_number }}
+          path: |
+            history/backfill_report_*.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 過去データをGitHubへ保存
+        run: |
+          echo "========================================"
+          echo "バックフィルデータをGitHubへ保存"
+          echo "========================================"
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add archive history
+
+          if git diff --cached --quiet; then
+            echo "新規保存データはありません"
+            exit 0
+          fi
+
+          git commit -m "Backfill 100 days BOAT RACE history"
+
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+          echo ""
+          echo "========================================"
+          echo "過去100日バックフィル GitHub保存完了"
+          echo "========================================"
