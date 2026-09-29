@@ -1,0 +1,147 @@
+name: 当日データ＋履歴特徴量結合テスト
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: prediction-enrichment-test-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  enrich_prediction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ファイルを確認
+        run: |
+          echo "========================================"
+          echo "必要ファイル確認"
+          echo "========================================"
+
+          test -s data/prediction_input_morning_20260930.json
+          test -s features/racer_features.csv
+          test -s features/racer_course_features.csv
+          test -s features/racer_venue_features.csv
+          test -s features/motor_features.csv
+          test -s features/boat_features.csv
+          test -s features/history_features_manifest.json
+          test -s collectors/enrich_prediction_input.py
+
+          echo "当日予測入力: OK"
+          echo "選手特徴量: OK"
+          echo "選手×コース特徴量: OK"
+          echo "選手×場特徴量: OK"
+          echo "モーター特徴量: OK"
+          echo "ボート特徴量: OK"
+          echo "特徴量manifest: OK"
+          echo "結合プログラム: OK"
+
+      - name: 当日864艇へ履歴特徴量を結合
+        run: |
+          echo "========================================"
+          echo "9月30日 朝予測入力＋履歴特徴量"
+          echo "========================================"
+
+          python -u collectors/enrich_prediction_input.py \
+            --date 20260930 \
+            --stage morning
+
+      - name: 結合結果を表示
+        run: |
+          echo "========================================"
+          echo "結合検証結果"
+          echo "========================================"
+
+          test -s \
+            data/prediction_input_enriched_morning_20260930.json
+
+          test -s \
+            data/prediction_input_enriched_validation_morning_20260930.json
+
+          cat \
+            data/prediction_input_enriched_validation_morning_20260930.json
+
+      - name: JSON形式を確認
+        run: |
+          echo "========================================"
+          echo "JSON構文確認"
+          echo "========================================"
+
+          python -m json.tool \
+            data/prediction_input_enriched_morning_20260930.json \
+            > /dev/null
+
+          python -m json.tool \
+            data/prediction_input_enriched_validation_morning_20260930.json \
+            > /dev/null
+
+          echo "JSON構文: PASS"
+
+      - name: 結合済み予測入力をGitHubへ保存
+        run: |
+          echo "========================================"
+          echo "結合済みprediction_inputを保存"
+          echo "========================================"
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add \
+            data/prediction_input_enriched_morning_20260930.json \
+            data/prediction_input_enriched_validation_morning_20260930.json
+
+          if git diff --cached --quiet; then
+            echo "変更はありません"
+            exit 0
+          fi
+
+          git commit -m \
+            "Build enriched prediction input 20260930"
+
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+          echo ""
+          echo "結合済みprediction_input GitHub保存完了"
+
+      - name: 結合結果をArtifactへ短期保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-enriched-prediction-${{ github.run_number }}
+          path: |
+            data/prediction_input_enriched_morning_20260930.json
+            data/prediction_input_enriched_validation_morning_20260930.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 最終確認
+        run: |
+          echo "========================================"
+          echo "当日データ＋履歴特徴量 結合テスト完了"
+          echo "========================================"
+
+          echo "当日出走データ: 接続済み"
+          echo "選手直近5走・10走: 接続済み"
+          echo "選手30日・90日: 接続済み"
+          echo "選手競艇場別: 接続済み"
+          echo "モーター30日・90日: 接続済み"
+          echo "ボート30日・90日: 接続済み"
+          echo "選手コース別: 直前コース確定後に接続"
+          echo "結果漏洩防止: 有効"
+          echo ""
+          echo "次工程: 予測ロジック作成"
