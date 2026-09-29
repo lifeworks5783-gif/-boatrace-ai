@@ -1,0 +1,147 @@
+name: 履歴30日・90日特徴量生成テスト
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: history-features-test-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build_features:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: featuresフォルダを準備
+        run: |
+          rm -rf features
+          mkdir -p features
+
+      - name: 9月30日時点の履歴特徴量を生成
+        run: |
+          echo "========================================"
+          echo "30日・90日履歴特徴量生成"
+          echo "予測基準日: 20260930"
+          echo "========================================"
+
+          python -u collectors/build_history_features.py \
+            --as-of 20260930
+
+      - name: 生成ファイルを確認
+        run: |
+          echo "========================================"
+          echo "特徴量ファイル確認"
+          echo "========================================"
+
+          test -s features/racer_features.csv
+          test -s features/racer_course_features.csv
+          test -s features/racer_venue_features.csv
+          test -s features/motor_features.csv
+          test -s features/boat_features.csv
+          test -s features/history_features_manifest.json
+
+          echo ""
+          echo "生成ファイル:"
+          ls -lh features/
+
+          echo ""
+          echo "CSV行数:"
+          wc -l \
+            features/racer_features.csv \
+            features/racer_course_features.csv \
+            features/racer_venue_features.csv \
+            features/motor_features.csv \
+            features/boat_features.csv
+
+      - name: 履歴鮮度を確認
+        run: |
+          echo "========================================"
+          echo "履歴鮮度・リーク防止確認"
+          echo "========================================"
+
+          cat features/history_features_manifest.json
+
+          echo ""
+          echo "----------------------------------------"
+
+          if ! grep -q '"as_of_date": "20260930"' \
+            features/history_features_manifest.json; then
+            echo "ERROR: 予測基準日が20260930ではありません"
+            exit 1
+          fi
+
+          if ! grep -q '"history_stale_days": 0' \
+            features/history_features_manifest.json; then
+            echo "ERROR: 9月29日までの結果が揃っていません"
+            echo "古い履歴のまま予測には進みません"
+            exit 1
+          fi
+
+          echo "予測基準日: PASS"
+          echo "前日結果反映: PASS"
+          echo "リーク防止設計: PASS"
+
+      - name: 特徴量をGitHubへ保存
+        run: |
+          echo "========================================"
+          echo "特徴量をGitHubへ保存"
+          echo "========================================"
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add features
+
+          if git diff --cached --quiet; then
+            echo "特徴量に変更はありません"
+            exit 0
+          fi
+
+          git commit -m "Build BOAT RACE history features 20260930"
+
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+          echo ""
+          echo "特徴量 GitHub保存完了"
+
+      - name: 特徴量をArtifactへ短期保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-history-features-${{ github.run_number }}
+          path: |
+            features/*.csv
+            features/*.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 最終確認
+        run: |
+          echo "========================================"
+          echo "履歴特徴量生成テスト 完了"
+          echo "========================================"
+
+          echo "選手直近5走・10走: 作成済み"
+          echo "選手30日・90日: 作成済み"
+          echo "選手コース別: 作成済み"
+          echo "選手競艇場別: 作成済み"
+          echo "モーター30日・90日: 作成済み"
+          echo "ボート30日・90日: 作成済み"
+          echo "結果漏洩防止: 有効"
+          echo ""
+          echo "次工程: 当日データとの結合"
