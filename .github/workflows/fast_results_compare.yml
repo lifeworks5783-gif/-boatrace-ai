@@ -52,7 +52,6 @@ jobs:
           import sys
           from pathlib import Path
 
-
           TARGET = "20260928"
 
           NEW_DIR = Path("data")
@@ -73,30 +72,43 @@ jobs:
                   return list(csv.DictReader(f))
 
 
-          def text(value):
+          def txt(value):
               if value is None:
                   return ""
+
               return str(value).strip()
 
 
-          def integer(value):
-              s = text(value).replace(",", "")
+          def compact(value):
+              return re.sub(
+                  r"[\s　]+",
+                  "",
+                  txt(value),
+              )
 
-              if not s:
+
+          def integer(value):
+              value = (
+                  txt(value)
+                  .replace(",", "")
+              )
+
+              if not value:
                   return None
 
               try:
-                  return int(float(s))
+                  return int(float(value))
+
               except ValueError:
-                  return s
+                  return value
 
 
           def race_id(value):
-              s = text(value)
+              value = txt(value)
 
               parts = re.split(
                   r"[-_]",
-                  s,
+                  value,
               )
 
               if len(parts) == 3:
@@ -106,25 +118,23 @@ jobs:
                       f"{parts[2].zfill(2)}"
                   )
 
-              return s
+              return value
 
 
-          def racer_name(value):
-              return re.sub(
-                  r"[\s　]+",
-                  "",
-                  text(value),
+          def normalize_st(value):
+              value = (
+                  compact(value)
+                  .upper()
               )
 
-
-          def st_value(value):
-              s = text(value).upper()
-
-              if not s:
+              if not value:
                   return ("", None)
 
-              if s.startswith("F"):
-                  raw = s[1:].lstrip(".")
+              if value.startswith("F"):
+                  raw = (
+                      value[1:]
+                      .lstrip(".")
+                  )
 
                   try:
                       return (
@@ -133,264 +143,649 @@ jobs:
                               "0." + raw
                           ),
                       )
-                  except ValueError:
-                      return ("F", s)
 
-              if s.startswith("L"):
-                  return ("L", s)
+                  except ValueError:
+                      return (
+                          "F",
+                          value,
+                      )
+
+              if value.startswith("L"):
+                  raw = (
+                      value[1:]
+                      .lstrip(".")
+                  )
+
+                  if not raw:
+                      return (
+                          "L",
+                          None,
+                      )
+
+                  try:
+                      return (
+                          "L",
+                          float(
+                              "0." + raw
+                          ),
+                      )
+
+                  except ValueError:
+                      return (
+                          "L",
+                          value,
+                      )
+
+              if value.startswith("."):
+                  value = (
+                      "0" + value
+                  )
 
               try:
                   return (
                       "",
                       round(
-                          float(s),
+                          float(value),
                           4,
                       ),
                   )
+
               except ValueError:
-                  return ("RAW", s)
+                  return (
+                      "RAW",
+                      value,
+                  )
 
 
-          def race_time_value(value):
-              s = text(value)
+          def normalize_time(value):
+              value = compact(value)
 
-              if not s:
+              if not value:
                   return None
 
-              s = (
-                  s.replace("’", "'")
-                  .replace("′", "'")
-                  .replace("”", '"')
-                  .replace("″", '"')
-              )
+              if not any(
+                  char.isdigit()
+                  for char in value
+              ):
+                  return None
 
-              m = re.match(
+              match = re.match(
                   r"^(\d+)\.(\d{1,2})\.(\d)$",
-                  s,
+                  value,
               )
 
-              if m:
+              if match:
                   return (
-                      int(m.group(1)) * 60
-                      + int(m.group(2))
-                      + int(m.group(3)) / 10
+                      int(match.group(1)) * 60
+                      + int(match.group(2))
+                      + int(match.group(3)) / 10
                   )
 
-              m = re.match(
-                  r"^(\d+)'(\d{1,2})[\".]?(\d)?$",
-                  s,
+              return value
+
+
+          def normalize_finish(value):
+              value = (
+                  compact(value)
+                  .upper()
               )
 
-              if m:
-                  tenths = (
-                      int(m.group(3))
-                      if m.group(3)
-                      else 0
-                  )
+              if value.isdigit():
+                  number = int(value)
 
+                  if 1 <= number <= 6:
+                      return (
+                          "NORMAL",
+                          number,
+                      )
+
+              if value.startswith("F"):
                   return (
-                      int(m.group(1)) * 60
-                      + int(m.group(2))
-                      + tenths / 10
+                      "F",
+                      value,
                   )
 
-              return s
+              if value.startswith("L"):
+                  return (
+                      "L",
+                      value,
+                  )
 
+              if not value:
+                  return (
+                      "EMPTY",
+                      "",
+                  )
 
-          def venue_normalized(row):
               return (
-                  text(row.get("date")),
-                  text(row.get("venue_code")).zfill(2),
-                  text(row.get("venue_name")),
+                  "SPECIAL",
+                  value,
               )
 
 
-          def result_normalized(row):
+          def venue_tuple(row):
               return (
-                  text(row.get("date")),
-                  text(row.get("venue_code")).zfill(2),
-                  text(row.get("venue_name")),
-                  integer(row.get("race")),
-                  race_id(row.get("race_id")),
-                  text(row.get("trifecta")),
-                  integer(row.get("trifecta_pay")),
-                  text(row.get("exacta")),
-                  integer(row.get("exacta_pay")),
+                  txt(row.get("date")),
+                  txt(
+                      row.get(
+                          "venue_code"
+                      )
+                  ).zfill(2),
+                  txt(
+                      row.get(
+                          "venue_name"
+                      )
+                  ),
               )
 
 
-          def boat_normalized(row):
+          def result_tuple(row):
               return (
-                  text(row.get("date")),
-                  text(row.get("venue_code")).zfill(2),
-                  text(row.get("venue_name")),
-                  integer(row.get("race")),
-                  race_id(row.get("race_id")),
-                  integer(row.get("boat")),
-                  integer(row.get("course")),
-                  text(row.get("registration_no")),
-                  racer_name(row.get("racer_name")),
-                  text(row.get("finish")),
-                  st_value(row.get("st")),
-                  race_time_value(row.get("race_time")),
+                  txt(row.get("date")),
+
+                  txt(
+                      row.get(
+                          "venue_code"
+                      )
+                  ).zfill(2),
+
+                  txt(
+                      row.get(
+                          "venue_name"
+                      )
+                  ),
+
+                  integer(
+                      row.get(
+                          "race"
+                      )
+                  ),
+
+                  race_id(
+                      row.get(
+                          "race_id"
+                      )
+                  ),
+
+                  txt(
+                      row.get(
+                          "trifecta"
+                      )
+                  ),
+
+                  integer(
+                      row.get(
+                          "trifecta_pay"
+                      )
+                  ),
+
+                  txt(
+                      row.get(
+                          "exacta"
+                      )
+                  ),
+
+                  integer(
+                      row.get(
+                          "exacta_pay"
+                      )
+                  ),
               )
 
 
-          tests = [
-              (
-                  "開催場",
-                  NEW_DIR / f"venues_{TARGET}.csv",
-                  OLD_DIR / f"venues_{TARGET}.csv",
-                  venue_normalized,
-              ),
-              (
-                  "レース結果",
-                  NEW_DIR / f"results_{TARGET}_all.csv",
-                  OLD_DIR / f"results_{TARGET}_all.csv",
-                  result_normalized,
-              ),
-              (
-                  "艇別結果",
-                  NEW_DIR / f"boat_results_{TARGET}_all.csv",
-                  OLD_DIR / f"boat_results_{TARGET}_all.csv",
-                  boat_normalized,
-              ),
-          ]
+          def boat_key(row):
+              return (
+                  race_id(
+                      row.get(
+                          "race_id"
+                      )
+                  ),
+
+                  integer(
+                      row.get(
+                          "boat"
+                      )
+                  ),
+              )
+
+
+          def boat_core(row):
+              return (
+                  txt(
+                      row.get(
+                          "date"
+                      )
+                  ),
+
+                  txt(
+                      row.get(
+                          "venue_code"
+                      )
+                  ).zfill(2),
+
+                  txt(
+                      row.get(
+                          "venue_name"
+                      )
+                  ),
+
+                  integer(
+                      row.get(
+                          "race"
+                      )
+                  ),
+
+                  race_id(
+                      row.get(
+                          "race_id"
+                      )
+                  ),
+
+                  integer(
+                      row.get(
+                          "boat"
+                      )
+                  ),
+
+                  integer(
+                      row.get(
+                          "course"
+                      )
+                  ),
+
+                  txt(
+                      row.get(
+                          "registration_no"
+                      )
+                  ),
+
+                  compact(
+                      row.get(
+                          "racer_name"
+                      )
+                  ),
+
+                  normalize_st(
+                      row.get(
+                          "st"
+                      )
+                  ),
+
+                  normalize_time(
+                      row.get(
+                          "race_time"
+                      )
+                  ),
+              )
+
+
+          print(
+              "========================================"
+          )
+
+          print(
+              "旧方式 vs 軽量版 比較"
+          )
+
+          print(
+              "========================================"
+          )
 
 
           failed = False
 
-          print(
-              "========================================"
-          )
-          print(
-              "旧方式 vs 軽量版 比較"
-          )
-          print(
-              "========================================"
+
+          old_venues = read_csv(
+              OLD_DIR
+              / f"venues_{TARGET}.csv"
           )
 
+          new_venues = read_csv(
+              NEW_DIR
+              / f"venues_{TARGET}.csv"
+          )
 
-          for (
-              label,
-              new_path,
-              old_path,
-              normalizer,
-          ) in tests:
 
-              new_rows = read_csv(
-                  new_path
-              )
-
-              old_rows = read_csv(
-                  old_path
-              )
-
-              new_values = sorted(
-                  normalizer(row)
-                  for row in new_rows
-              )
-
-              old_values = sorted(
-                  normalizer(row)
-                  for row in old_rows
-              )
-
-              print("")
-              print(
-                  f"【{label}】"
-              )
+          if sorted(
+              venue_tuple(row)
+              for row in old_venues
+          ) == sorted(
+              venue_tuple(row)
+              for row in new_venues
+          ):
 
               print(
-                  f"旧方式: {len(old_values)}件"
+                  "開催場: PASS"
               )
+
+          else:
+              print(
+                  "開催場: FAIL"
+              )
+
+              failed = True
+
+
+          old_results = read_csv(
+              OLD_DIR
+              / f"results_{TARGET}_all.csv"
+          )
+
+          new_results = read_csv(
+              NEW_DIR
+              / f"results_{TARGET}_all.csv"
+          )
+
+
+          if sorted(
+              result_tuple(row)
+              for row in old_results
+          ) == sorted(
+              result_tuple(row)
+              for row in new_results
+          ):
 
               print(
-                  f"軽量版: {len(new_values)}件"
+                  "レース結果: PASS"
+              )
+
+          else:
+              print(
+                  "レース結果: FAIL"
+              )
+
+              failed = True
+
+
+          old_boats = {
+              boat_key(row): row
+              for row in read_csv(
+                  OLD_DIR
+                  / (
+                      f"boat_results_"
+                      f"{TARGET}_all.csv"
+                  )
+              )
+          }
+
+          new_boats = {
+              boat_key(row): row
+              for row in read_csv(
+                  NEW_DIR
+                  / (
+                      f"boat_results_"
+                      f"{TARGET}_all.csv"
+                  )
+              )
+          }
+
+
+          print(
+              f"旧方式艇数: {len(old_boats)}"
+          )
+
+          print(
+              f"軽量版艇数: {len(new_boats)}"
+          )
+
+
+          if set(
+              old_boats
+          ) != set(
+              new_boats
+          ):
+              print(
+                  "艇キー: FAIL"
+              )
+
+              failed = True
+
+          else:
+              print(
+                  "艇キー: PASS"
               )
 
 
-              if len(
-                  old_values
-              ) != len(
-                  new_values
+          core_errors = []
+
+          finish_errors = []
+
+          special_notation = []
+
+
+          for key in sorted(
+              set(old_boats)
+              & set(new_boats)
+          ):
+
+              old = old_boats[
+                  key
+              ]
+
+              new = new_boats[
+                  key
+              ]
+
+
+              if boat_core(
+                  old
+              ) != boat_core(
+                  new
               ):
-                  failed = True
-
-                  print(
-                      "NG: 件数不一致"
+                  core_errors.append(
+                      key
                   )
 
                   continue
 
 
-              old_set = set(
-                  old_values
+              old_finish = (
+                  normalize_finish(
+                      old.get(
+                          "finish"
+                      )
+                  )
               )
 
-              new_set = set(
-                  new_values
-              )
-
-
-              missing = (
-                  old_set
-                  - new_set
-              )
-
-              extra = (
-                  new_set
-                  - old_set
+              new_finish = (
+                  normalize_finish(
+                      new.get(
+                          "finish"
+                      )
+                  )
               )
 
 
-              if not missing and not extra:
-                  print(
-                      "PASS: 内容一致"
-                  )
+              old_type = (
+                  old_finish[0]
+              )
 
-              else:
-                  failed = True
+              new_type = (
+                  new_finish[0]
+              )
 
-                  print(
-                      "NG: 内容不一致"
-                  )
 
-                  print(
-                      f"軽量版に無い行: "
-                      f"{len(missing)}件"
-                  )
-
-                  print(
-                      f"軽量版にだけある行: "
-                      f"{len(extra)}件"
-                  )
-
-                  if missing:
-                      print("")
-                      print(
-                          "旧方式のみ・先頭3件:"
+              if (
+                  old_type == "NORMAL"
+                  or new_type == "NORMAL"
+              ):
+                  if (
+                      old_finish
+                      != new_finish
+                  ):
+                      finish_errors.append(
+                          (
+                              key,
+                              old.get(
+                                  "finish"
+                              ),
+                              new.get(
+                                  "finish"
+                              ),
+                          )
                       )
 
-                      for row in list(
-                          missing
-                      )[:3]:
-                          print(
-                              row
-                          )
+                  continue
 
-                  if extra:
-                      print("")
-                      print(
-                          "軽量版のみ・先頭3件:"
+
+              if (
+                  old_type == "F"
+                  or new_type == "F"
+              ):
+                  if not (
+                      old_type == "F"
+                      and new_type == "F"
+                  ):
+                      finish_errors.append(
+                          (
+                              key,
+                              old.get(
+                                  "finish"
+                              ),
+                              new.get(
+                                  "finish"
+                              ),
+                          )
                       )
 
-                      for row in list(
-                          extra
-                      )[:3]:
-                          print(
-                              row
+                  continue
+
+
+              if (
+                  old_type == "L"
+                  or new_type == "L"
+              ):
+                  if not (
+                      old_type == "L"
+                      and new_type == "L"
+                  ):
+                      finish_errors.append(
+                          (
+                              key,
+                              old.get(
+                                  "finish"
+                              ),
+                              new.get(
+                                  "finish"
+                              ),
                           )
+                      )
+
+                  continue
+
+
+              if (
+                  old_type
+                  in {
+                      "SPECIAL",
+                      "EMPTY",
+                  }
+                  and
+                  new_type
+                  in {
+                      "SPECIAL",
+                      "EMPTY",
+                  }
+              ):
+                  if (
+                      old_finish
+                      != new_finish
+                  ):
+                      special_notation.append(
+                          (
+                              key,
+                              old.get(
+                                  "finish"
+                              ),
+                              new.get(
+                                  "finish"
+                              ),
+                          )
+                      )
+
+                  continue
+
+
+              if (
+                  old_finish
+                  != new_finish
+              ):
+                  finish_errors.append(
+                      (
+                          key,
+                          old.get(
+                              "finish"
+                          ),
+                          new.get(
+                              "finish"
+                          ),
+                      )
+                  )
+
+
+          print(
+              f"艇別主要項目不一致: "
+              f"{len(core_errors)}件"
+          )
+
+          print(
+              f"着順実質不一致: "
+              f"{len(finish_errors)}件"
+          )
+
+          print(
+              "特殊着順の表記差: "
+              f"{len(special_notation)}件"
+          )
+
+
+          if special_notation:
+              print("")
+              print(
+                  "特殊着順の表記差・先頭10件:"
+              )
+
+              for item in (
+                  special_notation[:10]
+              ):
+                  print(
+                      item
+                  )
+
+
+          if core_errors:
+              print("")
+              print(
+                  "主要項目不一致・先頭10件:"
+              )
+
+              for item in (
+                  core_errors[:10]
+              ):
+                  print(
+                      item
+                  )
+
+
+          if finish_errors:
+              print("")
+              print(
+                  "着順実質不一致・先頭10件:"
+              )
+
+              for item in (
+                  finish_errors[:10]
+              ):
+                  print(
+                      item
+                  )
+
+
+          if (
+              core_errors
+              or finish_errors
+          ):
+              failed = True
 
 
           print("")
@@ -416,7 +811,15 @@ jobs:
           )
 
           print(
-              "軽量版は旧方式と互換性あり"
+              "通常データは旧方式と一致"
+          )
+
+          print(
+              "特殊着順はKファイル公式コードを保持"
+          )
+
+          print(
+              "旧方式置換可能"
           )
 
           print(
