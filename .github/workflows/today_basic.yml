@@ -1,0 +1,149 @@
+name: 当日予測用基本データ収集
+
+permissions:
+  contents: write
+
+on:
+  # 毎日 日本時間 6:00 に実行
+  schedule:
+    - cron: "0 6 * * *"
+      timezone: "Asia/Tokyo"
+
+  # 手動テスト可能
+  workflow_dispatch:
+
+concurrency:
+  group: today-basic-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  collect_today_basic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install lhafile
+
+      - name: dataフォルダを準備
+        run: mkdir -p data
+
+      - name: 当日の全国番組表・選手・モーター情報を収集
+        run: |
+          echo "========================================"
+          echo "当日予測用基本データ収集を開始"
+          echo "========================================"
+
+          python -u collectors/today_basic.py
+
+          echo ""
+          echo "========================================"
+          echo "当日基本データ収集・検証 PASS"
+          echo "========================================"
+
+      - name: 作成ファイルを確認
+        if: always()
+        run: |
+          echo "========================================"
+          echo "今回作成された当日データ"
+          echo "========================================"
+
+          find data -maxdepth 1 -type f \
+            \( \
+              -name "program_races_*.csv" \
+              -o -name "program_entries_*.csv" \
+              -o -name "program_validation_*.json" \
+              -o -name "program_manifest_*.json" \
+            \) \
+            -print | sort
+
+      - name: 当日基本データをArtifactへ一時保存
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-today-basic-${{ github.run_number }}
+          path: |
+            data/program_races_*.csv
+            data/program_entries_*.csv
+            data/program_validation_*.json
+            data/program_manifest_*.json
+          if-no-files-found: warn
+
+          # GitHub容量節約のため短期保存
+          retention-days: 14
+
+      - name: 検証PASSデータをGitHubへ保存
+        if: success()
+        run: |
+          echo "========================================"
+          echo "当日基本データの長期保存を開始"
+          echo "========================================"
+
+          VALIDATION_FILE=$(find data -maxdepth 1 \
+            -type f \
+            -name "program_validation_*.json" \
+            | head -n 1)
+
+          if [ -z "${VALIDATION_FILE}" ]; then
+            echo "program_validationファイルがありません"
+            exit 1
+          fi
+
+          TARGET_DATE=$(basename "${VALIDATION_FILE}" \
+            | sed -E 's/program_validation_([0-9]{8})\.json/\1/')
+
+          YEAR=${TARGET_DATE:0:4}
+          MONTH=${TARGET_DATE:4:2}
+          DAY=${TARGET_DATE:6:2}
+
+          DEST="archive/${YEAR}/${MONTH}/${DAY}/pre_race/base"
+
+          echo "対象日: ${TARGET_DATE}"
+          echo "保存先: ${DEST}"
+
+          mkdir -p "${DEST}"
+
+          cp "data/program_races_${TARGET_DATE}.csv" "${DEST}/"
+          cp "data/program_entries_${TARGET_DATE}.csv" "${DEST}/"
+          cp "data/program_validation_${TARGET_DATE}.json" "${DEST}/"
+          cp "data/program_manifest_${TARGET_DATE}.json" "${DEST}/"
+
+          echo ""
+          echo "保存するファイル:"
+          find "${DEST}" -maxdepth 1 -type f -print | sort
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add "${DEST}"
+
+          if git diff --cached --quiet; then
+            echo "同じ内容が既に保存されています"
+            echo "重複コミットは行いません"
+            exit 0
+          fi
+
+          git commit -m "Archive pre-race data ${TARGET_DATE}"
+
+          # 実行中に別の自動収集がコミットしていても
+          # できるだけ安全に追従する
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+          echo ""
+          echo "========================================"
+          echo "当日基本データ GitHub保存完了"
+          echo "========================================"
