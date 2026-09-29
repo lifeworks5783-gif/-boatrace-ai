@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import io
+import json
 import re
 import sys
 import time
@@ -14,21 +15,50 @@ from pathlib import Path
 
 import lhafile
 
+
 JST = timezone(timedelta(hours=9))
 DATA_DIR = Path("data")
 
 VENUES = {
-    "01": "桐生", "02": "戸田", "03": "江戸川", "04": "平和島",
-    "05": "多摩川", "06": "浜名湖", "07": "蒲郡", "08": "常滑",
-    "09": "津", "10": "三国", "11": "びわこ", "12": "住之江",
-    "13": "尼崎", "14": "鳴門", "15": "丸亀", "16": "児島",
-    "17": "宮島", "18": "徳山", "19": "下関", "20": "若松",
-    "21": "芦屋", "22": "福岡", "23": "唐津", "24": "大村",
+    "01": "桐生",
+    "02": "戸田",
+    "03": "江戸川",
+    "04": "平和島",
+    "05": "多摩川",
+    "06": "浜名湖",
+    "07": "蒲郡",
+    "08": "常滑",
+    "09": "津",
+    "10": "三国",
+    "11": "びわこ",
+    "12": "住之江",
+    "13": "尼崎",
+    "14": "鳴門",
+    "15": "丸亀",
+    "16": "児島",
+    "17": "宮島",
+    "18": "徳山",
+    "19": "下関",
+    "20": "若松",
+    "21": "芦屋",
+    "22": "福岡",
+    "23": "唐津",
+    "24": "大村",
 }
 
-STADIUM_BEGIN = re.compile(rb"^(\d{2})KBGN\s*$")
-STADIUM_END = re.compile(rb"^(\d{2})KEND\s*$")
-RACE_HEADER = re.compile(r"^\s*(\d{1,2})R(?:\s|$)")
+
+STADIUM_BEGIN = re.compile(
+    rb"^(\d{2})KBGN\s*$"
+)
+
+STADIUM_END = re.compile(
+    rb"^(\d{2})KEND\s*$"
+)
+
+RACE_HEADER = re.compile(
+    r"^\s*(\d{1,2})R(?:\s|$)"
+)
+
 
 VENUE_FIELDS = [
     "date",
@@ -64,7 +94,11 @@ BOAT_FIELDS = [
 ]
 
 
-def normalize(text: str) -> str:
+# 直近のparse_payloadで除外されたレース
+LAST_EXCLUDED_RACES = []
+
+
+def normalize(text):
     return unicodedata.normalize(
         "NFKC",
         text,
@@ -74,14 +108,14 @@ def normalize(text: str) -> str:
     )
 
 
-def decode(data: bytes) -> str:
+def decode(data):
     return data.decode(
         "cp932",
         errors="replace",
     )
 
 
-def clean_name(text: str) -> str:
+def clean_name(text):
     return re.sub(
         r"[\s　]+",
         "",
@@ -89,7 +123,7 @@ def clean_name(text: str) -> str:
     )
 
 
-def build_url(target_date: str) -> str:
+def build_url(target_date):
     dt = datetime.strptime(
         target_date,
         "%Y%m%d",
@@ -103,14 +137,14 @@ def build_url(target_date: str) -> str:
 
 
 def fetch(
-    url: str,
-    retries: int = 3,
-) -> bytes:
-
+    url,
+    retries=3,
+):
     headers = {
         "User-Agent": (
             "Mozilla/5.0 "
-            "(compatible; boatrace-ai-data-collector/1.0)"
+            "(compatible; "
+            "boatrace-ai-data-collector/1.0)"
         )
     }
 
@@ -130,7 +164,6 @@ def fetch(
                 request,
                 timeout=60,
             ) as response:
-
                 data = response.read()
 
             if not data:
@@ -145,7 +178,8 @@ def fetch(
 
             if exc.code == 404:
                 raise RuntimeError(
-                    f"競走成績ファイルが見つかりません: {url}"
+                    "競走成績ファイルが"
+                    f"見つかりません: {url}"
                 ) from exc
 
         except Exception as exc:
@@ -157,14 +191,12 @@ def fetch(
             )
 
     raise RuntimeError(
-        f"競走成績ダウンロード失敗: {last_error}"
+        "競走成績ダウンロード失敗: "
+        f"{last_error}"
     )
 
 
-def extract_lzh(
-    data: bytes,
-) -> bytes:
-
+def extract_lzh(data):
     try:
         archive = lhafile.LhaFile(
             io.BytesIO(
@@ -210,18 +242,12 @@ def extract_lzh(
         ) from exc
 
 
-def is_result_row(
-    line: bytes,
-) -> bool:
-
-    if len(
-        line
-    ) < 55:
+def is_result_row(line):
+    if len(line) < 55:
         return False
 
     return (
-        line[6:7]
-        in b"123456"
+        line[6:7] in b"123456"
         and len(
             line[8:12]
         ) == 4
@@ -229,10 +255,7 @@ def is_result_row(
     )
 
 
-def parse_finish(
-    line: bytes,
-) -> str:
-
+def parse_finish(line):
     value = normalize(
         decode(
             line[2:4]
@@ -240,22 +263,15 @@ def parse_finish(
     ).strip().upper()
 
     if value.isdigit():
-        number = int(
-            value
-        )
+        number = int(value)
 
         if 1 <= number <= 6:
-            return str(
-                number
-            )
+            return str(number)
 
     return value
 
 
-def parse_boat(
-    line: bytes,
-):
-
+def parse_boat(line):
     value = normalize(
         decode(
             line[6:7]
@@ -263,17 +279,12 @@ def parse_boat(
     ).strip()
 
     if value.isdigit():
-        return int(
-            value
-        )
+        return int(value)
 
     return None
 
 
-def parse_course(
-    line: bytes,
-):
-
+def parse_course(line):
     value = normalize(
         decode(
             line[43:47]
@@ -281,17 +292,12 @@ def parse_course(
     ).strip()
 
     if value.isdigit():
-        return int(
-            value
-        )
+        return int(value)
 
     return None
 
 
-def parse_st(
-    line: bytes,
-) -> str:
-
+def parse_st(line):
     value = (
         normalize(
             decode(
@@ -315,7 +321,9 @@ def parse_st(
     )
 
     if match:
-        return f".{match.group(1)}"
+        return (
+            f".{match.group(1)}"
+        )
 
     match = re.fullmatch(
         r"\.(\d{2})",
@@ -331,7 +339,9 @@ def parse_st(
     )
 
     if match:
-        return f"F.{match.group(1)}"
+        return (
+            f"F.{match.group(1)}"
+        )
 
     match = re.fullmatch(
         r"L(?:0)?\.(\d{2})",
@@ -339,7 +349,9 @@ def parse_st(
     )
 
     if match:
-        return f"L.{match.group(1)}"
+        return (
+            f"L.{match.group(1)}"
+        )
 
     if value in {
         "F",
@@ -350,13 +362,8 @@ def parse_st(
     return ""
 
 
-def parse_race_time(
-    line: bytes,
-) -> str:
-
-    if len(
-        line
-    ) <= 55:
+def parse_race_time(line):
+    if len(line) <= 55:
         return ""
 
     value = normalize(
@@ -371,12 +378,10 @@ def parse_race_time(
         value,
     )
 
-    # Kファイルではタイムなしを
-    # 「.  .  .」のように表す。
-    # 旧CSVと合わせて空欄へ統一する。
     if not compact:
         return ""
 
+    # 「. . .」などタイムなし表記は空欄に統一
     if not any(
         char.isdigit()
         for char in compact
@@ -386,10 +391,7 @@ def parse_race_time(
     return compact
 
 
-def parse_result_row(
-    line: bytes,
-) -> dict:
-
+def parse_result_row(line):
     return {
         "boat": parse_boat(
             line
@@ -426,11 +428,10 @@ def parse_result_row(
 
 
 def payout_from_line(
-    text: str,
-    label: str,
-    arity: int,
+    text,
+    label,
+    arity,
 ):
-
     flat = normalize(
         text
     )
@@ -456,6 +457,7 @@ def payout_from_line(
 
     return (
         match.group(1),
+
         match.group(2).replace(
             ",",
             "",
@@ -464,10 +466,11 @@ def payout_from_line(
 
 
 def write_csv(
-    path: Path,
-    rows: list[dict],
-    fields: list[str],
+    path,
+    rows,
+    fields,
 ):
+    path = Path(path)
 
     path.parent.mkdir(
         parents=True,
@@ -500,11 +503,229 @@ def write_csv(
             )
 
 
-def parse_payload(
-    payload: bytes,
-    target_date: str,
+def filter_complete_races(
+    target_date,
+    venues_seen,
+    races,
+    boats,
 ):
+    global LAST_EXCLUDED_RACES
 
+    boats_by_race = {}
+
+    for row in boats:
+        boats_by_race.setdefault(
+            row[
+                "race_id"
+            ],
+            [],
+        ).append(
+            row
+        )
+
+    valid_race_ids = set()
+    excluded = []
+
+    for key in sorted(
+        races
+    ):
+        race = races[
+            key
+        ]
+
+        race_id = race[
+            "race_id"
+        ]
+
+        race_boats = (
+            boats_by_race.get(
+                race_id,
+                [],
+            )
+        )
+
+        boat_numbers = {
+            row.get(
+                "boat"
+            )
+            for row
+            in race_boats
+            if row.get(
+                "boat"
+            )
+            is not None
+        }
+
+        complete = (
+            len(
+                race_boats
+            ) == 6
+            and boat_numbers
+            == {
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+            }
+        )
+
+        if complete:
+            valid_race_ids.add(
+                race_id
+            )
+
+            continue
+
+        if len(
+            race_boats
+        ) == 0:
+            reason = (
+                "艇別結果なし"
+            )
+
+        elif len(
+            boat_numbers
+        ) != len(
+            race_boats
+        ):
+            reason = (
+                "艇番重複"
+            )
+
+        else:
+            reason = (
+                "6艇未完了"
+            )
+
+        excluded.append(
+            {
+                "date": target_date,
+
+                "venue_code": race[
+                    "venue_code"
+                ],
+
+                "venue_name": race[
+                    "venue_name"
+                ],
+
+                "race": race[
+                    "race"
+                ],
+
+                "race_id": race_id,
+
+                "boat_rows": len(
+                    race_boats
+                ),
+
+                "boat_numbers": sorted(
+                    boat_numbers
+                ),
+
+                "reason": reason,
+            }
+        )
+
+    complete_races = [
+        races[
+            key
+        ]
+        for key
+        in sorted(
+            races
+        )
+        if races[
+            key
+        ][
+            "race_id"
+        ]
+        in valid_race_ids
+    ]
+
+    complete_boats = [
+        row
+        for row
+        in boats
+        if row[
+            "race_id"
+        ]
+        in valid_race_ids
+    ]
+
+    complete_boats.sort(
+        key=lambda row: (
+            row[
+                "venue_code"
+            ],
+
+            int(
+                row[
+                    "race"
+                ]
+            ),
+
+            int(
+                row[
+                    "boat"
+                ]
+            ),
+        )
+    )
+
+    valid_venue_codes = {
+        row[
+            "venue_code"
+        ]
+        for row
+        in complete_races
+    }
+
+    complete_venues = [
+        {
+            "date": target_date,
+
+            "venue_code": code,
+
+            "venue_name": (
+                venues_seen.get(
+                    code,
+                    VENUES.get(
+                        code,
+                        "",
+                    ),
+                )
+            ),
+        }
+        for code
+        in sorted(
+            valid_venue_codes
+        )
+    ]
+
+    LAST_EXCLUDED_RACES = (
+        excluded
+    )
+
+    return (
+        complete_venues,
+        complete_races,
+        complete_boats,
+    )
+
+
+def get_last_excluded_races():
+    return list(
+        LAST_EXCLUDED_RACES
+    )
+
+
+def parse_payload(
+    payload,
+    target_date,
+):
     venues_seen = {}
     races = {}
     boats = []
@@ -514,8 +735,10 @@ def parse_payload(
 
     for raw in payload.splitlines():
 
-        begin = STADIUM_BEGIN.match(
-            raw
+        begin = (
+            STADIUM_BEGIN.match(
+                raw
+            )
         )
 
         if begin:
@@ -555,8 +778,10 @@ def parse_payload(
             )
         )
 
-        header = RACE_HEADER.match(
-            text
+        header = (
+            RACE_HEADER.match(
+                text
+            )
         )
 
         if header:
@@ -616,8 +841,10 @@ def parse_payload(
         if is_result_row(
             raw
         ):
-            parsed = parse_result_row(
-                raw
+            parsed = (
+                parse_result_row(
+                    raw
+                )
             )
 
             if parsed[
@@ -686,55 +913,10 @@ def parse_payload(
                 "exacta_pay"
             ] = exacta_pay
 
-    venues = [
-        {
-            "date": target_date,
-
-            "venue_code": code,
-
-            "venue_name": venues_seen[
-                code
-            ],
-        }
-        for code
-        in sorted(
-            venues_seen
-        )
-    ]
-
-    race_rows = [
-        races[
-            key
-        ]
-        for key
-        in sorted(
-            races
-        )
-    ]
-
-    boats.sort(
-        key=lambda row: (
-            row[
-                "venue_code"
-            ],
-
-            int(
-                row[
-                    "race"
-                ]
-            ),
-
-            int(
-                row[
-                    "boat"
-                ]
-            ),
-        )
-    )
-
-    return (
-        venues,
-        race_rows,
+    return filter_complete_races(
+        target_date,
+        venues_seen,
+        races,
         boats,
     )
 
@@ -744,7 +926,6 @@ def basic_validate(
     races,
     boats,
 ):
-
     if not venues:
         raise RuntimeError(
             "開催場が0件です"
@@ -752,7 +933,7 @@ def basic_validate(
 
     if not races:
         raise RuntimeError(
-            "レースが0件です"
+            "学習可能なレースが0件です"
         )
 
     if not boats:
@@ -784,6 +965,7 @@ def basic_validate(
             row[
                 "race_id"
             ],
+
             row[
                 "boat"
             ],
@@ -804,8 +986,10 @@ def basic_validate(
         )
 
     counts = {}
+    boat_sets = {}
 
     for row in boats:
+
         race_id = row[
             "race_id"
         ]
@@ -820,42 +1004,153 @@ def basic_validate(
             + 1
         )
 
-    bad = {
-        race_id: count
-        for race_id, count
-        in counts.items()
-        if count != 6
-    }
+        boat_sets.setdefault(
+            race_id,
+            set(),
+        ).add(
+            row[
+                "boat"
+            ]
+        )
+
+    bad = []
+
+    for race_id in race_ids:
+
+        count = counts.get(
+            race_id,
+            0,
+        )
+
+        boat_set = boat_sets.get(
+            race_id,
+            set(),
+        )
+
+        if (
+            count != 6
+            or boat_set
+            != {
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+            }
+        ):
+            bad.append(
+                (
+                    race_id,
+                    count,
+                    sorted(
+                        boat_set
+                    ),
+                )
+            )
 
     if bad:
-        sample = ", ".join(
-            f"{race_id}:{count}"
-            for race_id, count
-            in list(
-                bad.items()
-            )[:5]
-        )
-
         raise RuntimeError(
-            "6艇揃っていないレースがあります: "
-            f"{len(bad)}件 "
-            f"({sample})"
+            "6艇揃っていないレースが"
+            f"{len(bad)}件残っています: "
+            f"{bad[:5]}"
         )
 
-    missing = (
-        set(
-            race_ids
+    if set(
+        race_ids
+    ) != set(
+        counts
+    ):
+        raise RuntimeError(
+            "レース結果と艇別結果の"
+            "race_id集合が一致しません"
         )
-        - set(
-            counts
+
+    if LAST_EXCLUDED_RACES:
+
+        print("")
+        print(
+            "========================================"
+        )
+
+        print(
+            "学習対象外レース"
+        )
+
+        print(
+            "除外件数: "
+            f"{len(LAST_EXCLUDED_RACES)}"
+        )
+
+        for item in (
+            LAST_EXCLUDED_RACES[:20]
+        ):
+            print(
+                f"- {item['race_id']} "
+                f"{item['reason']} "
+                f"({item['boat_rows']}艇)"
+            )
+
+        if len(
+            LAST_EXCLUDED_RACES
+        ) > 20:
+            print(
+                "...以降省略"
+            )
+
+        print(
+            "========================================"
+        )
+
+
+def write_excluded_json(
+    target_date,
+):
+    path = (
+        DATA_DIR
+        / (
+            f"excluded_races_"
+            f"{target_date}.json"
         )
     )
 
-    if missing:
-        raise RuntimeError(
-            "艇別結果がないレースがあります: "
-            f"{len(missing)}件"
-        )
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    payload = {
+        "target_date": target_date,
+
+        "excluded_count": len(
+            LAST_EXCLUDED_RACES
+        ),
+
+        "excluded_races": (
+            LAST_EXCLUDED_RACES
+        ),
+
+        "rule": (
+            "6艇分の艇別結果が揃わないレースは"
+            "30日・90日集計と学習対象から除外。"
+            "同日の正常レースは保存する。"
+        ),
+
+        "created_at": datetime.now(
+            JST
+        ).isoformat(),
+    }
+
+    path.write_text(
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    return path
 
 
 def main():
@@ -879,7 +1174,9 @@ def main():
     args = parser.parse_args()
 
     if args.date:
-        target_date = args.date
+        target_date = (
+            args.date
+        )
 
     else:
         target_date = (
@@ -900,6 +1197,7 @@ def main():
         )
 
     except ValueError:
+
         print(
             "ERROR: "
             "日付はYYYYMMDD形式で指定してください",
@@ -956,29 +1254,50 @@ def main():
             boats,
         )
 
+        DATA_DIR.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
         write_csv(
             DATA_DIR
-            / f"venues_{target_date}.csv",
+            / (
+                f"venues_"
+                f"{target_date}.csv"
+            ),
             venues,
             VENUE_FIELDS,
         )
 
         write_csv(
             DATA_DIR
-            / f"results_{target_date}_all.csv",
+            / (
+                f"results_"
+                f"{target_date}"
+                f"_all.csv"
+            ),
             races,
             RESULT_FIELDS,
         )
 
         write_csv(
             DATA_DIR
-            / f"boat_results_{target_date}_all.csv",
+            / (
+                f"boat_results_"
+                f"{target_date}"
+                f"_all.csv"
+            ),
             boats,
             BOAT_FIELDS,
         )
 
-        print("")
+        excluded_path = (
+            write_excluded_json(
+                target_date
+            )
+        )
 
+        print("")
         print(
             "========================================"
         )
@@ -992,11 +1311,21 @@ def main():
         )
 
         print(
-            f"レース数: {len(races)}"
+            "学習可能レース数: "
+            f"{len(races)}"
         )
 
         print(
             f"艇数: {len(boats)}"
+        )
+
+        print(
+            "除外レース数: "
+            f"{len(LAST_EXCLUDED_RACES)}"
+        )
+
+        print(
+            f"除外ログ: {excluded_path}"
         )
 
         print(
@@ -1014,6 +1343,7 @@ def main():
         return 0
 
     except Exception as exc:
+
         print(
             f"ERROR: {exc}",
             file=sys.stderr,
