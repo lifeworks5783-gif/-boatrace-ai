@@ -41,7 +41,6 @@ jobs:
           echo "========================================"
           echo "過去100日 履歴データ再構築"
           echo "対象: 20260621 ～ 20260928"
-          echo "motor_no / boat_no / exhibition_time"
           echo "========================================"
 
           python -u collectors/backfill_history.py \
@@ -70,56 +69,33 @@ jobs:
           ) as f:
               data = json.load(f)
 
-          print(
-              "========================================"
-          )
-          print(
-              "バックフィル結果"
-          )
-          print(
-              "========================================"
-          )
+          print("========================================")
+          print("バックフィル結果")
+          print("========================================")
 
-          print(
-              "開始日:",
-              data.get("start_date"),
-          )
-
-          print(
-              "終了日:",
-              data.get("end_date"),
-          )
-
+          print("開始日:", data.get("start_date"))
+          print("終了日:", data.get("end_date"))
           print(
               "新規取得成功:",
               data.get("success_days", 0),
               "日",
           )
-
           print(
               "既存スキップ:",
               data.get("skipped_days", 0),
               "日",
           )
-
           print(
               "取得失敗:",
               data.get("failed_days", 0),
               "日",
           )
 
-          failed = data.get(
-              "failed",
-              [],
-          )
-
-          if failed:
+          if data.get("failed_days", 0) > 0:
               print("")
-              print(
-                  "取得失敗日:"
-              )
+              print("取得失敗日:")
 
-              for item in failed:
+              for item in data.get("failed", []):
                   print(
                       item.get("date"),
                       item.get("error"),
@@ -128,144 +104,101 @@ jobs:
               raise SystemExit(1)
 
           print("")
-          print(
-              "バックフィル取得 PASS"
-          )
+          print("バックフィル取得 PASS")
           PY
 
-      - name: 100日分の拡張3項目を検証
+      - name: 再取得データを先にGitHubへ保存
         run: |
-          python - <<'PY'
-          import csv
-          import re
-          from pathlib import Path
+          echo "========================================"
+          echo "再取得済み100日データを先に保存"
+          echo "========================================"
 
-          START = 20260621
-          END = 20260928
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
 
-          REQUIRED = {
-              "motor_no",
-              "boat_no",
-              "exhibition_time",
-          }
+          git add archive history
 
-          files = []
+          if git diff --cached --quiet; then
+            echo "保存対象の変更はありません"
+          else
+            git commit -m "Save enriched 100 day BOAT RACE history"
 
-          for path in Path(
-              "archive"
-          ).glob(
-              "*/*/*/boat_results_*_all.csv"
-          ):
-              match = re.search(
-                  r"boat_results_(\d{8})_all\.csv$",
-                  path.name,
-              )
+            git pull --rebase origin "${GITHUB_REF_NAME}"
 
-              if not match:
-                  continue
+            git push origin HEAD:"${GITHUB_REF_NAME}"
 
-              date = int(
-                  match.group(1)
-              )
+            echo ""
+            echo "100日再取得データ GitHub保存完了"
+          fi
 
-              if START <= date <= END:
-                  files.append(
-                      path
-                  )
+      - name: 保存済み100日拡張データを検証
+        run: |
+          echo "========================================"
+          echo "100日拡張履歴を検証"
+          echo "========================================"
 
-          files.sort()
+          python -u collectors/validate_enriched_history.py \
+            --start 20260621 \
+            --end 20260928
 
-          total_rows = 0
-          motor_rows = 0
-          boat_rows = 0
-          exhibition_rows = 0
+      - name: 検証PASSマーカーを作成
+        run: |
+          echo "status=PASS" \
+            > history/enriched_history_20260621_20260928.status
 
-          bad_motor = 0
-          bad_boat = 0
-          bad_exhibition = 0
+          echo "start_date=20260621" \
+            >> history/enriched_history_20260621_20260928.status
 
-          missing_columns = []
+          echo "end_date=20260928" \
+            >> history/enriched_history_20260621_20260928.status
 
-          for path in files:
+          echo "motor_no=validated" \
+            >> history/enriched_history_20260621_20260928.status
 
-              with path.open(
-                  "r",
-                  encoding="utf-8-sig",
-                  newline="",
-              ) as f:
+          echo "boat_no=validated" \
+            >> history/enriched_history_20260621_20260928.status
 
-                  reader = csv.DictReader(
-                      f
-                  )
+          echo "exhibition_time=validated" \
+            >> history/enriched_history_20260621_20260928.status
 
-                  fields = set(
-                      reader.fieldnames
-                      or []
-                  )
+          echo ""
+          cat history/enriched_history_20260621_20260928.status
 
-                  if not REQUIRED.issubset(
-                      fields
-                  ):
-                      missing_columns.append(
-                          str(path)
-                      )
-                      continue
+      - name: 検証PASS状態をGitHubへ保存
+        run: |
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
 
-                  for row in reader:
+          git add \
+            history/enriched_history_20260621_20260928.status
 
-                      total_rows += 1
+          if git diff --cached --quiet; then
+            echo "PASSマーカーは既に保存されています"
+          else
+            git commit -m "Mark enriched history as validated"
 
-                      motor = str(
-                          row.get(
-                              "motor_no",
-                              "",
-                          )
-                      ).strip()
+            git pull --rebase origin "${GITHUB_REF_NAME}"
 
-                      boat = str(
-                          row.get(
-                              "boat_no",
-                              "",
-                          )
-                      ).strip()
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+          fi
 
-                      exhibition = str(
-                          row.get(
-                              "exhibition_time",
-                              "",
-                          )
-                      ).strip()
+      - name: レポートを短期保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-history-rebuild-${{ github.run_number }}
+          path: |
+            history/backfill_report_20260621_20260928.json
+            history/enriched_history_20260621_20260928.status
+          if-no-files-found: warn
+          retention-days: 7
 
-                      if motor:
+      - name: 最終確認
+        run: |
+          echo "========================================"
+          echo "100日拡張履歴 再構築完了"
+          echo "========================================"
 
-                          motor_rows += 1
-
-                          try:
-                              value = int(
-                                  float(motor)
-                              )
-
-                              if not (
-                                  1 <= value <= 999
-                              ):
-                                  bad_motor += 1
-
-                          except ValueError:
-                              bad_motor += 1
-
-                      if boat:
-
-                          boat_rows += 1
-
-                          try:
-                              value = int(
-                                  float(boat)
-                              )
-
-                              if not (
-                                  1 <= value <= 999
-                              ):
-                                  bad_boat += 1
-
-                          except ValueError:
-                             
+          echo "100日履歴: 保存済み"
+          echo "拡張3項目: 検証PASS"
+          echo "選手30日・90日集計: 準備OK"
+          echo "モーター30日・90日集計: 準備OK"
