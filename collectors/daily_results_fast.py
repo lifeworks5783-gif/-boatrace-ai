@@ -110,8 +110,7 @@ def fetch(
     headers = {
         "User-Agent": (
             "Mozilla/5.0 "
-            "(compatible; "
-            "boatrace-ai-data-collector/1.0)"
+            "(compatible; boatrace-ai-data-collector/1.0)"
         )
     }
 
@@ -131,6 +130,7 @@ def fetch(
                 request,
                 timeout=60,
             ) as response:
+
                 data = response.read()
 
             if not data:
@@ -161,10 +161,15 @@ def fetch(
     )
 
 
-def extract_lzh(data: bytes) -> bytes:
+def extract_lzh(
+    data: bytes,
+) -> bytes:
+
     try:
         archive = lhafile.LhaFile(
-            io.BytesIO(data)
+            io.BytesIO(
+                data
+            )
         )
 
         names = archive.namelist()
@@ -176,13 +181,21 @@ def extract_lzh(data: bytes) -> bytes:
 
         parts = []
 
-        for name in sorted(names):
-            payload = archive.read(name)
+        for name in sorted(
+            names
+        ):
+            payload = archive.read(
+                name
+            )
 
             if payload:
-                parts.append(payload)
+                parts.append(
+                    payload
+                )
 
-        joined = b"".join(parts)
+        joined = b"".join(
+            parts
+        )
 
         if not joined:
             raise RuntimeError(
@@ -197,18 +210,29 @@ def extract_lzh(data: bytes) -> bytes:
         ) from exc
 
 
-def is_result_row(line: bytes) -> bool:
-    if len(line) < 55:
+def is_result_row(
+    line: bytes,
+) -> bool:
+
+    if len(
+        line
+    ) < 55:
         return False
 
     return (
-        line[6:7] in b"123456"
-        and len(line[8:12]) == 4
+        line[6:7]
+        in b"123456"
+        and len(
+            line[8:12]
+        ) == 4
         and line[8:12].isdigit()
     )
 
 
-def parse_finish(line: bytes) -> str:
+def parse_finish(
+    line: bytes,
+) -> str:
+
     value = normalize(
         decode(
             line[2:4]
@@ -216,15 +240,22 @@ def parse_finish(line: bytes) -> str:
     ).strip().upper()
 
     if value.isdigit():
-        number = int(value)
+        number = int(
+            value
+        )
 
         if 1 <= number <= 6:
-            return str(number)
+            return str(
+                number
+            )
 
     return value
 
 
-def parse_boat(line: bytes):
+def parse_boat(
+    line: bytes,
+):
+
     value = normalize(
         decode(
             line[6:7]
@@ -232,12 +263,17 @@ def parse_boat(line: bytes):
     ).strip()
 
     if value.isdigit():
-        return int(value)
+        return int(
+            value
+        )
 
     return None
 
 
-def parse_course(line: bytes):
+def parse_course(
+    line: bytes,
+):
+
     value = normalize(
         decode(
             line[43:47]
@@ -245,25 +281,34 @@ def parse_course(line: bytes):
     ).strip()
 
     if value.isdigit():
-        return int(value)
+        return int(
+            value
+        )
 
     return None
 
 
-def parse_st(line: bytes) -> str:
-    value = normalize(
-        decode(
-            line[47:55]
+def parse_st(
+    line: bytes,
+) -> str:
+
+    value = (
+        normalize(
+            decode(
+                line[47:55]
+            )
         )
-    ).strip().upper().replace(
-        " ",
-        "",
+        .strip()
+        .upper()
+        .replace(
+            " ",
+            "",
+        )
     )
 
     if not value:
         return ""
 
-    # 0.13 → .13
     match = re.fullmatch(
         r"0\.(\d{2})",
         value,
@@ -272,7 +317,6 @@ def parse_st(line: bytes) -> str:
     if match:
         return f".{match.group(1)}"
 
-    # すでに .13 の形式
     match = re.fullmatch(
         r"\.(\d{2})",
         value,
@@ -281,7 +325,6 @@ def parse_st(line: bytes) -> str:
     if match:
         return value
 
-    # F0.03 / F.03 → F.03
     match = re.fullmatch(
         r"F(?:0)?\.(\d{2})",
         value,
@@ -290,7 +333,6 @@ def parse_st(line: bytes) -> str:
     if match:
         return f"F.{match.group(1)}"
 
-    # L0.03 / L.03 → L.03
     match = re.fullmatch(
         r"L(?:0)?\.(\d{2})",
         value,
@@ -305,28 +347,57 @@ def parse_st(line: bytes) -> str:
     }:
         return value
 
-    # K等はスタートタイミングではなく
-    # 特殊状態由来なので旧CSV互換として空欄
     return ""
+
+
+def parse_race_time(
+    line: bytes,
+) -> str:
+
+    if len(
+        line
+    ) <= 55:
+        return ""
+
+    value = normalize(
+        decode(
+            line[55:66]
+        )
+    ).strip()
+
+    compact = re.sub(
+        r"\s+",
+        "",
+        value,
+    )
+
+    # Kファイルではタイムなしを
+    # 「.  .  .」のように表す。
+    # 旧CSVと合わせて空欄へ統一する。
+    if not compact:
+        return ""
+
+    if not any(
+        char.isdigit()
+        for char in compact
+    ):
+        return ""
+
+    return compact
 
 
 def parse_result_row(
     line: bytes,
 ) -> dict:
 
-    race_time = ""
-
-    if len(line) > 55:
-        race_time = normalize(
-            decode(
-                line[55:66]
-            )
-        ).strip()
-
     return {
-        "boat": parse_boat(line),
+        "boat": parse_boat(
+            line
+        ),
 
-        "course": parse_course(line),
+        "course": parse_course(
+            line
+        ),
 
         "registration_no": normalize(
             decode(
@@ -340,11 +411,17 @@ def parse_result_row(
             )
         ),
 
-        "finish": parse_finish(line),
+        "finish": parse_finish(
+            line
+        ),
 
-        "st": parse_st(line),
+        "st": parse_st(
+            line
+        ),
 
-        "race_time": race_time,
+        "race_time": parse_race_time(
+            line
+        ),
     }
 
 
@@ -353,12 +430,16 @@ def payout_from_line(
     label: str,
     arity: int,
 ):
-    flat = normalize(text)
+
+    flat = normalize(
+        text
+    )
 
     combo_pattern = "-".join(
         [
             r"[1-6]"
-        ] * arity
+        ]
+        * arity
     )
 
     match = re.search(
@@ -387,6 +468,7 @@ def write_csv(
     rows: list[dict],
     fields: list[str],
 ):
+
     path.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -422,6 +504,7 @@ def parse_payload(
     payload: bytes,
     target_date: str,
 ):
+
     venues_seen = {}
     races = {}
     boats = []
@@ -460,6 +543,7 @@ def parse_payload(
         ):
             current_venue = None
             current_race = None
+
             continue
 
         if current_venue is None:
@@ -619,7 +703,9 @@ def parse_payload(
     ]
 
     race_rows = [
-        races[key]
+        races[
+            key
+        ]
         for key
         in sorted(
             races
@@ -658,6 +744,7 @@ def basic_validate(
     races,
     boats,
 ):
+
     if not venues:
         raise RuntimeError(
             "開催場が0件です"
