@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-09-30T02:51:41.542794+09:00",
+  "as_of_date": "20260930",
+  "leakage_guard": "Only rows with result date < as_of_date are used.",
+  "history_min_date": "20260621",
+  "history_max_date": "20260929",
+  "history_stale_days": 0,
+  "source_files_used": 101,
+  "history_rows_used": 96318,
+  "same_day_or_future_rows_excluded": 0,
+  "outputs": {
+    "racer_features": 1612,
+    "racer_course_features": 9280,
+    "racer_venue_features": 10789,
+    "motor_features": 1514,
+    "boat_features": 1559
+  },
+  "definitions": {
+    "rates": "win/top2/top3 rates use all starts as denominator",
+    "avg_finish": "numeric finishes 1-6 only",
+    "avg_st": "numeric valid ST only; F/L are excluded from avg_st and stored as f_rate/l_rate",
+    "motor_identity": "venue_code + motor_no",
+    "boat_identity": "venue_code + boat_no"
+  }
+}
