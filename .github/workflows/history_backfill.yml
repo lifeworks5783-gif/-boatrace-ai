@@ -40,56 +40,38 @@ jobs:
         run: |
           echo "========================================"
           echo "過去100日 履歴データ再構築"
+          echo "対象: 20260621 ～ 20260928"
           echo "motor_no / boat_no / exhibition_time"
           echo "========================================"
 
           python -u collectors/backfill_history.py \
-            --days 100 \
+            --start 20260621 \
+            --end 20260928 \
             --force \
             --sleep 0.7
 
       - name: バックフィル結果を確認
-        id: report
         run: |
-          REPORT=$(find history \
-            -maxdepth 1 \
-            -type f \
-            -name "backfill_report_*.json" \
-            | sort \
-            | tail -n 1)
+          REPORT="history/backfill_report_20260621_20260928.json"
 
-          if [ -z "${REPORT}" ]; then
+          if [ ! -f "${REPORT}" ]; then
             echo "バックフィルレポートがありません"
             exit 1
           fi
 
-          python - "${REPORT}" >> "$GITHUB_OUTPUT" <<'PY'
+          python - "${REPORT}" <<'PY'
           import json
           import sys
 
+          path = sys.argv[1]
+
           with open(
-              sys.argv[1],
+              path,
               "r",
               encoding="utf-8",
           ) as f:
               data = json.load(f)
 
-          start = data["start_date"]
-          end = data["end_date"]
-          failed = data.get(
-              "failed_days",
-              0,
-          )
-
-          print(
-              f"start_date={start}"
-          )
-
-          print(
-              f"end_date={end}"
-          )
-
-          print("")
           print(
               "========================================"
           )
@@ -99,73 +81,80 @@ jobs:
           print(
               "========================================"
           )
+
           print(
               "開始日:",
-              start,
+              data.get("start_date")
           )
+
           print(
               "終了日:",
-              end,
+              data.get("end_date")
           )
+
           print(
               "新規取得成功:",
               data.get(
                   "success_days",
-                  0,
+                  0
               ),
-              "日",
+              "日"
           )
+
           print(
               "既存スキップ:",
               data.get(
                   "skipped_days",
-                  0,
+                  0
               ),
-              "日",
+              "日"
           )
+
           print(
               "取得失敗:",
-              failed,
-              "日",
+              data.get(
+                  "failed_days",
+                  0
+              ),
+              "日"
+          )
+
+          failed = data.get(
+              "failed",
+              []
           )
 
           if failed:
-              for item in data.get(
-                  "failed",
-                  [],
-              ):
+              print("")
+              print(
+                  "取得失敗日:"
+              )
+
+              for item in failed:
                   print(
                       item.get("date"),
-                      item.get("error"),
+                      item.get("error")
                   )
 
               raise SystemExit(1)
 
+          print("")
           print(
               "バックフィル取得 PASS"
           )
           PY
 
-      - name: 今回の100日だけ拡張3項目を検証
-        env:
-          START_DATE: ${{ steps.report.outputs.start_date }}
-          END_DATE: ${{ steps.report.outputs.end_date }}
+      - name: 100日分の拡張3項目を検証
         run: |
           python - <<'PY'
           import csv
-          import os
           import re
           from pathlib import Path
 
-          start = int(
-              os.environ["START_DATE"]
-          )
+          START = 20260621
+          END = 20260928
 
-          end = int(
-              os.environ["END_DATE"]
-          )
-
-          required = {
+          REQUIRED = {
               "motor_no",
               "boat_no",
               "exhibition_time",
@@ -178,32 +167,27 @@ jobs:
           ).glob(
               "*/*/*/boat_results_*_all.csv"
           ):
-              m = re.search(
+              match = re.search(
                   r"boat_results_(\d{8})_all\.csv$",
                   path.name,
               )
 
-              if not m:
+              if not match:
                   continue
 
               date = int(
-                  m.group(1)
+                  match.group(1)
               )
 
-              if (
-                  start
-                  <= date
-                  <= end
-              ):
+              if START <= date <= END:
                   files.append(
                       path
                   )
 
           files.sort()
 
-          missing_columns = []
-
           total_rows = 0
+
           motor_rows = 0
           boat_rows = 0
           exhibition_rows = 0
@@ -212,7 +196,10 @@ jobs:
           bad_boat = 0
           bad_exhibition = 0
 
+          missing_columns = []
+
           for path in files:
+
               with path.open(
                   "r",
                   encoding="utf-8-sig",
@@ -228,7 +215,7 @@ jobs:
                       or []
                   )
 
-                  if not required.issubset(
+                  if not REQUIRED.issubset(
                       fields
                   ):
                       missing_columns.append(
@@ -238,30 +225,32 @@ jobs:
                       continue
 
                   for row in reader:
+
                       total_rows += 1
 
                       motor = str(
                           row.get(
                               "motor_no",
-                              "",
+                              ""
                           )
                       ).strip()
 
                       boat = str(
                           row.get(
                               "boat_no",
-                              "",
+                              ""
                           )
                       ).strip()
 
                       exhibition = str(
                           row.get(
                               "exhibition_time",
-                              "",
+                              ""
                           )
                       ).strip()
 
                       if motor:
+
                           motor_rows += 1
 
                           try:
@@ -278,6 +267,7 @@ jobs:
                               bad_motor += 1
 
                       if boat:
+
                           boat_rows += 1
 
                           try:
@@ -294,6 +284,7 @@ jobs:
                               bad_boat += 1
 
                       if exhibition:
+
                           exhibition_rows += 1
 
                           try:
@@ -322,69 +313,68 @@ jobs:
           )
 
           print(
-              "対象開始日:",
-              start,
-          )
-
-          print(
-              "対象終了日:",
-              end,
-          )
-
-          print(
               "対象履歴ファイル:",
-              len(files),
+              len(files)
           )
 
           print(
               "総艇データ:",
-              total_rows,
+              total_rows
           )
 
           print(
               "motor_no取得:",
-              motor_rows,
+              motor_rows
           )
 
           print(
               "boat_no取得:",
-              boat_rows,
+              boat_rows
           )
 
           print(
               "exhibition_time取得:",
-              exhibition_rows,
+              exhibition_rows
           )
 
           print(
               "motor_no値異常:",
-              bad_motor,
+              bad_motor
           )
 
           print(
               "boat_no値異常:",
-              bad_boat,
+              bad_boat
           )
 
           print(
               "exhibition_time値異常:",
-              bad_exhibition,
+              bad_exhibition
           )
 
-          if len(files) < 90:
+          print(
+              "拡張項目不足ファイル:",
+              len(
+                  missing_columns
+              )
+          )
+
+          if len(files) != 100:
               raise SystemExit(
-                  "対象期間の履歴ファイルが90日未満です"
+                  "100日分の履歴ファイルが揃っていません"
               )
 
           if missing_columns:
+
+              print("")
               print(
-                  "拡張項目不足ファイル:"
+                  "不足ファイル:"
               )
 
-              for path in (
+              for item in (
                   missing_columns[:10]
               ):
-                  print(path)
+                  print(item)
 
               raise SystemExit(1)
 
@@ -408,13 +398,19 @@ jobs:
                   "exhibition_timeが全件欠損です"
               )
 
-          if (
-              bad_motor
-              or bad_boat
-              or bad_exhibition
-          ):
+          if bad_motor:
               raise SystemExit(
-                  "拡張項目に値域異常があります"
+                  "motor_noに異常値があります"
+              )
+
+          if bad_boat:
+              raise SystemExit(
+                  "boat_noに異常値があります"
+              )
+
+          if bad_exhibition:
+              raise SystemExit(
+                  "exhibition_timeに異常値があります"
               )
 
           print("")
@@ -423,11 +419,37 @@ jobs:
           )
           PY
 
-      - name: 既存validation・manifestを必要な日だけ更新
-        env:
-          START_DATE: ${{ steps.report.outputs.start_date }}
-          END_DATE: ${{ steps.report.outputs.end_date }}
+      - name: 拡張100日履歴を先にGitHubへ保存
         run: |
+          echo "========================================"
+          echo "検証済み100日履歴を保存"
+          echo "========================================"
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add archive history
+
+          if git diff --cached --quiet; then
+            echo "履歴データに変更はありません"
+
+          else
+            git commit -m "Rebuild enriched BOAT RACE history"
+
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+
+            echo ""
+            echo "100日拡張履歴 保存完了"
+          fi
+
+      - name: 既存validation・manifestを更新
+        run: |
+          echo "========================================"
+          echo "既存validation・manifest更新"
+          echo "========================================"
+
           UPDATED=0
 
           while IFS= read -r VALIDATION_FILE
@@ -437,8 +459,8 @@ jobs:
             TARGET_DATE=$(basename "${VALIDATION_FILE}" \
               | sed -E 's/validation_([0-9]{8})\.json/\1/')
 
-            if [ "${TARGET_DATE}" -lt "${START_DATE}" ] || \
-               [ "${TARGET_DATE}" -gt "${END_DATE}" ]; then
+            if [ "${TARGET_DATE}" -lt "20260621" ] || \
+               [ "${TARGET_DATE}" -gt "20260928" ]; then
               continue
             fi
 
@@ -458,13 +480,18 @@ jobs:
             cp "${RESULTS}" data/
             cp "${BOATS}" data/
 
+            echo ""
+            echo "再検証: ${TARGET_DATE}"
+
             python -u collectors/validate_daily.py \
               --date "${TARGET_DATE}"
 
-            cp "data/validation_${TARGET_DATE}.json" \
+            cp \
+              "data/validation_${TARGET_DATE}.json" \
               "${DIR}/"
 
-            cp "data/manifest_${TARGET_DATE}.json" \
+            cp \
+              "data/manifest_${TARGET_DATE}.json" \
               "${DIR}/"
 
             UPDATED=$((UPDATED + 1))
@@ -476,36 +503,35 @@ jobs:
               | sort
           )
 
+          echo ""
           echo "再生成した検証日数: ${UPDATED}"
 
-      - name: レポートをArtifactへ短期保存
-        uses: actions/upload-artifact@v4
-        with:
-          name: boatrace-history-rebuild-${{ github.run_number }}
-          path: |
-            history/backfill_report_*.json
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: 拡張100日履歴をGitHubへ保存
+      - name: 更新した検証情報をGitHubへ保存
         run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
-          git add archive history
+          git add archive
 
           if git diff --cached --quiet; then
-            echo "変更はありません"
+            echo "validation・manifestに変更なし"
             exit 0
           fi
 
-          git commit -m "Rebuild enriched BOAT RACE history"
+          git commit -m "Refresh validation after history rebuild"
 
           git pull --rebase origin "${GITHUB_REF_NAME}"
 
           git push origin HEAD:"${GITHUB_REF_NAME}"
 
           echo ""
+          echo "validation・manifest保存完了"
+
+      - name: 最終確認
+        run: |
           echo "========================================"
-          echo "100日拡張履歴 GitHub保存完了"
+          echo "100日拡張履歴 再構築完了"
           echo "========================================"
+
+          echo "選手30日・90日集計: 準備OK"
+          echo "モーター30日・90日集計: 準備OK"
