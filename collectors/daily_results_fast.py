@@ -46,7 +46,6 @@ VENUES = {
     "24": "大村",
 }
 
-
 STADIUM_BEGIN = re.compile(
     rb"^(\d{2})KBGN\s*$"
 )
@@ -58,7 +57,6 @@ STADIUM_END = re.compile(
 RACE_HEADER = re.compile(
     r"^\s*(\d{1,2})R(?:\s|$)"
 )
-
 
 VENUE_FIELDS = [
     "date",
@@ -88,13 +86,14 @@ BOAT_FIELDS = [
     "course",
     "registration_no",
     "racer_name",
+    "motor_no",
+    "boat_no",
+    "exhibition_time",
     "finish",
     "st",
     "race_time",
 ]
 
-
-# 直近のparse_payloadで除外されたレース
 LAST_EXCLUDED_RACES = []
 
 
@@ -121,6 +120,32 @@ def clean_name(text):
         "",
         text,
     )
+
+
+def parse_int_slice(data):
+    value = normalize(
+        decode(data)
+    ).strip()
+
+    if value.isdigit():
+        return int(value)
+
+    return None
+
+
+def parse_float_slice(data):
+    value = normalize(
+        decode(data)
+    ).strip()
+
+    if not value:
+        return None
+
+    try:
+        return float(value)
+
+    except ValueError:
+        return None
 
 
 def build_url(target_date):
@@ -164,6 +189,7 @@ def fetch(
                 request,
                 timeout=60,
             ) as response:
+
                 data = response.read()
 
             if not data:
@@ -272,29 +298,41 @@ def parse_finish(line):
 
 
 def parse_boat(line):
-    value = normalize(
+    return parse_int_slice(
+        line[6:7]
+    )
+
+
+def parse_registration_no(line):
+    return normalize(
         decode(
-            line[6:7]
+            line[8:12]
         )
     ).strip()
 
-    if value.isdigit():
-        return int(value)
 
-    return None
+def parse_motor_no(line):
+    return parse_int_slice(
+        line[29:33]
+    )
+
+
+def parse_boat_no(line):
+    return parse_int_slice(
+        line[33:37]
+    )
+
+
+def parse_exhibition_time(line):
+    return parse_float_slice(
+        line[37:43]
+    )
 
 
 def parse_course(line):
-    value = normalize(
-        decode(
-            line[43:47]
-        )
-    ).strip()
-
-    if value.isdigit():
-        return int(value)
-
-    return None
+    return parse_int_slice(
+        line[43:47]
+    )
 
 
 def parse_st(line):
@@ -381,7 +419,6 @@ def parse_race_time(line):
     if not compact:
         return ""
 
-    # 「. . .」などタイムなし表記は空欄に統一
     if not any(
         char.isdigit()
         for char in compact
@@ -401,15 +438,29 @@ def parse_result_row(line):
             line
         ),
 
-        "registration_no": normalize(
-            decode(
-                line[8:12]
+        "registration_no": (
+            parse_registration_no(
+                line
             )
-        ).strip(),
+        ),
 
         "racer_name": clean_name(
             decode(
                 line[13:29]
+            )
+        ),
+
+        "motor_no": parse_motor_no(
+            line
+        ),
+
+        "boat_no": parse_boat_no(
+            line
+        ),
+
+        "exhibition_time": (
+            parse_exhibition_time(
+                line
             )
         ),
 
@@ -470,7 +521,9 @@ def write_csv(
     rows,
     fields,
 ):
-    path = Path(path)
+    path = Path(
+        path
+    )
 
     path.parent.mkdir(
         parents=True,
@@ -514,6 +567,7 @@ def filter_complete_races(
     boats_by_race = {}
 
     for row in boats:
+
         boats_by_race.setdefault(
             row[
                 "race_id"
@@ -524,6 +578,7 @@ def filter_complete_races(
         )
 
     valid_race_ids = set()
+
     excluded = []
 
     for key in sorted(
@@ -581,6 +636,7 @@ def filter_complete_races(
         if len(
             race_boats
         ) == 0:
+
             reason = (
                 "艇別結果なし"
             )
@@ -590,11 +646,13 @@ def filter_complete_races(
         ) != len(
             race_boats
         ):
+
             reason = (
                 "艇番重複"
             )
 
         else:
+
             reason = (
                 "6艇未完了"
             )
@@ -727,10 +785,13 @@ def parse_payload(
     target_date,
 ):
     venues_seen = {}
+
     races = {}
+
     boats = []
 
     current_venue = None
+
     current_race = None
 
     for raw in payload.splitlines():
@@ -742,6 +803,7 @@ def parse_payload(
         )
 
         if begin:
+
             current_venue = (
                 begin
                 .group(1)
@@ -765,6 +827,7 @@ def parse_payload(
             raw
         ):
             current_venue = None
+
             current_race = None
 
             continue
@@ -785,6 +848,7 @@ def parse_payload(
         )
 
         if header:
+
             current_race = int(
                 header.group(1)
             )
@@ -856,18 +920,24 @@ def parse_payload(
                 {
                     "date": target_date,
 
-                    "venue_code": current_venue,
+                    "venue_code": (
+                        current_venue
+                    ),
 
                     "venue_name": VENUES.get(
                         current_venue,
                         "",
                     ),
 
-                    "race": current_race,
+                    "race": (
+                        current_race
+                    ),
 
-                    "race_id": race[
-                        "race_id"
-                    ],
+                    "race_id": (
+                        race[
+                            "race_id"
+                        ]
+                    ),
 
                     **parsed,
                 }
@@ -885,6 +955,7 @@ def parse_payload(
         )
 
         if trifecta:
+
             race[
                 "trifecta"
             ] = trifecta
@@ -905,6 +976,7 @@ def parse_payload(
         )
 
         if exacta:
+
             race[
                 "exacta"
             ] = exacta
@@ -986,6 +1058,7 @@ def basic_validate(
         )
 
     counts = {}
+
     boat_sets = {}
 
     for row in boats:
@@ -1022,9 +1095,11 @@ def basic_validate(
             0,
         )
 
-        boat_set = boat_sets.get(
-            race_id,
-            set(),
+        boat_set = (
+            boat_sets.get(
+                race_id,
+                set(),
+            )
         )
 
         if (
@@ -1066,9 +1141,55 @@ def basic_validate(
             "race_id集合が一致しません"
         )
 
+    motor_count = sum(
+        1
+        for row
+        in boats
+        if row.get(
+            "motor_no"
+        )
+        is not None
+    )
+
+    boat_machine_count = sum(
+        1
+        for row
+        in boats
+        if row.get(
+            "boat_no"
+        )
+        is not None
+    )
+
+    exhibition_count = sum(
+        1
+        for row
+        in boats
+        if row.get(
+            "exhibition_time"
+        )
+        is not None
+    )
+
+    if motor_count == 0:
+        raise RuntimeError(
+            "モーター番号が全件欠損です"
+        )
+
+    if boat_machine_count == 0:
+        raise RuntimeError(
+            "ボート番号が全件欠損です"
+        )
+
+    if exhibition_count == 0:
+        raise RuntimeError(
+            "展示タイムが全件欠損です"
+        )
+
     if LAST_EXCLUDED_RACES:
 
         print("")
+
         print(
             "========================================"
         )
@@ -1094,6 +1215,7 @@ def basic_validate(
         if len(
             LAST_EXCLUDED_RACES
         ) > 20:
+
             print(
                 "...以降省略"
             )
@@ -1171,14 +1293,18 @@ def main():
         ),
     )
 
-    args = parser.parse_args()
+    args = (
+        parser.parse_args()
+    )
 
     if args.date:
+
         target_date = (
             args.date
         )
 
     else:
+
         target_date = (
             datetime.now(
                 JST
@@ -1231,6 +1357,7 @@ def main():
     )
 
     try:
+
         archive_bytes = fetch(
             url
         )
@@ -1273,8 +1400,7 @@ def main():
             DATA_DIR
             / (
                 f"results_"
-                f"{target_date}"
-                f"_all.csv"
+                f"{target_date}_all.csv"
             ),
             races,
             RESULT_FIELDS,
@@ -1284,8 +1410,7 @@ def main():
             DATA_DIR
             / (
                 f"boat_results_"
-                f"{target_date}"
-                f"_all.csv"
+                f"{target_date}_all.csv"
             ),
             boats,
             BOAT_FIELDS,
@@ -1297,7 +1422,38 @@ def main():
             )
         )
 
+        motor_count = sum(
+            1
+            for row
+            in boats
+            if row.get(
+                "motor_no"
+            )
+            is not None
+        )
+
+        boat_machine_count = sum(
+            1
+            for row
+            in boats
+            if row.get(
+                "boat_no"
+            )
+            is not None
+        )
+
+        exhibition_count = sum(
+            1
+            for row
+            in boats
+            if row.get(
+                "exhibition_time"
+            )
+            is not None
+        )
+
         print("")
+
         print(
             "========================================"
         )
@@ -1317,6 +1473,21 @@ def main():
 
         print(
             f"艇数: {len(boats)}"
+        )
+
+        print(
+            "モーター番号取得: "
+            f"{motor_count}艇"
+        )
+
+        print(
+            "ボート番号取得: "
+            f"{boat_machine_count}艇"
+        )
+
+        print(
+            "展示タイム取得: "
+            f"{exhibition_count}艇"
         )
 
         print(
