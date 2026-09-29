@@ -1,12 +1,17 @@
 name: 前日全場自動収集
 
+# GitHub Actionsから同じリポジトリへ
+# 検証済みデータを保存できるようにする
+permissions:
+  contents: write
+
 on:
   # 毎日 日本時間 4:30 に自動実行
   schedule:
     - cron: "30 4 * * *"
       timezone: "Asia/Tokyo"
 
-  # 今まで通り手動実行も可能
+  # 手動実行も可能
   workflow_dispatch:
 
 jobs:
@@ -81,7 +86,7 @@ jobs:
             echo "dataフォルダがありません"
           fi
 
-      - name: CSVと検証結果を保存
+      - name: CSVと検証結果をArtifactへ保存
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -91,3 +96,59 @@ jobs:
             data/*.json
           if-no-files-found: warn
           retention-days: 90
+
+      - name: 検証PASSデータをGitHubへ長期保存
+        if: success()
+        run: |
+          echo "========================================"
+          echo "長期保存処理を開始します"
+          echo "========================================"
+
+          VALIDATION_FILE=$(find data -maxdepth 1 -type f -name "validation_*.json" | head -n 1)
+
+          if [ -z "${VALIDATION_FILE}" ]; then
+            echo "validationファイルがありません"
+            exit 1
+          fi
+
+          TARGET_DATE=$(basename "${VALIDATION_FILE}" | sed -E 's/validation_([0-9]{8})\.json/\1/')
+
+          YEAR=${TARGET_DATE:0:4}
+          MONTH=${TARGET_DATE:4:2}
+          DAY=${TARGET_DATE:6:2}
+
+          DEST="archive/${YEAR}/${MONTH}/${DAY}"
+
+          echo "対象日: ${TARGET_DATE}"
+          echo "保存先: ${DEST}"
+
+          mkdir -p "${DEST}"
+
+          cp "data/venues_${TARGET_DATE}.csv" "${DEST}/"
+          cp "data/results_${TARGET_DATE}_all.csv" "${DEST}/"
+          cp "data/boat_results_${TARGET_DATE}_all.csv" "${DEST}/"
+          cp "data/validation_${TARGET_DATE}.json" "${DEST}/"
+          cp "data/manifest_${TARGET_DATE}.json" "${DEST}/"
+
+          echo ""
+          echo "保存対象ファイル:"
+          find "${DEST}" -maxdepth 1 -type f -print | sort
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add "${DEST}"
+
+          if git diff --cached --quiet; then
+            echo "同じデータが既に保存されています。"
+            echo "重複コミットは行いません。"
+            exit 0
+          fi
+
+          git commit -m "Archive BOAT RACE data ${TARGET_DATE}"
+          git push
+
+          echo ""
+          echo "========================================"
+          echo "GitHub長期保存 完了"
+          echo "========================================"
