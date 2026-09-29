@@ -26,10 +26,36 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 必要ファイルを確認
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lhafile
+
+      - name: dataフォルダを準備
+        run: |
+          mkdir -p data
+
+      - name: 当日基本データを収集
         run: |
           echo "========================================"
-          echo "必要ファイル確認"
+          echo "当日基本データ収集"
+          echo "========================================"
+
+          python -u collectors/today_basic.py
+
+      - name: 朝版prediction_inputを生成
+        run: |
+          echo "========================================"
+          echo "朝版prediction_input生成"
+          echo "========================================"
+
+          python -u collectors/build_prediction_input.py \
+            --stage morning
+
+      - name: 結合前ファイルを確認
+        run: |
+          echo "========================================"
+          echo "結合前ファイル確認"
           echo "========================================"
 
           MISSING=0
@@ -39,11 +65,11 @@ jobs:
             LABEL="$2"
 
             if [ -s "$FILE" ]; then
-              echo "OK   : ${LABEL}"
-              echo "       ${FILE}"
+              echo "OK : ${LABEL}"
+              echo "     ${FILE}"
             else
-              echo "NG   : ${LABEL}"
-              echo "       ${FILE}"
+              echo "NG : ${LABEL}"
+              echo "     ${FILE}"
               MISSING=$((MISSING + 1))
             fi
           }
@@ -84,7 +110,6 @@ jobs:
           echo "不足ファイル数: ${MISSING}"
 
           if [ "${MISSING}" -ne 0 ]; then
-            echo ""
             echo "ERROR: 必要ファイルが不足しています"
             exit 1
           fi
@@ -102,21 +127,23 @@ jobs:
             --date 20260930 \
             --stage morning
 
-      - name: 結合結果を表示
+      - name: 結合検証結果を表示
         run: |
           echo "========================================"
           echo "結合検証結果"
           echo "========================================"
 
+          test -s \
+            data/prediction_input_enriched_morning_20260930.json
+
+          test -s \
+            data/prediction_input_enriched_validation_morning_20260930.json
+
           cat \
             data/prediction_input_enriched_validation_morning_20260930.json
 
-      - name: JSON形式を確認
+      - name: JSON構文を確認
         run: |
-          echo "========================================"
-          echo "JSON構文確認"
-          echo "========================================"
-
           python -m json.tool \
             data/prediction_input_enriched_morning_20260930.json \
             > /dev/null
@@ -137,6 +164,12 @@ jobs:
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
           git add \
+            data/program_entries_20260930.csv \
+            data/program_races_20260930.csv \
+            data/program_manifest_20260930.json \
+            data/program_validation_20260930.json \
+            data/prediction_input_morning_20260930.json \
+            data/prediction_input_validation_morning_20260930.json \
             data/prediction_input_enriched_morning_20260930.json \
             data/prediction_input_enriched_validation_morning_20260930.json
 
@@ -146,20 +179,26 @@ jobs:
           fi
 
           git commit -m \
-            "Build enriched prediction input 20260930"
+            "Build enriched morning prediction input 20260930"
 
           git pull --rebase origin "${GITHUB_REF_NAME}"
 
           git push origin HEAD:"${GITHUB_REF_NAME}"
 
           echo ""
-          echo "結合済みprediction_input GitHub保存完了"
+          echo "当日予測入力 GitHub保存完了"
 
-      - name: 結合結果をArtifactへ短期保存
+      - name: 成果物を短期保存
         uses: actions/upload-artifact@v4
         with:
           name: boatrace-enriched-prediction-${{ github.run_number }}
           path: |
+            data/program_entries_20260930.csv
+            data/program_races_20260930.csv
+            data/program_manifest_20260930.json
+            data/program_validation_20260930.json
+            data/prediction_input_morning_20260930.json
+            data/prediction_input_validation_morning_20260930.json
             data/prediction_input_enriched_morning_20260930.json
             data/prediction_input_enriched_validation_morning_20260930.json
           if-no-files-found: error
@@ -167,17 +206,3 @@ jobs:
 
       - name: 最終確認
         run: |
-          echo "========================================"
-          echo "当日データ＋履歴特徴量 結合テスト完了"
-          echo "========================================"
-
-          echo "当日出走データ: 接続済み"
-          echo "選手直近5走・10走: 接続済み"
-          echo "選手30日・90日: 接続済み"
-          echo "選手競艇場別: 接続済み"
-          echo "モーター30日・90日: 接続済み"
-          echo "ボート30日・90日: 接続済み"
-          echo "選手コース別: 直前コース確定後に接続"
-          echo "結果漏洩防止: 有効"
-          echo ""
-          echo "次工程: 予測ロジック作成"
