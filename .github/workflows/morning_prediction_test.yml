@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: morning-prediction-production-${{ github.ref }}
+  group: boatrace-main-writer
   cancel-in-progress: false
 
 jobs:
@@ -80,9 +80,7 @@ jobs:
             features/history_features_manifest.json; then
 
             echo ""
-            echo "ERROR:"
-            echo "前日までの結果が完全に反映されていません"
-            echo "古い履歴では予測を実行しません"
+            echo "ERROR: 前日までの結果が完全に反映されていません"
             exit 1
           fi
 
@@ -186,7 +184,7 @@ jobs:
           mkdir -p "${PREDICTION_DEST}"
           mkdir -p "${INPUT_DEST}"
 
-      - name: 朝予測を長期保存フォルダへコピー
+      - name: 保存用ファイルをコピー
         run: |
           cp \
             "data/morning_predictions_${TARGET_DATE}.json" \
@@ -200,18 +198,6 @@ jobs:
             "data/morning_predictions_validation_${TARGET_DATE}.json" \
             "${PREDICTION_DEST}/"
 
-          echo "========================================"
-          echo "朝予測保存内容"
-          echo "========================================"
-
-          find "${PREDICTION_DEST}" \
-            -maxdepth 1 \
-            -type f \
-            -print \
-            | sort
-
-      - name: 当日入力データを保存
-        run: |
           cp \
             "data/program_entries_${TARGET_DATE}.csv" \
             "${INPUT_DEST}/"
@@ -236,7 +222,67 @@ jobs:
             "data/prediction_input_enriched_validation_morning_${TARGET_DATE}.json" \
             "${INPUT_DEST}/"
 
+          echo "========================================"
+          echo "保存対象"
+          echo "========================================"
+
+          find "${PREDICTION_DEST}" -type f -maxdepth 1 -print | sort
+          find "${INPUT_DEST}" -type f -maxdepth 1 -print | sort
+
       - name: 朝予測成果物をArtifactへ短期保存
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-morning-prediction-${{
+          name: boatrace-morning-prediction-${{ github.run_number }}
+          path: |
+            data/morning_predictions_*.json
+            data/morning_predictions_*.csv
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: GitHubへ長期保存
+        run: |
+          echo "========================================"
+          echo "GitHub長期保存"
+          echo "========================================"
+
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add features
+          git add "${PREDICTION_DEST}"
+          git add "${INPUT_DEST}"
+
+          echo ""
+          echo "保存対象の差分:"
+          git diff --cached --stat
+
+          if git diff --cached --quiet; then
+            echo "保存対象に変更はありません"
+          else
+            git commit -m "Morning prediction ${TARGET_DATE}"
+
+            git push \
+              origin \
+              HEAD:main
+
+            echo ""
+            echo "GitHub長期保存: PASS"
+          fi
+
+      - name: 最終確認
+        run: |
+          echo "========================================"
+          echo "毎日朝予測 完了"
+          echo "========================================"
+
+          echo "対象日: ${TARGET_DATE}"
+          echo "前日結果反映: PASS"
+          echo "30日・90日特徴量更新: PASS"
+          echo "当日番組収集: PASS"
+          echo "履歴特徴量結合: PASS"
+          echo "朝予測生成: PASS"
+          echo "結果漏洩防止: 有効"
+          echo "GitHub保存: PASS"
+          echo ""
+          echo "予測保存先:"
+          echo "${PREDICTION_DEST}"
