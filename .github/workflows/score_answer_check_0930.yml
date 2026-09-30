@@ -23,7 +23,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
 
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     env:
       TARGET_DATE: "20260930"
@@ -78,15 +78,18 @@ jobs:
           python -u collectors/analyze_score_components.py \
             --date "${TARGET_DATE}"
 
-      - name: 分析結果を表示
+      - name: 展示・ST・F・進入・風を個別分析
         run: |
-          FILE="evaluations/latest_score_analysis.md"
+          python -u collectors/analyze_live_factors.py \
+            --date "${TARGET_DATE}"
+
+          FILE="evaluations/${YEAR}/${MONTH}/${DAY}/live_factor_analysis_${TARGET_DATE}.json"
 
           test -s "${FILE}"
 
           echo ""
           echo "========================================"
-          echo "スコア配分・実レース結果 答え合わせ"
+          echo "直前情報 個別分析"
           echo "========================================"
           echo ""
 
@@ -99,17 +102,10 @@ jobs:
           test -s "${DIR}/score_component_analysis_${TARGET_DATE}.json"
           test -s "${DIR}/score_component_analysis_${TARGET_DATE}.md"
           test -s "${DIR}/score_answer_check_boats_${TARGET_DATE}.csv"
+          test -s "${DIR}/live_factor_analysis_${TARGET_DATE}.json"
+          test -s "${DIR}/live_factor_analysis_${TARGET_DATE}.md"
 
-          echo ""
-          echo "生成ファイル:"
-          echo ""
-
-          find "${DIR}" \
-            -maxdepth 1 \
-            -type f \
-            -name "score_*" \
-            -print \
-            | sort
+          echo "分析ファイル確認: PASS"
 
       - name: 分析結果をArtifactへ保存
         uses: actions/upload-artifact@v4
@@ -122,11 +118,13 @@ jobs:
             evaluations/2026/09/30/score_feature_stats_20260930.csv
             evaluations/2026/09/30/score_gap_races_morning_20260930.csv
             evaluations/2026/09/30/score_gap_races_live_20260930.csv
+            evaluations/2026/09/30/live_factor_analysis_20260930.json
+            evaluations/2026/09/30/live_factor_analysis_20260930.md
             evaluations/latest_score_analysis.md
           if-no-files-found: warn
           retention-days: 30
 
-      - name: GitHubへ保存
+      - name: Private側へ分析結果を保存
         run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
@@ -135,28 +133,84 @@ jobs:
           git add "evaluations/latest_score_analysis.md"
 
           if git diff --cached --quiet; then
-            echo "新しい変更はありません"
+            echo "Private側に新しい変更なし"
+          else
+            RUN_STAMP=$(TZ=Asia/Tokyo date '+%Y%m%d_%H%M%S')
+
+            git commit -m \
+              "Analyze live factors ${TARGET_DATE} ${RUN_STAMP}"
+
+            git push origin HEAD:main
+
+            echo "Private側保存: PASS"
+          fi
+
+      - name: 公開確認用リポジトリを読み込む
+        uses: actions/checkout@v4
+        with:
+          repository: lifeworks5783-gif/boatrace-family-view
+          ref: main
+          token: ${{ secrets.FAMILY_VIEW_TOKEN }}
+          path: family_public
+          fetch-depth: 0
+
+      - name: 分析JSONを確認用サイトへコピー
+        run: |
+          cp \
+            "evaluations/${YEAR}/${MONTH}/${DAY}/live_factor_analysis_${TARGET_DATE}.json" \
+            "family_public/live_factor_analysis.json"
+
+          cp \
+            "evaluations/${YEAR}/${MONTH}/${DAY}/live_factor_analysis_${TARGET_DATE}.md" \
+            "family_public/live_factor_analysis.md"
+
+          echo "分析結果コピー: PASS"
+
+      - name: 分析JSONを公開確認用リポジトリへ保存
+        run: |
+          cd family_public
+
+          git config \
+            user.name \
+            "boatrace-family-view-bot"
+
+          git config \
+            user.email \
+            "boatrace-family-view-bot@users.noreply.github.com"
+
+          git add \
+            live_factor_analysis.json \
+            live_factor_analysis.md
+
+          if git diff --cached --quiet; then
+            echo "公開確認用データに変更なし"
             exit 0
           fi
 
-          RUN_STAMP=$(TZ=Asia/Tokyo date '+%Y%m%d_%H%M%S')
-
-          git commit -m \
-            "Analyze score components ${TARGET_DATE} ${RUN_STAMP}"
+          git commit \
+            -m "Update live factor analysis"
 
           git push origin HEAD:main
 
-          echo "スコア分析保存: PASS"
+          echo "確認用分析JSON保存: PASS"
 
       - name: 最終確認
         run: |
           echo ""
           echo "========================================"
-          echo "9月30日 スコア配分答え合わせ 完了"
+          echo "9月30日 詳細スコア分析 完了"
           echo "========================================"
           echo ""
-          echo "朝の静的要素診断: 完了"
-          echo "直前の静的要素診断: 完了"
-          echo "朝→直前スコア補正診断: 完了"
+          echo "分析対象:"
+          echo "・展示タイム"
+          echo "・展示ST"
+          echo "・展示F"
+          echo "・展示進入"
+          echo "・風"
           echo ""
-          echo "配点は自動変更していません"
+          echo "重み探索:"
+          echo "・展示タイム加点"
+          echo "・展示ST加点"
+          echo "・展示F減点"
+          echo ""
+          echo "配点自体はまだ変更していません"
