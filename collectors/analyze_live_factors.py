@@ -66,51 +66,21 @@ PATH_HINTS = (
 )
 
 
-def nkey(
-    value: Any,
-) -> str:
-
+def nkey(value: Any) -> str:
     return re.sub(
         r"[^a-z0-9]+",
         "_",
-        str(value)
-        .strip()
-        .lower(),
+        str(value).strip().lower(),
     ).strip("_")
 
 
-def to_float(
-    value: Any,
-) -> Optional[float]:
-
-    if (
-        value is None
-        or isinstance(
-            value,
-            bool,
-        )
-    ):
+def to_float(value: Any) -> Optional[float]:
+    if value is None or isinstance(value, bool):
         return None
 
-    if isinstance(
-        value,
-        (
-            int,
-            float,
-        ),
-    ):
-
-        if (
-            isinstance(
-                value,
-                float,
-            )
-            and math.isnan(
-                value
-            )
-        ):
+    if isinstance(value, (int, float)):
+        if isinstance(value, float) and math.isnan(value):
             return None
-
         return float(value)
 
     text = (
@@ -130,23 +100,15 @@ def to_float(
     if not match:
         return None
 
-    return float(
-        match.group()
-    )
+    return float(match.group())
 
 
 def parse_st(
     value: Any,
-) -> Tuple[
-    Optional[float],
-    int,
-]:
+) -> Tuple[Optional[float], int]:
 
     if value is None:
-        return (
-            None,
-            0,
-        )
+        return None, 0
 
     text = (
         str(value)
@@ -156,16 +118,9 @@ def parse_st(
     )
 
     if not text:
-        return (
-            None,
-            0,
-        )
+        return None, 0
 
-    flying = (
-        1
-        if text.startswith("F")
-        else 0
-    )
+    flying = 1 if text.startswith("F") else 0
 
     match = re.search(
         r"\d+(?:\.\d+)?",
@@ -173,97 +128,49 @@ def parse_st(
     )
 
     if not match:
-        return (
-            None,
-            flying,
-        )
+        return None, flying
 
-    number = float(
-        match.group()
-    )
+    number = float(match.group())
 
-    if (
-        number >= 1
-        and "."
-        not in match.group()
-    ):
-        number = (
-            number / 100.0
-        )
+    if number >= 1 and "." not in match.group():
+        number = number / 100.0
 
     if flying:
-        number = -abs(
-            number
-        )
+        number = -abs(number)
 
-    return (
-        number,
-        flying,
-    )
+    return number, flying
 
 
-def venue(
-    value: Any,
-) -> str:
-
+def venue(value: Any) -> str:
     try:
-
-        return (
-            f"{int(float(value)):02d}"
-        )
-
+        return f"{int(float(value)):02d}"
     except Exception:
-
-        return str(
-            value or ""
-        ).zfill(2)
+        return str(value or "").zfill(2)
 
 
-def iv(
-    value: Any,
-) -> Optional[int]:
-
+def iv(value: Any) -> Optional[int]:
     try:
-
-        return int(
-            float(value)
-        )
-
+        return int(float(value))
     except Exception:
-
         return None
 
 
 def parse_race_id(
     value: Any,
-) -> Tuple[
-    str,
-    str,
-    Optional[int],
-]:
+) -> Tuple[str, str, Optional[int]]:
 
     match = re.search(
         r"(\d{8})[-_](\d{2})[-_](\d{1,2})",
-        str(
-            value
-            or ""
-        ),
+        str(value or ""),
     )
 
     if not match:
-
-        return (
-            "",
-            "",
-            None,
-        )
+        return "", "", None
 
     return (
         match.group(1),
         match.group(2),
-        int(
-            match.group(3)
-        ),
+        int(match.group(3)),
     )
 
 
@@ -278,73 +185,35 @@ def candidate_files(
     patterns = [
         f"data/**/*{date}*.json",
         f"data/**/*{date}*.csv",
-
-        (
-            f"daily_inputs/"
-            f"{year}/"
-            f"{month}/"
-            f"{day}/"
-            f"**/*.json"
-        ),
-
-        (
-            f"daily_inputs/"
-            f"{year}/"
-            f"{month}/"
-            f"{day}/"
-            f"**/*.csv"
-        ),
-
-        (
-            f"predictions/"
-            f"{year}/"
-            f"{month}/"
-            f"{day}/"
-            f"live/**/*.json"
-        ),
-
-        (
-            f"predictions/"
-            f"{year}/"
-            f"{month}/"
-            f"{day}/"
-            f"live/**/*.csv"
-        ),
+        f"daily_inputs/{year}/{month}/{day}/**/*.json",
+        f"daily_inputs/{year}/{month}/{day}/**/*.csv",
+        f"predictions/{year}/{month}/{day}/live/**/*.json",
+        f"predictions/{year}/{month}/{day}/live/**/*.csv",
     ]
 
     output = []
     seen = set()
 
     for pattern in patterns:
+        for path in Path(".").glob(pattern):
 
-        for path in Path(
-            "."
-        ).glob(
-            pattern
-        ):
+            path_text = str(path).lower()
 
-            path_text = str(
-                path
-            ).lower()
+            if not path.is_file():
+                continue
 
-            if (
-                not path.is_file()
-                or path_text
-                in seen
-            ):
+            if path_text in seen:
                 continue
 
             if not any(
                 hint in path_text
-                for hint
-                in PATH_HINTS
+                for hint in PATH_HINTS
             ):
                 continue
 
             if any(
                 bad in path_text
-                for bad
-                in (
+                for bad in (
                     "result",
                     "evaluation",
                     "formation",
@@ -353,13 +222,8 @@ def candidate_files(
             ):
                 continue
 
-            seen.add(
-                path_text
-            )
-
-            output.append(
-                path
-            )
+            seen.add(path_text)
+            output.append(path)
 
     return output
 
@@ -368,104 +232,54 @@ def walk_records(
     obj: Any,
     date: str,
     source: str,
-) -> List[
-    Dict[
-        str,
-        Any,
-    ]
-]:
+) -> List[Dict[str, Any]]:
 
-    rows = []
+    rows: List[Dict[str, Any]] = []
 
     def walk(
         node: Any,
-        context: Dict[
-            str,
-            Any,
-        ],
+        context: Dict[str, Any],
         path: str,
     ) -> None:
 
-        if isinstance(
-            node,
-            dict,
-        ):
+        if isinstance(node, dict):
 
-            current = dict(
-                context
-            )
+            current = dict(context)
 
             if "race_id" in node:
-
                 (
                     date_value,
                     venue_value,
                     race_value,
                 ) = parse_race_id(
-                    node.get(
-                        "race_id"
-                    )
+                    node.get("race_id")
                 )
 
                 if date_value:
-                    current[
-                        "date"
-                    ] = date_value
+                    current["date"] = date_value
 
                 if venue_value:
-                    current[
-                        "venue_code"
-                    ] = venue_value
+                    current["venue_code"] = venue_value
 
                 if race_value is not None:
-                    current[
-                        "race"
-                    ] = race_value
+                    current["race"] = race_value
 
-            for (
-                key,
-                target,
-            ) in (
-                (
-                    "date",
-                    "date",
-                ),
-                (
-                    "target_date",
-                    "date",
-                ),
-                (
-                    "venue_code",
-                    "venue_code",
-                ),
-                (
-                    "jcd",
-                    "venue_code",
-                ),
-                (
-                    "race",
-                    "race",
-                ),
-                (
-                    "rno",
-                    "race",
-                ),
+            for key, target in (
+                ("date", "date"),
+                ("target_date", "date"),
+                ("venue_code", "venue_code"),
+                ("jcd", "venue_code"),
+                ("race", "race"),
+                ("rno", "race"),
             ):
-
                 if (
                     key in node
                     and not isinstance(
                         node[key],
-                        (
-                            dict,
-                            list,
-                        ),
+                        (dict, list),
                     )
                 ):
-
-                    current[
-                        target
-                    ] = node[key]
+                    current[target] = node[key]
 
             boat = None
 
@@ -476,57 +290,37 @@ def walk_records(
                 "boat_no",
                 "wakuban",
             ):
-
                 if key not in node:
                     continue
 
-                value = iv(
-                    node.get(key)
-                )
+                value = iv(node.get(key))
 
                 if (
                     value is not None
-                    and 1
-                    <= value
-                    <= 6
+                    and 1 <= value <= 6
                 ):
-
                     boat = value
-
                     break
 
-            flat = {}
+            flat: Dict[str, Any] = {}
 
             def flatten(
                 value: Any,
                 prefix: str,
             ) -> None:
 
-                if not isinstance(
-                    value,
-                    dict,
-                ):
+                if not isinstance(value, dict):
                     return
 
-                for (
-                    child_key,
-                    child_value,
-                ) in value.items():
+                for child_key, child_value in value.items():
 
                     child_path = (
-                        f"{prefix}."
-                        f"{nkey(child_key)}"
+                        f"{prefix}.{nkey(child_key)}"
                         if prefix
-                        else nkey(
-                            child_key
-                        )
+                        else nkey(child_key)
                     )
 
-                    if isinstance(
-                        child_value,
-                        dict,
-                    ):
-
+                    if isinstance(child_value, dict):
                         flatten(
                             child_value,
                             child_path,
@@ -536,46 +330,25 @@ def walk_records(
                         child_value,
                         list,
                     ):
+                        flat[child_path] = child_value
 
-                        flat[
-                            child_path
-                        ] = child_value
+            flatten(node, "")
 
-            flatten(
-                node,
-                "",
-            )
+            features: Dict[str, Any] = {}
 
-            features = {}
+            for feature_path, value in flat.items():
 
-            for (
-                feature_path,
-                value,
-            ) in flat.items():
-
-                leaf = (
-                    feature_path
-                    .split(".")[-1]
-                )
-
-                path_lower = (
-                    feature_path
-                    .lower()
-                )
+                leaf = feature_path.split(".")[-1]
+                path_lower = feature_path.lower()
 
                 hinted = (
                     any(
-                        hint
-                        in path_lower
-                        for hint
-                        in PATH_HINTS
+                        hint in path_lower
+                        for hint in PATH_HINTS
                     )
-                    or
-                    any(
-                        hint
-                        in source.lower()
-                        for hint
-                        in PATH_HINTS
+                    or any(
+                        hint in source.lower()
+                        for hint in PATH_HINTS
                     )
                 )
 
@@ -584,49 +357,32 @@ def walk_records(
 
                 if leaf in [
                     nkey(x)
-                    for x
-                    in ALIASES[
+                    for x in ALIASES[
                         "exhibition_time"
                     ]
                 ]:
-
-                    number = to_float(
-                        value
-                    )
+                    number = to_float(value)
 
                     if (
                         number is not None
-                        and 5
-                        < number
-                        < 15
+                        and 5 < number < 15
                     ):
-
                         features[
                             "exhibition_time"
                         ] = number
 
                 if leaf in [
                     nkey(x)
-                    for x
-                    in ALIASES[
+                    for x in ALIASES[
                         "exhibition_st"
                     ]
                 ]:
-
-                    (
-                        number,
-                        flying,
-                    ) = parse_st(
-                        value
-                    )
+                    number, flying = parse_st(value)
 
                     if (
                         number is not None
-                        and -1
-                        < number
-                        < 1
+                        and -1 < number < 1
                     ):
-
                         features[
                             "exhibition_st"
                         ] = number
@@ -643,96 +399,68 @@ def walk_records(
 
                 if leaf in [
                     nkey(x)
-                    for x
-                    in ALIASES[
+                    for x in ALIASES[
                         "exhibition_course"
                     ]
                 ]:
-
-                    number = iv(
-                        value
-                    )
+                    number = iv(value)
 
                     if (
                         number is not None
-                        and 1
-                        <= number
-                        <= 6
+                        and 1 <= number <= 6
                     ):
-
                         features[
                             "exhibition_course"
                         ] = number
 
                 if leaf in [
                     nkey(x)
-                    for x
-                    in ALIASES[
+                    for x in ALIASES[
                         "wind_speed"
                     ]
                 ]:
-
-                    number = to_float(
-                        value
-                    )
+                    number = to_float(value)
 
                     if (
                         number is not None
-                        and 0
-                        <= number
-                        <= 50
+                        and 0 <= number <= 50
                     ):
-
                         features[
                             "wind_speed"
                         ] = number
 
                 if leaf in [
                     nkey(x)
-                    for x
-                    in ALIASES[
+                    for x in ALIASES[
                         "wave_height"
                     ]
                 ]:
-
-                    number = to_float(
-                        value
-                    )
+                    number = to_float(value)
 
                     if (
                         number is not None
-                        and 0
-                        <= number
-                        <= 200
+                        and 0 <= number <= 200
                     ):
-
                         features[
                             "wave_height"
                         ] = number
 
                 if leaf in [
                     nkey(x)
-                    for x
-                    in ALIASES[
+                    for x in ALIASES[
                         "wind_direction"
                     ]
                 ]:
-
                     if (
-                        isinstance(
-                            value,
-                            str,
-                        )
+                        isinstance(value, str)
                         and value.strip()
                     ):
-
                         features[
                             "wind_direction"
                         ] = value.strip()
 
                 if (
-                    "flying"
-                    in leaf
+                    "flying" in leaf
                     or leaf
                     in (
                         "f",
@@ -741,7 +469,6 @@ def walk_records(
                         "tenji_f",
                     )
                 ):
-
                     text = (
                         str(value)
                         .strip()
@@ -757,27 +484,21 @@ def walk_records(
                             "f",
                         )
                         or (
-                            to_float(
-                                value
-                            )
+                            to_float(value)
                             or 0
                         )
                         > 0
                     ):
-
                         features[
                             "exhibition_f"
                         ] = 1
 
             if (
                 boat is not None
-                and current.get(
-                    "race"
-                )
+                and current.get("race")
                 is not None
                 and features
             ):
-
                 rows.append(
                     {
                         "date":
@@ -787,7 +508,6 @@ def walk_records(
                                     date,
                                 )
                             ),
-
                         "venue_code":
                             venue(
                                 current.get(
@@ -795,40 +515,28 @@ def walk_records(
                                     "",
                                 )
                             ),
-
                         "race":
                             iv(
                                 current.get(
                                     "race"
                                 )
                             ),
-
                         "boat":
                             boat,
-
                         "source":
                             source,
-
                         **features,
                     }
                 )
 
-            for (
-                key,
-                value,
-            ) in node.items():
+            for key, value in node.items():
 
                 if isinstance(
                     value,
-                    (
-                        dict,
-                        list,
-                    ),
+                    (dict, list),
                 ):
-
                     child_path = (
-                        f"{path}."
-                        f"{nkey(key)}"
+                        f"{path}.{nkey(key)}"
                         if path
                         else nkey(key)
                     )
@@ -839,13 +547,9 @@ def walk_records(
                         child_path,
                     )
 
-        elif isinstance(
-            node,
-            list,
-        ):
+        elif isinstance(node, list):
 
             for value in node:
-
                 walk(
                     value,
                     context,
@@ -855,8 +559,7 @@ def walk_records(
     walk(
         obj,
         {
-            "date":
-                date
+            "date": date
         },
         "",
     )
@@ -868,18 +571,15 @@ def load_recorded_beforeinfo(
     date: str,
 ) -> pd.DataFrame:
 
-    all_rows = []
+    all_rows: List[
+        Dict[str, Any]
+    ] = []
 
-    for path in candidate_files(
-        date
-    ):
+    for path in candidate_files(date):
 
         try:
 
-            if (
-                path.suffix.lower()
-                == ".json"
-            ):
+            if path.suffix.lower() == ".json":
 
                 obj = json.loads(
                     path.read_text(
@@ -895,95 +595,78 @@ def load_recorded_beforeinfo(
                     )
                 )
 
-            elif (
-                path.suffix.lower()
-                == ".csv"
-            ):
+            elif path.suffix.lower() == ".csv":
 
-                dataframe = pd.read_csv(
-                    path
-                )
+                dataframe = pd.read_csv(path)
 
                 columns = {
-                    nkey(column):
-                        column
+                    nkey(column): column
                     for column
                     in dataframe.columns
                 }
 
-                for (
-                    _,
-                    row,
-                ) in dataframe.iterrows():
+                for _, row in dataframe.iterrows():
 
-                    venue_value = (
-                        row.get(
+                    venue_value = ""
+
+                    if (
+                        "venue_code" in columns
+                        or "jcd" in columns
+                    ):
+                        venue_key = columns.get(
+                            "venue_code",
                             columns.get(
-                                "venue_code",
-                                columns.get(
-                                    "jcd",
-                                    "",
-                                ),
+                                "jcd",
+                                "",
                             ),
+                        )
+
+                        venue_value = row.get(
+                            venue_key,
                             "",
                         )
-                        if (
-                            "venue_code"
-                            in columns
-                            or
-                            "jcd"
-                            in columns
-                        )
-                        else ""
-                    )
 
-                    race_value = (
-                        row.get(
+                    race_value = None
+
+                    if (
+                        "race" in columns
+                        or "rno" in columns
+                    ):
+                        race_key = columns.get(
+                            "race",
                             columns.get(
-                                "race",
+                                "rno",
+                                "",
+                            ),
+                        )
+
+                        race_value = row.get(
+                            race_key,
+                            None,
+                        )
+
+                    boat_value = None
+
+                    if (
+                        "boat" in columns
+                        or "frame" in columns
+                        or "lane" in columns
+                    ):
+                        boat_key = columns.get(
+                            "boat",
+                            columns.get(
+                                "frame",
                                 columns.get(
-                                    "rno",
+                                    "lane",
                                     "",
                                 ),
                             ),
-                            None,
                         )
-                        if (
-                            "race"
-                            in columns
-                            or
-                            "rno"
-                            in columns
-                        )
-                        else None
-                    )
 
-                    boat_value = (
-                        row.get(
-                            columns.get(
-                                "boat",
-                                columns.get(
-                                    "frame",
-                                    columns.get(
-                                        "lane",
-                                        "",
-                                    ),
-                                ),
-                            ),
+                        boat_value = row.get(
+                            boat_key,
                             None,
                         )
-                        if (
-                            "boat"
-                            in columns
-                            or
-                            "frame"
-                            in columns
-                            or
-                            "lane"
-                            in columns
-                        )
-                        else None
-                    )
 
                     race_number = iv(
                         race_value
@@ -1000,10 +683,12 @@ def load_recorded_beforeinfo(
                         <= boat_number
                         <= 6
                     ):
-
                         continue
 
-                    features = {}
+                    features: Dict[
+                        str,
+                        Any,
+                    ] = {}
 
                     for (
                         canonical,
@@ -1012,9 +697,7 @@ def load_recorded_beforeinfo(
 
                         for alias in aliases:
 
-                            alias_key = (
-                                nkey(alias)
-                            )
+                            alias_key = nkey(alias)
 
                             if (
                                 alias_key
@@ -1032,7 +715,6 @@ def load_recorded_beforeinfo(
                                 canonical
                                 == "exhibition_st"
                             ):
-
                                 (
                                     number,
                                     flying,
@@ -1041,7 +723,6 @@ def load_recorded_beforeinfo(
                                 )
 
                                 if number is not None:
-
                                     features[
                                         "exhibition_st"
                                     ] = number
@@ -1060,10 +741,7 @@ def load_recorded_beforeinfo(
                                 canonical
                                 == "exhibition_course"
                             ):
-
-                                number = iv(
-                                    value
-                                )
+                                number = iv(value)
 
                                 if (
                                     number is not None
@@ -1071,7 +749,6 @@ def load_recorded_beforeinfo(
                                     <= number
                                     <= 6
                                 ):
-
                                     features[
                                         canonical
                                     ] = number
@@ -1081,13 +758,11 @@ def load_recorded_beforeinfo(
                                 "wind_speed",
                                 "wave_height",
                             ):
-
                                 number = to_float(
                                     value
                                 )
 
                                 if number is not None:
-
                                     features[
                                         canonical
                                     ] = number
@@ -1095,11 +770,8 @@ def load_recorded_beforeinfo(
                             elif (
                                 canonical
                                 == "wind_direction"
-                                and pd.notna(
-                                    value
-                                )
+                                and pd.notna(value)
                             ):
-
                                 features[
                                     canonical
                                 ] = str(value)
@@ -1107,31 +779,31 @@ def load_recorded_beforeinfo(
                             break
 
                     if features:
-
                         all_rows.append(
                             {
                                 "date":
-                                    date,
-
+                                    str(date),
                                 "venue_code":
                                     venue(
                                         venue_value
                                     ),
-
                                 "race":
                                     race_number,
-
                                 "boat":
                                     boat_number,
-
                                 "source":
                                     str(path),
-
                                 **features,
                             }
                         )
 
-        except Exception:
+        except Exception as exc:
+
+            print(
+                "skip:",
+                path,
+                exc,
+            )
 
             continue
 
@@ -1140,6 +812,43 @@ def load_recorded_beforeinfo(
 
     dataframe = pd.DataFrame(
         all_rows
+    )
+
+    dataframe[
+        "date"
+    ] = (
+        dataframe[
+            "date"
+        ]
+        .astype(str)
+        .str.replace(
+            ".0",
+            "",
+            regex=False,
+        )
+    )
+
+    dataframe[
+        "venue_code"
+    ] = (
+        dataframe[
+            "venue_code"
+        ]
+        .map(venue)
+    )
+
+    dataframe[
+        "race"
+    ] = pd.to_numeric(
+        dataframe["race"],
+        errors="coerce",
+    )
+
+    dataframe[
+        "boat"
+    ] = pd.to_numeric(
+        dataframe["boat"],
+        errors="coerce",
     )
 
     keys = [
@@ -1169,9 +878,7 @@ def load_recorded_beforeinfo(
             feature_columns
         ]
         .notna()
-        .sum(
-            axis=1
-        )
+        .sum(axis=1)
     )
 
     dataframe = (
@@ -1206,7 +913,6 @@ def load_results(
             f"boat_results_"
             f"{date}_all.csv"
         ),
-
         Path(
             f"archive/"
             f"{date[:4]}/"
@@ -1220,37 +926,18 @@ def load_results(
     path = next(
         (
             path
-            for path
-            in paths
+            for path in paths
             if path.exists()
         ),
         None,
     )
 
     if path is None:
-
         raise SystemExit(
             "result csv not found"
         )
 
-    dataframe = pd.read_csv(
-        path
-    )
-
-    for column in (
-        "race",
-        "boat",
-        "finish",
-    ):
-
-        dataframe[
-            column
-        ] = pd.to_numeric(
-            dataframe[
-                column
-            ],
-            errors="coerce",
-        )
+    dataframe = pd.read_csv(path)
 
     dataframe[
         "date"
@@ -1272,10 +959,22 @@ def load_results(
         dataframe[
             "venue_code"
         ]
-        .map(
-            venue
-        )
+        .map(venue)
     )
+
+    for column in (
+        "race",
+        "boat",
+        "finish",
+    ):
+        dataframe[
+            column
+        ] = pd.to_numeric(
+            dataframe[
+                column
+            ],
+            errors="coerce",
+        )
 
     return (
         dataframe[
@@ -1305,13 +1004,24 @@ def load_base_scores(
     )
 
     if not path.exists():
-
         raise SystemExit(
             "score answer-check csv not found"
         )
 
-    dataframe = pd.read_csv(
-        path
+    dataframe = pd.read_csv(path)
+
+    dataframe[
+        "date"
+    ] = (
+        dataframe[
+            "date"
+        ]
+        .astype(str)
+        .str.replace(
+            ".0",
+            "",
+            regex=False,
+        )
     )
 
     dataframe = dataframe[
@@ -1327,9 +1037,7 @@ def load_base_scores(
         dataframe[
             "venue_code"
         ]
-        .map(
-            venue
-        )
+        .map(venue)
     )
 
     for column in (
@@ -1337,7 +1045,6 @@ def load_base_scores(
         "boat",
         "total_score",
     ):
-
         dataframe[
             column
         ] = pd.to_numeric(
@@ -1359,6 +1066,56 @@ def load_base_scores(
         ]
         .dropna()
     )
+
+
+def normalize_merge_keys(
+    dataframe: pd.DataFrame,
+) -> pd.DataFrame:
+
+    dataframe = dataframe.copy()
+
+    dataframe[
+        "date"
+    ] = (
+        dataframe[
+            "date"
+        ]
+        .astype(str)
+        .str.replace(
+            ".0",
+            "",
+            regex=False,
+        )
+    )
+
+    dataframe[
+        "venue_code"
+    ] = (
+        dataframe[
+            "venue_code"
+        ]
+        .map(venue)
+    )
+
+    dataframe[
+        "race"
+    ] = pd.to_numeric(
+        dataframe[
+            "race"
+        ],
+        errors="coerce",
+    )
+
+    dataframe[
+        "boat"
+    ] = pd.to_numeric(
+        dataframe[
+            "boat"
+        ],
+        errors="coerce",
+    )
+
+    return dataframe
 
 
 def rank_metric(
@@ -1384,10 +1141,7 @@ def rank_metric(
     rows = []
     correlations = []
 
-    for (
-        _,
-        race_data,
-    ) in work.groupby(
+    for _, race_data in work.groupby(
         [
             "venue_code",
             "race",
@@ -1395,47 +1149,31 @@ def rank_metric(
     ):
 
         if (
-            len(
-                race_data
-            )
-            < 4
+            len(race_data) < 4
             or race_data[
                 column
             ].nunique()
             < 2
         ):
-
             continue
 
-        ordered = (
-            race_data
-            .sort_values(
-                column,
-                ascending=lower_better,
-            )
+        ordered = race_data.sort_values(
+            column,
+            ascending=lower_better,
         )
 
-        best = (
-            ordered.iloc[0]
-        )
-
-        worst = (
-            ordered.iloc[-1]
-        )
+        best = ordered.iloc[0]
+        worst = ordered.iloc[-1]
 
         rows.append(
             (
-                best[
-                    "finish"
-                ],
-                worst[
-                    "finish"
-                ],
+                best["finish"],
+                worst["finish"],
             )
         )
 
         feature_rank = (
-            ordered[
+            race_data[
                 column
             ]
             .rank(
@@ -1447,21 +1185,16 @@ def rank_metric(
         correlation = (
             feature_rank
             .corr(
-                ordered[
+                race_data[
                     "finish"
                 ],
                 method="spearman",
             )
         )
 
-        if not pd.isna(
-            correlation
-        ):
-
+        if not pd.isna(correlation):
             correlations.append(
-                float(
-                    correlation
-                )
+                float(correlation)
             )
 
     if not rows:
@@ -1510,12 +1243,8 @@ def rank_metric(
         "mean_within_race_spearman":
             (
                 round(
-                    sum(
-                        correlations
-                    )
-                    / len(
-                        correlations
-                    ),
+                    sum(correlations)
+                    / len(correlations),
                     4,
                 )
                 if correlations
@@ -1576,9 +1305,7 @@ def binary_metric(
                     * 100,
                     1,
                 )
-                if len(
-                    flagged
-                )
+                if len(flagged)
                 else None
             ),
 
@@ -1594,9 +1321,7 @@ def binary_metric(
                     * 100,
                     1,
                 )
-                if len(
-                    flagged
-                )
+                if len(flagged)
                 else None
             ),
 
@@ -1612,9 +1337,7 @@ def binary_metric(
                     * 100,
                     1,
                 )
-                if len(
-                    normal
-                )
+                if len(normal)
                 else None
             ),
 
@@ -1630,9 +1353,7 @@ def binary_metric(
                     * 100,
                     1,
                 )
-                if len(
-                    normal
-                )
+                if len(normal)
                 else None
             ),
     }
@@ -1657,7 +1378,6 @@ def normalize_within_race(
         .sum()
         < 2
     ):
-
         return pd.Series(
             0.0,
             index=dataframe.index,
@@ -1667,7 +1387,6 @@ def normalize_within_race(
     maximum = values.max()
 
     if maximum == minimum:
-
         return pd.Series(
             0.5,
             index=dataframe.index,
@@ -1682,7 +1401,6 @@ def normalize_within_race(
     )
 
     if lower_better:
-
         return (
             1
             - normalized
@@ -1725,10 +1443,7 @@ def simulate(
         ]
     ):
 
-        if len(
-            race_data
-        ) >= 4:
-
+        if len(race_data) >= 4:
             eligible.append(
                 race_key
             )
@@ -1764,10 +1479,7 @@ def simulate(
         "st_norm"
     ] = 0.0
 
-    for (
-        _,
-        index,
-    ) in work.groupby(
+    for _, index in work.groupby(
         [
             "venue_code",
             "race",
@@ -1798,15 +1510,13 @@ def simulate(
 
     if (
         "exhibition_f"
-        not in work
+        not in work.columns
     ):
-
         work[
             "exhibition_f"
         ] = 0.0
 
     else:
-
         work[
             "exhibition_f"
         ] = (
@@ -1850,10 +1560,7 @@ def simulate(
         wins = 0
         races = 0
 
-        for (
-            _,
-            race_data,
-        ) in test.groupby(
+        for _, race_data in test.groupby(
             [
                 "venue_code",
                 "race",
@@ -1924,12 +1631,9 @@ def simulate(
             ):
 
                 if (
-                    time_weight
-                    == 0
-                    and st_weight
-                    == 0
-                    and f_penalty
-                    == 0
+                    time_weight == 0
+                    and st_weight == 0
+                    and f_penalty == 0
                 ):
                     continue
 
@@ -1963,7 +1667,6 @@ def simulate(
                 item[
                     "top1_accuracy_pct"
                 ],
-
                 -(
                     item[
                         "exhibition_time_weight"
@@ -2004,7 +1707,7 @@ def wind_buckets(
 
     if (
         "wind_speed"
-        not in dataframe
+        not in dataframe.columns
     ):
         return []
 
@@ -2024,41 +1727,35 @@ def wind_buckets(
 
     rows = []
 
-    for (
-        _,
-        race_data,
-    ) in work.groupby(
+    for _, race_data in work.groupby(
         [
             "venue_code",
             "race",
         ]
     ):
 
-        wind_speed = float(
+        wind_series = (
             race_data[
                 "wind_speed"
             ]
             .dropna()
-            .iloc[0]
+        )
+
+        if wind_series.empty:
+            continue
+
+        wind_speed = float(
+            wind_series.iloc[0]
         )
 
         if wind_speed < 3:
-
-            bucket = (
-                "0-2m"
-            )
+            bucket = "0-2m"
 
         elif wind_speed < 5:
-
-            bucket = (
-                "3-4m"
-            )
+            bucket = "3-4m"
 
         else:
-
-            bucket = (
-                "5m以上"
-            )
+            bucket = "5m以上"
 
         frame1 = race_data[
             race_data[
@@ -2071,9 +1768,7 @@ def wind_buckets(
             (
                 bucket,
                 int(
-                    len(
-                        frame1
-                    )
+                    len(frame1)
                     and frame1.iloc[
                         0
                     ][
@@ -2111,18 +1806,12 @@ def wind_buckets(
                     bucket,
 
                 "races":
-                    len(
-                        values
-                    ),
+                    len(values),
 
                 "boat1_win_rate_pct":
                     round(
-                        sum(
-                            values
-                        )
-                        / len(
-                            values
-                        )
+                        sum(values)
+                        / len(values)
                         * 100,
                         1,
                     ),
@@ -2152,7 +1841,6 @@ def main() -> int:
     )
 
     if live.empty:
-
         raise SystemExit(
             "recorded beforeinfo/live features not found"
         )
@@ -2165,12 +1853,50 @@ def main() -> int:
         date
     )
 
+    results = normalize_merge_keys(
+        results
+    )
+
+    live = normalize_merge_keys(
+        live
+    )
+
+    base_scores = normalize_merge_keys(
+        base_scores
+    )
+
     keys = [
         "date",
         "venue_code",
         "race",
         "boat",
     ]
+
+    print("")
+    print(
+        "merge key dtypes"
+    )
+
+    print(
+        "results:",
+        results[
+            keys
+        ].dtypes.to_dict(),
+    )
+
+    print(
+        "live:",
+        live[
+            keys
+        ].dtypes.to_dict(),
+    )
+
+    print(
+        "base_scores:",
+        base_scores[
+            keys
+        ].dtypes.to_dict(),
+    )
 
     dataframe = (
         results
@@ -2230,15 +1956,14 @@ def main() -> int:
                 .sum()
             )
             if column
-            in dataframe
+            in dataframe.columns
             else 0
         )
 
     if (
         "exhibition_course"
-        in dataframe
+        in dataframe.columns
     ):
-
         dataframe[
             "course_changed"
         ] = (
@@ -2268,7 +1993,7 @@ def main() -> int:
             True,
         )
         if "exhibition_time"
-        in dataframe
+        in dataframe.columns
         else {}
     )
 
@@ -2283,7 +2008,7 @@ def main() -> int:
             True,
         )
         if "exhibition_st"
-        in dataframe
+        in dataframe.columns
         else {}
     )
 
@@ -2297,7 +2022,7 @@ def main() -> int:
             "exhibition_f",
         )
         if "exhibition_f"
-        in dataframe
+        in dataframe.columns
         else {}
     )
 
@@ -2311,7 +2036,7 @@ def main() -> int:
             "course_changed",
         )
         if "course_changed"
-        in dataframe
+        in dataframe.columns
         else {}
     )
 
@@ -2397,6 +2122,18 @@ def main() -> int:
         ),
         "```",
         "",
+        "## 風速別",
+        "",
+        "```json",
+        json.dumps(
+            report[
+                "wind_context"
+            ],
+            ensure_ascii=False,
+            indent=2,
+        ),
+        "```",
+        "",
         "## 重み探索（探索用・1日分）",
         "",
         "```json",
@@ -2426,8 +2163,36 @@ def main() -> int:
         encoding="utf-8",
     )
 
+    print("")
     print(
         "直前情報個別分析: PASS"
+    )
+
+    print(
+        "結合後行数:",
+        len(
+            dataframe
+        ),
+    )
+
+    print("")
+    print(
+        "取得カバレッジ:"
+    )
+
+    print(
+        json.dumps(
+            report[
+                "coverage"
+            ],
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+    print("")
+    print(
+        "分析結果:"
     )
 
     print(
@@ -2442,7 +2207,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-
     raise SystemExit(
         main()
     )
