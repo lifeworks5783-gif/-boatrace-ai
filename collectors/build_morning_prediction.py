@@ -8,25 +8,24 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import build_morning_prediction as morning
-
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "live_heuristic_v2"
+MODEL_VERSION = "morning_heuristic_v2"
 
-# v0.2: 9/30の答え合わせを基に直前情報の影響を圧縮。
-# 朝ベースを主軸にし、展示STだけを軽く補正。
-# 展示タイムは値を保存・表示するが、単純加点は0点。
-LIVE_WEIGHTS = {
-    "morning_base": 90.0,
-    "exhibition_course": 3.0,
-    "racer_course": 5.0,
-    "exhibition_time": 0.0,
-    "exhibition_st": 2.0,
+# v0.2: 9/30の答え合わせを基にした保守的な試験配点。
+# 枠を強化、選手公式/直近/級別の重複を圧縮、当地を少し強化。
+WEIGHTS = {
+    "frame": 31.0,
+    "official_racer": 17.0,
+    "recent_racer": 20.0,
+    "racer_venue": 10.0,
+    "motor": 14.0,
+    "boat_machine": 4.0,
+    "grade": 4.0,
 }
 
-# 9/30は展示Fの有効サンプルがなかったため減点量は未設定。
-# ただし、展示F艇には展示STのプラス評価を与えない。
-EXHIBITION_F_PENALTY = 0.0
+# 朝は枠番のみ。未確定の実進入コースは使わない。
+FRAME_PRIOR = {1: 1.00, 2: 0.72, 3: 0.62, 4: 0.58, 5: 0.46, 6: 0.38}
+GRADE_PRIOR = {"A1": 1.00, "A2": 0.78, "B1": 0.48, "B2": 0.30}
 
 FORBIDDEN_CURRENT_RESULT_KEYS = {
     "finish",
@@ -38,11 +37,14 @@ FORBIDDEN_CURRENT_RESULT_KEYS = {
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="直前情報を使ってBOAT RACE最終予測を生成")
+    parser = argparse.ArgumentParser(description="履歴結合済み当日データから朝予測スコアを生成")
     parser.add_argument("--date", required=True, help="対象日 YYYYMMDD")
-    parser.add_argument("--input", default=None)
+    parser.add_argument(
+        "--input",
+        default=None,
+        help="入力JSON。省略時は data/prediction_input_enriched_morning_YYYYMMDD.json",
+    )
     parser.add_argument("--output-dir", default="data")
-    parser.add_argument("--now", default=None, help="検証用現在時刻 ISO8601")
     return parser.parse_args()
 
 
@@ -65,169 +67,292 @@ def to_int(value):
     return None if number is None else int(number)
 
 
-def first_value(mapping, keys):
-    if not isinstance(mapping, dict):
-        return None
-    for key in keys:
-        value = mapping.get(key)
-        if value not in (None, ""):
-            return value
-    return None
+def clamp(value, low=0.0, high=1.0):
+    return max(low, min(high, value))
 
 
-def boat_beforeinfo(boat):
-    info = boat.get("beforeinfo")
-    return info if isinstance(info, dict) else {}
-
-
-def get_exhibition_course(boat):
-    info = boat_beforeinfo(boat)
-    value = first_value(
-        info,
-        ("exhibition_course", "course", "tenji_course", "display_course"),
-    )
-    if value in (None, ""):
-        value = first_value(boat, ("exhibition_course", "tenji_course"))
-    course = to_int(value)
-    return course if course in {1, 2, 3, 4, 5, 6} else None
-
-
-def get_exhibition_time(boat):
-    info = boat_beforeinfo(boat)
-    value = first_value(info, ("exhibition_time", "tenji_time", "display_time"))
-    if value in (None, ""):
-        value = first_value(boat, ("exhibition_time", "tenji_time"))
+def rate01(value):
     number = to_float(value)
-    return number if number is not None and 5.0 <= number <= 10.0 else None
+    return None if number is None else clamp(number)
 
 
-def raw_exhibition_st_value(boat):
-    info = boat_beforeinfo(boat)
-    value = first_value(
-        info,
-        (
-            "exhibition_st_raw",
-            "exhibition_st",
-            "tenji_st",
-            "display_st",
-            "st",
+def percent01(value):
+    number = to_float(value)
+    return None if number is None else clamp(number / 100.0)
+
+
+def winrate10(value):
+    number = to_float(value)
+    return None if number is None else clamp(number / 10.0)
+
+
+def finish_score(value):
+    number = to_float(value)
+    return None if number is None else clamp((7.0 - number) / 6.0)
+
+
+def st_score(value):
+    number = to_float(value)
+    return None if number is None else clamp(1.0 - (number / 0.35))
+
+
+def weighted_mean(items):
+    numerator = 0.0
+    denominator = 0.0
+    for value, weight in items:
+        if value is None:
+            continue
+        numerator += float(value) * float(weight)
+        denominator += float(weight)
+    return None if denominator <= 0 else numerator / denominator
+
+
+def summary_starts(summary):
+    if not isinstance(summary, dict):
+        return 0
+    value = to_int(summary.get("starts"))
+    return 0 if value is None else value
+
+
+def performance_score(summary):
+    if not isinstance(summary, dict) or summary_starts(summary) <= 0:
+        return None
+    return weighted_mean(
+        [
+            (rate01(summary.get("win_rate")), 0.25),
+            (rate01(summary.get("top2_rate")), 0.25),
+            (rate01(summary.get("top3_rate")), 0.20),
+            (finish_score(summary.get("avg_finish")), 0.20),
+            (st_score(summary.get("avg_st")), 0.10),
+        ]
+    )
+
+
+def select_window(feature_block, short_name="d30", long_name="d90", minimum_short_starts=3):
+    if not isinstance(feature_block, dict):
+        return None, "none"
+    short = feature_block.get(short_name)
+    long = feature_block.get(long_name)
+    if isinstance(short, dict) and summary_starts(short) >= minimum_short_starts:
+        return short, short_name
+    if isinstance(long, dict) and summary_starts(long) > 0:
+        return long, long_name
+    if isinstance(short, dict) and summary_starts(short) > 0:
+        return short, short_name
+    return None, "none"
+
+
+def official_racer_score(official_stats):
+    if not isinstance(official_stats, dict):
+        return None
+    return weighted_mean(
+        [
+            (winrate10(official_stats.get("national_win_rate")), 0.35),
+            (winrate10(official_stats.get("local_win_rate")), 0.30),
+            (percent01(official_stats.get("national_top2_rate")), 0.20),
+            (percent01(official_stats.get("local_top2_rate")), 0.15),
+        ]
+    )
+
+
+def recent_racer_score(racer_features):
+    if not isinstance(racer_features, dict):
+        return None, {}
+    last5 = racer_features.get("last5")
+    last10 = racer_features.get("last10")
+    d30 = racer_features.get("d30")
+    d90 = racer_features.get("d90")
+    score = weighted_mean(
+        [
+            (performance_score(last5), 0.25),
+            (performance_score(last10), 0.20),
+            (performance_score(d30), 0.35),
+            (performance_score(d90), 0.20),
+        ]
+    )
+    return score, {
+        "last5_starts": summary_starts(last5),
+        "last10_starts": summary_starts(last10),
+        "d30_starts": summary_starts(d30),
+        "d90_starts": summary_starts(d90),
+    }
+
+
+def trend_adjustment(racer_features):
+    if not isinstance(racer_features, dict):
+        return 0.0
+    trend = racer_features.get("trend_30v90")
+    if not isinstance(trend, dict):
+        return 0.0
+
+    values = []
+    for key, weight in (
+        ("win_rate_30v90", 0.35),
+        ("top2_rate_30v90", 0.35),
+        ("top3_rate_30v90", 0.30),
+    ):
+        number = to_float(trend.get(key))
+        if number is not None:
+            values.append((number, weight))
+
+    rate_trend = weighted_mean(values)
+    finish_trend = to_float(trend.get("avg_finish_30v90"))
+    st_trend = to_float(trend.get("avg_st_30v90"))
+    adjustment = 0.0
+
+    if rate_trend is not None:
+        adjustment += (clamp(rate_trend, -0.30, 0.30) / 0.30) * 2.0
+    if finish_trend is not None:
+        adjustment += (clamp(-finish_trend, -1.5, 1.5) / 1.5) * 0.7
+    if st_trend is not None:
+        adjustment += (clamp(-st_trend, -0.08, 0.08) / 0.08) * 0.3
+
+    return clamp(adjustment, -3.0, 3.0)
+
+
+def discipline_penalty(racer_features):
+    if not isinstance(racer_features, dict):
+        return 0.0
+    d90 = racer_features.get("d90")
+    if not isinstance(d90, dict):
+        return 0.0
+    f_rate = rate01(d90.get("f_rate")) or 0.0
+    l_rate = rate01(d90.get("l_rate")) or 0.0
+    return min(6.0, (f_rate * 30.0) + (l_rate * 15.0))
+
+
+def equipment_score(official_top2, history_features):
+    history_summary, source = select_window(history_features, minimum_short_starts=2)
+    score = weighted_mean(
+        [
+            (percent01(official_top2), 0.45),
+            (performance_score(history_summary), 0.55),
+        ]
+    )
+    return score, source, summary_starts(history_summary)
+
+
+def grade_score(grade):
+    return GRADE_PRIOR.get(text(grade).upper())
+
+
+def component_entry(name, value, weight, source):
+    if value is None:
+        return {
+            "name": name,
+            "available": False,
+            "raw_score_0_1": None,
+            "weight": weight,
+            "weighted_points": 0.0,
+            "source": source,
+        }
+    value = clamp(float(value))
+    return {
+        "name": name,
+        "available": True,
+        "raw_score_0_1": round(value, 6),
+        "weight": weight,
+        "weighted_points": round(value * weight, 4),
+        "source": source,
+    }
+
+
+def score_boat(boat):
+    lane = to_int(boat.get("boat"))
+    racer = boat.get("racer") or {}
+    official_stats = boat.get("official_stats") or {}
+    motor = boat.get("motor") or {}
+    boat_machine = boat.get("boat_machine") or {}
+    history = boat.get("history") or {}
+
+    racer_features = (history.get("racer_overall") or {}).get("features")
+    racer_venue_features = (history.get("racer_venue") or {}).get("features")
+    motor_features = (history.get("motor") or {}).get("features")
+    boat_features = (history.get("boat_machine") or {}).get("features")
+
+    frame_value = FRAME_PRIOR.get(lane)
+    official_value = official_racer_score(official_stats)
+    recent_value, recent_samples = recent_racer_score(racer_features)
+
+    venue_summary, venue_source = select_window(racer_venue_features, minimum_short_starts=2)
+    venue_value = performance_score(venue_summary)
+
+    motor_value, motor_source, motor_starts = equipment_score(
+        motor.get("official_top2_rate"), motor_features
+    )
+    boat_value, boat_source, boat_starts = equipment_score(
+        boat_machine.get("official_top2_rate"), boat_features
+    )
+    grade_value = grade_score(racer.get("grade"))
+
+    components = {
+        "frame": component_entry(
+            "frame", frame_value, WEIGHTS["frame"], "枠番のみ。未確定の進入コースは不使用"
         ),
-    )
-    if value in (None, ""):
-        value = first_value(
-            boat,
-            ("exhibition_st_raw", "exhibition_st", "tenji_st"),
-        )
-    return value
-
-
-def parse_exhibition_st(value):
-    raw = text(value).upper().replace(" ", "")
-    if not raw or raw.startswith("L"):
-        return None
-    if raw.startswith("F"):
-        raw = raw[1:]
-        if raw.startswith("."):
-            raw = "0" + raw
-        try:
-            return -abs(float(raw))
-        except ValueError:
-            return None
-    if raw.startswith("."):
-        raw = "0" + raw
-    try:
-        number = float(raw)
-    except ValueError:
-        return None
-    return number if -0.30 <= number <= 1.00 else None
-
-
-def get_exhibition_st(boat):
-    return parse_exhibition_st(raw_exhibition_st_value(boat))
-
-
-def get_exhibition_f(boat):
-    raw_value = raw_exhibition_st_value(boat)
-    if text(raw_value).upper().replace(" ", "").startswith("F"):
-        return True
-
-    info = boat_beforeinfo(boat)
-    flag = first_value(
-        info,
-        (
-            "exhibition_st_flag",
-            "tenji_st_flag",
-            "display_st_flag",
-            "exhibition_f",
-            "is_f",
+        "official_racer": component_entry(
+            "official_racer",
+            official_value,
+            WEIGHTS["official_racer"],
+            "当日番組の全国・当地勝率/2連率",
         ),
+        "recent_racer": component_entry(
+            "recent_racer",
+            recent_value,
+            WEIGHTS["recent_racer"],
+            f"直近5走・10走・30日・90日履歴 {recent_samples}",
+        ),
+        "racer_venue": component_entry(
+            "racer_venue",
+            venue_value,
+            WEIGHTS["racer_venue"],
+            f"選手×競艇場履歴 source={venue_source} starts={summary_starts(venue_summary)}",
+        ),
+        "motor": component_entry(
+            "motor",
+            motor_value,
+            WEIGHTS["motor"],
+            f"公式モーター2連率＋履歴 source={motor_source} starts={motor_starts}",
+        ),
+        "boat_machine": component_entry(
+            "boat_machine",
+            boat_value,
+            WEIGHTS["boat_machine"],
+            f"公式ボート2連率＋履歴 source={boat_source} starts={boat_starts}",
+        ),
+        "grade": component_entry(
+            "grade", grade_value, WEIGHTS["grade"], "当日番組の級別"
+        ),
+    }
+
+    available_weight = sum(item["weight"] for item in components.values() if item["available"])
+    weighted_points = sum(
+        item["weighted_points"] for item in components.values() if item["available"]
     )
-    if flag in (None, ""):
-        flag = first_value(
-            boat,
-            ("exhibition_st_flag", "tenji_st_flag", "exhibition_f", "is_f"),
-        )
+    base_score = 0.0 if available_weight <= 0 else (weighted_points / available_weight) * 100.0
 
-    if isinstance(flag, bool):
-        return flag
-    if text(flag).upper() in {"F", "TRUE", "YES", "1"}:
-        return True
-    number = to_float(flag)
-    return number is not None and number > 0
+    trend_points = trend_adjustment(racer_features)
+    penalty = discipline_penalty(racer_features)
+    final_score = clamp((base_score + trend_points - penalty) / 100.0) * 100.0
+    coverage_pct = available_weight / sum(WEIGHTS.values()) * 100.0
 
-
-def get_tilt(boat):
-    info = boat_beforeinfo(boat)
-    value = first_value(info, ("tilt", "tilt_angle"))
-    if value in (None, ""):
-        value = first_value(boat, ("tilt", "tilt_angle"))
-    return to_float(value)
-
-
-def parse_now(value):
-    if not value:
-        return datetime.now(JST)
-    raw = value.strip().replace("Z", "+00:00")
-    dt = datetime.fromisoformat(raw)
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=JST)
-    return dt.astimezone(JST)
+    return {
+        "boat": lane,
+        "registration_no": racer.get("registration_no"),
+        "racer_name": racer.get("name"),
+        "grade": racer.get("grade"),
+        "motor_no": motor.get("motor_no"),
+        "boat_no": boat_machine.get("boat_no"),
+        "score": round(final_score, 2),
+        "base_score": round(base_score, 2),
+        "trend_adjustment_points": round(trend_points, 2),
+        "f_l_penalty_points": round(penalty, 2),
+        "data_coverage_pct": round(coverage_pct, 1),
+        "components": components,
+        "note": "scoreは的中確率ではなく、朝時点の相対評価用スコア",
+    }
 
 
-def parse_deadline(target_date, race):
-    value = first_value(
-        race,
-        ("deadline", "deadline_time", "close_time", "cutoff_time"),
-    )
-    if value in (None, ""):
-        return None
-
-    raw = text(value)
-    try:
-        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=JST)
-        return dt.astimezone(JST)
-    except ValueError:
-        pass
-
-    base_date = datetime.strptime(target_date, "%Y%m%d").date()
-    for fmt in ("%H:%M:%S", "%H:%M", "%H%M"):
-        try:
-            t = datetime.strptime(raw, fmt).time()
-            return datetime.combine(base_date, t, tzinfo=JST)
-        except ValueError:
-            pass
-
-    for fmt in ("%Y%m%d%H%M", "%Y-%m-%d %H:%M", "%Y/%m/%d %H:%M"):
-        try:
-            return datetime.strptime(raw, fmt).replace(tzinfo=JST)
-        except ValueError:
-            pass
-    return None
-
-
-def validate_no_current_results(payload):
+def validate_current_day_no_results(payload):
     violations = []
     races = payload.get("races")
     if not isinstance(races, list):
@@ -246,219 +371,25 @@ def validate_no_current_results(payload):
     return violations
 
 
-def rank_scores(values, lower_better=True):
-    valid = {lane: value for lane, value in values.items() if value is not None}
-    if not valid:
-        return {}
-    unique = sorted(set(valid.values()), reverse=not lower_better)
-    if len(unique) == 1:
-        return {lane: 0.5 for lane in valid}
+def prediction_strength(ranked):
+    if len(ranked) < 2:
+        return {"top1_top2_gap": None, "top1_top3_gap": None}
+    top1 = ranked[0]["score"]
+    top2 = ranked[1]["score"]
+    top3 = ranked[2]["score"] if len(ranked) >= 3 else None
     return {
-        lane: 1.0 - (unique.index(value) / (len(unique) - 1))
-        for lane, value in valid.items()
+        "top1_top2_gap": round(top1 - top2, 2),
+        "top1_top3_gap": round(top1 - top3, 2) if top3 is not None else None,
     }
-
-
-def racer_course_score(boat):
-    history = boat.get("history") or {}
-    block = history.get("racer_course") or {}
-    features = block.get("features")
-    summary, source = morning.select_window(features, minimum_short_starts=2)
-    score = morning.performance_score(summary)
-    return score, source, morning.summary_starts(summary)
-
-
-def component(name, raw, weight, source):
-    if raw is None:
-        return {
-            "name": name,
-            "available": False,
-            "raw_score_0_1": None,
-            "weight": weight,
-            "weighted_points": 0.0,
-            "source": source,
-        }
-    value = morning.clamp(float(raw))
-    return {
-        "name": name,
-        "available": True,
-        "raw_score_0_1": round(value, 6),
-        "weight": weight,
-        "weighted_points": round(value * weight, 4),
-        "source": source,
-    }
-
-
-def score_race(race):
-    boats = race.get("boats")
-    if not isinstance(boats, list) or len(boats) != 6:
-        raise RuntimeError(f"6艇ではないレースがあります: {race.get('race_id')}")
-
-    raw_by_lane = {}
-    time_values = {}
-    st_values = {}
-
-    for boat in boats:
-        lane = to_int(boat.get("boat"))
-        if lane not in {1, 2, 3, 4, 5, 6}:
-            raise RuntimeError(f"艇番異常: {race.get('race_id')} {boat.get('boat')}")
-
-        morning_row = morning.score_boat(boat)
-        course = get_exhibition_course(boat)
-        exhibition_time = get_exhibition_time(boat)
-        exhibition_st = get_exhibition_st(boat)
-        exhibition_f = get_exhibition_f(boat)
-        tilt = get_tilt(boat)
-        course_hist_score, course_hist_source, course_hist_starts = racer_course_score(boat)
-
-        raw_by_lane[lane] = {
-            "morning": morning_row,
-            "course": course,
-            "exhibition_time": exhibition_time,
-            "exhibition_st": exhibition_st,
-            "exhibition_f": exhibition_f,
-            "tilt": tilt,
-            "course_hist_score": course_hist_score,
-            "course_hist_source": course_hist_source,
-            "course_hist_starts": course_hist_starts,
-        }
-
-        if exhibition_time is not None:
-            time_values[lane] = exhibition_time
-
-        # F表示を「速いST」と誤評価しない。F艇はST加点対象から外す。
-        if exhibition_st is not None and not exhibition_f and exhibition_st >= 0.0:
-            st_values[lane] = exhibition_st
-
-    time_rank = rank_scores(time_values, lower_better=True)
-    st_rank = rank_scores(st_values, lower_better=True)
-    scored = []
-
-    for lane in sorted(raw_by_lane):
-        raw = raw_by_lane[lane]
-        course = raw["course"]
-        course_prior = morning.FRAME_PRIOR.get(course) if course is not None else None
-        exhibition_f = raw["exhibition_f"]
-        st_raw_score = None if exhibition_f else st_rank.get(lane)
-        st_source = (
-            f"展示ST={raw['exhibition_st']} F表示のためST加点対象外"
-            if exhibition_f
-            else f"展示ST={raw['exhibition_st']}"
-        )
-
-        components = {
-            "morning_base": component(
-                "morning_base",
-                raw["morning"]["score"] / 100.0,
-                LIVE_WEIGHTS["morning_base"],
-                "v0.2朝予測スコア",
-            ),
-            "exhibition_course": component(
-                "exhibition_course",
-                course_prior,
-                LIVE_WEIGHTS["exhibition_course"],
-                f"展示進入コース={course}" if course is not None else "展示進入未取得",
-            ),
-            "racer_course": component(
-                "racer_course",
-                raw["course_hist_score"],
-                LIVE_WEIGHTS["racer_course"],
-                (
-                    "選手×実展示コース履歴 "
-                    f"source={raw['course_hist_source']} starts={raw['course_hist_starts']}"
-                ),
-            ),
-            "exhibition_time": component(
-                "exhibition_time",
-                time_rank.get(lane),
-                LIVE_WEIGHTS["exhibition_time"],
-                f"展示タイム={raw['exhibition_time']} v0.2では参考情報のみ",
-            ),
-            "exhibition_st": component(
-                "exhibition_st",
-                st_raw_score,
-                LIVE_WEIGHTS["exhibition_st"],
-                st_source,
-            ),
-        }
-
-        available_weight = sum(item["weight"] for item in components.values() if item["available"])
-        weighted_points = sum(
-            item["weighted_points"] for item in components.values() if item["available"]
-        )
-        score = (
-            (weighted_points / available_weight) * 100.0
-            if available_weight > 0
-            else 0.0
-        )
-
-        if exhibition_f and EXHIBITION_F_PENALTY > 0:
-            score = max(0.0, score - EXHIBITION_F_PENALTY)
-
-        coverage = available_weight / sum(LIVE_WEIGHTS.values()) * 100.0
-        morning_row = raw["morning"]
-
-        scored.append(
-            {
-                "boat": lane,
-                "registration_no": morning_row.get("registration_no"),
-                "racer_name": morning_row.get("racer_name"),
-                "grade": morning_row.get("grade"),
-                "motor_no": morning_row.get("motor_no"),
-                "boat_no": morning_row.get("boat_no"),
-                "score": round(score, 2),
-                "morning_score_reference": morning_row.get("score"),
-                "data_coverage_pct": round(coverage, 1),
-                "exhibition_course": course,
-                "exhibition_time": raw["exhibition_time"],
-                "exhibition_st": raw["exhibition_st"],
-                "exhibition_f": bool(exhibition_f),
-                "tilt": raw["tilt"],
-                "components": components,
-            }
-        )
-
-    scored.sort(key=lambda row: (-row["score"], row["boat"]))
-    for rank, row in enumerate(scored, start=1):
-        row["rank"] = rank
-    return scored
-
-
-def race_context(race):
-    keys = (
-        "weather",
-        "weather_code",
-        "air_temperature",
-        "temperature",
-        "water_temperature",
-        "wind_speed",
-        "wind_direction",
-        "wave_height",
-    )
-    result = {}
-    for key in keys:
-        value = race.get(key)
-        if value not in (None, ""):
-            result[key] = value
-
-    nested = race.get("beforeinfo")
-    if isinstance(nested, dict):
-        for key in keys:
-            value = nested.get(key)
-            if value not in (None, "") and key not in result:
-                result[key] = value
-    return result
 
 
 def write_csv(path, rows):
-    fields = [
+    fieldnames = [
         "target_date",
-        "generated_at",
         "venue_code",
         "venue_name",
         "race",
         "race_id",
-        "deadline",
         "rank",
         "boat",
         "registration_no",
@@ -467,43 +398,15 @@ def write_csv(path, rows):
         "motor_no",
         "boat_no",
         "score",
-        "morning_score_reference",
+        "base_score",
+        "trend_adjustment_points",
+        "f_l_penalty_points",
         "data_coverage_pct",
-        "exhibition_course",
-        "exhibition_time",
-        "exhibition_st",
-        "exhibition_f",
-        "tilt",
     ]
     with Path(path).open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
-
-
-def load_existing_final(target_date):
-    path = (
-        Path("predictions")
-        / target_date[:4]
-        / target_date[4:6]
-        / target_date[6:8]
-        / "live"
-        / f"live_predictions_final_{target_date}.json"
-    )
-    if not path.exists():
-        return {}
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-    races = data.get("races")
-    if not isinstance(races, list):
-        return {}
-    return {
-        text(race.get("race_id")): race
-        for race in races
-        if text(race.get("race_id"))
-    }
 
 
 def main():
@@ -516,24 +419,20 @@ def main():
         print("ERROR: --dateはYYYYMMDD形式です", file=sys.stderr)
         return 1
 
-    if abs(sum(LIVE_WEIGHTS.values()) - 100.0) > 1e-9:
-        print("ERROR: LIVE_WEIGHTSの合計が100ではありません", file=sys.stderr)
+    if abs(sum(WEIGHTS.values()) - 100.0) > 1e-9:
+        print("ERROR: WEIGHTSの合計が100ではありません", file=sys.stderr)
         return 1
 
-    now = parse_now(args.now)
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-
     input_path = (
         Path(args.input)
         if args.input
-        else output_dir / f"prediction_input_enriched_live_{target_date}.json"
+        else output_dir / f"prediction_input_enriched_morning_{target_date}.json"
     )
-    current_json = output_dir / f"live_predictions_current_{target_date}.json"
-    current_csv = output_dir / f"live_predictions_current_{target_date}.csv"
-    validation_json = output_dir / f"live_predictions_validation_current_{target_date}.json"
-    final_json = output_dir / f"live_predictions_final_{target_date}.json"
-    final_csv = output_dir / f"live_predictions_final_{target_date}.csv"
+    output_json = output_dir / f"morning_predictions_{target_date}.json"
+    output_csv = output_dir / f"morning_predictions_{target_date}.csv"
+    validation_json = output_dir / f"morning_predictions_validation_{target_date}.json"
 
     if not input_path.exists():
         print(f"ERROR: 入力ファイルがありません: {input_path}", file=sys.stderr)
@@ -543,85 +442,53 @@ def main():
         payload = json.loads(input_path.read_text(encoding="utf-8"))
 
         if text(payload.get("target_date")) != target_date:
-            raise RuntimeError("target_date不一致")
-        if text(payload.get("prediction_stage")) != "live":
-            raise RuntimeError("live用prediction_inputではありません")
+            raise RuntimeError("入力JSONのtarget_dateが指定日と一致しません")
+        if text(payload.get("prediction_stage")) != "morning":
+            raise RuntimeError("朝予測以外のprediction_inputです")
 
         history_manifest = payload.get("history_feature_manifest") or {}
+        if text(history_manifest.get("as_of_date")) != target_date:
+            raise RuntimeError("履歴特徴量のas_of_dateが対象日と一致しません")
+
         history_max_date = text(history_manifest.get("history_max_date"))
         if history_max_date and history_max_date >= target_date:
-            raise RuntimeError("結果漏洩の可能性があります")
+            raise RuntimeError(
+                f"結果漏洩の可能性があります: history_max_date={history_max_date}"
+            )
 
-        violations = validate_no_current_results(payload)
+        violations = validate_current_day_no_results(payload)
         if violations:
-            raise RuntimeError(f"当日結果混入: {violations[:5]}")
+            raise RuntimeError(f"当日結果データ混入を検出: {violations[:5]}")
 
         races = payload.get("races")
         if not isinstance(races, list):
             raise RuntimeError("racesが不正です")
 
-        predicted_races = []
+        prediction_races = []
         csv_rows = []
-        skipped_after_deadline = []
-        skipped_no_live_data = []
+        all_scores = []
+        all_coverages = []
 
         for race in races:
-            race_id = text(race.get("race_id"))
             boats = race.get("boats")
             if not isinstance(boats, list) or len(boats) != 6:
-                continue
+                raise RuntimeError(f"6艇ではないレースがあります: {race.get('race_id')}")
 
-            deadline = parse_deadline(target_date, race)
-            if deadline is not None and now >= deadline:
-                skipped_after_deadline.append(race_id)
-                continue
+            scored = [score_boat(boat) for boat in boats]
+            scored.sort(key=lambda row: (-row["score"], row["boat"] if row["boat"] is not None else 99))
 
-            time_count = sum(get_exhibition_time(boat) is not None for boat in boats)
-            course_count = sum(get_exhibition_course(boat) is not None for boat in boats)
-            st_count = sum(get_exhibition_st(boat) is not None for boat in boats)
-            f_count = sum(get_exhibition_f(boat) for boat in boats)
-
-            # v0.2では展示タイムを加点しないため、展示タイム欠損だけでは止めない。
-            # 実進入と展示STが概ね揃った時点で直前予測を出す。
-            if course_count < 5 or st_count < 4:
-                skipped_no_live_data.append(race_id)
-                continue
-
-            scored = score_race(race)
-            predicted_race = {
-                "race_id": race_id,
-                "date": race.get("date"),
-                "venue_code": race.get("venue_code"),
-                "venue_name": race.get("venue_name"),
-                "race": race.get("race"),
-                "race_name": race.get("race_name"),
-                "deadline": race.get("deadline"),
-                "generated_at": now.isoformat(),
-                "live_data_counts": {
-                    "exhibition_time": time_count,
-                    "exhibition_course": course_count,
-                    "exhibition_st": st_count,
-                    "exhibition_f": f_count,
-                },
-                "weather_water": race_context(race),
-                "live_order": [row["boat"] for row in scored],
-                "top3_boats": [row["boat"] for row in scored[:3]],
-                "strength": morning.prediction_strength(scored),
-                "boats": scored,
-            }
-            predicted_races.append(predicted_race)
-
-            for row in scored:
+            for rank, row in enumerate(scored, start=1):
+                row["rank"] = rank
+                all_scores.append(row["score"])
+                all_coverages.append(row["data_coverage_pct"])
                 csv_rows.append(
                     {
                         "target_date": target_date,
-                        "generated_at": now.isoformat(),
                         "venue_code": race.get("venue_code"),
                         "venue_name": race.get("venue_name"),
                         "race": race.get("race"),
-                        "race_id": race_id,
-                        "deadline": race.get("deadline"),
-                        "rank": row["rank"],
+                        "race_id": race.get("race_id"),
+                        "rank": rank,
                         "boat": row["boat"],
                         "registration_no": row["registration_no"],
                         "racer_name": row["racer_name"],
@@ -629,132 +496,128 @@ def main():
                         "motor_no": row["motor_no"],
                         "boat_no": row["boat_no"],
                         "score": row["score"],
-                        "morning_score_reference": row["morning_score_reference"],
+                        "base_score": row["base_score"],
+                        "trend_adjustment_points": row["trend_adjustment_points"],
+                        "f_l_penalty_points": row["f_l_penalty_points"],
                         "data_coverage_pct": row["data_coverage_pct"],
-                        "exhibition_course": row["exhibition_course"],
-                        "exhibition_time": row["exhibition_time"],
-                        "exhibition_st": row["exhibition_st"],
-                        "exhibition_f": row["exhibition_f"],
-                        "tilt": row["tilt"],
                     }
                 )
 
-        status = "PASS" if predicted_races else "NO_DATA"
-        validation = {
-            "status": status,
+            prediction_races.append(
+                {
+                    "race_id": race.get("race_id"),
+                    "date": race.get("date"),
+                    "venue_code": race.get("venue_code"),
+                    "venue_name": race.get("venue_name"),
+                    "race": race.get("race"),
+                    "race_name": race.get("race_name"),
+                    "deadline": race.get("deadline"),
+                    "morning_order": [row["boat"] for row in scored],
+                    "top3_boats": [row["boat"] for row in scored[:3]],
+                    "strength": prediction_strength(scored),
+                    "boats": scored,
+                }
+            )
+
+        result = {
+            "schema_version": "1.0",
             "model_version": MODEL_VERSION,
             "target_date": target_date,
-            "generated_at": now.isoformat(),
-            "weights": LIVE_WEIGHTS,
-            "exhibition_f_policy": "展示FはSTプラス評価から除外。v0.2では未検証のため追加減点なし",
-            "input_race_count": len(races),
-            "prediction_race_count": len(predicted_races),
-            "prediction_boat_count": len(csv_rows),
-            "skipped_after_deadline": skipped_after_deadline,
-            "skipped_no_live_data": skipped_no_live_data,
+            "prediction_stage": "morning",
+            "generated_at": datetime.now(JST).isoformat(),
+            "score_note": (
+                "scoreは的中確率ではなく、朝時点の特徴量を統合した相対評価スコア。"
+                "未確定の進入コース・展示・当日結果は不使用。"
+                "v0.2は9/30答え合わせを基に重複要素を圧縮した試験配点。"
+            ),
+            "leakage_guard": {
+                "history_max_date": history_max_date,
+                "current_day_result_keys_checked": sorted(FORBIDDEN_CURRENT_RESULT_KEYS),
+                "status": "PASS",
+            },
+            "weights": WEIGHTS,
+            "frame_prior": FRAME_PRIOR,
+            "race_count": len(prediction_races),
+            "boat_count": len(csv_rows),
+            "races": prediction_races,
+        }
+
+        output_json.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        write_csv(output_csv, csv_rows)
+
+        # 開催場数は日によって変わるため、144R固定ではなく入力件数で検証。
+        expected_races = len(races)
+        expected_boats = expected_races * 6
+        if len(prediction_races) != expected_races:
+            raise RuntimeError(
+                f"予測レース数が入力と不一致: predicted={len(prediction_races)} input={expected_races}"
+            )
+        if len(csv_rows) != expected_boats:
+            raise RuntimeError(
+                f"予測艇数が期待値と不一致: predicted={len(csv_rows)} expected={expected_boats}"
+            )
+
+        ranks_by_race = {}
+        for row in csv_rows:
+            ranks_by_race.setdefault(row["race_id"], set()).add(row["rank"])
+        bad_rank_races = [
+            race_id
+            for race_id, ranks in ranks_by_race.items()
+            if ranks != {1, 2, 3, 4, 5, 6}
+        ]
+        if bad_rank_races:
+            raise RuntimeError(f"順位1～6が揃わないレースがあります: {bad_rank_races[:5]}")
+
+        min_score = min(all_scores)
+        max_score = max(all_scores)
+        avg_score = sum(all_scores) / len(all_scores)
+        avg_coverage = sum(all_coverages) / len(all_coverages)
+
+        validation = {
+            "status": "PASS",
+            "model_version": MODEL_VERSION,
+            "target_date": target_date,
+            "prediction_stage": "morning",
+            "race_count": len(prediction_races),
+            "boat_count": len(csv_rows),
             "history_max_date": history_max_date,
+            "score_min": round(min_score, 2),
+            "score_max": round(max_score, 2),
+            "score_average": round(avg_score, 2),
+            "average_data_coverage_pct": round(avg_coverage, 1),
             "current_day_result_leakage": 0,
-            "errors": [],
+            "course_used": False,
+            "exhibition_used": False,
+            "weights": WEIGHTS,
+            "note": (
+                "v0.2ルールベースモデル。9/30答え合わせを基に、枠と当地を少し強化し、"
+                "選手公式/直近/級別の重複を圧縮。今後の予測→結果で継続検証する。"
+            ),
         }
         validation_json.write_text(
             json.dumps(validation, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
-        if not predicted_races:
-            print("========================================")
-            print("直前予測: 現在対象レースなし")
-            print("========================================")
-            print("入力候補:", len(races))
-            print("処理結果: NO_DATA")
-            return 0
-
-        snapshot = {
-            "schema_version": "1.0",
-            "model_version": MODEL_VERSION,
-            "target_date": target_date,
-            "prediction_stage": "live",
-            "generated_at": now.isoformat(),
-            "weights": LIVE_WEIGHTS,
-            "live_policy": {
-                "exhibition_time": "保存・表示はするがv0.2では加点0",
-                "exhibition_st": "最大2点の軽い補正",
-                "exhibition_f": "ST加点対象外。追加減点は未適用",
-            },
-            "race_count": len(predicted_races),
-            "boat_count": len(csv_rows),
-            "races": predicted_races,
-        }
-        current_json.write_text(
-            json.dumps(snapshot, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-        write_csv(current_csv, csv_rows)
-
-        final_map = load_existing_final(target_date)
-        for race in predicted_races:
-            final_map[text(race.get("race_id"))] = race
-
-        final_races = sorted(
-            final_map.values(),
-            key=lambda race: (text(race.get("venue_code")), to_int(race.get("race")) or 0),
-        )
-        final_rows = []
-        for race in final_races:
-            for row in race.get("boats", []):
-                final_rows.append(
-                    {
-                        "target_date": target_date,
-                        "generated_at": race.get("generated_at"),
-                        "venue_code": race.get("venue_code"),
-                        "venue_name": race.get("venue_name"),
-                        "race": race.get("race"),
-                        "race_id": race.get("race_id"),
-                        "deadline": race.get("deadline"),
-                        "rank": row.get("rank"),
-                        "boat": row.get("boat"),
-                        "registration_no": row.get("registration_no"),
-                        "racer_name": row.get("racer_name"),
-                        "grade": row.get("grade"),
-                        "motor_no": row.get("motor_no"),
-                        "boat_no": row.get("boat_no"),
-                        "score": row.get("score"),
-                        "morning_score_reference": row.get("morning_score_reference"),
-                        "data_coverage_pct": row.get("data_coverage_pct"),
-                        "exhibition_course": row.get("exhibition_course"),
-                        "exhibition_time": row.get("exhibition_time"),
-                        "exhibition_st": row.get("exhibition_st"),
-                        "exhibition_f": row.get("exhibition_f"),
-                        "tilt": row.get("tilt"),
-                    }
-                )
-
-        final_payload = {
-            "schema_version": "1.0",
-            "model_version": MODEL_VERSION,
-            "target_date": target_date,
-            "prediction_stage": "live_final",
-            "updated_at": now.isoformat(),
-            "weights": LIVE_WEIGHTS,
-            "race_count": len(final_races),
-            "boat_count": len(final_rows),
-            "selection_rule": "同一race_idは締切前に取得した最新の直前予測で更新",
-            "races": final_races,
-        }
-        final_json.write_text(
-            json.dumps(final_payload, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-        write_csv(final_csv, final_rows)
-
         print("========================================")
-        print("直前予測生成")
+        print("朝予測スコア生成")
         print("========================================")
         print("モデル:", MODEL_VERSION)
-        print("重み:", LIVE_WEIGHTS)
-        print("今回予測:", f"{len(predicted_races)}R")
-        print("最終予測累積:", f"{len(final_races)}R")
+        print("対象日:", target_date)
+        print("重み:", WEIGHTS)
+        print("レース数:", len(prediction_races))
+        print("艇数:", len(csv_rows))
+        print("平均データ充足率:", f"{avg_coverage:.1f}%")
+        print("スコア範囲:", f"{min_score:.2f}", "～", f"{max_score:.2f}")
         print("履歴最終日:", history_max_date)
         print("当日結果漏洩: 0")
-        print("展示F: ST加点対象外")
-        print("直前予測生成: PASS")
+        print("未確定進入コース使用: なし")
+        print("展示情報使用: なし")
+        print()
+        print("朝予測生成: PASS")
+        print("出力JSON:", output_json)
+        print("出力CSV:", output_csv)
+        print("検証JSON:", validation_json)
+        print("========================================")
         return 0
 
     except Exception as exc:
@@ -763,7 +626,7 @@ def main():
             "model_version": MODEL_VERSION,
             "target_date": target_date,
             "error": str(exc),
-            "generated_at": now.isoformat(),
+            "generated_at": datetime.now(JST).isoformat(),
         }
         validation_json.write_text(
             json.dumps(failure, ensure_ascii=False, indent=2), encoding="utf-8"
