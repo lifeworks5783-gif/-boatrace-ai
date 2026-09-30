@@ -64,18 +64,6 @@ jobs:
 
       - name: 結果CSVを確認
         run: |
-          echo ""
-          echo "========================================"
-          echo "結果CSV確認"
-          echo "========================================"
-
-          test -s "data/results_${TARGET_DATE}_all.csv"
-          test -s "data/boat_results_${TARGET_DATE}_all.csv"
-          test -s "data/venues_${TARGET_DATE}.csv"
-
-          echo ""
-          echo "払戻・結果レース数:"
-
           python - <<'PY'
           import pandas as pd
 
@@ -113,7 +101,6 @@ jobs:
 
       - name: 9月30日の総合評価を実行
         run: |
-          echo ""
           echo "========================================"
           echo "予測総合評価開始"
           echo "========================================"
@@ -121,48 +108,17 @@ jobs:
           python -u collectors/evaluate_predictions.py \
             --date "${TARGET_DATE}"
 
-      - name: 評価結果を表示
+      - name: 見やすい総合結果を生成
         run: |
-          EVAL_DIR="evaluations/${YEAR}/${MONTH}/${DAY}"
+          python -u collectors/build_evaluation_summary.py \
+            --date "${TARGET_DATE}"
 
           echo ""
           echo "========================================"
-          echo "評価結果"
+          echo "総合結果サマリー"
           echo "========================================"
 
-          test -d "${EVAL_DIR}"
-
-          find "${EVAL_DIR}" \
-            -maxdepth 2 \
-            -type f \
-            -print \
-            | sort
-
-          echo ""
-          echo "========================================"
-          echo "JSON評価内容"
-          echo "========================================"
-
-          FOUND=0
-
-          for FILE in "${EVAL_DIR}"/*.json
-          do
-            if [ -f "${FILE}" ]; then
-              FOUND=1
-
-              echo ""
-              echo "----------------------------------------"
-              echo "${FILE}"
-              echo "----------------------------------------"
-
-              cat "${FILE}"
-            fi
-          done
-
-          if [ "${FOUND}" -eq 0 ]; then
-            echo "評価JSONがありません"
-            exit 1
-          fi
+          cat evaluations/latest_summary.md
 
       - name: 評価結果をArtifactへ保存
         uses: actions/upload-artifact@v4
@@ -173,6 +129,7 @@ jobs:
             data/results_20260930_all.csv
             data/boat_results_20260930_all.csv
             evaluations/2026/09/30/
+            evaluations/latest_summary.md
           if-no-files-found: error
           retention-days: 30
 
@@ -183,6 +140,7 @@ jobs:
 
           git add "archive/${YEAR}/${MONTH}/${DAY}"
           git add "evaluations/${YEAR}/${MONTH}/${DAY}"
+          git add "evaluations/latest_summary.md"
 
           if git diff --cached --quiet; then
             echo "新しい変更はありません"
@@ -208,4 +166,7 @@ jobs:
           echo "公式結果取得: PASS"
           echo "144レース確認: PASS"
           echo "予測評価: PASS"
-          echo "GitHub保存: PASS"
+          echo "総合結果サマリー: PASS"
+          echo ""
+          echo "今後見るファイル:"
+          echo "evaluations/latest_summary.md"
