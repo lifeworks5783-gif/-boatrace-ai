@@ -62,6 +62,17 @@ jobs:
 
           echo "予測データ: PASS"
 
+      - name: 直前分析用データを準備
+        run: |
+          python -u collectors/prepare_live_analysis_input.py \
+            --date "${TARGET_DATE}"
+
+          FILE="data/prediction_input_enriched_live_${TARGET_DATE}.json"
+
+          test -s "${FILE}"
+
+          echo "直前分析用データ: PASS"
+
       - name: スコア配分と実結果を自動照合
         run: |
           python -u collectors/analyze_score_components.py \
@@ -144,8 +155,8 @@ jobs:
           echo "9月30日 スコア配分答え合わせ 完了"
           echo "========================================"
           echo ""
-          echo "今後見るファイル:"
-          echo "evaluations/latest_score_analysis.md"
+          echo "朝の静的要素診断: 完了"
+          echo "直前の静的要素診断: 完了"
+          echo "朝→直前スコア補正診断: 完了"
           echo ""
           echo "配点は自動変更していません"
-          echo "分析結果だけを保存しました"
