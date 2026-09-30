@@ -11,77 +11,221 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 
 
-ALIASES = {
-    "exhibition_time": (
-        "exhibition_time",
-        "tenji_time",
-        "display_time",
-        "exhibit_time",
-        "tenjiTime",
-    ),
-    "exhibition_st": (
-        "exhibition_st",
-        "tenji_st",
-        "display_st",
-        "start_exhibition_st",
-        "start_timing",
-        "exhibitionStart",
-    ),
-    "exhibition_course": (
-        "exhibition_course",
-        "tenji_course",
-        "display_course",
-        "start_exhibition_course",
-        "course",
-    ),
-    "wind_speed": (
-        "wind_speed",
-        "windSpeed",
-        "wind_mps",
-        "windspeed",
-    ),
-    "wind_direction": (
-        "wind_direction",
-        "windDirection",
-        "wind_dir",
-        "wind",
-    ),
-    "wave_height": (
-        "wave_height",
-        "waveHeight",
-        "wave_cm",
-        "wave",
-    ),
-}
+# =========================================================
+# 設定
+# =========================================================
 
-PATH_HINTS = (
+LIVE_HINTS = (
     "beforeinfo",
     "before_info",
     "exhibition",
     "tenji",
     "display",
     "start_exhibition",
+    "start_display",
     "live",
-    "prediction_input",
 )
 
+DATE_KEYS = (
+    "date",
+    "target_date",
+    "hd",
+)
 
-def nkey(value: Any) -> str:
+VENUE_KEYS = (
+    "venue_code",
+    "jcd",
+    "stadium_code",
+)
+
+RACE_KEYS = (
+    "race",
+    "rno",
+    "race_no",
+)
+
+BOAT_KEYS = (
+    "boat",
+    "frame",
+    "lane",
+    "wakuban",
+    "waku",
+    "frame_no",
+    "lane_no",
+    "boat_number",
+)
+
+TIME_KEYS = {
+    "exhibition_time",
+    "tenji_time",
+    "display_time",
+    "exhibit_time",
+    "tenjitime",
+    "displaytime",
+}
+
+ST_KEYS = {
+    "exhibition_st",
+    "tenji_st",
+    "display_st",
+    "start_exhibition_st",
+    "start_display_st",
+    "start_timing",
+    "start_time",
+    "starttiming",
+    "st",
+}
+
+COURSE_KEYS = {
+    "exhibition_course",
+    "tenji_course",
+    "display_course",
+    "start_exhibition_course",
+    "start_display_course",
+    "course",
+}
+
+WIND_SPEED_KEYS = {
+    "wind_speed",
+    "windspeed",
+    "wind_mps",
+}
+
+WIND_DIRECTION_KEYS = {
+    "wind_direction",
+    "winddirection",
+    "wind_dir",
+    "wind",
+}
+
+WAVE_KEYS = {
+    "wave_height",
+    "waveheight",
+    "wave_cm",
+    "wave",
+}
+
+
+SEEN_LIVE_KEYS: set[str] = set()
+
+
+# =========================================================
+# 基本変換
+# =========================================================
+
+
+def nkey(
+    value: Any,
+) -> str:
+
     return re.sub(
         r"[^a-z0-9]+",
         "_",
-        str(value).strip().lower(),
+        str(value)
+        .strip()
+        .lower(),
     ).strip("_")
 
 
-def to_float(value: Any) -> Optional[float]:
-    if value is None or isinstance(value, bool):
+def normalize_date(
+    value: Any,
+) -> str:
+
+    text = (
+        str(value or "")
+        .strip()
+    )
+
+    if text.endswith(
+        ".0"
+    ):
+        text = text[:-2]
+
+    digits = re.sub(
+        r"\D",
+        "",
+        text,
+    )
+
+    if len(
+        digits
+    ) >= 8:
+        return digits[:8]
+
+    return text
+
+
+def venue(
+    value: Any,
+) -> str:
+
+    try:
+
+        return (
+            f"{int(float(value)):02d}"
+        )
+
+    except Exception:
+
+        return (
+            str(
+                value or ""
+            )
+            .strip()
+            .zfill(2)
+        )
+
+
+def to_int(
+    value: Any,
+) -> Optional[int]:
+
+    try:
+
+        return int(
+            float(value)
+        )
+
+    except Exception:
+
         return None
 
-    if isinstance(value, (int, float)):
-        if isinstance(value, float) and math.isnan(value):
+
+def to_float(
+    value: Any,
+) -> Optional[float]:
+
+    if (
+        value is None
+        or isinstance(
+            value,
+            bool,
+        )
+    ):
+        return None
+
+    if isinstance(
+        value,
+        (
+            int,
+            float,
+        ),
+    ):
+
+        if (
+            isinstance(
+                value,
+                float,
+            )
+            and math.isnan(
+                value
+            )
+        ):
             return None
-        return float(value)
+
+        return float(
+            value
+        )
 
     text = (
         str(value)
@@ -89,7 +233,6 @@ def to_float(value: Any) -> Optional[float]:
         .replace(",", "")
         .replace("秒", "")
         .replace("cm", "")
-        .replace("m", "")
     )
 
     match = re.search(
@@ -98,17 +241,33 @@ def to_float(value: Any) -> Optional[float]:
     )
 
     if not match:
+
         return None
 
-    return float(match.group())
+    try:
+
+        return float(
+            match.group()
+        )
+
+    except Exception:
+
+        return None
 
 
 def parse_st(
     value: Any,
-) -> Tuple[Optional[float], int]:
+) -> Tuple[
+    Optional[float],
+    int,
+]:
 
     if value is None:
-        return None, 0
+
+        return (
+            None,
+            0,
+        )
 
     text = (
         str(value)
@@ -118,9 +277,27 @@ def parse_st(
     )
 
     if not text:
-        return None, 0
 
-    flying = 1 if text.startswith("F") else 0
+        return (
+            None,
+            0,
+        )
+
+    flying = (
+        1
+        if text.startswith(
+            "F"
+        )
+        else 0
+    )
+
+    late = (
+        1
+        if text.startswith(
+            "L"
+        )
+        else 0
+    )
 
     match = re.search(
         r"\d+(?:\.\d+)?",
@@ -128,50 +305,169 @@ def parse_st(
     )
 
     if not match:
-        return None, flying
 
-    number = float(match.group())
+        return (
+            None,
+            flying,
+        )
 
-    if number >= 1 and "." not in match.group():
-        number = number / 100.0
+    number = float(
+        match.group()
+    )
+
+    # "09" → 0.09 などに対応
+    if (
+        number >= 1
+        and "."
+        not in match.group()
+    ):
+
+        number = (
+            number / 100
+        )
 
     if flying:
-        number = -abs(number)
 
-    return number, flying
+        number = (
+            -abs(
+                number
+            )
+        )
 
+    elif late:
 
-def venue(value: Any) -> str:
-    try:
-        return f"{int(float(value)):02d}"
-    except Exception:
-        return str(value or "").zfill(2)
+        number = (
+            abs(
+                number
+            )
+        )
 
+    if not (
+        -1
+        < number
+        < 1
+    ):
 
-def iv(value: Any) -> Optional[int]:
-    try:
-        return int(float(value))
-    except Exception:
-        return None
+        return (
+            None,
+            flying,
+        )
+
+    return (
+        number,
+        flying,
+    )
 
 
 def parse_race_id(
     value: Any,
-) -> Tuple[str, str, Optional[int]]:
+) -> Tuple[
+    str,
+    str,
+    Optional[int],
+]:
 
     match = re.search(
         r"(\d{8})[-_](\d{2})[-_](\d{1,2})",
-        str(value or ""),
+        str(
+            value or ""
+        ),
     )
 
     if not match:
-        return "", "", None
+
+        return (
+            "",
+            "",
+            None,
+        )
 
     return (
         match.group(1),
         match.group(2),
-        int(match.group(3)),
+        int(
+            match.group(3)
+        ),
     )
+
+
+def normalize_merge_keys(
+    dataframe: pd.DataFrame,
+) -> pd.DataFrame:
+
+    dataframe = (
+        dataframe.copy()
+    )
+
+    if (
+        "date"
+        in dataframe.columns
+    ):
+
+        dataframe[
+            "date"
+        ] = (
+            dataframe[
+                "date"
+            ]
+            .map(
+                normalize_date
+            )
+            .astype(
+                "string"
+            )
+        )
+
+    if (
+        "venue_code"
+        in dataframe.columns
+    ):
+
+        dataframe[
+            "venue_code"
+        ] = (
+            dataframe[
+                "venue_code"
+            ]
+            .map(
+                venue
+            )
+            .astype(
+                "string"
+            )
+        )
+
+    for column in (
+        "race",
+        "boat",
+    ):
+
+        if (
+            column
+            not in dataframe.columns
+        ):
+            continue
+
+        dataframe[
+            column
+        ] = (
+            pd.to_numeric(
+                dataframe[
+                    column
+                ],
+                errors="coerce",
+            )
+            .astype(
+                "Int64"
+            )
+        )
+
+    return dataframe
+
+
+# =========================================================
+# 直前データファイル探索
+# =========================================================
 
 
 def candidate_files(
@@ -185,329 +481,741 @@ def candidate_files(
     patterns = [
         f"data/**/*{date}*.json",
         f"data/**/*{date}*.csv",
-        f"daily_inputs/{year}/{month}/{day}/**/*.json",
-        f"daily_inputs/{year}/{month}/{day}/**/*.csv",
-        f"predictions/{year}/{month}/{day}/live/**/*.json",
-        f"predictions/{year}/{month}/{day}/live/**/*.csv",
+
+        (
+            f"daily_inputs/"
+            f"{year}/"
+            f"{month}/"
+            f"{day}/"
+            f"**/*.json"
+        ),
+
+        (
+            f"daily_inputs/"
+            f"{year}/"
+            f"{month}/"
+            f"{day}/"
+            f"**/*.csv"
+        ),
+
+        (
+            f"predictions/"
+            f"{year}/"
+            f"{month}/"
+            f"{day}/"
+            f"live/**/*.json"
+        ),
+
+        (
+            f"predictions/"
+            f"{year}/"
+            f"{month}/"
+            f"{day}/"
+            f"live/**/*.csv"
+        ),
     ]
 
     output = []
     seen = set()
 
     for pattern in patterns:
-        for path in Path(".").glob(pattern):
 
-            path_text = str(path).lower()
+        for path in (
+            Path(".")
+            .glob(
+                pattern
+            )
+        ):
 
             if not path.is_file():
+
                 continue
 
-            if path_text in seen:
+            text = (
+                str(path)
+                .lower()
+            )
+
+            if text in seen:
+
                 continue
 
             if not any(
-                hint in path_text
-                for hint in PATH_HINTS
+                hint in text
+                for hint
+                in LIVE_HINTS
             ):
+
                 continue
 
             if any(
-                bad in path_text
-                for bad in (
+                bad in text
+                for bad
+                in (
                     "result",
                     "evaluation",
                     "formation",
                     "payout",
                 )
             ):
+
                 continue
 
-            seen.add(path_text)
-            output.append(path)
+            seen.add(
+                text
+            )
+
+            output.append(
+                path
+            )
+
+    return sorted(
+        output
+    )
+
+
+# =========================================================
+# JSON解析
+# =========================================================
+
+
+def flatten_dict(
+    value: Any,
+    prefix: str = "",
+) -> Dict[
+    str,
+    Any,
+]:
+
+    output = {}
+
+    if not isinstance(
+        value,
+        dict,
+    ):
+
+        return output
+
+    for (
+        key,
+        child,
+    ) in value.items():
+
+        child_key = (
+            nkey(
+                key
+            )
+        )
+
+        child_path = (
+            f"{prefix}.{child_key}"
+            if prefix
+            else child_key
+        )
+
+        if isinstance(
+            child,
+            dict,
+        ):
+
+            output.update(
+                flatten_dict(
+                    child,
+                    child_path,
+                )
+            )
+
+        elif not isinstance(
+            child,
+            list,
+        ):
+
+            output[
+                child_path
+            ] = child
 
     return output
+
+
+def is_live_context(
+    feature_path: str,
+    source: str,
+) -> bool:
+
+    combined = (
+        feature_path.lower()
+        + " "
+        + source.lower()
+    )
+
+    return any(
+        hint in combined
+        for hint
+        in LIVE_HINTS
+    )
+
+
+def extract_features(
+    raw: Dict[
+        str,
+        Any,
+    ],
+    source: str,
+) -> Dict[
+    str,
+    Any,
+]:
+
+    flat = (
+        flatten_dict(
+            raw
+        )
+    )
+
+    features: Dict[
+        str,
+        Any,
+    ] = {}
+
+    for (
+        path,
+        value,
+    ) in flat.items():
+
+        leaf = (
+            path
+            .split(".")[-1]
+        )
+
+        lower_path = (
+            path.lower()
+        )
+
+        live_context = (
+            is_live_context(
+                lower_path,
+                source,
+            )
+        )
+
+        # 後で項目名が分からなくても確認できるよう保存
+        if any(
+            token in lower_path
+            for token
+            in (
+                "st",
+                "start",
+                "tenji",
+                "display",
+                "exhibition",
+                "wind",
+                "wave",
+            )
+        ):
+
+            SEEN_LIVE_KEYS.add(
+                path
+            )
+
+        # -------------------------
+        # 展示タイム
+        # -------------------------
+
+        time_candidate = (
+            leaf
+            in TIME_KEYS
+            or (
+                leaf
+                in (
+                    "time",
+                    "time_value",
+                )
+                and live_context
+            )
+        )
+
+        if time_candidate:
+
+            number = (
+                to_float(
+                    value
+                )
+            )
+
+            if (
+                number is not None
+                and 5
+                < number
+                < 15
+            ):
+
+                features[
+                    "exhibition_time"
+                ] = number
+
+        # -------------------------
+        # 展示ST
+        # -------------------------
+
+        st_candidate = (
+            leaf
+            in ST_KEYS
+            or (
+                leaf.endswith(
+                    "_st"
+                )
+                and live_context
+            )
+            or (
+                leaf
+                in (
+                    "start",
+                    "start_value",
+                )
+                and live_context
+            )
+        )
+
+        if (
+            st_candidate
+            and live_context
+        ):
+
+            (
+                st_value,
+                flying,
+            ) = parse_st(
+                value
+            )
+
+            if (
+                st_value
+                is not None
+            ):
+
+                features[
+                    "exhibition_st"
+                ] = st_value
+
+                features[
+                    "exhibition_f"
+                ] = max(
+                    int(
+                        features.get(
+                            "exhibition_f",
+                            0,
+                        )
+                    ),
+                    flying,
+                )
+
+        # -------------------------
+        # 展示進入
+        # -------------------------
+
+        course_candidate = (
+            leaf
+            in COURSE_KEYS
+            or (
+                leaf.endswith(
+                    "_course"
+                )
+                and live_context
+            )
+        )
+
+        if (
+            course_candidate
+            and live_context
+        ):
+
+            number = (
+                to_int(
+                    value
+                )
+            )
+
+            if (
+                number is not None
+                and 1
+                <= number
+                <= 6
+            ):
+
+                features[
+                    "exhibition_course"
+                ] = number
+
+        # -------------------------
+        # 風速
+        # -------------------------
+
+        if (
+            leaf
+            in WIND_SPEED_KEYS
+        ):
+
+            number = (
+                to_float(
+                    value
+                )
+            )
+
+            if (
+                number is not None
+                and 0
+                <= number
+                <= 50
+            ):
+
+                features[
+                    "wind_speed"
+                ] = number
+
+        # -------------------------
+        # 風向
+        # -------------------------
+
+        if (
+            leaf
+            in WIND_DIRECTION_KEYS
+        ):
+
+            text = (
+                str(
+                    value or ""
+                )
+                .strip()
+            )
+
+            if text:
+
+                features[
+                    "wind_direction"
+                ] = text
+
+        # -------------------------
+        # 波高
+        # -------------------------
+
+        if (
+            leaf
+            in WAVE_KEYS
+        ):
+
+            number = (
+                to_float(
+                    value
+                )
+            )
+
+            if (
+                number is not None
+                and 0
+                <= number
+                <= 200
+            ):
+
+                features[
+                    "wave_height"
+                ] = number
+
+        # -------------------------
+        # 展示F
+        # -------------------------
+
+        if (
+            leaf
+            in (
+                "f",
+                "is_f",
+                "flying",
+                "exhibition_f",
+                "tenji_f",
+            )
+            or
+            "flying"
+            in leaf
+        ):
+
+            text = (
+                str(
+                    value or ""
+                )
+                .strip()
+                .lower()
+            )
+
+            number = (
+                to_float(
+                    value
+                )
+            )
+
+            if (
+                text
+                in (
+                    "1",
+                    "true",
+                    "yes",
+                    "f",
+                )
+                or (
+                    number
+                    is not None
+                    and number
+                    > 0
+                )
+            ):
+
+                features[
+                    "exhibition_f"
+                ] = 1
+
+    return features
+
+
+def update_context(
+    node: Dict[
+        str,
+        Any,
+    ],
+    context: Dict[
+        str,
+        Any,
+    ],
+) -> Dict[
+    str,
+    Any,
+]:
+
+    current = dict(
+        context
+    )
+
+    if "race_id" in node:
+
+        (
+            race_date,
+            race_venue,
+            race_no,
+        ) = parse_race_id(
+            node.get(
+                "race_id"
+            )
+        )
+
+        if race_date:
+
+            current[
+                "date"
+            ] = race_date
+
+        if race_venue:
+
+            current[
+                "venue_code"
+            ] = race_venue
+
+        if (
+            race_no
+            is not None
+        ):
+
+            current[
+                "race"
+            ] = race_no
+
+    normalized = {
+        nkey(key):
+            value
+        for (
+            key,
+            value,
+        ) in node.items()
+        if not isinstance(
+            value,
+            (
+                dict,
+                list,
+            ),
+        )
+    }
+
+    for key in DATE_KEYS:
+
+        key_name = (
+            nkey(
+                key
+            )
+        )
+
+        if (
+            key_name
+            in normalized
+        ):
+
+            current[
+                "date"
+            ] = normalized[
+                key_name
+            ]
+
+            break
+
+    for key in VENUE_KEYS:
+
+        key_name = (
+            nkey(
+                key
+            )
+        )
+
+        if (
+            key_name
+            in normalized
+        ):
+
+            current[
+                "venue_code"
+            ] = normalized[
+                key_name
+            ]
+
+            break
+
+    for key in RACE_KEYS:
+
+        key_name = (
+            nkey(
+                key
+            )
+        )
+
+        if (
+            key_name
+            in normalized
+        ):
+
+            current[
+                "race"
+            ] = normalized[
+                key_name
+            ]
+
+            break
+
+    for key in BOAT_KEYS:
+
+        key_name = (
+            nkey(
+                key
+            )
+        )
+
+        if (
+            key_name
+            not in normalized
+        ):
+
+            continue
+
+        boat = (
+            to_int(
+                normalized[
+                    key_name
+                ]
+            )
+        )
+
+        if (
+            boat is not None
+            and 1
+            <= boat
+            <= 6
+        ):
+
+            current[
+                "boat"
+            ] = boat
+
+            break
+
+    return current
 
 
 def walk_records(
     obj: Any,
     date: str,
     source: str,
-) -> List[Dict[str, Any]]:
+) -> List[
+    Dict[
+        str,
+        Any,
+    ]
+]:
 
-    rows: List[Dict[str, Any]] = []
+    rows = []
 
     def walk(
         node: Any,
-        context: Dict[str, Any],
-        path: str,
+        context: Dict[
+            str,
+            Any,
+        ],
     ) -> None:
 
-        if isinstance(node, dict):
+        if isinstance(
+            node,
+            dict,
+        ):
 
-            current = dict(context)
-
-            if "race_id" in node:
-                (
-                    date_value,
-                    venue_value,
-                    race_value,
-                ) = parse_race_id(
-                    node.get("race_id")
+            current = (
+                update_context(
+                    node,
+                    context,
                 )
+            )
 
-                if date_value:
-                    current["date"] = date_value
+            features = (
+                extract_features(
+                    node,
+                    source,
+                )
+            )
 
-                if venue_value:
-                    current["venue_code"] = venue_value
-
-                if race_value is not None:
-                    current["race"] = race_value
-
-            for key, target in (
-                ("date", "date"),
-                ("target_date", "date"),
-                ("venue_code", "venue_code"),
-                ("jcd", "venue_code"),
-                ("race", "race"),
-                ("rno", "race"),
-            ):
-                if (
-                    key in node
-                    and not isinstance(
-                        node[key],
-                        (dict, list),
-                    )
-                ):
-                    current[target] = node[key]
-
-            boat = None
-
-            for key in (
-                "boat",
-                "frame",
-                "lane",
-                "boat_no",
-                "wakuban",
-            ):
-                if key not in node:
-                    continue
-
-                value = iv(node.get(key))
-
-                if (
-                    value is not None
-                    and 1 <= value <= 6
-                ):
-                    boat = value
-                    break
-
-            flat: Dict[str, Any] = {}
-
-            def flatten(
-                value: Any,
-                prefix: str,
-            ) -> None:
-
-                if not isinstance(value, dict):
-                    return
-
-                for child_key, child_value in value.items():
-
-                    child_path = (
-                        f"{prefix}.{nkey(child_key)}"
-                        if prefix
-                        else nkey(child_key)
-                    )
-
-                    if isinstance(child_value, dict):
-                        flatten(
-                            child_value,
-                            child_path,
-                        )
-
-                    elif not isinstance(
-                        child_value,
-                        list,
-                    ):
-                        flat[child_path] = child_value
-
-            flatten(node, "")
-
-            features: Dict[str, Any] = {}
-
-            for feature_path, value in flat.items():
-
-                leaf = feature_path.split(".")[-1]
-                path_lower = feature_path.lower()
-
-                hinted = (
-                    any(
-                        hint in path_lower
-                        for hint in PATH_HINTS
-                    )
-                    or any(
-                        hint in source.lower()
-                        for hint in PATH_HINTS
+            race_no = (
+                to_int(
+                    current.get(
+                        "race"
                     )
                 )
+            )
 
-                if not hinted:
-                    continue
-
-                if leaf in [
-                    nkey(x)
-                    for x in ALIASES[
-                        "exhibition_time"
-                    ]
-                ]:
-                    number = to_float(value)
-
-                    if (
-                        number is not None
-                        and 5 < number < 15
-                    ):
-                        features[
-                            "exhibition_time"
-                        ] = number
-
-                if leaf in [
-                    nkey(x)
-                    for x in ALIASES[
-                        "exhibition_st"
-                    ]
-                ]:
-                    number, flying = parse_st(value)
-
-                    if (
-                        number is not None
-                        and -1 < number < 1
-                    ):
-                        features[
-                            "exhibition_st"
-                        ] = number
-
-                        features[
-                            "exhibition_f"
-                        ] = max(
-                            features.get(
-                                "exhibition_f",
-                                0,
-                            ),
-                            flying,
-                        )
-
-                if leaf in [
-                    nkey(x)
-                    for x in ALIASES[
-                        "exhibition_course"
-                    ]
-                ]:
-                    number = iv(value)
-
-                    if (
-                        number is not None
-                        and 1 <= number <= 6
-                    ):
-                        features[
-                            "exhibition_course"
-                        ] = number
-
-                if leaf in [
-                    nkey(x)
-                    for x in ALIASES[
-                        "wind_speed"
-                    ]
-                ]:
-                    number = to_float(value)
-
-                    if (
-                        number is not None
-                        and 0 <= number <= 50
-                    ):
-                        features[
-                            "wind_speed"
-                        ] = number
-
-                if leaf in [
-                    nkey(x)
-                    for x in ALIASES[
-                        "wave_height"
-                    ]
-                ]:
-                    number = to_float(value)
-
-                    if (
-                        number is not None
-                        and 0 <= number <= 200
-                    ):
-                        features[
-                            "wave_height"
-                        ] = number
-
-                if leaf in [
-                    nkey(x)
-                    for x in ALIASES[
-                        "wind_direction"
-                    ]
-                ]:
-                    if (
-                        isinstance(value, str)
-                        and value.strip()
-                    ):
-                        features[
-                            "wind_direction"
-                        ] = value.strip()
-
-                if (
-                    "flying" in leaf
-                    or leaf
-                    in (
-                        "f",
-                        "is_f",
-                        "exhibition_f",
-                        "tenji_f",
+            boat_no = (
+                to_int(
+                    current.get(
+                        "boat"
                     )
-                ):
-                    text = (
-                        str(value)
-                        .strip()
-                        .lower()
-                    )
-
-                    if (
-                        text
-                        in (
-                            "1",
-                            "true",
-                            "yes",
-                            "f",
-                        )
-                        or (
-                            to_float(value)
-                            or 0
-                        )
-                        > 0
-                    ):
-                        features[
-                            "exhibition_f"
-                        ] = 1
+                )
+            )
 
             if (
-                boat is not None
-                and current.get("race")
+                race_no
                 is not None
                 and features
             ):
+
                 rows.append(
                     {
                         "date":
-                            str(
+                            normalize_date(
                                 current.get(
                                     "date",
                                     date,
                                 )
                             ),
+
                         "venue_code":
                             venue(
                                 current.get(
@@ -515,287 +1223,349 @@ def walk_records(
                                     "",
                                 )
                             ),
+
                         "race":
-                            iv(
-                                current.get(
-                                    "race"
-                                )
-                            ),
+                            race_no,
+
                         "boat":
-                            boat,
+                            boat_no,
+
                         "source":
                             source,
+
                         **features,
                     }
                 )
 
-            for key, value in node.items():
+            for child in (
+                node.values()
+            ):
 
                 if isinstance(
-                    value,
-                    (dict, list),
+                    child,
+                    (
+                        dict,
+                        list,
+                    ),
                 ):
-                    child_path = (
-                        f"{path}.{nkey(key)}"
-                        if path
-                        else nkey(key)
-                    )
 
                     walk(
-                        value,
+                        child,
                         current,
-                        child_path,
                     )
 
-        elif isinstance(node, list):
+        elif isinstance(
+            node,
+            list,
+        ):
 
-            for value in node:
+            for child in node:
+
                 walk(
-                    value,
+                    child,
                     context,
-                    path,
                 )
 
     walk(
         obj,
         {
-            "date": date
+            "date":
+                date
         },
-        "",
     )
 
     return rows
 
 
-def load_recorded_beforeinfo(
+# =========================================================
+# CSV解析
+# =========================================================
+
+
+def find_column(
+    columns: Dict[
+        str,
+        str,
+    ],
+    names: Tuple[
+        str,
+        ...,
+    ],
+) -> Optional[str]:
+
+    for name in names:
+
+        key = (
+            nkey(
+                name
+            )
+        )
+
+        if key in columns:
+
+            return columns[
+                key
+            ]
+
+    return None
+
+
+def read_csv_rows(
+    path: Path,
+    date: str,
+) -> List[
+    Dict[
+        str,
+        Any,
+    ]
+]:
+
+    try:
+
+        dataframe = (
+            pd.read_csv(
+                path
+            )
+        )
+
+    except Exception:
+
+        return []
+
+    columns = {
+        nkey(column):
+            column
+        for column
+        in dataframe.columns
+    }
+
+    date_column = (
+        find_column(
+            columns,
+            DATE_KEYS,
+        )
+    )
+
+    venue_column = (
+        find_column(
+            columns,
+            VENUE_KEYS,
+        )
+    )
+
+    race_column = (
+        find_column(
+            columns,
+            RACE_KEYS,
+        )
+    )
+
+    boat_column = (
+        find_column(
+            columns,
+            BOAT_KEYS,
+        )
+    )
+
+    if (
+        race_column
+        is None
+    ):
+
+        return []
+
+    rows = []
+
+    for (
+        _,
+        source_row,
+    ) in dataframe.iterrows():
+
+        race_no = (
+            to_int(
+                source_row.get(
+                    race_column
+                )
+            )
+        )
+
+        if (
+            race_no
+            is None
+        ):
+
+            continue
+
+        boat_no = None
+
+        if (
+            boat_column
+            is not None
+        ):
+
+            candidate = (
+                to_int(
+                    source_row.get(
+                        boat_column
+                    )
+                )
+            )
+
+            if (
+                candidate
+                is not None
+                and 1
+                <= candidate
+                <= 6
+            ):
+
+                boat_no = (
+                    candidate
+                )
+
+        raw = {
+            str(column):
+                source_row.get(
+                    column
+                )
+            for column
+            in dataframe.columns
+        }
+
+        features = (
+            extract_features(
+                raw,
+                str(
+                    path
+                ),
+            )
+        )
+
+        if not features:
+
+            continue
+
+        rows.append(
+            {
+                "date":
+                    normalize_date(
+                        source_row.get(
+                            date_column
+                        )
+                    )
+                    if (
+                        date_column
+                        is not None
+                    )
+                    else date,
+
+                "venue_code":
+                    venue(
+                        source_row.get(
+                            venue_column
+                        )
+                    )
+                    if (
+                        venue_column
+                        is not None
+                    )
+                    else "",
+
+                "race":
+                    race_no,
+
+                "boat":
+                    boat_no,
+
+                "source":
+                    str(
+                        path
+                    ),
+
+                **features,
+            }
+        )
+
+    return rows
+
+
+# =========================================================
+# 直前データ統合
+# =========================================================
+
+
+def last_non_null(
+    series: pd.Series,
+) -> Any:
+
+    clean = (
+        series.dropna()
+    )
+
+    if clean.empty:
+
+        return None
+
+    return clean.iloc[-1]
+
+
+def load_live_features(
     date: str,
 ) -> pd.DataFrame:
 
-    all_rows: List[
-        Dict[str, Any]
-    ] = []
+    rows = []
 
-    for path in candidate_files(date):
+    files = (
+        candidate_files(
+            date
+        )
+    )
+
+    print(
+        "candidate files:",
+        len(
+            files
+        ),
+    )
+
+    for path in files:
 
         try:
 
-            if path.suffix.lower() == ".json":
+            if (
+                path.suffix.lower()
+                == ".json"
+            ):
 
-                obj = json.loads(
-                    path.read_text(
-                        encoding="utf-8"
+                obj = (
+                    json.loads(
+                        path.read_text(
+                            encoding="utf-8"
+                        )
                     )
                 )
 
-                all_rows.extend(
+                rows.extend(
                     walk_records(
                         obj,
                         date,
-                        str(path),
+                        str(
+                            path
+                        ),
                     )
                 )
 
-            elif path.suffix.lower() == ".csv":
+            elif (
+                path.suffix.lower()
+                == ".csv"
+            ):
 
-                dataframe = pd.read_csv(path)
-
-                columns = {
-                    nkey(column): column
-                    for column
-                    in dataframe.columns
-                }
-
-                for _, row in dataframe.iterrows():
-
-                    venue_value = ""
-
-                    if (
-                        "venue_code" in columns
-                        or "jcd" in columns
-                    ):
-                        venue_key = columns.get(
-                            "venue_code",
-                            columns.get(
-                                "jcd",
-                                "",
-                            ),
-                        )
-
-                        venue_value = row.get(
-                            venue_key,
-                            "",
-                        )
-
-                    race_value = None
-
-                    if (
-                        "race" in columns
-                        or "rno" in columns
-                    ):
-                        race_key = columns.get(
-                            "race",
-                            columns.get(
-                                "rno",
-                                "",
-                            ),
-                        )
-
-                        race_value = row.get(
-                            race_key,
-                            None,
-                        )
-
-                    boat_value = None
-
-                    if (
-                        "boat" in columns
-                        or "frame" in columns
-                        or "lane" in columns
-                    ):
-                        boat_key = columns.get(
-                            "boat",
-                            columns.get(
-                                "frame",
-                                columns.get(
-                                    "lane",
-                                    "",
-                                ),
-                            ),
-                        )
-
-                        boat_value = row.get(
-                            boat_key,
-                            None,
-                        )
-
-                    race_number = iv(
-                        race_value
+                rows.extend(
+                    read_csv_rows(
+                        path,
+                        date,
                     )
-
-                    boat_number = iv(
-                        boat_value
-                    )
-
-                    if (
-                        race_number is None
-                        or boat_number is None
-                        or not 1
-                        <= boat_number
-                        <= 6
-                    ):
-                        continue
-
-                    features: Dict[
-                        str,
-                        Any,
-                    ] = {}
-
-                    for (
-                        canonical,
-                        aliases,
-                    ) in ALIASES.items():
-
-                        for alias in aliases:
-
-                            alias_key = nkey(alias)
-
-                            if (
-                                alias_key
-                                not in columns
-                            ):
-                                continue
-
-                            value = row.get(
-                                columns[
-                                    alias_key
-                                ]
-                            )
-
-                            if (
-                                canonical
-                                == "exhibition_st"
-                            ):
-                                (
-                                    number,
-                                    flying,
-                                ) = parse_st(
-                                    value
-                                )
-
-                                if number is not None:
-                                    features[
-                                        "exhibition_st"
-                                    ] = number
-
-                                    features[
-                                        "exhibition_f"
-                                    ] = max(
-                                        features.get(
-                                            "exhibition_f",
-                                            0,
-                                        ),
-                                        flying,
-                                    )
-
-                            elif (
-                                canonical
-                                == "exhibition_course"
-                            ):
-                                number = iv(value)
-
-                                if (
-                                    number is not None
-                                    and 1
-                                    <= number
-                                    <= 6
-                                ):
-                                    features[
-                                        canonical
-                                    ] = number
-
-                            elif canonical in (
-                                "exhibition_time",
-                                "wind_speed",
-                                "wave_height",
-                            ):
-                                number = to_float(
-                                    value
-                                )
-
-                                if number is not None:
-                                    features[
-                                        canonical
-                                    ] = number
-
-                            elif (
-                                canonical
-                                == "wind_direction"
-                                and pd.notna(value)
-                            ):
-                                features[
-                                    canonical
-                                ] = str(value)
-
-                            break
-
-                    if features:
-                        all_rows.append(
-                            {
-                                "date":
-                                    str(date),
-                                "venue_code":
-                                    venue(
-                                        venue_value
-                                    ),
-                                "race":
-                                    race_number,
-                                "boat":
-                                    boat_number,
-                                "source":
-                                    str(path),
-                                **features,
-                            }
-                        )
+                )
 
         except Exception as exc:
 
@@ -805,102 +1575,205 @@ def load_recorded_beforeinfo(
                 exc,
             )
 
-            continue
+    if not rows:
 
-    if not all_rows:
-        return pd.DataFrame()
+        return (
+            pd.DataFrame()
+        )
 
-    dataframe = pd.DataFrame(
-        all_rows
-    )
-
-    dataframe[
-        "date"
-    ] = (
-        dataframe[
-            "date"
-        ]
-        .astype(str)
-        .str.replace(
-            ".0",
-            "",
-            regex=False,
+    dataframe = (
+        pd.DataFrame(
+            rows
         )
     )
 
-    dataframe[
-        "venue_code"
-    ] = (
-        dataframe[
-            "venue_code"
-        ]
-        .map(venue)
+    dataframe = (
+        normalize_merge_keys(
+            dataframe
+        )
     )
 
-    dataframe[
-        "race"
-    ] = pd.to_numeric(
-        dataframe["race"],
-        errors="coerce",
-    )
-
-    dataframe[
-        "boat"
-    ] = pd.to_numeric(
-        dataframe["boat"],
-        errors="coerce",
-    )
-
-    keys = [
+    race_keys = [
         "date",
         "venue_code",
         "race",
-        "boat",
     ]
+
+    boat_keys = (
+        race_keys
+        + [
+            "boat"
+        ]
+    )
 
     feature_columns = [
         column
         for column
-        in dataframe.columns
-        if column
-        not in (
-            keys
-            + [
-                "source"
-            ]
+        in (
+            "exhibition_time",
+            "exhibition_st",
+            "exhibition_f",
+            "exhibition_course",
+            "wind_speed",
+            "wind_direction",
+            "wave_height",
+        )
+        if (
+            column
+            in dataframe.columns
         )
     ]
 
-    dataframe[
-        "_complete"
-    ] = (
+    boat_rows = (
         dataframe[
-            feature_columns
+            dataframe[
+                "boat"
+            ]
+            .notna()
         ]
-        .notna()
-        .sum(axis=1)
+        .copy()
     )
 
-    dataframe = (
-        dataframe
-        .sort_values(
-            [
-                "_complete",
-                "source",
-            ]
+    if boat_rows.empty:
+
+        return (
+            pd.DataFrame()
         )
-        .drop_duplicates(
-            keys,
-            keep="last",
+
+    # 複数ファイルの情報を艇単位で統合
+    aggregation = {
+        column:
+            last_non_null
+        for column
+        in feature_columns
+    }
+
+    aggregation[
+        "source"
+    ] = last_non_null
+
+    boat_rows = (
+        boat_rows
+        .groupby(
+            boat_keys,
+            dropna=False,
+            as_index=False,
         )
-        .drop(
-            columns=[
-                "_complete"
-            ]
+        .agg(
+            aggregation
         )
     )
 
-    return dataframe
+    # 風・波などレース単位の値を全艇へ配る
+    weather_columns = [
+        column
+        for column
+        in (
+            "wind_speed",
+            "wind_direction",
+            "wave_height",
+        )
+        if (
+            column
+            in dataframe.columns
+        )
+    ]
+
+    if weather_columns:
+
+        weather = (
+            dataframe[
+                race_keys
+                + weather_columns
+            ]
+            .groupby(
+                race_keys,
+                dropna=False,
+                as_index=False,
+            )
+            .agg(
+                {
+                    column:
+                        last_non_null
+                    for column
+                    in weather_columns
+                }
+            )
+        )
+
+        boat_rows = (
+            boat_rows
+            .merge(
+                weather,
+                on=race_keys,
+                how="left",
+                suffixes=(
+                    "",
+                    "_race",
+                ),
+            )
+        )
+
+        for column in (
+            weather_columns
+        ):
+
+            race_column = (
+                f"{column}_race"
+            )
+
+            if (
+                race_column
+                not in boat_rows.columns
+            ):
+
+                continue
+
+            if (
+                column
+                not in boat_rows.columns
+            ):
+
+                boat_rows[
+                    column
+                ] = (
+                    boat_rows[
+                        race_column
+                    ]
+                )
+
+            else:
+
+                boat_rows[
+                    column
+                ] = (
+                    boat_rows[
+                        column
+                    ]
+                    .combine_first(
+                        boat_rows[
+                            race_column
+                        ]
+                    )
+                )
+
+            boat_rows.drop(
+                columns=[
+                    race_column
+                ],
+                inplace=True,
+            )
+
+    return (
+        normalize_merge_keys(
+            boat_rows
+        )
+    )
+
+
+# =========================================================
+# 結果
+# =========================================================
 
 
 def load_results(
@@ -913,6 +1786,7 @@ def load_results(
             f"boat_results_"
             f"{date}_all.csv"
         ),
+
         Path(
             f"archive/"
             f"{date[:4]}/"
@@ -926,55 +1800,41 @@ def load_results(
     path = next(
         (
             path
-            for path in paths
+            for path
+            in paths
             if path.exists()
         ),
         None,
     )
 
     if path is None:
+
         raise SystemExit(
             "result csv not found"
         )
 
-    dataframe = pd.read_csv(path)
+    dataframe = (
+        pd.read_csv(
+            path
+        )
+    )
 
-    dataframe[
-        "date"
-    ] = (
-        dataframe[
-            "date"
-        ]
-        .astype(str)
-        .str.replace(
-            ".0",
-            "",
-            regex=False,
+    dataframe = (
+        normalize_merge_keys(
+            dataframe
         )
     )
 
     dataframe[
-        "venue_code"
+        "finish"
     ] = (
-        dataframe[
-            "venue_code"
-        ]
-        .map(venue)
-    )
-
-    for column in (
-        "race",
-        "boat",
-        "finish",
-    ):
-        dataframe[
-            column
-        ] = pd.to_numeric(
+        pd.to_numeric(
             dataframe[
-                column
+                "finish"
             ],
             errors="coerce",
         )
+    )
 
     return (
         dataframe[
@@ -987,10 +1847,16 @@ def load_results(
             ]
         ]
         .dropna()
+        .copy()
     )
 
 
-def load_base_scores(
+# =========================================================
+# 朝スコア
+# =========================================================
+
+
+def load_morning_scores(
     date: str,
 ) -> pd.DataFrame:
 
@@ -1004,55 +1870,45 @@ def load_base_scores(
     )
 
     if not path.exists():
+
         raise SystemExit(
             "score answer-check csv not found"
         )
 
-    dataframe = pd.read_csv(path)
-
-    dataframe[
-        "date"
-    ] = (
-        dataframe[
-            "date"
-        ]
-        .astype(str)
-        .str.replace(
-            ".0",
-            "",
-            regex=False,
+    dataframe = (
+        pd.read_csv(
+            path
         )
     )
 
-    dataframe = dataframe[
+    dataframe = (
         dataframe[
-            "stage"
-        ].astype(str)
-        == "morning"
-    ].copy()
-
-    dataframe[
-        "venue_code"
-    ] = (
-        dataframe[
-            "venue_code"
+            dataframe[
+                "stage"
+            ]
+            .astype(str)
+            .str.lower()
+            == "morning"
         ]
-        .map(venue)
+        .copy()
     )
 
-    for column in (
-        "race",
-        "boat",
-        "total_score",
-    ):
-        dataframe[
-            column
-        ] = pd.to_numeric(
+    dataframe = (
+        normalize_merge_keys(
+            dataframe
+        )
+    )
+
+    dataframe[
+        "total_score"
+    ] = (
+        pd.to_numeric(
             dataframe[
-                column
+                "total_score"
             ],
             errors="coerce",
         )
+    )
 
     return (
         dataframe[
@@ -1065,83 +1921,70 @@ def load_base_scores(
             ]
         ]
         .dropna()
+        .copy()
     )
 
 
-def normalize_merge_keys(
-    dataframe: pd.DataFrame,
-) -> pd.DataFrame:
-
-    dataframe = dataframe.copy()
-
-    dataframe[
-        "date"
-    ] = (
-        dataframe[
-            "date"
-        ]
-        .astype(str)
-        .str.replace(
-            ".0",
-            "",
-            regex=False,
-        )
-    )
-
-    dataframe[
-        "venue_code"
-    ] = (
-        dataframe[
-            "venue_code"
-        ]
-        .map(venue)
-    )
-
-    dataframe[
-        "race"
-    ] = pd.to_numeric(
-        dataframe[
-            "race"
-        ],
-        errors="coerce",
-    )
-
-    dataframe[
-        "boat"
-    ] = pd.to_numeric(
-        dataframe[
-            "boat"
-        ],
-        errors="coerce",
-    )
-
-    return dataframe
+# =========================================================
+# 個別要素分析
+# =========================================================
 
 
 def rank_metric(
     dataframe: pd.DataFrame,
     column: str,
     lower_better: bool = True,
-) -> Dict[str, Any]:
+) -> Dict[
+    str,
+    Any,
+]:
+
+    if (
+        column
+        not in dataframe.columns
+    ):
+
+        return {
+            "available":
+                False,
+            "reason":
+                "column not found",
+        }
 
     work = (
         dataframe[
             [
                 "venue_code",
                 "race",
-                "boat",
                 "finish",
                 column,
             ]
         ]
-        .dropna()
         .copy()
+    )
+
+    work[
+        column
+    ] = (
+        pd.to_numeric(
+            work[
+                column
+            ],
+            errors="coerce",
+        )
+    )
+
+    work.dropna(
+        inplace=True
     )
 
     rows = []
     correlations = []
 
-    for _, race_data in work.groupby(
+    for (
+        _,
+        race_data,
+    ) in work.groupby(
         [
             "venue_code",
             "race",
@@ -1149,41 +1992,66 @@ def rank_metric(
     ):
 
         if (
-            len(race_data) < 4
-            or race_data[
+            len(
+                race_data
+            )
+            < 4
+            or
+            race_data[
                 column
-            ].nunique()
+            ]
+            .nunique()
             < 2
         ):
+
             continue
 
-        ordered = race_data.sort_values(
-            column,
-            ascending=lower_better,
-        )
-
-        best = ordered.iloc[0]
-        worst = ordered.iloc[-1]
-
-        rows.append(
-            (
-                best["finish"],
-                worst["finish"],
+        ordered = (
+            race_data
+            .sort_values(
+                column,
+                ascending=lower_better,
             )
         )
 
-        feature_rank = (
+        best = (
+            ordered.iloc[0]
+        )
+
+        worst = (
+            ordered.iloc[-1]
+        )
+
+        rows.append(
+            {
+                "best_finish":
+                    float(
+                        best[
+                            "finish"
+                        ]
+                    ),
+
+                "worst_finish":
+                    float(
+                        worst[
+                            "finish"
+                        ]
+                    ),
+            }
+        )
+
+        factor_rank = (
             race_data[
                 column
             ]
             .rank(
-                ascending=lower_better,
                 method="average",
+                ascending=lower_better,
             )
         )
 
         correlation = (
-            feature_rank
+            factor_rank
             .corr(
                 race_data[
                     "finish"
@@ -1192,26 +2060,47 @@ def rank_metric(
             )
         )
 
-        if not pd.isna(correlation):
+        if not pd.isna(
+            correlation
+        ):
+
             correlations.append(
-                float(correlation)
+                float(
+                    correlation
+                )
             )
 
     if not rows:
-        return {}
+
+        return {
+            "available":
+                True,
+            "races":
+                0,
+        }
 
     return {
+        "available":
+            True,
+
         "races":
-            len(rows),
+            len(
+                rows
+            ),
 
         "best_win_rate_pct":
             round(
                 sum(
-                    best == 1
-                    for best, _
+                    row[
+                        "best_finish"
+                    ]
+                    == 1
+                    for row
                     in rows
                 )
-                / len(rows)
+                / len(
+                    rows
+                )
                 * 100,
                 1,
             ),
@@ -1219,11 +2108,16 @@ def rank_metric(
         "best_top3_rate_pct":
             round(
                 sum(
-                    best <= 3
-                    for best, _
+                    row[
+                        "best_finish"
+                    ]
+                    <= 3
+                    for row
                     in rows
                 )
-                / len(rows)
+                / len(
+                    rows
+                )
                 * 100,
                 1,
             ),
@@ -1231,11 +2125,16 @@ def rank_metric(
         "worst_win_rate_pct":
             round(
                 sum(
-                    worst == 1
-                    for _, worst
+                    row[
+                        "worst_finish"
+                    ]
+                    == 1
+                    for row
                     in rows
                 )
-                / len(rows)
+                / len(
+                    rows
+                )
                 * 100,
                 1,
             ),
@@ -1243,8 +2142,12 @@ def rank_metric(
         "mean_within_race_spearman":
             (
                 round(
-                    sum(correlations)
-                    / len(correlations),
+                    sum(
+                        correlations
+                    )
+                    / len(
+                        correlations
+                    ),
                     4,
                 )
                 if correlations
@@ -1256,7 +2159,22 @@ def rank_metric(
 def binary_metric(
     dataframe: pd.DataFrame,
     column: str,
-) -> Dict[str, Any]:
+) -> Dict[
+    str,
+    Any,
+]:
+
+    if (
+        column
+        not in dataframe.columns
+    ):
+
+        return {
+            "available":
+                False,
+            "reason":
+                "column not found",
+        }
 
     work = (
         dataframe[
@@ -1265,33 +2183,64 @@ def binary_metric(
                 column,
             ]
         ]
-        .dropna()
         .copy()
     )
 
+    work[
+        column
+    ] = (
+        pd.to_numeric(
+            work[
+                column
+            ],
+            errors="coerce",
+        )
+    )
+
+    work.dropna(
+        inplace=True
+    )
+
     if work.empty:
-        return {}
 
-    flagged = work[
-        work[
-            column
-        ].astype(float)
-        > 0
-    ]
+        return {
+            "available":
+                True,
+            "boats":
+                0,
+        }
 
-    normal = work[
+    flagged = (
         work[
-            column
-        ].astype(float)
-        <= 0
-    ]
+            work[
+                column
+            ]
+            > 0
+        ]
+    )
+
+    normal = (
+        work[
+            work[
+                column
+            ]
+            <= 0
+        ]
+    )
 
     return {
+        "available":
+            True,
+
         "boats":
-            len(work),
+            len(
+                work
+            ),
 
         "flagged_boats":
-            len(flagged),
+            len(
+                flagged
+            ),
 
         "flagged_win_rate_pct":
             (
@@ -1301,11 +2250,14 @@ def binary_metric(
                             "finish"
                         ]
                         == 1
-                    ).mean()
+                    )
+                    .mean()
                     * 100,
                     1,
                 )
-                if len(flagged)
+                if len(
+                    flagged
+                )
                 else None
             ),
 
@@ -1317,11 +2269,14 @@ def binary_metric(
                             "finish"
                         ]
                         <= 3
-                    ).mean()
+                    )
+                    .mean()
                     * 100,
                     1,
                 )
-                if len(flagged)
+                if len(
+                    flagged
+                )
                 else None
             ),
 
@@ -1333,11 +2288,14 @@ def binary_metric(
                             "finish"
                         ]
                         == 1
-                    ).mean()
+                    )
+                    .mean()
                     * 100,
                     1,
                 )
-                if len(normal)
+                if len(
+                    normal
+                )
                 else None
             ),
 
@@ -1349,27 +2307,259 @@ def binary_metric(
                             "finish"
                         ]
                         <= 3
-                    ).mean()
+                    )
+                    .mean()
                     * 100,
                     1,
                 )
-                if len(normal)
+                if len(
+                    normal
+                )
                 else None
             ),
     }
 
 
-def normalize_within_race(
+# =========================================================
+# 展示進入
+# =========================================================
+
+
+def build_course_changed(
     dataframe: pd.DataFrame,
+) -> pd.DataFrame:
+
+    dataframe = (
+        dataframe.copy()
+    )
+
+    if (
+        "exhibition_course"
+        not in dataframe.columns
+    ):
+
+        return dataframe
+
+    course = (
+        pd.to_numeric(
+            dataframe[
+                "exhibition_course"
+            ],
+            errors="coerce",
+        )
+    )
+
+    boat = (
+        pd.to_numeric(
+            dataframe[
+                "boat"
+            ],
+            errors="coerce",
+        )
+    )
+
+    dataframe[
+        "course_changed"
+    ] = (
+        (
+            course
+            != boat
+        )
+        & course.notna()
+    ).astype(float)
+
+    return dataframe
+
+
+# =========================================================
+# 風速分析
+# =========================================================
+
+
+def wind_analysis(
+    dataframe: pd.DataFrame,
+) -> List[
+    Dict[
+        str,
+        Any,
+    ]
+]:
+
+    if (
+        "wind_speed"
+        not in dataframe.columns
+    ):
+
+        return []
+
+    work = (
+        dataframe
+        .dropna(
+            subset=[
+                "wind_speed",
+                "finish",
+            ]
+        )
+        .copy()
+    )
+
+    rows = []
+
+    for (
+        _,
+        race_data,
+    ) in work.groupby(
+        [
+            "venue_code",
+            "race",
+        ]
+    ):
+
+        values = (
+            pd.to_numeric(
+                race_data[
+                    "wind_speed"
+                ],
+                errors="coerce",
+            )
+            .dropna()
+        )
+
+        if values.empty:
+
+            continue
+
+        wind_speed = float(
+            values.iloc[0]
+        )
+
+        if (
+            wind_speed
+            < 3
+        ):
+
+            bucket = (
+                "0-2m"
+            )
+
+        elif (
+            wind_speed
+            < 5
+        ):
+
+            bucket = (
+                "3-4m"
+            )
+
+        else:
+
+            bucket = (
+                "5m以上"
+            )
+
+        boat1 = (
+            race_data[
+                race_data[
+                    "boat"
+                ]
+                == 1
+            ]
+        )
+
+        if boat1.empty:
+
+            continue
+
+        rows.append(
+            {
+                "bucket":
+                    bucket,
+
+                "boat1_win":
+                    int(
+                        float(
+                            boat1.iloc[
+                                0
+                            ][
+                                "finish"
+                            ]
+                        )
+                        == 1
+                    ),
+            }
+        )
+
+    output = []
+
+    for bucket in (
+        "0-2m",
+        "3-4m",
+        "5m以上",
+    ):
+
+        values = [
+            row
+            for row
+            in rows
+            if row[
+                "bucket"
+            ]
+            == bucket
+        ]
+
+        if not values:
+
+            continue
+
+        output.append(
+            {
+                "bucket":
+                    bucket,
+
+                "races":
+                    len(
+                        values
+                    ),
+
+                "boat1_win_rate_pct":
+                    round(
+                        sum(
+                            row[
+                                "boat1_win"
+                            ]
+                            for row
+                            in values
+                        )
+                        / len(
+                            values
+                        )
+                        * 100,
+                        1,
+                    ),
+            }
+        )
+
+    return output
+
+
+# =========================================================
+# 重み探索
+# =========================================================
+
+
+def normalize_factor(
+    race_data: pd.DataFrame,
     column: str,
     lower_better: bool,
 ) -> pd.Series:
 
-    values = pd.to_numeric(
-        dataframe[
-            column
-        ],
-        errors="coerce",
+    values = (
+        pd.to_numeric(
+            race_data[
+                column
+            ],
+            errors="coerce",
+        )
     )
 
     if (
@@ -1378,47 +2568,175 @@ def normalize_within_race(
         .sum()
         < 2
     ):
-        return pd.Series(
-            0.0,
-            index=dataframe.index,
+
+        return (
+            pd.Series(
+                0.5,
+                index=race_data.index,
+            )
         )
 
-    minimum = values.min()
-    maximum = values.max()
+    minimum = (
+        values.min()
+    )
 
-    if maximum == minimum:
-        return pd.Series(
-            0.5,
-            index=dataframe.index,
+    maximum = (
+        values.max()
+    )
+
+    if (
+        pd.isna(
+            minimum
+        )
+        or
+        pd.isna(
+            maximum
+        )
+        or
+        minimum
+        == maximum
+    ):
+
+        return (
+            pd.Series(
+                0.5,
+                index=race_data.index,
+            )
         )
 
-    normalized = (
-        values
-        - minimum
-    ) / (
-        maximum
-        - minimum
+    result = (
+        (
+            values
+            - minimum
+        )
+        /
+        (
+            maximum
+            - minimum
+        )
     )
 
     if lower_better:
-        return (
+
+        result = (
             1
-            - normalized
+            - result
         )
 
-    return normalized
+    return (
+        result
+        .fillna(
+            0.5
+        )
+    )
 
 
-def simulate(
+def weight_search(
     dataframe: pd.DataFrame,
-) -> Dict[str, Any]:
+) -> Dict[
+    str,
+    Any,
+]:
+
+    if (
+        "total_score"
+        not in dataframe.columns
+    ):
+
+        return {
+            "available":
+                False,
+        }
+
+    time_available = (
+        "exhibition_time"
+        in dataframe.columns
+        and
+        dataframe[
+            "exhibition_time"
+        ]
+        .notna()
+        .sum()
+        > 0
+    )
+
+    st_available = (
+        "exhibition_st"
+        in dataframe.columns
+        and
+        dataframe[
+            "exhibition_st"
+        ]
+        .notna()
+        .sum()
+        > 0
+    )
+
+    f_available = (
+        "exhibition_f"
+        in dataframe.columns
+        and
+        dataframe[
+            "exhibition_f"
+        ]
+        .fillna(0)
+        .astype(float)
+        .gt(0)
+        .any()
+    )
+
+    available_factors = []
+
+    if time_available:
+
+        available_factors.append(
+            "exhibition_time"
+        )
+
+    if st_available:
+
+        available_factors.append(
+            "exhibition_st"
+        )
+
+    if f_available:
+
+        available_factors.append(
+            "exhibition_f"
+        )
+
+    if not available_factors:
+
+        return {
+            "available":
+                False,
+
+            "available_factors":
+                [],
+
+            "reason":
+                (
+                    "展示タイム・ST・Fの"
+                    "有効データなし"
+                ),
+        }
 
     required = [
         "total_score",
         "finish",
-        "exhibition_time",
-        "exhibition_st",
     ]
+
+    if time_available:
+
+        required.append(
+            "exhibition_time"
+        )
+
+    if st_available:
+
+        required.append(
+            "exhibition_st"
+        )
 
     work = (
         dataframe
@@ -1429,57 +2747,27 @@ def simulate(
     )
 
     if work.empty:
-        return {}
 
-    eligible = []
+        return {
+            "available":
+                False,
 
-    for (
-        race_key,
-        race_data,
-    ) in work.groupby(
-        [
-            "venue_code",
-            "race",
-        ]
-    ):
-
-        if len(race_data) >= 4:
-            eligible.append(
-                race_key
-            )
-
-    if not eligible:
-        return {}
-
-    eligible_set = set(
-        eligible
-    )
-
-    work = work[
-        work.apply(
-            lambda row:
-                (
-                    row[
-                        "venue_code"
-                    ],
-                    row[
-                        "race"
-                    ],
-                )
-                in eligible_set,
-            axis=1,
-        )
-    ].copy()
+            "available_factors":
+                available_factors,
+        }
 
     work[
         "time_norm"
-    ] = 0.0
+    ] = 0.5
 
     work[
         "st_norm"
-    ] = 0.0
+    ] = 0.5
 
-    for _, index in work.groupby(
+    for (
+        _,
+        indexes,
+    ) in work.groupby(
         [
             "venue_code",
             "race",
@@ -1487,36 +2775,44 @@ def simulate(
     ).groups.items():
 
         race_data = (
-            work.loc[index]
+            work.loc[
+                indexes
+            ]
         )
 
-        work.loc[
-            index,
-            "time_norm",
-        ] = normalize_within_race(
-            race_data,
-            "exhibition_time",
-            True,
-        )
+        if time_available:
 
-        work.loc[
-            index,
-            "st_norm",
-        ] = normalize_within_race(
-            race_data,
-            "exhibition_st",
-            True,
-        )
+            work.loc[
+                indexes,
+                "time_norm",
+            ] = normalize_factor(
+                race_data,
+                "exhibition_time",
+                True,
+            )
+
+        if st_available:
+
+            work.loc[
+                indexes,
+                "st_norm",
+            ] = normalize_factor(
+                race_data,
+                "exhibition_st",
+                True,
+            )
 
     if (
         "exhibition_f"
         not in work.columns
     ):
+
         work[
             "exhibition_f"
-        ] = 0.0
+        ] = 0
 
     else:
+
         work[
             "exhibition_f"
         ] = (
@@ -1529,38 +2825,116 @@ def simulate(
             .fillna(0)
         )
 
+    valid_races = []
+
+    for (
+        race_key,
+        race_data,
+    ) in work.groupby(
+        [
+            "venue_code",
+            "race",
+        ]
+    ):
+
+        if (
+            len(
+                race_data
+            )
+            >= 4
+        ):
+
+            valid_races.append(
+                race_key
+            )
+
+    valid_set = set(
+        valid_races
+    )
+
+    work = (
+        work[
+            work.apply(
+                lambda row:
+                    (
+                        row[
+                            "venue_code"
+                        ],
+                        row[
+                            "race"
+                        ],
+                    )
+                    in valid_set,
+                axis=1,
+            )
+        ]
+        .copy()
+    )
+
     def accuracy(
         time_weight: int,
         st_weight: int,
         f_penalty: int,
     ) -> float:
 
-        test = work.copy()
+        test = (
+            work.copy()
+        )
 
-        test[
-            "adjusted_score"
-        ] = (
+        score = (
             test[
                 "total_score"
             ]
-            + time_weight
-            * test[
-                "time_norm"
-            ]
-            + st_weight
-            * test[
-                "st_norm"
-            ]
-            - f_penalty
-            * test[
-                "exhibition_f"
-            ]
+            .astype(float)
         )
+
+        if time_available:
+
+            score = (
+                score
+                +
+                time_weight
+                *
+                test[
+                    "time_norm"
+                ]
+            )
+
+        if st_available:
+
+            score = (
+                score
+                +
+                st_weight
+                *
+                test[
+                    "st_norm"
+                ]
+            )
+
+        if f_available:
+
+            score = (
+                score
+                -
+                f_penalty
+                *
+                test[
+                    "exhibition_f"
+                ]
+            )
+
+        test[
+            "adjusted_score"
+        ] = score
 
         wins = 0
         races = 0
 
-        for _, race_data in test.groupby(
+        for (
+            _,
+            race_data,
+        ) in test.groupby(
             [
                 "venue_code",
                 "race",
@@ -1577,15 +2951,18 @@ def simulate(
             )
 
             wins += int(
-                top[
-                    "finish"
-                ]
+                float(
+                    top[
+                        "finish"
+                    ]
+                )
                 == 1
             )
 
             races += 1
 
         if races == 0:
+
             return 0.0
 
         return (
@@ -1594,25 +2971,16 @@ def simulate(
             * 100
         )
 
-    baseline = accuracy(
-        0,
-        0,
-        0,
+    baseline = (
+        accuracy(
+            0,
+            0,
+            0,
+        )
     )
 
-    candidates = []
-
-    for time_weight in (
-        0,
-        2,
-        4,
-        6,
-        8,
-        10,
-        12,
-    ):
-
-        for st_weight in (
+    time_grid = (
+        (
             0,
             2,
             4,
@@ -1620,22 +2988,77 @@ def simulate(
             8,
             10,
             12,
+        )
+        if time_available
+        else (
+            0,
+        )
+    )
+
+    st_grid = (
+        (
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+        )
+        if st_available
+        else (
+            0,
+        )
+    )
+
+    f_grid = (
+        (
+            0,
+            2,
+            4,
+            6,
+            8,
+        )
+        if f_available
+        else (
+            0,
+        )
+    )
+
+    candidates = []
+
+    for time_weight in (
+        time_grid
+    ):
+
+        for st_weight in (
+            st_grid
         ):
 
             for f_penalty in (
-                0,
-                2,
-                4,
-                6,
-                8,
+                f_grid
             ):
 
                 if (
-                    time_weight == 0
-                    and st_weight == 0
-                    and f_penalty == 0
+                    time_weight
+                    == 0
+                    and
+                    st_weight
+                    == 0
+                    and
+                    f_penalty
+                    == 0
                 ):
+
                     continue
+
+                current = (
+                    accuracy(
+                        time_weight,
+                        st_weight,
+                        f_penalty,
+                    )
+                )
 
                 candidates.append(
                     {
@@ -1650,11 +3073,14 @@ def simulate(
 
                         "top1_accuracy_pct":
                             round(
-                                accuracy(
-                                    time_weight,
-                                    st_weight,
-                                    f_penalty,
-                                ),
+                                current,
+                                1,
+                            ),
+
+                        "improvement_vs_baseline_pt":
+                            round(
+                                current
+                                - baseline,
                                 1,
                             ),
                     }
@@ -1671,10 +3097,12 @@ def simulate(
                     item[
                         "exhibition_time_weight"
                     ]
-                    + item[
+                    +
+                    item[
                         "exhibition_st_weight"
                     ]
-                    + item[
+                    +
+                    item[
                         "f_penalty"
                     ]
                 ),
@@ -1683,9 +3111,15 @@ def simulate(
     )
 
     return {
+        "available":
+            True,
+
+        "available_factors":
+            available_factors,
+
         "races":
             len(
-                eligible
+                valid_races
             ),
 
         "baseline_top1_accuracy_pct":
@@ -1695,174 +3129,81 @@ def simulate(
             ),
 
         "best_candidates":
-            candidates[:10],
+            candidates[
+                :10
+            ],
     }
 
 
-def wind_buckets(
-    dataframe: pd.DataFrame,
-) -> List[
-    Dict[str, Any]
-]:
-
-    if (
-        "wind_speed"
-        not in dataframe.columns
-    ):
-        return []
-
-    work = (
-        dataframe
-        .dropna(
-            subset=[
-                "wind_speed",
-                "finish",
-            ]
-        )
-        .copy()
-    )
-
-    if work.empty:
-        return []
-
-    rows = []
-
-    for _, race_data in work.groupby(
-        [
-            "venue_code",
-            "race",
-        ]
-    ):
-
-        wind_series = (
-            race_data[
-                "wind_speed"
-            ]
-            .dropna()
-        )
-
-        if wind_series.empty:
-            continue
-
-        wind_speed = float(
-            wind_series.iloc[0]
-        )
-
-        if wind_speed < 3:
-            bucket = "0-2m"
-
-        elif wind_speed < 5:
-            bucket = "3-4m"
-
-        else:
-            bucket = "5m以上"
-
-        frame1 = race_data[
-            race_data[
-                "boat"
-            ]
-            == 1
-        ]
-
-        rows.append(
-            (
-                bucket,
-                int(
-                    len(frame1)
-                    and frame1.iloc[
-                        0
-                    ][
-                        "finish"
-                    ]
-                    == 1
-                ),
-            )
-        )
-
-    output = []
-
-    for bucket in (
-        "0-2m",
-        "3-4m",
-        "5m以上",
-    ):
-
-        values = [
-            result
-            for (
-                row_bucket,
-                result,
-            ) in rows
-            if row_bucket
-            == bucket
-        ]
-
-        if not values:
-            continue
-
-        output.append(
-            {
-                "bucket":
-                    bucket,
-
-                "races":
-                    len(values),
-
-                "boat1_win_rate_pct":
-                    round(
-                        sum(values)
-                        / len(values)
-                        * 100,
-                        1,
-                    ),
-            }
-        )
-
-    return output
+# =========================================================
+# メイン
+# =========================================================
 
 
 def main() -> int:
 
-    parser = argparse.ArgumentParser()
+    parser = (
+        argparse.ArgumentParser()
+    )
 
     parser.add_argument(
         "--date",
         required=True,
     )
 
-    args = parser.parse_args()
+    args = (
+        parser.parse_args()
+    )
 
-    date = args.date
+    date = (
+        normalize_date(
+            args.date
+        )
+    )
+
+    if not re.fullmatch(
+        r"\d{8}",
+        date,
+    ):
+
+        raise SystemExit(
+            "--date must be YYYYMMDD"
+        )
+
+    print("")
+    print(
+        "========================================"
+    )
+    print(
+        "直前情報5項目 個別分析開始"
+    )
+    print(
+        "========================================"
+    )
 
     live = (
-        load_recorded_beforeinfo(
+        load_live_features(
             date
         )
     )
 
     if live.empty:
+
         raise SystemExit(
-            "recorded beforeinfo/live features not found"
+            "直前情報データを"
+            "1件も検出できませんでした"
         )
 
-    results = load_results(
-        date
+    results = (
+        load_results(
+            date
+        )
     )
 
-    base_scores = load_base_scores(
-        date
-    )
-
-    results = normalize_merge_keys(
-        results
-    )
-
-    live = normalize_merge_keys(
-        live
-    )
-
-    base_scores = normalize_merge_keys(
-        base_scores
+    scores = (
+        load_morning_scores(
+            date
+        )
     )
 
     keys = [
@@ -1872,30 +3213,45 @@ def main() -> int:
         "boat",
     ]
 
-    print("")
-    print(
-        "merge key dtypes"
+    # 全結合キーを念のため再統一
+    live = (
+        normalize_merge_keys(
+            live
+        )
     )
 
+    results = (
+        normalize_merge_keys(
+            results
+        )
+    )
+
+    scores = (
+        normalize_merge_keys(
+            scores
+        )
+    )
+
+    print("")
     print(
         "results:",
-        results[
-            keys
-        ].dtypes.to_dict(),
+        len(
+            results
+        )
     )
 
     print(
         "live:",
-        live[
-            keys
-        ].dtypes.to_dict(),
+        len(
+            live
+        )
     )
 
     print(
-        "base_scores:",
-        base_scores[
-            keys
-        ].dtypes.to_dict(),
+        "morning scores:",
+        len(
+            scores
+        )
     )
 
     dataframe = (
@@ -1906,46 +3262,32 @@ def main() -> int:
             how="left",
         )
         .merge(
-            base_scores,
+            scores,
             on=keys,
             how="left",
         )
     )
 
-    report = {
-        "date":
-            date,
+    dataframe = (
+        build_course_changed(
+            dataframe
+        )
+    )
 
-        "source_files":
-            sorted(
-                live[
-                    "source"
-                ]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            ),
-
-        "coverage":
-            {},
-
-        "factors":
-            {},
-    }
+    coverage = {}
 
     for column in (
         "exhibition_time",
         "exhibition_st",
         "exhibition_f",
         "exhibition_course",
+        "course_changed",
         "wind_speed",
+        "wind_direction",
         "wave_height",
     ):
 
-        report[
-            "coverage"
-        ][
+        coverage[
             column
         ] = (
             int(
@@ -1955,102 +3297,72 @@ def main() -> int:
                 .notna()
                 .sum()
             )
-            if column
-            in dataframe.columns
+            if (
+                column
+                in dataframe.columns
+            )
             else 0
         )
 
-    if (
-        "exhibition_course"
-        in dataframe.columns
-    ):
-        dataframe[
-            "course_changed"
-        ] = (
-            pd.to_numeric(
-                dataframe[
-                    "exhibition_course"
-                ],
-                errors="coerce",
-            )
-            !=
-            pd.to_numeric(
-                dataframe[
-                    "boat"
-                ],
-                errors="coerce",
-            )
-        ).astype(float)
+    report = {
+        "date":
+            date,
 
-    report[
-        "factors"
-    ][
-        "exhibition_time"
-    ] = (
-        rank_metric(
-            dataframe,
-            "exhibition_time",
-            True,
-        )
-        if "exhibition_time"
-        in dataframe.columns
-        else {}
-    )
+        "coverage":
+            coverage,
 
-    report[
-        "factors"
-    ][
-        "exhibition_st"
-    ] = (
-        rank_metric(
-            dataframe,
-            "exhibition_st",
-            True,
-        )
-        if "exhibition_st"
-        in dataframe.columns
-        else {}
-    )
+        "detected_live_columns":
+            list(
+                live.columns
+            ),
 
-    report[
-        "factors"
-    ][
-        "exhibition_f"
-    ] = (
-        binary_metric(
-            dataframe,
-            "exhibition_f",
-        )
-        if "exhibition_f"
-        in dataframe.columns
-        else {}
-    )
+        "diagnostics":
+            {
+                "seen_live_keys":
+                    sorted(
+                        SEEN_LIVE_KEYS
+                    )[:500],
+            },
 
-    report[
-        "factors"
-    ][
-        "course_changed"
-    ] = (
-        binary_metric(
-            dataframe,
-            "course_changed",
-        )
-        if "course_changed"
-        in dataframe.columns
-        else {}
-    )
+        "factors":
+            {
+                "exhibition_time":
+                    rank_metric(
+                        dataframe,
+                        "exhibition_time",
+                        True,
+                    ),
 
-    report[
-        "wind_context"
-    ] = wind_buckets(
-        dataframe
-    )
+                "exhibition_st":
+                    rank_metric(
+                        dataframe,
+                        "exhibition_st",
+                        True,
+                    ),
 
-    report[
-        "weight_search"
-    ] = simulate(
-        dataframe
-    )
+                "exhibition_f":
+                    binary_metric(
+                        dataframe,
+                        "exhibition_f",
+                    ),
+
+                "course_changed":
+                    binary_metric(
+                        dataframe,
+                        "course_changed",
+                    ),
+            },
+
+        "wind_context":
+            wind_analysis(
+                dataframe
+            ),
+
+        "weight_search":
+            weight_search(
+                dataframe
+            ),
+    }
 
     output_dir = (
         Path(
@@ -2074,6 +3386,22 @@ def main() -> int:
         )
     )
 
+    markdown_path = (
+        output_dir
+        / (
+            "live_factor_analysis_"
+            f"{date}.md"
+        )
+    )
+
+    csv_path = (
+        output_dir
+        / (
+            "live_factor_answer_check_"
+            f"{date}.csv"
+        )
+    )
+
     json_path.write_text(
         json.dumps(
             report,
@@ -2081,6 +3409,12 @@ def main() -> int:
             indent=2,
         ),
         encoding="utf-8",
+    )
+
+    dataframe.to_csv(
+        csv_path,
+        index=False,
+        encoding="utf-8-sig",
     )
 
     markdown = [
@@ -2093,24 +3427,22 @@ def main() -> int:
             f"{date[6:8]}"
         ),
         "",
-        "## 取得件数",
+        "## 取得カバレッジ",
         "",
     ]
 
     for (
         key,
         value,
-    ) in report[
-        "coverage"
-    ].items():
+    ) in coverage.items():
 
         markdown.append(
-            f"- {key}: {value}艇"
+            f"- {key}: {value}"
         )
 
     markdown += [
         "",
-        "## 個別要素",
+        "## 個別要素分析",
         "",
         "```json",
         json.dumps(
@@ -2134,7 +3466,7 @@ def main() -> int:
         ),
         "```",
         "",
-        "## 重み探索（探索用・1日分）",
+        "## 展示タイム・ST・F 重み探索",
         "",
         "```json",
         json.dumps(
@@ -2145,15 +3477,8 @@ def main() -> int:
             indent=2,
         ),
         "```",
+        "",
     ]
-
-    markdown_path = (
-        output_dir
-        / (
-            "live_factor_analysis_"
-            f"{date}.md"
-        )
-    )
 
     markdown_path.write_text(
         "\n".join(
@@ -2165,25 +3490,37 @@ def main() -> int:
 
     print("")
     print(
+        "========================================"
+    )
+    print(
         "直前情報個別分析: PASS"
     )
-
     print(
-        "結合後行数:",
-        len(
-            dataframe
-        ),
+        "========================================"
     )
 
     print("")
     print(
-        "取得カバレッジ:"
+        "coverage:"
+    )
+
+    print(
+        json.dumps(
+            coverage,
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+    print("")
+    print(
+        "weight_search:"
     )
 
     print(
         json.dumps(
             report[
-                "coverage"
+                "weight_search"
             ],
             ensure_ascii=False,
             indent=2,
@@ -2192,21 +3529,25 @@ def main() -> int:
 
     print("")
     print(
-        "分析結果:"
+        "JSON:",
+        json_path
     )
 
     print(
-        json.dumps(
-            report,
-            ensure_ascii=False,
-            indent=2,
-        )
+        "Markdown:",
+        markdown_path
+    )
+
+    print(
+        "CSV:",
+        csv_path
     )
 
     return 0
 
 
 if __name__ == "__main__":
+
     raise SystemExit(
         main()
     )
