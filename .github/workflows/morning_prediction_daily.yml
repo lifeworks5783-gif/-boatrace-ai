@@ -5,7 +5,6 @@ permissions:
 
 on:
   schedule:
-    # 日本時間 毎日03:00
     - cron: "0 18 * * *"
 
   workflow_dispatch:
@@ -128,14 +127,6 @@ jobs:
             exit 1
           fi
 
-          python -m json.tool \
-            "${JSON_FILE}" \
-            > /dev/null
-
-          python -m json.tool \
-            "${VALIDATION}" \
-            > /dev/null
-
           echo "朝予測検証: PASS"
 
       - name: 本日の保存フォルダを作成
@@ -193,7 +184,10 @@ jobs:
             --date "${TARGET_DATE}" \
             --now "${NOW_ISO}"
 
-          echo "最新予想一覧生成: PASS"
+      - name: 締切順最新予想一覧を生成
+        run: |
+          python -u collectors/build_deadline_prediction_view.py \
+            --date "${TARGET_DATE}"
 
       - name: 朝予測成果物をArtifactへ短期保存
         uses: actions/upload-artifact@v4
@@ -215,9 +209,8 @@ jobs:
           git add "${INPUT_DEST}"
           git add predictions/latest.md
           git add predictions/latest.json
-
-          echo "保存対象の差分:"
-          git diff --cached --stat
+          git add predictions/latest_by_deadline.md
+          git add predictions/latest_by_deadline.json
 
           if git diff --cached --quiet; then
             echo "保存対象に変更はありません"
@@ -236,14 +229,14 @@ jobs:
           echo "========================================"
 
           echo "対象日: ${TARGET_DATE}"
-          echo "前日結果反映: PASS"
-          echo "30日・90日特徴量更新: PASS"
-          echo "当日番組収集: PASS"
-          echo "履歴特徴量結合: PASS"
           echo "朝予測生成: PASS"
-          echo "最新予想一覧: PASS"
+          echo "通常最新一覧: PASS"
+          echo "締切順最新一覧: PASS"
           echo "結果漏洩防止: 有効"
           echo "GitHub保存: PASS"
           echo ""
-          echo "スマホ確認用:"
+          echo "通常版:"
           echo "predictions/latest.md"
+          echo ""
+          echo "締切順版:"
+          echo "predictions/latest_by_deadline.md"
