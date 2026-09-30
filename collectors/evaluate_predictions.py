@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import math
+import re
 import sys
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -11,24 +12,21 @@ from pathlib import Path
 
 
 JST = timezone(
-    timedelta(
-        hours=9
-    )
+    timedelta(hours=9)
 )
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
-            "朝予測・直前予測を"
-            "実結果と比較"
+            "朝予測・直前予測・"
+            "フォーメーションを実結果と比較"
         )
     )
 
     parser.add_argument(
         "--date",
         required=True,
-        help="YYYYMMDD",
     )
 
     parser.add_argument(
@@ -42,63 +40,49 @@ def parse_args():
 def text(value):
     if value is None:
         return ""
-
-    return str(
-        value
-    ).strip()
+    return str(value).strip()
 
 
-def number(value):
+def to_float(value):
     try:
-        result = float(
-            value
-        )
-
-    except (
-        TypeError,
-        ValueError,
-    ):
+        number = float(value)
+    except (TypeError, ValueError):
         return None
 
-    if not math.isfinite(
-        result
-    ):
+    if not math.isfinite(number):
         return None
 
-    return result
+    return number
 
 
-def integer(value):
-    value = number(
-        value
-    )
+def to_int(value):
+    number = to_float(value)
 
-    if value is None:
+    if number is None:
         return None
 
-    return int(
-        value
-    )
+    return int(number)
 
 
-def normal_finish(value):
-    value = text(
-        value
-    )
+def finish_number(value):
+    raw = text(value)
 
-    if value.isdigit():
-        finish = int(
-            value
-        )
+    if raw.isdigit():
+        number = int(raw)
 
-        if (
-            1
-            <= finish
-            <= 6
-        ):
-            return finish
+        if 1 <= number <= 6:
+            return number
 
     return None
+
+
+def canonical_race_id(value):
+    return "".join(
+        re.findall(
+            r"\d",
+            text(value),
+        )
+    )
 
 
 def mean(values):
@@ -106,25 +90,21 @@ def mean(values):
         return None
 
     return (
-        sum(
-            values
-        )
-        / len(
-            values
-        )
+        sum(values)
+        / len(values)
     )
 
 
 def rate(
-    count,
-    total,
+    numerator,
+    denominator,
 ):
-    if total <= 0:
+    if not denominator:
         return None
 
     return (
-        count
-        / total
+        numerator
+        / denominator
     )
 
 
@@ -141,80 +121,17 @@ def rounded(
     )
 
 
-def pearson(
-    xs,
-    ys,
-):
-    if (
-        len(xs) < 3
-        or len(xs)
-        != len(ys)
-    ):
-        return None
-
-    mean_x = mean(
-        xs
-    )
-
-    mean_y = mean(
-        ys
-    )
-
-    dx = [
-        value - mean_x
-        for value
-        in xs
-    ]
-
-    dy = [
-        value - mean_y
-        for value
-        in ys
-    ]
-
-    denominator = math.sqrt(
-        sum(
-            value * value
-            for value
-            in dx
-        )
-        * sum(
-            value * value
-            for value
-            in dy
-        )
-    )
-
-    if denominator == 0:
-        return None
-
-    return (
-        sum(
-            x * y
-            for x, y
-            in zip(
-                dx,
-                dy,
-            )
-        )
-        / denominator
-    )
-
-
 def load_json(
     path,
     required=True,
 ):
-    path = Path(
-        path
-    )
+    path = Path(path)
 
     if not path.exists():
         if required:
             raise RuntimeError(
                 f"ファイルがありません: {path}"
             )
-
         return None
 
     return json.loads(
@@ -222,6 +139,22 @@ def load_json(
             encoding="utf-8"
         )
     )
+
+
+def first_existing_value(
+    row,
+    keys,
+):
+    for key in keys:
+        value = row.get(key)
+
+        if value not in (
+            None,
+            "",
+        ):
+            return value
+
+    return None
 
 
 def load_actual(
@@ -236,18 +169,12 @@ def load_actual(
 
     boat_path = (
         base
-        / (
-            f"boat_results_"
-            f"{target_date}_all.csv"
-        )
+        / f"boat_results_{target_date}_all.csv"
     )
 
     result_path = (
         base
-        / (
-            f"results_"
-            f"{target_date}_all.csv"
-        )
+        / f"results_{target_date}_all.csv"
     )
 
     if not boat_path.exists():
@@ -255,145 +182,83 @@ def load_actual(
             f"実結果がありません: {boat_path}"
         )
 
-    by_race = defaultdict(
-        list
-    )
+    by_race = defaultdict(list)
 
     with boat_path.open(
         "r",
         encoding="utf-8-sig",
         newline="",
     ) as f:
-
-        reader = csv.DictReader(
-            f
-        )
+        reader = csv.DictReader(f)
 
         for row in reader:
-
-            race_id = text(
-                row.get(
-                    "race_id"
-                )
+            race_key = canonical_race_id(
+                row.get("race_id")
             )
 
-            boat = integer(
-                row.get(
-                    "boat"
-                )
+            boat = to_int(
+                row.get("boat")
             )
 
             if (
-                not race_id
+                not race_key
                 or boat is None
             ):
                 continue
 
             by_race[
-                race_id
+                race_key
             ].append(
                 {
                     "boat": boat,
-
-                    "finish": (
-                        normal_finish(
-                            row.get(
-                                "finish"
-                            )
-                        )
+                    "finish": finish_number(
+                        row.get("finish")
                     ),
-
-                    "finish_raw": (
-                        text(
-                            row.get(
-                                "finish"
-                            )
-                        )
+                    "course": to_int(
+                        row.get("course")
                     ),
-
-                    "course": integer(
-                        row.get(
-                            "course"
-                        )
-                    ),
-
                     "st": text(
-                        row.get(
-                            "st"
-                        )
+                        row.get("st")
                     ),
                 }
             )
 
-    payouts = {}
+    payout_map = {}
 
     if result_path.exists():
-
         with result_path.open(
             "r",
             encoding="utf-8-sig",
             newline="",
         ) as f:
-
-            reader = csv.DictReader(
-                f
-            )
+            reader = csv.DictReader(f)
 
             for row in reader:
+                race_key = canonical_race_id(
+                    row.get("race_id")
+                )
 
-                payouts[
-                    text(
-                        row.get(
-                            "race_id"
-                        )
+                payout_value = (
+                    first_existing_value(
+                        row,
+                        (
+                            "trifecta_pay",
+                            "trifecta_payout",
+                            "sanrentan_pay",
+                            "3rentan_pay",
+                        ),
                     )
-                ] = {
-                    "trifecta": text(
-                        row.get(
-                            "trifecta"
-                        )
-                    ),
+                )
 
-                    "trifecta_pay": integer(
-                        row.get(
-                            "trifecta_pay"
-                        )
-                    ),
-
-                    "exacta": text(
-                        row.get(
-                            "exacta"
-                        )
-                    ),
-
-                    "exacta_pay": integer(
-                        row.get(
-                            "exacta_pay"
-                        )
-                    ),
-                }
+                payout_map[
+                    race_key
+                ] = to_int(
+                    payout_value
+                )
 
     actual = {}
 
-    for race_id, rows in (
-        by_race.items()
-    ):
-
-        winner = next(
-            (
-                row[
-                    "boat"
-                ]
-                for row
-                in rows
-                if row[
-                    "finish"
-                ]
-                == 1
-            ),
-            None,
-        )
-
+    for race_key, boats in by_race.items():
         top3 = []
 
         for finish in (
@@ -401,40 +266,44 @@ def load_actual(
             2,
             3,
         ):
-
-            boat = next(
+            winner_boat = next(
                 (
-                    row[
-                        "boat"
-                    ]
-                    for row
-                    in rows
-                    if row[
-                        "finish"
-                    ]
+                    row["boat"]
+                    for row in boats
+                    if row["finish"]
                     == finish
                 ),
                 None,
             )
 
-            if boat is not None:
+            if winner_boat is not None:
                 top3.append(
-                    boat
+                    winner_boat
                 )
 
         actual[
-            race_id
+            race_key
         ] = {
-            "winner": winner,
-
+            "boats": boats,
+            "winner": (
+                top3[0]
+                if top3
+                else None
+            ),
             "top3": top3,
-
-            "boats": rows,
-
-            "payout": (
-                payouts.get(
-                    race_id,
-                    {},
+            "trifecta": (
+                "-".join(
+                    map(
+                        str,
+                        top3,
+                    )
+                )
+                if len(top3) == 3
+                else None
+            ),
+            "trifecta_pay": (
+                payout_map.get(
+                    race_key
                 )
             ),
         }
@@ -442,13 +311,9 @@ def load_actual(
     return actual
 
 
-def prediction_map(
-    payload,
-):
+def prediction_map(payload):
     races = (
-        payload.get(
-            "races"
-        )
+        payload.get("races")
         if isinstance(
             payload,
             dict,
@@ -460,61 +325,48 @@ def prediction_map(
         races,
         list,
     ):
-        raise RuntimeError(
-            "予測JSONのracesが不正です"
-        )
+        return {}
 
     return {
-        text(
-            race.get(
-                "race_id"
-            )
+        canonical_race_id(
+            race.get("race_id")
         ): race
-        for race
-        in races
-        if text(
-            race.get(
-                "race_id"
-            )
+        for race in races
+        if canonical_race_id(
+            race.get("race_id")
         )
     }
 
 
-def ordered_boats(
-    race,
-):
+def ordered_boats(race):
     boats = (
-        race.get(
-            "boats"
-        )
+        race.get("boats")
         or []
     )
 
     rows = [
-        boat
-        for boat
-        in boats
-        if integer(
-            boat.get(
-                "boat"
-            )
+        row
+        for row in boats
+        if to_int(
+            row.get("boat")
         )
         is not None
     ]
 
     rows.sort(
-        key=lambda boat: (
-            integer(
-                boat.get(
-                    "rank"
-                )
+        key=lambda row: (
+            to_int(
+                row.get("rank")
             )
             or 99,
-
-            integer(
-                boat.get(
-                    "boat"
+            -(
+                to_float(
+                    row.get("score")
                 )
+                or 0
+            ),
+            to_int(
+                row.get("boat")
             )
             or 99,
         )
@@ -524,7 +376,7 @@ def ordered_boats(
 
 
 def evaluate_stage(
-    stage_name,
+    name,
     payload,
     actual,
 ):
@@ -534,65 +386,38 @@ def evaluate_stage(
 
     rows = []
 
+    top1_hits = 0
+    top2_hits = 0
+    top3_hits = 0
     winner_ranks = []
 
-    top1_hits = 0
-    top2_capture = 0
-    top3_capture = 0
+    for race_key, race in predictions.items():
+        truth = actual.get(
+            race_key
+        )
 
-    top3_set_hits = 0
-    top3_order_hits = 0
-    top3_overlap_sum = 0
-
-    gap_hit = []
-    gap_miss = []
-
-    for race_id, truth in (
-        actual.items()
-    ):
+        if not truth:
+            continue
 
         winner = truth.get(
             "winner"
         )
 
-        if (
-            winner is None
-            or race_id
-            not in predictions
-        ):
+        if winner is None:
             continue
 
-        race = predictions[
-            race_id
-        ]
-
-        ranked = ordered_boats(
+        boats = ordered_boats(
             race
         )
 
-        if len(
-            ranked
-        ) != 6:
+        if len(boats) != 6:
             continue
 
         order = [
-            integer(
-                boat.get(
-                    "boat"
-                )
+            to_int(
+                row.get("boat")
             )
-            for boat
-            in ranked
-        ]
-
-        scores = [
-            number(
-                boat.get(
-                    "score"
-                )
-            )
-            for boat
-            in ranked
+            for row in boats
         ]
 
         if winner not in order:
@@ -605,267 +430,107 @@ def evaluate_stage(
             + 1
         )
 
-        predicted_top3 = (
-            order[:3]
+        top1 = int(
+            winner_rank == 1
         )
 
-        actual_top3 = (
-            truth.get(
-                "top3"
-            )
-            or []
+        top2 = int(
+            winner_rank <= 2
         )
 
-        overlap = (
-            len(
-                set(
-                    predicted_top3
-                )
-                & set(
-                    actual_top3
-                )
-            )
-            if actual_top3
-            else 0
+        top3 = int(
+            winner_rank <= 3
         )
 
-        gap12 = None
-
-        if (
-            len(
-                scores
-            )
-            >= 2
-            and scores[0]
-            is not None
-            and scores[1]
-            is not None
-        ):
-
-            gap12 = (
-                scores[0]
-                - scores[1]
-            )
-
-            if winner_rank == 1:
-                gap_hit.append(
-                    gap12
-                )
-
-            else:
-                gap_miss.append(
-                    gap12
-                )
-
-        if winner_rank == 1:
-            top1_hits += 1
-
-        if winner_rank <= 2:
-            top2_capture += 1
-
-        if winner_rank <= 3:
-            top3_capture += 1
-
+        top1_hits += top1
+        top2_hits += top2
+        top3_hits += top3
         winner_ranks.append(
             winner_rank
         )
 
-        if len(
-            actual_top3
-        ) == 3:
-
-            if (
-                set(
-                    predicted_top3
-                )
-                == set(
-                    actual_top3
-                )
-            ):
-                top3_set_hits += 1
-
-            if (
-                predicted_top3
-                == actual_top3
-            ):
-                top3_order_hits += 1
-
-            top3_overlap_sum += (
-                overlap
-            )
-
         rows.append(
             {
-                "stage": (
-                    stage_name
+                "stage": name,
+                "race_id": text(
+                    race.get(
+                        "race_id"
+                    )
                 ),
-
-                "race_id": (
-                    race_id
-                ),
-
                 "venue_code": text(
                     race.get(
                         "venue_code"
                     )
                 ),
-
                 "venue_name": text(
                     race.get(
                         "venue_name"
                     )
                 ),
-
-                "race": integer(
-                    race.get(
-                        "race"
-                    )
+                "race": to_int(
+                    race.get("race")
                 ),
-
-                "pred_1": (
-                    order[0]
-                ),
-
-                "pred_2": (
-                    order[1]
-                ),
-
-                "pred_3": (
-                    order[2]
-                ),
-
-                "actual_1": (
-                    winner
-                ),
-
+                "pred_1": order[0],
+                "pred_2": order[1],
+                "pred_3": order[2],
+                "actual_1": winner,
                 "actual_2": (
-                    actual_top3[1]
+                    truth[
+                        "top3"
+                    ][1]
                     if len(
-                        actual_top3
-                    )
-                    >= 2
+                        truth[
+                            "top3"
+                        ]
+                    ) >= 2
                     else None
                 ),
-
                 "actual_3": (
-                    actual_top3[2]
+                    truth[
+                        "top3"
+                    ][2]
                     if len(
-                        actual_top3
-                    )
-                    >= 3
+                        truth[
+                            "top3"
+                        ]
+                    ) >= 3
                     else None
                 ),
-
                 "winner_prediction_rank": (
                     winner_rank
                 ),
-
-                "top1_hit": int(
-                    winner_rank
-                    == 1
-                ),
-
-                "winner_in_top2": int(
-                    winner_rank
-                    <= 2
-                ),
-
-                "winner_in_top3": int(
-                    winner_rank
-                    <= 3
-                ),
-
-                "top3_overlap": (
-                    overlap
-                ),
-
-                "top3_set_hit": int(
-                    len(
-                        actual_top3
-                    )
-                    == 3
-                    and set(
-                        predicted_top3
-                    )
-                    == set(
-                        actual_top3
-                    )
-                ),
-
-                "top3_order_hit": int(
-                    len(
-                        actual_top3
-                    )
-                    == 3
-                    and predicted_top3
-                    == actual_top3
-                ),
-
-                "top1_top2_gap": (
-                    rounded(
-                        gap12,
-                        3,
-                    )
-                ),
+                "top1_hit": top1,
+                "winner_in_top2": top2,
+                "winner_in_top3": top3,
             }
         )
 
-    evaluated = len(
-        rows
-    )
-
-    complete_top3 = sum(
-        1
-        for row
-        in rows
-        if (
-            row[
-                "actual_2"
-            ]
-            is not None
-            and row[
-                "actual_3"
-            ]
-            is not None
-        )
-    )
+    total = len(rows)
 
     summary = {
-        "stage": (
-            stage_name
-        ),
-
+        "stage": name,
         "prediction_races_in_file": (
-            len(
-                predictions
-            )
+            len(predictions)
         ),
-
-        "evaluated_races": (
-            evaluated
-        ),
-
+        "evaluated_races": total,
         "top1_win_rate": rounded(
             rate(
                 top1_hits,
-                evaluated,
+                total,
             )
         ),
-
         "winner_in_top2_rate": rounded(
             rate(
-                top2_capture,
-                evaluated,
+                top2_hits,
+                total,
             )
         ),
-
         "winner_in_top3_rate": rounded(
             rate(
-                top3_capture,
-                evaluated,
+                top3_hits,
+                total,
             )
         ),
-
         "average_winner_prediction_rank": (
             rounded(
                 mean(
@@ -873,45 +538,9 @@ def evaluate_stage(
                 )
             )
         ),
-
-        "top3_set_hit_rate": rounded(
-            rate(
-                top3_set_hits,
-                complete_top3,
-            )
-        ),
-
-        "top3_exact_order_rate": rounded(
-            rate(
-                top3_order_hits,
-                complete_top3,
-            )
-        ),
-
-        "average_top3_overlap": rounded(
-            rate(
-                top3_overlap_sum,
-                complete_top3,
-            )
-        ),
-
-        "avg_gap_when_top1_hit": rounded(
-            mean(
-                gap_hit
-            )
-        ),
-
-        "avg_gap_when_top1_miss": rounded(
-            mean(
-                gap_miss
-            )
-        ),
     }
 
-    return (
-        summary,
-        rows,
-    )
+    return summary, rows
 
 
 def compare_stages(
@@ -919,63 +548,40 @@ def compare_stages(
     live_rows,
 ):
     morning = {
-        row[
-            "race_id"
-        ]: row
-        for row
-        in morning_rows
+        canonical_race_id(
+            row["race_id"]
+        ): row
+        for row in morning_rows
     }
 
     live = {
-        row[
-            "race_id"
-        ]: row
-        for row
-        in live_rows
+        canonical_race_id(
+            row["race_id"]
+        ): row
+        for row in live_rows
     }
 
-    race_ids = sorted(
-        set(
-            morning
-        )
-        & set(
-            live
-        )
+    keys = sorted(
+        set(morning)
+        & set(live)
     )
 
     improved = 0
     worsened = 0
     same = 0
 
-    top1_gain = 0
-    top1_loss = 0
-
-    top3_gain = 0
-    top3_loss = 0
-
-    details = []
-
-    for race_id in race_ids:
-
-        morning_row = morning[
-            race_id
+    for key in keys:
+        before = morning[
+            key
+        ][
+            "winner_prediction_rank"
         ]
 
-        live_row = live[
-            race_id
+        after = live[
+            key
+        ][
+            "winner_prediction_rank"
         ]
-
-        before = (
-            morning_row[
-                "winner_prediction_rank"
-            ]
-        )
-
-        after = (
-            live_row[
-                "winner_prediction_rank"
-            ]
-        )
 
         if after < before:
             improved += 1
@@ -986,463 +592,293 @@ def compare_stages(
         else:
             same += 1
 
-        if (
-            morning_row[
-                "top1_hit"
-            ]
-            == 0
-            and live_row[
-                "top1_hit"
-            ]
-            == 1
-        ):
-            top1_gain += 1
-
-        if (
-            morning_row[
-                "top1_hit"
-            ]
-            == 1
-            and live_row[
-                "top1_hit"
-            ]
-            == 0
-        ):
-            top1_loss += 1
-
-        if (
-            morning_row[
-                "winner_in_top3"
-            ]
-            == 0
-            and live_row[
-                "winner_in_top3"
-            ]
-            == 1
-        ):
-            top3_gain += 1
-
-        if (
-            morning_row[
-                "winner_in_top3"
-            ]
-            == 1
-            and live_row[
-                "winner_in_top3"
-            ]
-            == 0
-        ):
-            top3_loss += 1
-
-        details.append(
-            {
-                "race_id": (
-                    race_id
-                ),
-
-                "morning_winner_rank": (
-                    before
-                ),
-
-                "live_winner_rank": (
-                    after
-                ),
-
-                "rank_change": (
-                    before
-                    - after
-                ),
-            }
-        )
-
-    total = len(
-        race_ids
-    )
-
     return {
-        "compared_races": (
-            total
-        ),
-
-        "winner_rank_improved": (
-            improved
-        ),
-
-        "winner_rank_worsened": (
-            worsened
-        ),
-
-        "winner_rank_same": (
-            same
-        ),
-
+        "compared_races": len(keys),
+        "winner_rank_improved": improved,
+        "winner_rank_worsened": worsened,
+        "winner_rank_same": same,
         "improved_rate": rounded(
             rate(
                 improved,
-                total,
+                len(keys),
             )
-        ),
-
-        "top1_net_gain": (
-            top1_gain
-            - top1_loss
-        ),
-
-        "top3_net_gain": (
-            top3_gain
-            - top3_loss
-        ),
-
-        "details": (
-            details
         ),
     }
 
 
-def component_analysis(
+def evaluate_formations(
     payload,
     actual,
 ):
-    predictions = prediction_map(
-        payload
+    races = (
+        payload.get("races")
+        or []
     )
 
-    bucket = defaultdict(
+    details = []
+
+    totals = {
+        "races": 0,
+        "hits": 0,
+        "points": 0,
+        "investment": 0,
+        "return": 0,
+    }
+
+    by_type = defaultdict(
         lambda: {
-            "winner": [],
-            "nonwinner": [],
-            "xs": [],
-            "ys": [],
-            "pick_hits": 0,
-            "pick_races": 0,
+            "races": 0,
+            "hits": 0,
+            "points": 0,
+            "investment": 0,
+            "return": 0,
         }
     )
 
-    for race_id, race in (
-        predictions.items()
-    ):
+    by_prediction = defaultdict(
+        lambda: {
+            "races": 0,
+            "hits": 0,
+            "points": 0,
+            "investment": 0,
+            "return": 0,
+        }
+    )
+
+    for race in races:
+        race_key = canonical_race_id(
+            race.get("race_id")
+        )
 
         truth = actual.get(
-            race_id
+            race_key
         )
 
-        winner = (
-            truth.get(
-                "winner"
+        if (
+            not truth
+            or not truth.get(
+                "trifecta"
             )
-            if truth
-            else None
-        )
-
-        if winner is None:
+        ):
             continue
 
-        boats = ordered_boats(
-            race
+        formation = (
+            race.get(
+                "formation"
+            )
+            or {}
         )
 
-        component_names = set()
-
-        for boat in boats:
-
-            components = (
-                boat.get(
-                    "components"
-                )
+        combinations = (
+            formation.get(
+                "combinations"
             )
-
-            if isinstance(
-                components,
-                dict,
-            ):
-                component_names.update(
-                    components.keys()
-                )
-
-        for component_name in (
-            component_names
-        ):
-
-            available = []
-
-            for boat in boats:
-
-                component_data = (
-                    (
-                        boat.get(
-                            "components"
-                        )
-                        or {}
-                    ).get(
-                        component_name
-                    )
-                    or {}
-                )
-
-                raw_score = number(
-                    component_data.get(
-                        "raw_score_0_1"
-                    )
-                )
-
-                boat_number = integer(
-                    boat.get(
-                        "boat"
-                    )
-                )
-
-                if (
-                    raw_score is None
-                    or boat_number
-                    is None
-                ):
-                    continue
-
-                finish = next(
-                    (
-                        item[
-                            "finish"
-                        ]
-                        for item
-                        in truth[
-                            "boats"
-                        ]
-                        if item[
-                            "boat"
-                        ]
-                        == boat_number
-                    ),
-                    None,
-                )
-
-                if finish is not None:
-
-                    bucket[
-                        component_name
-                    ][
-                        "xs"
-                    ].append(
-                        raw_score
-                    )
-
-                    bucket[
-                        component_name
-                    ][
-                        "ys"
-                    ].append(
-                        (
-                            7
-                            - finish
-                        )
-                        / 6.0
-                    )
-
-                if boat_number == winner:
-
-                    bucket[
-                        component_name
-                    ][
-                        "winner"
-                    ].append(
-                        raw_score
-                    )
-
-                else:
-
-                    bucket[
-                        component_name
-                    ][
-                        "nonwinner"
-                    ].append(
-                        raw_score
-                    )
-
-                available.append(
-                    (
-                        raw_score,
-                        boat_number,
-                    )
-                )
-
-            if available:
-
-                available.sort(
-                    key=lambda item: (
-                        -item[0],
-                        item[1],
-                    )
-                )
-
-                bucket[
-                    component_name
-                ][
-                    "pick_races"
-                ] += 1
-
-                if (
-                    available[0][1]
-                    == winner
-                ):
-                    bucket[
-                        component_name
-                    ][
-                        "pick_hits"
-                    ] += 1
-
-    weights = (
-        payload.get(
-            "weights"
-        )
-        or {}
-    )
-
-    output = {}
-
-    for component_name, data in sorted(
-        bucket.items()
-    ):
-
-        winner_mean = mean(
-            data[
-                "winner"
-            ]
+            or []
         )
 
-        nonwinner_mean = mean(
-            data[
-                "nonwinner"
-            ]
+        if not combinations:
+            continue
+
+        points = len(
+            combinations
         )
 
-        gap = (
-            None
-            if (
-                winner_mean
-                is None
-                or nonwinner_mean
-                is None
-            )
-            else (
-                winner_mean
-                - nonwinner_mean
-            )
+        investment = (
+            points * 100
         )
 
-        correlation = pearson(
-            data[
-                "xs"
-            ],
-            data[
-                "ys"
-            ],
+        winning_combo = truth[
+            "trifecta"
+        ]
+
+        hit = int(
+            winning_combo
+            in combinations
         )
 
-        observations = len(
-            data[
-                "xs"
-            ]
+        payout = (
+            truth.get(
+                "trifecta_pay"
+            )
+            or 0
         )
 
-        if observations < 100:
+        returned = (
+            payout
+            if hit
+            else 0
+        )
 
-            diagnostic = (
-                "insufficient_sample"
+        profit = (
+            returned
+            - investment
+        )
+
+        formation_type = text(
+            formation.get(
+                "formation_type"
             )
+        ) or "不明"
 
-        elif (
-            correlation is not None
-            and correlation >= 0.12
-            and gap is not None
-            and gap >= 0.04
-        ):
-
-            diagnostic = (
-                "increase_candidate"
+        prediction_type = text(
+            race.get(
+                "prediction_type"
             )
+        ) or "不明"
 
-        elif (
-            (
-                correlation is not None
-                and correlation <= 0.02
-            )
-            or (
-                gap is not None
-                and gap < 0
-            )
-        ):
-
-            diagnostic = (
-                "decrease_candidate"
-            )
-
-        else:
-
-            diagnostic = (
-                "hold"
-            )
-
-        output[
-            component_name
-        ] = {
-            "current_weight": (
-                weights.get(
-                    component_name
+        detail = {
+            "race_id": text(
+                race.get(
+                    "race_id"
                 )
             ),
-
-            "boat_observations": (
-                observations
-            ),
-
-            "eligible_races": (
-                data[
-                    "pick_races"
-                ]
-            ),
-
-            "component_top_pick_win_rate": (
-                rounded(
-                    rate(
-                        data[
-                            "pick_hits"
-                        ],
-                        data[
-                            "pick_races"
-                        ],
-                    )
+            "venue_code": text(
+                race.get(
+                    "venue_code"
                 )
             ),
-
-            "winner_mean_raw_score": (
-                rounded(
-                    winner_mean
+            "venue_name": text(
+                race.get(
+                    "venue_name"
                 )
             ),
-
-            "nonwinner_mean_raw_score": (
-                rounded(
-                    nonwinner_mean
-                )
+            "race": to_int(
+                race.get("race")
             ),
-
-            "winner_nonwinner_gap": (
-                rounded(
-                    gap
-                )
+            "prediction_type": (
+                prediction_type
             ),
-
-            "correlation_with_finish_strength": (
-                rounded(
-                    correlation
-                )
+            "formation_type": (
+                formation_type
             ),
-
-            "diagnostic_only": (
-                diagnostic
+            "points": points,
+            "investment": investment,
+            "actual_trifecta": (
+                winning_combo
+            ),
+            "trifecta_payout_100yen": (
+                payout
+            ),
+            "hit": hit,
+            "return": returned,
+            "profit": profit,
+            "combinations": (
+                " / ".join(
+                    combinations
+                )
             ),
         }
 
-    return output
+        details.append(
+            detail
+        )
+
+        for bucket in (
+            totals,
+            by_type[
+                formation_type
+            ],
+            by_prediction[
+                prediction_type
+            ],
+        ):
+            bucket[
+                "races"
+            ] += 1
+
+            bucket[
+                "hits"
+            ] += hit
+
+            bucket[
+                "points"
+            ] += points
+
+            bucket[
+                "investment"
+            ] += investment
+
+            bucket[
+                "return"
+            ] += returned
+
+    def summarize(bucket):
+        investment = bucket[
+            "investment"
+        ]
+
+        returned = bucket[
+            "return"
+        ]
+
+        return {
+            **bucket,
+            "hit_rate": rounded(
+                rate(
+                    bucket[
+                        "hits"
+                    ],
+                    bucket[
+                        "races"
+                    ],
+                )
+            ),
+            "average_points_per_race": (
+                rounded(
+                    rate(
+                        bucket[
+                            "points"
+                        ],
+                        bucket[
+                            "races"
+                        ],
+                    )
+                )
+            ),
+            "profit": (
+                returned
+                - investment
+            ),
+            "recovery_rate_pct": (
+                rounded(
+                    (
+                        returned
+                        / investment
+                        * 100
+                    )
+                    if investment
+                    else None,
+                    2,
+                )
+            ),
+        }
+
+    return {
+        "model_version": text(
+            payload.get(
+                "model_version"
+            )
+        ),
+        "100yen_per_combination": True,
+        "overall": summarize(
+            totals
+        ),
+        "by_formation_type": {
+            key: summarize(
+                value
+            )
+            for key, value
+            in by_type.items()
+        },
+        "by_prediction_type": {
+            key: summarize(
+                value
+            )
+            for key, value
+            in by_prediction.items()
+        },
+        "details": details,
+    }
 
 
 def write_csv(
@@ -1453,37 +889,27 @@ def write_csv(
         return
 
     fields = list(
-        rows[
-            0
-        ].keys()
+        rows[0].keys()
     )
 
-    with Path(
-        path
-    ).open(
+    with Path(path).open(
         "w",
         encoding="utf-8",
         newline="",
     ) as f:
-
         writer = csv.DictWriter(
             f,
             fieldnames=fields,
         )
 
         writer.writeheader()
-
-        writer.writerows(
-            rows
-        )
+        writer.writerows(rows)
 
 
 def main():
     args = parse_args()
 
-    target_date = (
-        args.date
-    )
+    target_date = args.date
 
     try:
         datetime.strptime(
@@ -1491,50 +917,40 @@ def main():
             "%Y%m%d",
         )
 
-    except ValueError:
-        print(
-            "ERROR: --dateはYYYYMMDD形式です",
-            file=sys.stderr,
+        base = (
+            Path("predictions")
+            / target_date[:4]
+            / target_date[4:6]
+            / target_date[6:8]
         )
-
-        return 1
-
-    prediction_dir = (
-        Path("predictions")
-        / target_date[:4]
-        / target_date[4:6]
-        / target_date[6:8]
-    )
-
-    morning_path = (
-        prediction_dir
-        / (
-            f"morning_predictions_"
-            f"{target_date}.json"
-        )
-    )
-
-    live_path = (
-        prediction_dir
-        / "live"
-        / (
-            f"live_predictions_final_"
-            f"{target_date}.json"
-        )
-    )
-
-    try:
 
         morning_payload = load_json(
-            morning_path,
-            required=True,
+            base
+            / (
+                f"morning_predictions_"
+                f"{target_date}.json"
+            )
         )
 
         live_payload = load_json(
-            live_path,
+            base
+            / "live"
+            / (
+                f"live_predictions_final_"
+                f"{target_date}.json"
+            ),
             required=(
                 args.require_live
             ),
+        )
+
+        formation_payload = load_json(
+            base
+            / "live"
+            / (
+                "formation_predictions_final_"
+                f"{target_date}.json"
+            )
         )
 
         actual = load_actual(
@@ -1550,19 +966,7 @@ def main():
             actual,
         )
 
-        if (
-            morning_summary[
-                "evaluated_races"
-            ]
-            == 0
-        ):
-            raise RuntimeError(
-                "朝予測を評価できる"
-                "レースが0件です"
-            )
-
-        if live_payload is not None:
-
+        if live_payload:
             (
                 live_summary,
                 live_rows,
@@ -1571,43 +975,24 @@ def main():
                 live_payload,
                 actual,
             )
-
         else:
-
             live_summary = {
                 "stage": "live",
                 "evaluated_races": 0,
             }
-
             live_rows = []
 
-        if (
-            args.require_live
-            and live_summary.get(
-                "evaluated_races",
-                0,
+        comparison = compare_stages(
+            morning_rows,
+            live_rows,
+        )
+
+        formation_result = (
+            evaluate_formations(
+                formation_payload,
+                actual,
             )
-            == 0
-        ):
-            raise RuntimeError(
-                "直前予測を評価できる"
-                "レースが0件です"
-            )
-
-        if live_rows:
-
-            comparison = (
-                compare_stages(
-                    morning_rows,
-                    live_rows,
-                )
-            )
-
-        else:
-
-            comparison = {
-                "compared_races": 0,
-            }
+        )
 
         output_dir = (
             Path("evaluations")
@@ -1627,46 +1012,70 @@ def main():
                 "prediction_evaluation_"
                 f"{target_date}.csv"
             ),
-            (
-                morning_rows
-                + live_rows
+            morning_rows
+            + live_rows,
+        )
+
+        write_csv(
+            output_dir
+            / (
+                "formation_simulation_"
+                f"{target_date}.csv"
             ),
+            formation_result[
+                "details"
+            ],
         )
 
         evaluation = {
             "status": "PASS",
-
             "target_date": (
                 target_date
             ),
-
             "generated_at": (
                 datetime.now(
                     JST
                 ).isoformat()
             ),
-
             "actual_races_available": (
-                len(
-                    actual
-                )
+                len(actual)
             ),
-
             "morning": (
                 morning_summary
             ),
-
             "live": (
                 live_summary
             ),
-
             "morning_vs_live": (
                 comparison
             ),
-
+            "formation_simulation": {
+                "model_version": (
+                    formation_result[
+                        "model_version"
+                    ]
+                ),
+                "overall": (
+                    formation_result[
+                        "overall"
+                    ]
+                ),
+                "by_formation_type": (
+                    formation_result[
+                        "by_formation_type"
+                    ]
+                ),
+                "by_prediction_type": (
+                    formation_result[
+                        "by_prediction_type"
+                    ]
+                ),
+            },
             "note": (
-                "予測後に取得した実結果のみで評価。"
-                "この処理では重みを変更しない。"
+                "各買い目100円固定。"
+                "当日の結果を見て"
+                "予測やフォーメーションを"
+                "後から変更していない。"
             ),
         }
 
@@ -1685,65 +1094,15 @@ def main():
             encoding="utf-8",
         )
 
-        component = {
-            "status": "PASS",
-
-            "target_date": (
-                target_date
-            ),
-
-            "generated_at": (
-                datetime.now(
-                    JST
-                ).isoformat()
-            ),
-
-            "morning_components": (
-                component_analysis(
-                    morning_payload,
-                    actual,
-                )
-            ),
-
-            "live_components": (
-                component_analysis(
-                    live_payload,
-                    actual,
-                )
-                if live_payload
-                else {}
-            ),
-
-            "interpretation": {
-                "increase_candidate": (
-                    "単日診断では寄与が比較的強い候補。"
-                    "自動で重み変更しない。"
-                ),
-
-                "decrease_candidate": (
-                    "単日診断では寄与が弱い候補。"
-                    "自動で重み変更しない。"
-                ),
-
-                "hold": (
-                    "現時点では維持候補。"
-                ),
-
-                "insufficient_sample": (
-                    "サンプル不足。判断保留。"
-                ),
-            },
-        }
-
         (
             output_dir
             / (
-                "score_component_analysis_"
+                "formation_simulation_"
                 f"{target_date}.json"
             )
         ).write_text(
             json.dumps(
-                component,
+                formation_result,
                 ensure_ascii=False,
                 indent=2,
             ),
@@ -1753,22 +1112,12 @@ def main():
         print(
             "========================================"
         )
-
         print(
-            "9/30 予測実績評価"
+            "予測＋フォーメーション最終評価"
         )
-
         print(
             "========================================"
         )
-
-        print(
-            "実結果レース:",
-            len(
-                actual
-            ),
-        )
-
         print(
             "朝予測評価:",
             morning_summary[
@@ -1776,89 +1125,77 @@ def main():
             ],
             "R",
         )
-
-        print(
-            "朝1位予測1着率:",
-            morning_summary[
-                "top1_win_rate"
-            ],
-        )
-
-        print(
-            "朝TOP3勝者捕捉率:",
-            morning_summary[
-                "winner_in_top3_rate"
-            ],
-        )
-
         print(
             "直前予測評価:",
-            live_summary.get(
-                "evaluated_races",
-                0,
-            ),
+            live_summary[
+                "evaluated_races"
+            ],
             "R",
         )
 
-        if live_rows:
-
-            print(
-                "直前1位予測1着率:",
-                live_summary[
-                    "top1_win_rate"
-                ],
-            )
-
-            print(
-                "直前TOP3勝者捕捉率:",
-                live_summary[
-                    "winner_in_top3_rate"
-                ],
-            )
-
-            print(
-                "朝→直前 勝者順位改善:",
-                comparison.get(
-                    "winner_rank_improved",
-                    0,
-                ),
-                "R",
-            )
-
-            print(
-                "朝→直前 勝者順位悪化:",
-                comparison.get(
-                    "winner_rank_worsened",
-                    0,
-                ),
-                "R",
-            )
-
-        print(
-            "重み自動変更: なし"
+        overall = (
+            formation_result[
+                "overall"
+            ]
         )
 
+        print(
+            "フォーメーション評価:",
+            overall[
+                "races"
+            ],
+            "R",
+        )
+        print(
+            "的中:",
+            overall[
+                "hits"
+            ],
+            "R",
+        )
+        print(
+            "投資:",
+            overall[
+                "investment"
+            ],
+            "円",
+        )
+        print(
+            "払戻:",
+            overall[
+                "return"
+            ],
+            "円",
+        )
+        print(
+            "損益:",
+            overall[
+                "profit"
+            ],
+            "円",
+        )
+        print(
+            "回収率:",
+            overall[
+                "recovery_rate_pct"
+            ],
+            "%",
+        )
         print(
             "評価生成: PASS"
-        )
-
-        print(
-            "========================================"
         )
 
         return 0
 
     except Exception as exc:
-
         print(
             f"ERROR: {exc}",
             file=sys.stderr,
         )
-
         return 1
 
 
 if __name__ == "__main__":
-    sys.exit(
+    raise SystemExit(
         main()
     )
