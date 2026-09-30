@@ -8,8 +8,11 @@ on:
     # 9/30 08:00〜08:45 JST
     - cron: "0,15,30,45 23 29 9 *"
 
-    # 9/30 09:00〜21:45 JST
-    - cron: "0,15,30,45 0-12 30 9 *"
+    # 9/30 09:00〜22:45 JST
+    - cron: "0,15,30,45 0-13 30 9 *"
+
+    # 9/30 23:00 JST 最終確認
+    - cron: "0 14 30 9 *"
 
   workflow_dispatch:
 
@@ -262,17 +265,4 @@ jobs:
 
           echo "対象日: ${TARGET_DATE}"
           echo "通常最新一覧: PASS"
-          echo "締切順最新一覧: PASS"
-
-          if [ "${HAS_LIVE_PREDICTION}" = "true" ]; then
-            echo "直前予測: PASS"
-          else
-            echo "直前予測: 今回は対象なし"
-          fi
-
-          echo ""
-          echo "通常版:"
-          echo "predictions/latest.md"
-          echo ""
-          echo "締切順版:"
-          echo "predictions/latest_by_deadline.md"
+         
