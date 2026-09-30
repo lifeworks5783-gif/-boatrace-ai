@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import itertools
 import json
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -10,21 +11,15 @@ from pathlib import Path
 
 JST = timezone(timedelta(hours=9))
 
+FORMATION_MODEL = "formation_gap_v1"
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="スマホ確認用の最新予想一覧を生成"
+        description="スマホ確認用最新予想＋3連単フォーメーション生成"
     )
-    parser.add_argument(
-        "--date",
-        required=True,
-        help="対象日 YYYYMMDD",
-    )
-    parser.add_argument(
-        "--now",
-        default=None,
-        help="現在時刻 ISO8601。省略時は日本時間の現在時刻",
-    )
+    parser.add_argument("--date", required=True)
+    parser.add_argument("--now", default=None)
     return parser.parse_args()
 
 
@@ -66,7 +61,9 @@ def load_json(path, required=False):
 
     if not path.exists():
         if required:
-            raise RuntimeError(f"ファイルがありません: {path}")
+            raise RuntimeError(
+                f"ファイルがありません: {path}"
+            )
         return None
 
     return json.loads(
@@ -74,17 +71,49 @@ def load_json(path, required=False):
     )
 
 
-def first_value(mapping, keys):
-    if not isinstance(mapping, dict):
-        return None
+def prediction_map(payload):
+    if not isinstance(payload, dict):
+        return {}
 
-    for key in keys:
-        value = mapping.get(key)
+    races = payload.get("races")
 
-        if value not in (None, ""):
-            return value
+    if not isinstance(races, list):
+        return {}
 
-    return None
+    result = {}
+
+    for race in races:
+        race_id = text(
+            race.get("race_id")
+        )
+
+        if race_id:
+            result[race_id] = race
+
+    return result
+
+
+def ranked_boats(race):
+    boats = race.get("boats") or []
+
+    rows = [
+        boat
+        for boat in boats
+        if to_int(boat.get("boat")) is not None
+        and to_float(boat.get("score")) is not None
+    ]
+
+    rows.sort(
+        key=lambda boat: (
+            to_int(boat.get("rank"))
+            if to_int(boat.get("rank")) is not None
+            else 99,
+            -(to_float(boat.get("score")) or 0),
+            to_int(boat.get("boat")) or 99,
+        )
+    )
+
+    return rows
 
 
 def parse_deadline(target_date, value):
@@ -106,7 +135,7 @@ def parse_deadline(target_date, value):
     except ValueError:
         pass
 
-    day = datetime.strptime(
+    base_date = datetime.strptime(
         target_date,
         "%Y%m%d",
     ).date()
@@ -123,25 +152,10 @@ def parse_deadline(target_date, value):
             ).time()
 
             return datetime.combine(
-                day,
+                base_date,
                 tm,
                 tzinfo=JST,
             )
-
-        except ValueError:
-            pass
-
-    for fmt in (
-        "%Y%m%d%H%M",
-        "%Y-%m-%d %H:%M",
-        "%Y/%m/%d %H:%M",
-    ):
-        try:
-            dt = datetime.strptime(
-                raw,
-                fmt,
-            )
-            return dt.replace(tzinfo=JST)
 
         except ValueError:
             pass
@@ -175,114 +189,17 @@ def load_program_deadlines(target_date):
                 row.get("race_id")
             )
 
-            deadline = first_value(
-                row,
-                (
-                    "deadline",
-                    "deadline_time",
-                    "close_time",
-                    "cutoff_time",
-                ),
+            deadline = (
+                row.get("deadline")
+                or row.get("deadline_time")
+                or row.get("close_time")
+                or row.get("cutoff_time")
             )
 
             if race_id and deadline:
                 result[race_id] = deadline
 
     return result
-
-
-def prediction_map(payload):
-    if not isinstance(payload, dict):
-        return {}
-
-    races = payload.get("races")
-
-    if not isinstance(races, list):
-        return {}
-
-    result = {}
-
-    for race in races:
-        race_id = text(
-            race.get("race_id")
-        )
-
-        if race_id:
-            result[race_id] = race
-
-    return result
-
-
-def ranked_boats(race):
-    boats = race.get("boats") or []
-
-    rows = [
-        boat
-        for boat in boats
-        if to_int(
-            boat.get("boat")
-        )
-        is not None
-    ]
-
-    def sort_key(boat):
-        rank = to_int(
-            boat.get("rank")
-        )
-
-        score = to_float(
-            boat.get("score")
-        )
-
-        boat_no = to_int(
-            boat.get("boat")
-        ) or 99
-
-        if rank is not None:
-            return (
-                0,
-                rank,
-                boat_no,
-            )
-
-        return (
-            1,
-            -(score or 0),
-            boat_no,
-        )
-
-    rows.sort(
-        key=sort_key
-    )
-
-    return rows
-
-
-def racer_label(boat):
-    boat_no = to_int(
-        boat.get("boat")
-    )
-
-    racer_name = text(
-        boat.get("racer_name")
-    )
-
-    score = to_float(
-        boat.get("score")
-    )
-
-    if boat_no is None:
-        return "-"
-
-    label = f"{boat_no}号艇"
-
-    if racer_name:
-        label += f" {racer_name}"
-
-    if score is not None:
-        label += f" ({score:.1f})"
-
-    return label
 
 
 def race_deadline_raw(
@@ -293,14 +210,11 @@ def race_deadline_raw(
         race.get("race_id")
     )
 
-    value = first_value(
-        race,
-        (
-            "deadline",
-            "deadline_time",
-            "close_time",
-            "cutoff_time",
-        ),
+    value = (
+        race.get("deadline")
+        or race.get("deadline_time")
+        or race.get("close_time")
+        or race.get("cutoff_time")
     )
 
     if value not in (None, ""):
@@ -311,11 +225,359 @@ def race_deadline_raw(
     )
 
 
+def boat_number(row):
+    return to_int(
+        row.get("boat")
+    )
+
+
+def boat_score(row):
+    return to_float(
+        row.get("score")
+    ) or 0.0
+
+
+def combo_strength(
+    combo,
+    score_by_boat,
+):
+    first, second, third = combo
+
+    return (
+        score_by_boat[first] * 0.50
+        + score_by_boat[second] * 0.30
+        + score_by_boat[third] * 0.20
+    )
+
+
+def valid_combinations(
+    first_candidates,
+    second_candidates,
+    third_candidates,
+):
+    combos = []
+
+    for first, second, third in itertools.product(
+        first_candidates,
+        second_candidates,
+        third_candidates,
+    ):
+        if len(
+            {
+                first,
+                second,
+                third,
+            }
+        ) != 3:
+            continue
+
+        combos.append(
+            (
+                first,
+                second,
+                third,
+            )
+        )
+
+    return list(
+        dict.fromkeys(combos)
+    )
+
+
+def build_formation(boats):
+    if len(boats) != 6:
+        return None
+
+    order = [
+        boat_number(row)
+        for row in boats
+    ]
+
+    scores = [
+        boat_score(row)
+        for row in boats
+    ]
+
+    if any(
+        boat is None
+        for boat in order
+    ):
+        return None
+
+    score_by_boat = {
+        boat_number(row): boat_score(row)
+        for row in boats
+    }
+
+    gap12 = scores[0] - scores[1]
+    gap23 = scores[1] - scores[2]
+    gap34 = scores[2] - scores[3]
+
+    if gap12 >= 10.0:
+        formation_type = "1着強軸"
+        first_candidates = order[:1]
+        second_candidates = order[1:3]
+        third_candidates = order[1:4]
+        max_points = 6
+
+    elif gap12 >= 5.0:
+        formation_type = "準軸"
+        first_candidates = order[:2]
+        second_candidates = order[:3]
+        third_candidates = order[:4]
+        max_points = 8
+
+    else:
+        formation_type = "混戦"
+        first_candidates = order[:2]
+        second_candidates = order[:4]
+        third_candidates = order[:5]
+        max_points = 12
+
+    combos = valid_combinations(
+        first_candidates,
+        second_candidates,
+        third_candidates,
+    )
+
+    combos.sort(
+        key=lambda combo: (
+            -combo_strength(
+                combo,
+                score_by_boat,
+            ),
+            combo,
+        )
+    )
+
+    combos = combos[:max_points]
+
+    return {
+        "model_version": FORMATION_MODEL,
+        "formation_type": formation_type,
+        "gap_1_2": round(gap12, 2),
+        "gap_2_3": round(gap23, 2),
+        "gap_3_4": round(gap34, 2),
+        "first_candidates": first_candidates,
+        "second_candidates": second_candidates,
+        "third_candidates": third_candidates,
+        "combinations": [
+            f"{a}-{b}-{c}"
+            for a, b, c in combos
+        ],
+        "points": len(combos),
+        "investment_100yen": (
+            len(combos) * 100
+        ),
+    }
+
+
+def racer_label(row):
+    boat = boat_number(row)
+    name = text(
+        row.get("racer_name")
+    )
+    score = boat_score(row)
+
+    label = f"{boat}号艇"
+
+    if name:
+        label += f" {name}"
+
+    label += f" {score:.1f}"
+
+    return label
+
+
+def compact_scores(boats):
+    parts = []
+
+    for rank, row in enumerate(
+        boats,
+        start=1,
+    ):
+        parts.append(
+            f"{rank}位 "
+            f"{racer_label(row)}"
+        )
+
+    return " / ".join(parts)
+
+
+def formation_candidate_text(
+    candidates,
+):
+    return "・".join(
+        str(value)
+        for value in candidates
+    )
+
+
+def write_formation_csv(
+    path,
+    rows,
+):
+    fields = [
+        "target_date",
+        "race_id",
+        "venue_code",
+        "venue_name",
+        "race",
+        "deadline",
+        "prediction_type",
+        "formation_type",
+        "gap_1_2",
+        "first_candidates",
+        "second_candidates",
+        "third_candidates",
+        "points",
+        "investment_100yen",
+        "combinations",
+        "rank1_boat",
+        "rank1_score",
+        "rank2_boat",
+        "rank2_score",
+        "rank3_boat",
+        "rank3_score",
+        "rank4_boat",
+        "rank4_score",
+        "rank5_boat",
+        "rank5_score",
+        "rank6_boat",
+        "rank6_score",
+    ]
+
+    with Path(path).open(
+        "w",
+        encoding="utf-8",
+        newline="",
+    ) as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=fields,
+        )
+
+        writer.writeheader()
+
+        for item in rows:
+            boats = item[
+                "boats"
+            ]
+
+            row = {
+                "target_date": item[
+                    "target_date"
+                ],
+                "race_id": item[
+                    "race_id"
+                ],
+                "venue_code": item[
+                    "venue_code"
+                ],
+                "venue_name": item[
+                    "venue_name"
+                ],
+                "race": item[
+                    "race"
+                ],
+                "deadline": item[
+                    "deadline"
+                ],
+                "prediction_type": item[
+                    "prediction_type"
+                ],
+                "formation_type": item[
+                    "formation"
+                ][
+                    "formation_type"
+                ],
+                "gap_1_2": item[
+                    "formation"
+                ][
+                    "gap_1_2"
+                ],
+                "first_candidates": (
+                    "-".join(
+                        map(
+                            str,
+                            item[
+                                "formation"
+                            ][
+                                "first_candidates"
+                            ],
+                        )
+                    )
+                ),
+                "second_candidates": (
+                    "-".join(
+                        map(
+                            str,
+                            item[
+                                "formation"
+                            ][
+                                "second_candidates"
+                            ],
+                        )
+                    )
+                ),
+                "third_candidates": (
+                    "-".join(
+                        map(
+                            str,
+                            item[
+                                "formation"
+                            ][
+                                "third_candidates"
+                            ],
+                        )
+                    )
+                ),
+                "points": item[
+                    "formation"
+                ][
+                    "points"
+                ],
+                "investment_100yen": item[
+                    "formation"
+                ][
+                    "investment_100yen"
+                ],
+                "combinations": (
+                    " / ".join(
+                        item[
+                            "formation"
+                        ][
+                            "combinations"
+                        ]
+                    )
+                ),
+            }
+
+            for index in range(6):
+                boat = boats[index]
+
+                row[
+                    f"rank{index + 1}_boat"
+                ] = boat[
+                    "boat"
+                ]
+
+                row[
+                    f"rank{index + 1}_score"
+                ] = boat[
+                    "score"
+                ]
+
+            writer.writerow(row)
+
+
 def main():
     args = parse_args()
 
     target_date = args.date
-    now = parse_now(args.now)
+    now = parse_now(
+        args.now
+    )
 
     datetime.strptime(
         target_date,
@@ -329,24 +591,16 @@ def main():
         / target_date[6:8]
     )
 
-    morning_path = (
-        base
-        / f"morning_predictions_{target_date}.json"
-    )
-
-    live_path = (
-        base
-        / "live"
-        / f"live_predictions_final_{target_date}.json"
-    )
-
     morning_payload = load_json(
-        morning_path,
+        base
+        / f"morning_predictions_{target_date}.json",
         required=True,
     )
 
     live_payload = load_json(
-        live_path,
+        base
+        / "live"
+        / f"live_predictions_final_{target_date}.json",
         required=False,
     )
 
@@ -364,20 +618,39 @@ def main():
         )
     )
 
-    race_ids = sorted(
+    all_race_ids = sorted(
         set(morning)
         | set(live)
     )
 
+    formation_rows = []
     upcoming = []
 
-    for race_id in race_ids:
+    for race_id in all_race_ids:
         if race_id in live:
-            race = live[race_id]
+            race = live[
+                race_id
+            ]
             prediction_type = "直前"
         else:
-            race = morning[race_id]
+            race = morning[
+                race_id
+            ]
             prediction_type = "朝"
+
+        boats = ranked_boats(
+            race
+        )
+
+        if len(boats) != 6:
+            continue
+
+        formation = build_formation(
+            boats
+        )
+
+        if formation is None:
+            continue
 
         deadline_raw = (
             race_deadline_raw(
@@ -386,277 +659,139 @@ def main():
             )
         )
 
-        deadline = parse_deadline(
+        deadline_dt = parse_deadline(
             target_date,
             deadline_raw,
         )
 
-        if (
-            deadline is not None
-            and deadline <= now
-        ):
-            continue
-
-        boats = ranked_boats(race)
-
-        if len(boats) < 3:
-            continue
-
-        upcoming.append(
-            {
-                "race_id": race_id,
-                "venue_code": text(
-                    race.get("venue_code")
-                ),
-                "venue_name": text(
-                    race.get("venue_name")
-                ),
-                "race": to_int(
-                    race.get("race")
-                ),
-                "deadline_raw": text(
-                    deadline_raw
-                ),
-                "deadline_dt": deadline,
-                "prediction_type": (
-                    prediction_type
-                ),
-                "top3": boats[:3],
-                "strength": text(
-                    race.get("strength")
-                ),
-            }
-        )
-
-    upcoming.sort(
-        key=lambda row: (
-            row["deadline_dt"]
-            or datetime.max.replace(
-                tzinfo=JST
+        row = {
+            "target_date": target_date,
+            "race_id": race_id,
+            "venue_code": text(
+                race.get(
+                    "venue_code"
+                )
             ),
-            row["venue_code"],
-            row["race"] or 99,
-        )
-    )
-
-    live_count = sum(
-        1
-        for row in upcoming
-        if row["prediction_type"]
-        == "直前"
-    )
-
-    morning_count = (
-        len(upcoming)
-        - live_count
-    )
-
-    grouped = defaultdict(list)
-
-    for row in upcoming:
-        venue = (
-            row["venue_name"]
-            or row["venue_code"]
-            or "会場不明"
-        )
-
-        grouped[venue].append(row)
-
-    lines = []
-
-    lines.append(
-        "# ボートレースAI 最新予想"
-    )
-    lines.append("")
-    lines.append(
-        f"**最終更新："
-        f"{now.strftime('%Y/%m/%d %H:%M')} JST**"
-    )
-    lines.append("")
-    lines.append(
-        f"対象日："
-        f"{target_date[:4]}/"
-        f"{target_date[4:6]}/"
-        f"{target_date[6:8]}"
-    )
-    lines.append("")
-    lines.append(
-        "直前予測が取得できているレースは"
-        "**直前予測を優先**し、"
-        "未取得のレースは朝予測を表示しています。"
-    )
-    lines.append("")
-    lines.append(
-        f"- 締切前の表示対象："
-        f"**{len(upcoming)}レース**"
-    )
-    lines.append(
-        f"- 直前予測："
-        f"**{live_count}レース**"
-    )
-    lines.append(
-        f"- 朝予測："
-        f"**{morning_count}レース**"
-    )
-    lines.append("")
-    lines.append(
-        "> ※表示スコアは現行モデルの"
-        "比較用スコアであり、"
-        "勝率そのものではありません。"
-    )
-    lines.append("")
-
-    if not upcoming:
-        lines.append(
-            "現在、締切前の表示対象レースはありません。"
-        )
-
-    else:
-        for venue, races in grouped.items():
-            lines.append(
-                f"## {venue}"
-            )
-            lines.append("")
-            lines.append(
-                "| 締切 | R | 種別 | ◎ | ○ | ▲ |"
-            )
-            lines.append(
-                "|---|---:|---|---|---|---|"
-            )
-
-            for row in races:
-                deadline = row[
-                    "deadline_dt"
-                ]
-
-                deadline_label = (
-                    deadline.strftime(
-                        "%H:%M"
-                    )
-                    if deadline
-                    else (
-                        row["deadline_raw"]
-                        or "不明"
+            "venue_name": text(
+                race.get(
+                    "venue_name"
+                )
+            ),
+            "race": to_int(
+                race.get(
+                    "race"
+                )
+            ),
+            "deadline": (
+                deadline_dt.isoformat()
+                if deadline_dt
+                else text(
+                    deadline_raw
+                )
+            ),
+            "prediction_type": (
+                prediction_type
+            ),
+            "generated_at": (
+                text(
+                    race.get(
+                        "generated_at"
                     )
                 )
-
-                race_no = (
-                    row["race"]
-                    if row["race"]
-                    is not None
-                    else "-"
+                or now.isoformat()
+            ),
+            "boats": [
+                {
+                    "rank": index,
+                    "boat": boat_number(
+                        boat
+                    ),
+                    "racer_name": text(
+                        boat.get(
+                            "racer_name"
+                        )
+                    ),
+                    "score": round(
+                        boat_score(
+                            boat
+                        ),
+                        2,
+                    ),
+                }
+                for index, boat
+                in enumerate(
+                    boats,
+                    start=1,
                 )
+            ],
+            "formation": formation,
+        }
 
-                top3 = row["top3"]
+        formation_rows.append(
+            row
+        )
 
-                lines.append(
-                    "| "
-                    f"{deadline_label}"
-                    " | "
-                    f"{race_no}"
-                    " | "
-                    f"{row['prediction_type']}"
-                    " | "
-                    f"{racer_label(top3[0])}"
-                    " | "
-                    f"{racer_label(top3[1])}"
-                    " | "
-                    f"{racer_label(top3[2])}"
-                    " |"
+        if (
+            deadline_dt is None
+            or deadline_dt > now
+        ):
+            upcoming.append(
+                (
+                    deadline_dt,
+                    row,
                 )
+            )
 
-            lines.append("")
-
-    output_md = (
-        Path("predictions")
-        / "latest.md"
+    live_dir = (
+        base
+        / "live"
     )
 
-    output_json = (
-        Path("predictions")
-        / "latest.json"
-    )
-
-    output_md.parent.mkdir(
+    live_dir.mkdir(
         parents=True,
         exist_ok=True,
     )
 
-    output_md.write_text(
-        "\n".join(lines) + "\n",
-        encoding="utf-8",
+    formation_json = (
+        live_dir
+        / (
+            "formation_predictions_final_"
+            f"{target_date}.json"
+        )
     )
 
-    machine_rows = []
-
-    for row in upcoming:
-        deadline = row["deadline_dt"]
-
-        machine_rows.append(
-            {
-                "race_id": (
-                    row["race_id"]
-                ),
-                "venue_code": (
-                    row["venue_code"]
-                ),
-                "venue_name": (
-                    row["venue_name"]
-                ),
-                "race": row["race"],
-                "deadline": (
-                    deadline.isoformat()
-                    if deadline
-                    else row[
-                        "deadline_raw"
-                    ]
-                ),
-                "prediction_type": (
-                    row[
-                        "prediction_type"
-                    ]
-                ),
-                "top3": [
-                    {
-                        "rank": index,
-                        "boat": to_int(
-                            boat.get("boat")
-                        ),
-                        "racer_name": text(
-                            boat.get(
-                                "racer_name"
-                            )
-                        ),
-                        "score": to_float(
-                            boat.get("score")
-                        ),
-                    }
-                    for index, boat
-                    in enumerate(
-                        row["top3"],
-                        start=1,
-                    )
-                ],
-            }
+    formation_csv = (
+        live_dir
+        / (
+            "formation_predictions_final_"
+            f"{target_date}.csv"
         )
+    )
 
-    output_json.write_text(
+    formation_json.write_text(
         json.dumps(
             {
-                "target_date": target_date,
+                "schema_version": "1.0",
+                "model_version": (
+                    FORMATION_MODEL
+                ),
+                "target_date": (
+                    target_date
+                ),
                 "generated_at": (
                     now.isoformat()
                 ),
-                "upcoming_race_count": (
-                    len(upcoming)
+                "race_count": len(
+                    formation_rows
                 ),
-                "live_race_count": (
-                    live_count
+                "simulation_rule": (
+                    "3連単各組み合わせ100円固定"
                 ),
-                "morning_race_count": (
-                    morning_count
+                "note": (
+                    "スコアは勝率ではなく"
+                    "艇間比較用のモデルスコア"
                 ),
-                "races": machine_rows,
+                "races": formation_rows,
             },
             ensure_ascii=False,
             indent=2,
@@ -664,42 +799,15 @@ def main():
         encoding="utf-8",
     )
 
-    print(
-        "========================================"
-    )
-    print(
-        "スマホ用 最新予想一覧"
-    )
-    print(
-        "========================================"
-    )
-    print(
-        "表示対象:",
-        len(upcoming),
-        "R",
-    )
-    print(
-        "直前予測:",
-        live_count,
-        "R",
-    )
-    print(
-        "朝予測:",
-        morning_count,
-        "R",
-    )
-    print(
-        "出力: predictions/latest.md"
-    )
-    print(
-        "出力: predictions/latest.json"
-    )
-    print(
-        "最新予想一覧生成: PASS"
+    write_formation_csv(
+        formation_csv,
+        formation_rows,
     )
 
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    upcoming.sort(
+        key=lambda item: (
+            item[0]
+            or datetime.max.replace(
+                tzinfo=JST
+            ),
+            item[1][
