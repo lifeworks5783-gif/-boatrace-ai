@@ -1,26 +1,19 @@
-name: 9月30日・予測結果最終評価
+name: 9月30日・高速予測結果評価
 
 permissions:
   contents: write
 
 on:
-  schedule:
-    # 9月30日 23:30 JST
-    - cron: "30 14 30 9 *"
-
-    # 9月30日 23:50 JST
-    - cron: "50 14 30 9 *"
-
   workflow_dispatch:
 
 concurrency:
-  group: boatrace-evaluation-0930
+  group: boatrace-fast-evaluation-0930
   cancel-in-progress: false
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
 
     env:
       TARGET_DATE: "20260930"
@@ -43,109 +36,101 @@ jobs:
       - name: 必要ライブラリを準備
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 lhafile pandas
+          pip install requests beautifulsoup4 pandas
 
-      - name: 実行時刻を確認
-        run: |
-          NOW_JST=$(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S JST')
-
-          echo "========================================"
-          echo "9月30日 予測結果評価"
-          echo "========================================"
-          echo "対象日: ${TARGET_DATE}"
-          echo "実行時刻: ${NOW_JST}"
-
-      - name: 9月30日の公式結果を取得
-        run: |
-          echo "9月30日の公式結果取得を開始します"
-
-          timeout 50m python -u collectors/daily_all.py || {
-            CODE=$?
-
-            if [ "${CODE}" -eq 124 ]; then
-              echo "結果取得がタイムアウトしました"
-              exit 1
-            fi
-
-            exit "${CODE}"
-          }
-
-          echo "公式結果取得処理: 完了"
-
-      - name: 取得した結果を確認
+      - name: 高速で公式結果を取得
         run: |
           echo "========================================"
-          echo "取得済みデータ確認"
+          echo "9月30日 高速結果取得"
           echo "========================================"
+
+          python -u collectors/fast_results.py \
+            --date "${TARGET_DATE}"
+
+      - name: 高速結果取得を確認
+        run: |
+          FILE="data/fast_results_validation_${TARGET_DATE}.json"
+
+          test -s "${FILE}"
+
+          cat "${FILE}"
+
+          if grep -q '"status": "PASS"' "${FILE}"; then
+            echo "高速結果取得: PASS"
+          else
+            echo "高速結果取得: FAIL"
+            exit 1
+          fi
+
+      - name: 結果CSVを確認
+        run: |
+          echo ""
+          echo "========================================"
+          echo "結果CSV確認"
+          echo "========================================"
+
+          test -s "data/results_${TARGET_DATE}_all.csv"
+          test -s "data/boat_results_${TARGET_DATE}_all.csv"
+          test -s "data/venues_${TARGET_DATE}.csv"
 
           echo ""
-          echo "dataフォルダ:"
-          echo ""
+          echo "払戻・結果レース数:"
 
-          find data \
-            -maxdepth 1 \
-            -type f \
-            -name "*${TARGET_DATE}*" \
-            -print \
-            | sort || true
+          python - <<'PY'
+          import pandas as pd
 
-          echo ""
-          echo "9月30日アーカイブ:"
-          echo ""
+          date = "20260930"
 
-          find "archive/${YEAR}/${MONTH}/${DAY}" \
-            -maxdepth 2 \
-            -type f \
-            -print \
-            2>/dev/null \
-            | sort || true
+          results = pd.read_csv(
+              f"data/results_{date}_all.csv"
+          )
 
-      - name: 朝予測データを確認
-        run: |
-          MORNING_DIR="predictions/${YEAR}/${MONTH}/${DAY}/morning"
+          boats = pd.read_csv(
+              f"data/boat_results_{date}_all.csv"
+          )
 
-          echo "========================================"
-          echo "朝予測データ"
-          echo "========================================"
+          print(
+              "results:",
+              len(results),
+              "races"
+          )
 
-          find "${MORNING_DIR}" \
-            -maxdepth 3 \
-            -type f \
-            -print \
-            2>/dev/null \
-            | sort || true
+          print(
+              "boat_results:",
+              len(boats),
+              "rows"
+          )
 
-      - name: 直前予測データを確認
-        run: |
-          LIVE_DIR="predictions/${YEAR}/${MONTH}/${DAY}/live"
+          if len(results) != 144:
+              raise SystemExit(
+                  "144レース揃っていません"
+              )
 
-          echo "========================================"
-          echo "直前予測データ"
-          echo "========================================"
-
-          find "${LIVE_DIR}" \
-            -maxdepth 4 \
-            -type f \
-            -print \
-            2>/dev/null \
-            | sort || true
+          print(
+              "144レース確認: PASS"
+          )
+          PY
 
       - name: 9月30日の総合評価を実行
         run: |
+          echo ""
           echo "========================================"
-          echo "総合評価開始"
+          echo "予測総合評価開始"
           echo "========================================"
 
           python -u collectors/evaluate_predictions.py \
             --date "${TARGET_DATE}"
 
-      - name: 評価結果を確認
+      - name: 評価結果を表示
         run: |
           EVAL_DIR="evaluations/${YEAR}/${MONTH}/${DAY}"
 
+          echo ""
           echo "========================================"
-          echo "生成された評価ファイル"
+          echo "評価結果"
           echo "========================================"
+
+          test -d "${EVAL_DIR}"
 
           find "${EVAL_DIR}" \
             -maxdepth 2 \
@@ -155,57 +140,59 @@ jobs:
 
           echo ""
           echo "========================================"
-          echo "予測総合評価"
+          echo "JSON評価内容"
           echo "========================================"
 
-          if [ -s "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json" ]; then
-            cat "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json"
-          else
-            echo "prediction_evaluation が生成されていません"
-            exit 1
-          fi
+          FOUND=0
 
-          echo ""
-          echo "========================================"
-          echo "3連単フォーメーション評価"
-          echo "========================================"
+          for FILE in "${EVAL_DIR}"/*.json
+          do
+            if [ -f "${FILE}" ]; then
+              FOUND=1
 
-          if [ -s "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json" ]; then
-            cat "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json"
-          else
-            echo "formation_simulation が生成されていません"
+              echo ""
+              echo "----------------------------------------"
+              echo "${FILE}"
+              echo "----------------------------------------"
+
+              cat "${FILE}"
+            fi
+          done
+
+          if [ "${FOUND}" -eq 0 ]; then
+            echo "評価JSONがありません"
             exit 1
           fi
 
       - name: 評価結果をArtifactへ保存
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-evaluation-20260930-${{ github.run_number }}
+          name: boatrace-fast-evaluation-20260930-${{ github.run_number }}
           path: |
+            data/fast_results_validation_20260930.json
+            data/results_20260930_all.csv
+            data/boat_results_20260930_all.csv
             evaluations/2026/09/30/
           if-no-files-found: error
           retention-days: 30
 
-      - name: 評価結果と結果データをGitHubへ保存
+      - name: 結果と評価をGitHubへ保存
         run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
-          if [ -d "archive/${YEAR}/${MONTH}/${DAY}" ]; then
-            git add "archive/${YEAR}/${MONTH}/${DAY}"
-          fi
-
+          git add "archive/${YEAR}/${MONTH}/${DAY}"
           git add "evaluations/${YEAR}/${MONTH}/${DAY}"
 
           if git diff --cached --quiet; then
-            echo "新しく保存する変更はありません"
+            echo "新しい変更はありません"
             exit 0
           fi
 
           RUN_STAMP=$(TZ=Asia/Tokyo date '+%Y%m%d_%H%M%S')
 
           git commit -m \
-            "Evaluate predictions ${TARGET_DATE} ${RUN_STAMP}"
+            "Fast evaluate predictions ${TARGET_DATE} ${RUN_STAMP}"
 
           git push origin HEAD:main
 
@@ -213,22 +200,12 @@ jobs:
 
       - name: 最終確認
         run: |
-          EVAL_DIR="evaluations/${YEAR}/${MONTH}/${DAY}"
-
           echo ""
           echo "========================================"
-          echo "9月30日 予測結果総合評価 完了"
+          echo "9月30日 高速総合評価 完了"
           echo "========================================"
           echo ""
-          echo "評価対象:"
-          echo "・朝予測"
-          echo "・直前予測"
-          echo "・3連単フォーメーション"
-          echo ""
-          echo "主要評価ファイル:"
-          echo "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json"
-          echo "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.csv"
-          echo "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json"
-          echo "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.csv"
-          echo ""
-          echo "評価処理: PASS"
+          echo "公式結果取得: PASS"
+          echo "144レース確認: PASS"
+          echo "予測評価: PASS"
+          echo "GitHub保存: PASS"
