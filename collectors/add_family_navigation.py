@@ -21,204 +21,154 @@ PAGES = {
 }
 
 
-NAV_CSS = """
+# ---------------------------------------------------------
+# 3ページ共通ヘッダー・ナビゲーション
+#
+# 最新予想だけ旧UIに見える問題を、
+# 後付けCSSで完全に統一する。
+# ---------------------------------------------------------
 
-/* family-navigation-v3 */
+NAV_CSS = r"""
+
+/* family-navigation-v4-unified */
 
 .family-nav {
+  display: grid !important;
+
   grid-template-columns:
     repeat(
       3,
       minmax(0, 1fr)
     ) !important;
+
+  gap: 8px !important;
+
+  width: 100% !important;
+
+  margin:
+    0
+    0
+    14px
+    0 !important;
+
+  padding: 6px !important;
+
+  border:
+    1px solid
+    var(--line) !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    var(--card) !important;
+
+  box-sizing:
+    border-box !important;
 }
+
 
 .family-nav a {
-  min-width: 0;
+  display: flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+
+  min-width: 0 !important;
+
+  min-height:
+    44px !important;
+
+  padding:
+    11px
+    6px !important;
+
+  border:
+    0 !important;
+
+  border-radius:
+    10px !important;
+
+  background:
+    transparent !important;
+
+  color:
+    var(--text) !important;
+
+  text-align:
+    center !important;
+
+  text-decoration:
+    none !important;
+
+  font-size:
+    14px !important;
+
+  font-weight:
+    800 !important;
+
+  line-height:
+    1.25 !important;
+
+  -webkit-tap-highlight-color:
+    transparent;
 }
 
-@media (max-width: 560px) {
 
-  .family-nav a {
-    font-size: 12px;
+.family-nav a:link,
+.family-nav a:visited {
+  color:
+    var(--text) !important;
 
-    padding-left: 4px;
-    padding-right: 4px;
-  }
-
+  text-decoration:
+    none !important;
 }
 
-"""
+
+.family-nav a.active,
+.family-nav a.active:link,
+.family-nav a.active:visited {
+  background:
+    #2563eb !important;
+
+  color:
+    #ffffff !important;
+
+  text-decoration:
+    none !important;
+}
 
 
-def nav_html(
-    active: str,
-) -> str:
-
-    def link(
-        href: str,
-        label: str,
-        key: str,
-    ) -> str:
-
-        active_class = (
-            ' class="active"'
-            if active == key
-            else ""
-        )
-
-        return (
-            f'<a href="{href}"'
-            f"{active_class}>"
-            f"{label}"
-            "</a>"
-        )
-
-    return (
-        '<nav class="family-nav">\n'
-        + link(
-            "index.html",
-            "最新予想",
-            "prediction",
-        )
-        + "\n"
-        + link(
-            "results.html",
-            "結果・成績",
-            "results",
-        )
-        + "\n"
-        + link(
-            "analysis.html",
-            "AI分析",
-            "analysis",
-        )
-        + "\n</nav>"
-    )
+.family-nav a:active {
+  transform:
+    scale(0.99);
+}
 
 
-def update_page(
-    path: Path,
-    active: str,
-) -> None:
+/* ------------------------------------------------------
+   3ページでヘッダーサイズも統一
+   ------------------------------------------------------ */
 
-    if not path.exists():
+.wrap {
+  width:
+    min(
+      920px,
+      100%
+    ) !important;
 
-        raise SystemExit(
-            f"missing: {path}"
-        )
+  margin:
+    0
+    auto !important;
 
-    text = path.read_text(
-        encoding="utf-8"
-    )
-
-    nav = nav_html(
-        active
-    )
-
-    nav_pattern = re.compile(
-        r'<nav\s+class=["\']family-nav["\'][^>]*>.*?</nav>',
-        re.IGNORECASE
-        | re.DOTALL,
-    )
-
-    if nav_pattern.search(
-        text
-    ):
-
-        text = (
-            nav_pattern.sub(
-                nav,
-                text,
-                count=1,
-            )
-        )
-
-    elif "</header>" in text:
-
-        text = text.replace(
-            "</header>",
-            "</header>\n"
-            + nav,
-            1,
-        )
-
-    else:
-
-        body_match = re.search(
-            r"<body[^>]*>",
-            text,
-            flags=re.IGNORECASE,
-        )
-
-        if not body_match:
-
-            raise SystemExit(
-                "body/header not found: "
-                f"{path}"
-            )
-
-        insert_at = (
-            body_match.end()
-        )
-
-        text = (
-            text[:insert_at]
-            + "\n"
-            + nav
-            + text[insert_at:]
-        )
-
-    if (
-        "family-navigation-v3"
-        not in text
-    ):
-
-        if "</style>" in text:
-
-            text = text.replace(
-                "</style>",
-                NAV_CSS
-                + "\n</style>",
-                1,
-            )
-
-        else:
-
-            raise SystemExit(
-                "style block not found: "
-                f"{path}"
-            )
-
-    path.write_text(
-        text,
-        encoding="utf-8",
-    )
-
-    print(
-        "3タブナビ更新: PASS -> "
-        f"{path}"
-    )
+  padding:
+    16px
+    12px
+    48px !important;
+}
 
 
-def main() -> int:
-
-    for (
-        filename,
-        active,
-    ) in PAGES.items():
-
-        update_page(
-            SITE_DIR
-            / filename,
-            active,
-        )
-
-    return 0
-
-
-if __name__ == "__main__":
-
-    raise SystemExit(
-        main()
-    )
+header {
+ 
