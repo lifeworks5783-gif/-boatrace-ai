@@ -68,10 +68,6 @@ jobs:
       - name: 直前情報を収集
         if: env.TARGET_DATE == '20260930'
         run: |
-          echo "========================================"
-          echo "直前情報収集"
-          echo "========================================"
-
           mkdir -p data
 
           python -u collectors/today_beforeinfo.py
@@ -114,10 +110,6 @@ jobs:
       - name: 直前最終予測を生成
         if: env.HAS_CANDIDATES == 'true'
         run: |
-          echo "========================================"
-          echo "直前最終予測"
-          echo "========================================"
-
           python -u collectors/build_live_prediction.py \
             --date "${TARGET_DATE}" \
             --now "${NOW_ISO}"
@@ -208,28 +200,28 @@ jobs:
       - name: スマホ用最新予想一覧を生成
         if: env.TARGET_DATE == '20260930'
         run: |
-          echo "========================================"
-          echo "最新予想一覧生成"
-          echo "========================================"
-
           python -u collectors/build_latest_prediction_view.py \
             --date "${TARGET_DATE}" \
             --now "${NOW_ISO}"
 
-          cat predictions/latest.md
+      - name: 締切順最新予想一覧を生成
+        if: env.TARGET_DATE == '20260930'
+        run: |
+          python -u collectors/build_deadline_prediction_view.py \
+            --date "${TARGET_DATE}"
+
+          cat predictions/latest_by_deadline.md
 
       - name: GitHubへ保存
         if: env.TARGET_DATE == '20260930'
         run: |
-          echo "========================================"
-          echo "GitHub保存"
-          echo "========================================"
-
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
           git add predictions/latest.md
           git add predictions/latest.json
+          git add predictions/latest_by_deadline.md
+          git add predictions/latest_by_deadline.json
 
           if [ "${HAS_LIVE_PREDICTION}" = "true" ]; then
             git add "${LIVE_DEST}"
@@ -246,7 +238,6 @@ jobs:
 
           git push origin HEAD:main
 
-          echo ""
           echo "GitHub保存: PASS"
 
       - name: 直前予測をArtifactへ短期保存
@@ -270,8 +261,8 @@ jobs:
           echo "========================================"
 
           echo "対象日: ${TARGET_DATE}"
-          echo "直前情報収集: 完了"
-          echo "スマホ用最新一覧: 更新済み"
+          echo "通常最新一覧: PASS"
+          echo "締切順最新一覧: PASS"
 
           if [ "${HAS_LIVE_PREDICTION}" = "true" ]; then
             echo "直前予測: PASS"
@@ -280,5 +271,8 @@ jobs:
           fi
 
           echo ""
-          echo "確認場所:"
+          echo "通常版:"
           echo "predictions/latest.md"
+          echo ""
+          echo "締切順版:"
+          echo "predictions/latest_by_deadline.md"
