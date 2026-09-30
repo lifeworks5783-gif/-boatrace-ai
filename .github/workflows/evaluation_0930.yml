@@ -5,14 +5,11 @@ permissions:
 
 on:
   schedule:
-    # 10月1日 00:30 JST
-    - cron: "30 15 30 9 *"
+    # 9月30日 23:30 JST
+    - cron: "30 14 30 9 *"
 
-    # 10月1日 00:50 JST
-    - cron: "50 15 30 9 *"
-
-    # 10月1日 01:10 JST
-    - cron: "10 16 30 9 *"
+    # 9月30日 23:50 JST
+    - cron: "50 14 30 9 *"
 
   workflow_dispatch:
 
@@ -60,7 +57,7 @@ jobs:
 
       - name: 9月30日の公式結果を取得
         run: |
-          echo "9月30日の結果取得を開始します"
+          echo "9月30日の公式結果取得を開始します"
 
           timeout 50m python -u collectors/daily_all.py || {
             CODE=$?
@@ -77,7 +74,13 @@ jobs:
 
       - name: 取得した結果を確認
         run: |
-          echo "取得済み結果ファイルを確認します"
+          echo "========================================"
+          echo "取得済みデータ確認"
+          echo "========================================"
+
+          echo ""
+          echo "dataフォルダ:"
+          echo ""
 
           find data \
             -maxdepth 1 \
@@ -87,7 +90,8 @@ jobs:
             | sort || true
 
           echo ""
-          echo "アーカイブも確認します"
+          echo "9月30日アーカイブ:"
+          echo ""
 
           find "archive/${YEAR}/${MONTH}/${DAY}" \
             -maxdepth 2 \
@@ -100,9 +104,12 @@ jobs:
         run: |
           MORNING_DIR="predictions/${YEAR}/${MONTH}/${DAY}/morning"
 
-          echo "朝予測:"
+          echo "========================================"
+          echo "朝予測データ"
+          echo "========================================"
+
           find "${MORNING_DIR}" \
-            -maxdepth 2 \
+            -maxdepth 3 \
             -type f \
             -print \
             2>/dev/null \
@@ -112,9 +119,12 @@ jobs:
         run: |
           LIVE_DIR="predictions/${YEAR}/${MONTH}/${DAY}/live"
 
-          echo "直前予測:"
+          echo "========================================"
+          echo "直前予測データ"
+          echo "========================================"
+
           find "${LIVE_DIR}" \
-            -maxdepth 3 \
+            -maxdepth 4 \
             -type f \
             -print \
             2>/dev/null \
@@ -122,6 +132,10 @@ jobs:
 
       - name: 9月30日の総合評価を実行
         run: |
+          echo "========================================"
+          echo "総合評価開始"
+          echo "========================================"
+
           python -u collectors/evaluate_predictions.py \
             --date "${TARGET_DATE}"
 
@@ -140,8 +154,9 @@ jobs:
             | sort
 
           echo ""
-          echo "予測総合評価JSON:"
-          echo ""
+          echo "========================================"
+          echo "予測総合評価"
+          echo "========================================"
 
           if [ -s "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json" ]; then
             cat "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json"
@@ -152,7 +167,7 @@ jobs:
 
           echo ""
           echo "========================================"
-          echo "フォーメーション評価JSON"
+          echo "3連単フォーメーション評価"
           echo "========================================"
 
           if [ -s "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json" ]; then
@@ -205,7 +220,15 @@ jobs:
           echo "9月30日 予測結果総合評価 完了"
           echo "========================================"
           echo ""
-          echo "対象:"
+          echo "評価対象:"
           echo "・朝予測"
           echo "・直前予測"
-          echo "・
+          echo "・3連単フォーメーション"
+          echo ""
+          echo "主要評価ファイル:"
+          echo "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json"
+          echo "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.csv"
+          echo "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json"
+          echo "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.csv"
+          echo ""
+          echo "評価処理: PASS"
