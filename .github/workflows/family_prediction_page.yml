@@ -1,4 +1,4 @@
-name: 家族共有・予想結果ページ自動更新
+name: 家族共有・予想結果分析ページ自動更新
 
 on:
   workflow_run:
@@ -6,7 +6,7 @@ on:
       - "9月30日・直前予測自動テスト"
       - "毎日朝予測・本番"
       - "9月30日・高速予測結果評価"
-      - "9月30日・予測結果最終評価"
+      - "9月30日・スコア配分答え合わせ"
     types:
       - completed
 
@@ -57,14 +57,6 @@ jobs:
 
           echo "予想ページ生成: PASS"
 
-      - name: 予想ページへメニューを追加
-        run: |
-          python -u collectors/add_family_navigation.py
-
-          test -s _family_site/index.html
-
-          echo "ナビゲーション追加: PASS"
-
       - name: 結果・成績ページを生成
         run: |
           python -u collectors/build_family_results_page.py \
@@ -74,6 +66,26 @@ jobs:
           test -s _family_site/results.html
 
           echo "結果ページ生成: PASS"
+
+      - name: AI分析ページを生成
+        run: |
+          python -u collectors/build_family_analysis_page.py \
+            --evaluations-root evaluations \
+            --output-dir _family_site
+
+          test -s _family_site/analysis.html
+
+          echo "AI分析ページ生成: PASS"
+
+      - name: 3ページ共通メニューを設定
+        run: |
+          python -u collectors/add_family_navigation.py
+
+          test -s _family_site/index.html
+          test -s _family_site/results.html
+          test -s _family_site/analysis.html
+
+          echo "3タブメニュー: PASS"
 
       - name: 公開用リポジトリを読み込む
         uses: actions/checkout@v4
@@ -94,6 +106,10 @@ jobs:
             _family_site/results.html \
             family_public/results.html
 
+          cp \
+            _family_site/analysis.html \
+            family_public/analysis.html
+
           touch family_public/.nojekyll
 
           echo "公開ページ準備: PASS"
@@ -113,6 +129,7 @@ jobs:
           git add \
             index.html \
             results.html \
+            analysis.html \
             .nojekyll
 
           if git diff --cached --quiet; then
@@ -121,7 +138,7 @@ jobs:
           fi
 
           git commit \
-            -m "Update prediction and result pages"
+            -m "Update prediction results and AI analysis pages"
 
           git push origin HEAD:main
 
@@ -139,3 +156,6 @@ jobs:
           echo ""
           echo "結果・成績:"
           echo "https://lifeworks5783-gif.github.io/boatrace-family-view/results.html"
+          echo ""
+          echo "AI分析:"
+          echo "https://lifeworks5783-gif.github.io/boatrace-family-view/analysis.html"
