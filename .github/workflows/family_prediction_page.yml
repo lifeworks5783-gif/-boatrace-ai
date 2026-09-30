@@ -1,4 +1,4 @@
-name: 家族共有・予想ページ
+name: 家族共有・予想ページ自動更新
 
 on:
   workflow_run:
@@ -12,24 +12,22 @@ on:
 
 permissions:
   contents: read
-  actions: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: family-prediction-pages
+  group: family-prediction-publish
   cancel-in-progress: true
 
 jobs:
-  build:
+  publish:
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
 
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - name: ファイルを読み込む
+      - name: ボートレースAI本体を読み込む
         uses: actions/checkout@v4
         with:
           ref: main
@@ -39,45 +37,69 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 最新予想ファイルを確認
+      - name: 最新予想データを確認
         run: |
           test -s predictions/latest_by_deadline.json
 
-          echo "最新予想ファイル: PASS"
+          echo "最新予想データ: PASS"
 
       - name: 家族共有ページを生成
         run: |
-          python -u collectors/build_family_prediction_page.py
+          rm -rf _family_site
+
+          python -u collectors/build_family_prediction_page.py \
+            --input predictions/latest_by_deadline.json \
+            --output-dir _family_site
 
           test -s _family_site/index.html
 
           echo "家族共有ページ生成: PASS"
 
-      - name: GitHub Pagesを準備
-        uses: actions/configure-pages@v5
-
-      - name: 公開用ファイルを準備
-        uses: actions/upload-pages-artifact@v4
+      - name: 公開用リポジトリを読み込む
+        uses: actions/checkout@v4
         with:
-          path: _family_site
+          repository: lifeworks5783-gif/boatrace-family-view
+          ref: main
+          token: ${{ secrets.FAMILY_VIEW_TOKEN }}
+          path: family_public
+          fetch-depth: 0
 
-  deploy:
-    needs:
-      - build
+      - name: 公開ページだけをコピー
+        run: |
+          cp \
+            _family_site/index.html \
+            family_public/index.html
 
-    runs-on: ubuntu-latest
+          touch family_public/.nojekyll
 
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+          echo "公開用index.html準備: PASS"
 
-    permissions:
-      contents: read
-      actions: read
-      pages: write
-      id-token: write
+      - name: 家族共有ページを公開リポジトリへ保存
+        run: |
+          cd family_public
 
-    steps:
-      - name: 家族共有ページを公開
-        id: deployment
-        uses: actions/deploy-pages@v4
+          git config user.name "boatrace-family-view-bot"
+          git config user.email "boatrace-family-view-bot@users.noreply.github.com"
+
+          git add index.html
+          git add .nojekyll
+
+          if git diff --cached --quiet; then
+            echo "公開ページに変更はありません"
+            exit 0
+          fi
+
+          git commit -m "Update family prediction page"
+
+          git push origin HEAD:main
+
+          echo "家族共有ページ更新: PASS"
+
+      - name: 最終確認
+        run: |
+          echo "========================================"
+          echo "家族共有ページ更新 完了"
+          echo "========================================"
+          echo ""
+          echo "公開先:"
+          echo "https://lifeworks5783-gif.github.io/boatrace-family-view/"
