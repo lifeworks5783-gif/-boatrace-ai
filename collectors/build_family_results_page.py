@@ -21,20 +21,6 @@ TYPE_KEYS = [
     "by_type",
 ]
 
-MORNING_KEYS = [
-    "morning",
-    "morning_prediction",
-    "morning_predictions",
-    "朝",
-]
-
-LIVE_KEYS = [
-    "live",
-    "live_prediction",
-    "live_predictions",
-    "直前",
-]
-
 
 def load_json(
     path: Path,
@@ -235,125 +221,6 @@ def calc_rate(
     )
 
 
-def prediction_metrics(
-    root: Dict[str, Any],
-    aliases: Iterable[str],
-) -> Dict[str, Any]:
-
-    block = find_dict(
-        root,
-        aliases,
-    )
-
-    if block is None:
-        block = {}
-
-    races = get_value(
-        block,
-        [
-            "races",
-            "race_count",
-            "evaluated_races",
-            "total_races",
-        ],
-    )
-
-    top1_hits = get_value(
-        block,
-        [
-            "top1_hits",
-            "winner_hits",
-            "first_hits",
-            "rank1_hits",
-            "first_place_hits",
-        ],
-    )
-
-    top1_rate = get_value(
-        block,
-        [
-            "top1_rate",
-            "winner_rate",
-            "first_hit_rate",
-            "rank1_hit_rate",
-            "first_place_rate",
-        ],
-    )
-
-    top2_hits = get_value(
-        block,
-        [
-            "top2_hits",
-            "top2_capture_hits",
-            "top2_captured",
-        ],
-    )
-
-    top2_rate = get_value(
-        block,
-        [
-            "top2_rate",
-            "top2_capture_rate",
-            "top2_hit_rate",
-        ],
-    )
-
-    top3_hits = get_value(
-        block,
-        [
-            "top3_hits",
-            "top3_capture_hits",
-            "top3_captured",
-        ],
-    )
-
-    top3_rate = get_value(
-        block,
-        [
-            "top3_rate",
-            "top3_capture_rate",
-            "top3_hit_rate",
-        ],
-    )
-
-    if (
-        top1_rate is None
-        and top1_hits is not None
-    ):
-        top1_rate = calc_rate(
-            top1_hits,
-            races,
-        )
-
-    if (
-        top2_rate is None
-        and top2_hits is not None
-    ):
-        top2_rate = calc_rate(
-            top2_hits,
-            races,
-        )
-
-    if (
-        top3_rate is None
-        and top3_hits is not None
-    ):
-        top3_rate = calc_rate(
-            top3_hits,
-            races,
-        )
-
-    return {
-        "races": races,
-        "top1_hits": top1_hits,
-        "top1_rate": top1_rate,
-        "top2_hits": top2_hits,
-        "top2_rate": top2_rate,
-        "top3_hits": top3_hits,
-        "top3_rate": top3_rate,
-    }
-
-
 def formation_metrics(
     block: Dict[str, Any],
 ) -> Dict[str, Any]:
@@ -534,66 +401,6 @@ def metric_card(
     )
 
 
-def prediction_html(
-    title: str,
-    metrics: Dict[str, Any],
-) -> str:
-
-    cards = [
-        metric_card(
-            "評価レース",
-            fmt_count(
-                metrics["races"]
-            ),
-        ),
-        metric_card(
-            "1着的中率",
-            fmt_percent(
-                metrics["top1_rate"]
-            ),
-            (
-                f"{fmt_count(metrics['top1_hits'])}件"
-                if metrics["top1_hits"]
-                is not None
-                else ""
-            ),
-        ),
-        metric_card(
-            "上位2艇捕捉率",
-            fmt_percent(
-                metrics["top2_rate"]
-            ),
-            (
-                f"{fmt_count(metrics['top2_hits'])}件"
-                if metrics["top2_hits"]
-                is not None
-                else ""
-            ),
-        ),
-        metric_card(
-            "上位3艇捕捉率",
-            fmt_percent(
-                metrics["top3_rate"]
-            ),
-            (
-                f"{fmt_count(metrics['top3_hits'])}件"
-                if metrics["top3_hits"]
-                is not None
-                else ""
-            ),
-        ),
-    ]
-
-    return (
-        '<section class="section-card">'
-        f"<h2>{html.escape(title)}</h2>"
-        '<div class="metric-grid">'
-        + "".join(cards)
-        + "</div>"
-        "</section>"
-    )
-
-
 def formation_html(
     title: str,
     metrics: Dict[str, Any],
@@ -699,24 +506,13 @@ def find_dates(
 def load_day(
     root: Path,
     date: str,
-) -> tuple[
-    Dict[str, Any],
-    Dict[str, Any],
-]:
+) -> Dict[str, Any]:
 
     folder = (
         root
         / date[:4]
         / date[4:6]
         / date[6:8]
-    )
-
-    prediction = load_json(
-        folder
-        / (
-            "prediction_evaluation_"
-            f"{date}.json"
-        )
     )
 
     formation = load_json(
@@ -727,10 +523,7 @@ def load_day(
         )
     )
 
-    return (
-        prediction,
-        formation,
-    )
+    return formation
 
 
 def history_html(
@@ -746,11 +539,9 @@ def history_html(
         if date == latest:
             continue
 
-        prediction, formation = (
-            load_day(
-                root,
-                date,
-            )
+        formation = load_day(
+            root,
+            date,
         )
 
         if not formation:
@@ -848,21 +639,9 @@ def build_page(
 
         latest = dates[0]
 
-        prediction, formation = (
-            load_day(
-                evaluation_root,
-                latest,
-            )
-        )
-
-        morning = prediction_metrics(
-            prediction,
-            MORNING_KEYS,
-        )
-
-        live = prediction_metrics(
-            prediction,
-            LIVE_KEYS,
+        formation = load_day(
+            evaluation_root,
+            latest,
         )
 
         overall_block = find_dict(
@@ -878,14 +657,6 @@ def build_page(
         )
 
         body_parts = [
-            prediction_html(
-                "朝予測",
-                morning,
-            ),
-            prediction_html(
-                "直前予測",
-                live,
-            ),
             formation_html(
                 "3連単フォーメーション総合",
                 overall,
@@ -911,15 +682,12 @@ def build_page(
                 ):
                     continue
 
-                metrics = (
-                    formation_metrics(
-                        value
-                    )
+                metrics = formation_metrics(
+                    value
                 )
 
                 type_cards.append(
-                    "<div class="
-                    '"type-card">'
+                    '<div class="type-card">'
                     f"<h3>{html.escape(str(key))}</h3>"
                     '<div class="type-row">'
                     "<span>的中</span>"
@@ -954,13 +722,16 @@ def build_page(
                     "</section>"
                 )
 
-        body_parts.append(
-            history_html(
-                evaluation_root,
-                dates,
-                latest,
-            )
+        past = history_html(
+            evaluation_root,
+            dates,
+            latest,
         )
+
+        if past:
+            body_parts.append(
+                past
+            )
 
         body = "".join(
             body_parts
@@ -1058,7 +829,6 @@ h1 {{
   gap: 8px;
 
   margin-bottom: 14px;
-
   padding: 6px;
 
   border: 1px solid var(--line);
@@ -1075,7 +845,6 @@ h1 {{
   border-radius: 10px;
 
   text-align: center;
-
   text-decoration: none;
 
   color: var(--text);
@@ -1100,7 +869,6 @@ h1 {{
 
 .section-card h2 {{
   margin: 0 0 12px;
-
   font-size: 18px;
 }}
 
@@ -1123,7 +891,6 @@ h1 {{
 
 .metric-label {{
   color: var(--muted);
-
   font-size: 12px;
 }}
 
@@ -1141,7 +908,6 @@ h1 {{
   margin-top: 3px;
 
   color: var(--muted);
-
   font-size: 12px;
 }}
 
@@ -1160,7 +926,6 @@ h1 {{
 
 .type-card h3 {{
   margin: 0 0 8px;
-
   font-size: 16px;
 }}
 
