@@ -18,8 +18,14 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="スマホ確認用最新予想＋3連単フォーメーション生成"
     )
-    parser.add_argument("--date", required=True)
-    parser.add_argument("--now", default=None)
+    parser.add_argument(
+        "--date",
+        required=True,
+    )
+    parser.add_argument(
+        "--now",
+        default=None,
+    )
     return parser.parse_args()
 
 
@@ -38,25 +44,36 @@ def to_int(value):
 
 def to_float(value):
     try:
-        return float(value)
+        value = float(value)
     except (TypeError, ValueError):
         return None
+
+    return value
 
 
 def parse_now(value):
     if not value:
         return datetime.now(JST)
 
-    raw = value.strip().replace("Z", "+00:00")
+    raw = value.strip().replace(
+        "Z",
+        "+00:00",
+    )
+
     dt = datetime.fromisoformat(raw)
 
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=JST)
+        dt = dt.replace(
+            tzinfo=JST
+        )
 
     return dt.astimezone(JST)
 
 
-def load_json(path, required=False):
+def load_json(
+    path,
+    required=False,
+):
     path = Path(path)
 
     if not path.exists():
@@ -67,56 +84,128 @@ def load_json(path, required=False):
         return None
 
     return json.loads(
-        path.read_text(encoding="utf-8")
+        path.read_text(
+            encoding="utf-8"
+        )
     )
 
 
 def prediction_map(payload):
-    if not isinstance(payload, dict):
+    if not isinstance(
+        payload,
+        dict,
+    ):
         return {}
 
-    races = payload.get("races")
+    races = payload.get(
+        "races"
+    )
 
-    if not isinstance(races, list):
+    if not isinstance(
+        races,
+        list,
+    ):
         return {}
 
     result = {}
 
     for race in races:
         race_id = text(
-            race.get("race_id")
+            race.get(
+                "race_id"
+            )
         )
 
         if race_id:
-            result[race_id] = race
+            result[
+                race_id
+            ] = race
 
     return result
 
 
-def ranked_boats(race):
-    boats = race.get("boats") or []
+def numeric_score(row):
+    value = to_float(
+        row.get(
+            "score"
+        )
+    )
 
-    rows = [
-        boat
-        for boat in boats
-        if to_int(boat.get("boat")) is not None
-        and to_float(boat.get("score")) is not None
-    ]
+    return value
+
+
+def ranked_boats(race):
+    boats = (
+        race.get(
+            "boats"
+        )
+        or []
+    )
+
+    rows = []
+
+    for boat in boats:
+        boat_no = to_int(
+            boat.get(
+                "boat"
+            )
+        )
+
+        if boat_no is None:
+            continue
+
+        rows.append(
+            boat
+        )
+
+    def sort_key(row):
+        rank = to_int(
+            row.get(
+                "rank"
+            )
+        )
+
+        score = numeric_score(
+            row
+        )
+
+        boat_no = (
+            to_int(
+                row.get(
+                    "boat"
+                )
+            )
+            or 99
+        )
+
+        if rank is not None:
+            return (
+                0,
+                rank,
+                boat_no,
+            )
+
+        return (
+            1,
+            -(
+                score
+                if score is not None
+                else -999.0
+            ),
+            boat_no,
+        )
 
     rows.sort(
-        key=lambda boat: (
-            to_int(boat.get("rank"))
-            if to_int(boat.get("rank")) is not None
-            else 99,
-            -(to_float(boat.get("score")) or 0),
-            to_int(boat.get("boat")) or 99,
-        )
+        key=sort_key
     )
 
     return rows
 
 
-def parse_deadline(target_date, value):
+def parse_deadline(
+    target_date,
+    value,
+):
     raw = text(value)
 
     if not raw:
@@ -124,13 +213,20 @@ def parse_deadline(target_date, value):
 
     try:
         dt = datetime.fromisoformat(
-            raw.replace("Z", "+00:00")
+            raw.replace(
+                "Z",
+                "+00:00",
+            )
         )
 
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=JST)
+            dt = dt.replace(
+                tzinfo=JST
+            )
 
-        return dt.astimezone(JST)
+        return dt.astimezone(
+            JST
+        )
 
     except ValueError:
         pass
@@ -163,7 +259,9 @@ def parse_deadline(target_date, value):
     return None
 
 
-def load_program_deadlines(target_date):
+def load_program_deadlines(
+    target_date,
+):
     path = (
         Path("daily_inputs")
         / target_date[:4]
@@ -182,22 +280,40 @@ def load_program_deadlines(target_date):
         encoding="utf-8-sig",
         newline="",
     ) as f:
-        reader = csv.DictReader(f)
+
+        reader = csv.DictReader(
+            f
+        )
 
         for row in reader:
             race_id = text(
-                row.get("race_id")
+                row.get(
+                    "race_id"
+                )
             )
 
             deadline = (
-                row.get("deadline")
-                or row.get("deadline_time")
-                or row.get("close_time")
-                or row.get("cutoff_time")
+                row.get(
+                    "deadline"
+                )
+                or row.get(
+                    "deadline_time"
+                )
+                or row.get(
+                    "close_time"
+                )
+                or row.get(
+                    "cutoff_time"
+                )
             )
 
-            if race_id and deadline:
-                result[race_id] = deadline
+            if (
+                race_id
+                and deadline
+            ):
+                result[
+                    race_id
+                ] = deadline
 
     return result
 
@@ -207,17 +323,30 @@ def race_deadline_raw(
     program_deadlines,
 ):
     race_id = text(
-        race.get("race_id")
+        race.get(
+            "race_id"
+        )
     )
 
     value = (
-        race.get("deadline")
-        or race.get("deadline_time")
-        or race.get("close_time")
-        or race.get("cutoff_time")
+        race.get(
+            "deadline"
+        )
+        or race.get(
+            "deadline_time"
+        )
+        or race.get(
+            "close_time"
+        )
+        or race.get(
+            "cutoff_time"
+        )
     )
 
-    if value not in (None, ""):
+    if value not in (
+        None,
+        "",
+    ):
         return value
 
     return program_deadlines.get(
@@ -227,14 +356,27 @@ def race_deadline_raw(
 
 def boat_number(row):
     return to_int(
-        row.get("boat")
+        row.get(
+            "boat"
+        )
     )
 
 
 def boat_score(row):
-    return to_float(
-        row.get("score")
-    ) or 0.0
+    return numeric_score(
+        row
+    )
+
+
+def score_for_calculation(row):
+    score = boat_score(
+        row
+    )
+
+    if score is None:
+        return 0.0
+
+    return score
 
 
 def combo_strength(
@@ -244,9 +386,15 @@ def combo_strength(
     first, second, third = combo
 
     return (
-        score_by_boat[first] * 0.50
-        + score_by_boat[second] * 0.30
-        + score_by_boat[third] * 0.20
+        score_by_boat[
+            first
+        ] * 0.50
+        + score_by_boat[
+            second
+        ] * 0.30
+        + score_by_boat[
+            third
+        ] * 0.20
     )
 
 
@@ -255,13 +403,18 @@ def valid_combinations(
     second_candidates,
     third_candidates,
 ):
-    combos = []
+    combinations = []
 
-    for first, second, third in itertools.product(
+    for (
+        first,
+        second,
+        third,
+    ) in itertools.product(
         first_candidates,
         second_candidates,
         third_candidates,
     ):
+
         if len(
             {
                 first,
@@ -271,7 +424,7 @@ def valid_combinations(
         ) != 3:
             continue
 
-        combos.append(
+        combinations.append(
             (
                 first,
                 second,
@@ -280,22 +433,34 @@ def valid_combinations(
         )
 
     return list(
-        dict.fromkeys(combos)
+        dict.fromkeys(
+            combinations
+        )
     )
 
 
-def build_formation(boats):
-    if len(boats) != 6:
+def build_formation(
+    boats,
+):
+    if len(
+        boats
+    ) != 6:
         return None
 
     order = [
-        boat_number(row)
-        for row in boats
+        boat_number(
+            row
+        )
+        for row
+        in boats
     ]
 
     scores = [
-        boat_score(row)
-        for row in boats
+        boat_score(
+            row
+        )
+        for row
+        in boats
     ]
 
     if any(
@@ -304,43 +469,124 @@ def build_formation(boats):
     ):
         return None
 
+    # スコア欠損があるレースは
+    # 無理にフォーメーションを生成しない
+    if any(
+        score is None
+        for score in scores
+    ):
+        return {
+            "model_version": (
+                FORMATION_MODEL
+            ),
+            "formation_type": (
+                "スコア不足"
+            ),
+            "gap_1_2": None,
+            "gap_2_3": None,
+            "gap_3_4": None,
+            "first_candidates": [],
+            "second_candidates": [],
+            "third_candidates": [],
+            "combinations": [],
+            "points": 0,
+            "investment_100yen": 0,
+        }
+
     score_by_boat = {
-        boat_number(row): boat_score(row)
-        for row in boats
+        boat_number(
+            row
+        ): score_for_calculation(
+            row
+        )
+        for row
+        in boats
     }
 
-    gap12 = scores[0] - scores[1]
-    gap23 = scores[1] - scores[2]
-    gap34 = scores[2] - scores[3]
+    gap12 = (
+        scores[0]
+        - scores[1]
+    )
+
+    gap23 = (
+        scores[1]
+        - scores[2]
+    )
+
+    gap34 = (
+        scores[2]
+        - scores[3]
+    )
 
     if gap12 >= 10.0:
-        formation_type = "1着強軸"
-        first_candidates = order[:1]
-        second_candidates = order[1:3]
-        third_candidates = order[1:4]
+
+        formation_type = (
+            "1着強軸"
+        )
+
+        first_candidates = (
+            order[:1]
+        )
+
+        second_candidates = (
+            order[1:3]
+        )
+
+        third_candidates = (
+            order[1:4]
+        )
+
         max_points = 6
 
     elif gap12 >= 5.0:
-        formation_type = "準軸"
-        first_candidates = order[:2]
-        second_candidates = order[:3]
-        third_candidates = order[:4]
+
+        formation_type = (
+            "準軸"
+        )
+
+        first_candidates = (
+            order[:2]
+        )
+
+        second_candidates = (
+            order[:3]
+        )
+
+        third_candidates = (
+            order[:4]
+        )
+
         max_points = 8
 
     else:
-        formation_type = "混戦"
-        first_candidates = order[:2]
-        second_candidates = order[:4]
-        third_candidates = order[:5]
+
+        formation_type = (
+            "混戦"
+        )
+
+        first_candidates = (
+            order[:2]
+        )
+
+        second_candidates = (
+            order[:4]
+        )
+
+        third_candidates = (
+            order[:5]
+        )
+
         max_points = 12
 
-    combos = valid_combinations(
-        first_candidates,
-        second_candidates,
-        third_candidates,
+    combinations = (
+        valid_combinations(
+            first_candidates,
+            second_candidates,
+            third_candidates,
+        )
     )
 
-    combos.sort(
+    combinations.sort(
         key=lambda combo: (
             -combo_strength(
                 combo,
@@ -350,66 +596,140 @@ def build_formation(boats):
         )
     )
 
-    combos = combos[:max_points]
+    combinations = (
+        combinations[
+            :max_points
+        ]
+    )
 
     return {
-        "model_version": FORMATION_MODEL,
-        "formation_type": formation_type,
-        "gap_1_2": round(gap12, 2),
-        "gap_2_3": round(gap23, 2),
-        "gap_3_4": round(gap34, 2),
-        "first_candidates": first_candidates,
-        "second_candidates": second_candidates,
-        "third_candidates": third_candidates,
+        "model_version": (
+            FORMATION_MODEL
+        ),
+        "formation_type": (
+            formation_type
+        ),
+        "gap_1_2": round(
+            gap12,
+            2,
+        ),
+        "gap_2_3": round(
+            gap23,
+            2,
+        ),
+        "gap_3_4": round(
+            gap34,
+            2,
+        ),
+        "first_candidates": (
+            first_candidates
+        ),
+        "second_candidates": (
+            second_candidates
+        ),
+        "third_candidates": (
+            third_candidates
+        ),
         "combinations": [
             f"{a}-{b}-{c}"
-            for a, b, c in combos
+            for (
+                a,
+                b,
+                c,
+            )
+            in combinations
         ],
-        "points": len(combos),
+        "points": len(
+            combinations
+        ),
         "investment_100yen": (
-            len(combos) * 100
+            len(
+                combinations
+            )
+            * 100
         ),
     }
 
 
-def racer_label(row):
-    boat = boat_number(row)
-    name = text(
-        row.get("racer_name")
+def score_label(value):
+    score = to_float(
+        value
     )
-    score = boat_score(row)
 
-    label = f"{boat}号艇"
+    if score is None:
+        return "未算出"
+
+    return f"{score:.1f}"
+
+
+def racer_label(row):
+    boat = boat_number(
+        row
+    )
+
+    name = text(
+        row.get(
+            "racer_name"
+        )
+    )
+
+    score = row.get(
+        "score"
+    )
+
+    if boat is None:
+        boat_text = "艇番不明"
+    else:
+        boat_text = (
+            f"{boat}号艇"
+        )
+
+    label = boat_text
 
     if name:
-        label += f" {name}"
+        label += (
+            f" {name}"
+        )
 
-    label += f" {score:.1f}"
+    label += (
+        f" ({score_label(score)})"
+    )
 
     return label
 
 
-def compact_scores(boats):
+def compact_scores(
+    boats,
+):
     parts = []
 
     for rank, row in enumerate(
         boats,
         start=1,
     ):
+
         parts.append(
             f"{rank}位 "
             f"{racer_label(row)}"
         )
 
-    return " / ".join(parts)
+    return " / ".join(
+        parts
+    )
 
 
 def formation_candidate_text(
     candidates,
 ):
+    if not candidates:
+        return "なし"
+
     return "・".join(
-        str(value)
-        for value in candidates
+        str(
+            value
+        )
+        for value
+        in candidates
     )
 
 
@@ -447,11 +767,14 @@ def write_formation_csv(
         "rank6_score",
     ]
 
-    with Path(path).open(
+    with Path(
+        path
+    ).open(
         "w",
         encoding="utf-8",
         newline="",
     ) as f:
+
         writer = csv.DictWriter(
             f,
             fieldnames=fields,
@@ -460,49 +783,66 @@ def write_formation_csv(
         writer.writeheader()
 
         for item in rows:
+
             boats = item[
                 "boats"
             ]
 
+            formation = item[
+                "formation"
+            ]
+
             row = {
-                "target_date": item[
-                    "target_date"
-                ],
-                "race_id": item[
-                    "race_id"
-                ],
-                "venue_code": item[
-                    "venue_code"
-                ],
-                "venue_name": item[
-                    "venue_name"
-                ],
-                "race": item[
-                    "race"
-                ],
-                "deadline": item[
-                    "deadline"
-                ],
-                "prediction_type": item[
-                    "prediction_type"
-                ],
-                "formation_type": item[
-                    "formation"
-                ][
-                    "formation_type"
-                ],
-                "gap_1_2": item[
-                    "formation"
-                ][
-                    "gap_1_2"
-                ],
+                "target_date": (
+                    item[
+                        "target_date"
+                    ]
+                ),
+                "race_id": (
+                    item[
+                        "race_id"
+                    ]
+                ),
+                "venue_code": (
+                    item[
+                        "venue_code"
+                    ]
+                ),
+                "venue_name": (
+                    item[
+                        "venue_name"
+                    ]
+                ),
+                "race": (
+                    item[
+                        "race"
+                    ]
+                ),
+                "deadline": (
+                    item[
+                        "deadline"
+                    ]
+                ),
+                "prediction_type": (
+                    item[
+                        "prediction_type"
+                    ]
+                ),
+                "formation_type": (
+                    formation[
+                        "formation_type"
+                    ]
+                ),
+                "gap_1_2": (
+                    formation[
+                        "gap_1_2"
+                    ]
+                ),
                 "first_candidates": (
                     "-".join(
                         map(
                             str,
-                            item[
-                                "formation"
-                            ][
+                            formation[
                                 "first_candidates"
                             ],
                         )
@@ -512,9 +852,7 @@ def write_formation_csv(
                     "-".join(
                         map(
                             str,
-                            item[
-                                "formation"
-                            ][
+                            formation[
                                 "second_candidates"
                             ],
                         )
@@ -524,57 +862,62 @@ def write_formation_csv(
                     "-".join(
                         map(
                             str,
-                            item[
-                                "formation"
-                            ][
+                            formation[
                                 "third_candidates"
                             ],
                         )
                     )
                 ),
-                "points": item[
-                    "formation"
-                ][
-                    "points"
-                ],
-                "investment_100yen": item[
-                    "formation"
-                ][
-                    "investment_100yen"
-                ],
+                "points": (
+                    formation[
+                        "points"
+                    ]
+                ),
+                "investment_100yen": (
+                    formation[
+                        "investment_100yen"
+                    ]
+                ),
                 "combinations": (
                     " / ".join(
-                        item[
-                            "formation"
-                        ][
+                        formation[
                             "combinations"
                         ]
                     )
                 ),
             }
 
-            for index in range(6):
-                boat = boats[index]
+            for index in range(
+                6
+            ):
+                boat = boats[
+                    index
+                ]
 
                 row[
                     f"rank{index + 1}_boat"
-                ] = boat[
+                ] = boat.get(
                     "boat"
-                ]
+                )
 
                 row[
                     f"rank{index + 1}_score"
-                ] = boat[
+                ] = boat.get(
                     "score"
-                ]
+                )
 
-            writer.writerow(row)
+            writer.writerow(
+                row
+            )
 
 
 def main():
     args = parse_args()
 
-    target_date = args.date
+    target_date = (
+        args.date
+    )
+
     now = parse_now(
         args.now
     )
@@ -585,23 +928,35 @@ def main():
     )
 
     base = (
-        Path("predictions")
+        Path(
+            "predictions"
+        )
         / target_date[:4]
         / target_date[4:6]
         / target_date[6:8]
     )
 
-    morning_payload = load_json(
-        base
-        / f"morning_predictions_{target_date}.json",
-        required=True,
+    morning_payload = (
+        load_json(
+            base
+            / (
+                f"morning_predictions_"
+                f"{target_date}.json"
+            ),
+            required=True,
+        )
     )
 
-    live_payload = load_json(
-        base
-        / "live"
-        / f"live_predictions_final_{target_date}.json",
-        required=False,
+    live_payload = (
+        load_json(
+            base
+            / "live"
+            / (
+                f"live_predictions_final_"
+                f"{target_date}.json"
+            ),
+            required=False,
+        )
     )
 
     morning = prediction_map(
@@ -618,31 +973,47 @@ def main():
         )
     )
 
-    all_race_ids = sorted(
-        set(morning)
-        | set(live)
+    race_ids = sorted(
+        set(
+            morning
+        )
+        | set(
+            live
+        )
     )
 
-    formation_rows = []
-    upcoming = []
+    all_rows = []
+    upcoming_rows = []
 
-    for race_id in all_race_ids:
+    for race_id in race_ids:
+
         if race_id in live:
+
             race = live[
                 race_id
             ]
-            prediction_type = "直前"
+
+            prediction_type = (
+                "直前"
+            )
+
         else:
+
             race = morning[
                 race_id
             ]
-            prediction_type = "朝"
+
+            prediction_type = (
+                "朝"
+            )
 
         boats = ranked_boats(
             race
         )
 
-        if len(boats) != 6:
+        if len(
+            boats
+        ) != 6:
             continue
 
         formation = build_formation(
@@ -659,27 +1030,71 @@ def main():
             )
         )
 
-        deadline_dt = parse_deadline(
-            target_date,
-            deadline_raw,
+        deadline_dt = (
+            parse_deadline(
+                target_date,
+                deadline_raw,
+            )
         )
 
+        cleaned_boats = []
+
+        for index, boat in enumerate(
+            boats,
+            start=1,
+        ):
+
+            cleaned_boats.append(
+                {
+                    "rank": (
+                        index
+                    ),
+                    "boat": (
+                        boat_number(
+                            boat
+                        )
+                    ),
+                    "racer_name": (
+                        text(
+                            boat.get(
+                                "racer_name"
+                            )
+                        )
+                    ),
+                    "score": (
+                        boat_score(
+                            boat
+                        )
+                    ),
+                }
+            )
+
         row = {
-            "target_date": target_date,
-            "race_id": race_id,
-            "venue_code": text(
-                race.get(
-                    "venue_code"
+            "target_date": (
+                target_date
+            ),
+            "race_id": (
+                race_id
+            ),
+            "venue_code": (
+                text(
+                    race.get(
+                        "venue_code"
+                    )
                 )
             ),
-            "venue_name": text(
-                race.get(
-                    "venue_name"
+            "venue_name": (
+                text(
+                    race.get(
+                        "venue_name"
+                    )
                 )
             ),
-            "race": to_int(
-                race.get(
-                    "race"
+            "race": (
+                to_int(
+                    race.get(
+                        "race"
+                    )
                 )
             ),
             "deadline": (
@@ -700,34 +1115,15 @@ def main():
                 )
                 or now.isoformat()
             ),
-            "boats": [
-                {
-                    "rank": index,
-                    "boat": boat_number(
-                        boat
-                    ),
-                    "racer_name": text(
-                        boat.get(
-                            "racer_name"
-                        )
-                    ),
-                    "score": round(
-                        boat_score(
-                            boat
-                        ),
-                        2,
-                    ),
-                }
-                for index, boat
-                in enumerate(
-                    boats,
-                    start=1,
-                )
-            ],
-            "formation": formation,
+            "boats": (
+                cleaned_boats
+            ),
+            "formation": (
+                formation
+            ),
         }
 
-        formation_rows.append(
+        all_rows.append(
             row
         )
 
@@ -735,7 +1131,7 @@ def main():
             deadline_dt is None
             or deadline_dt > now
         ):
-            upcoming.append(
+            upcoming_rows.append(
                 (
                     deadline_dt,
                     row,
@@ -771,7 +1167,9 @@ def main():
     formation_json.write_text(
         json.dumps(
             {
-                "schema_version": "1.0",
+                "schema_version": (
+                    "1.0"
+                ),
                 "model_version": (
                     FORMATION_MODEL
                 ),
@@ -781,17 +1179,17 @@ def main():
                 "generated_at": (
                     now.isoformat()
                 ),
-                "race_count": len(
-                    formation_rows
+                "race_count": (
+                    len(
+                        all_rows
+                    )
                 ),
                 "simulation_rule": (
                     "3連単各組み合わせ100円固定"
                 ),
-                "note": (
-                    "スコアは勝率ではなく"
-                    "艇間比較用のモデルスコア"
+                "races": (
+                    all_rows
                 ),
-                "races": formation_rows,
             },
             ensure_ascii=False,
             indent=2,
@@ -801,13 +1199,334 @@ def main():
 
     write_formation_csv(
         formation_csv,
-        formation_rows,
+        all_rows,
     )
 
-    upcoming.sort(
+    upcoming_rows.sort(
         key=lambda item: (
             item[0]
             or datetime.max.replace(
                 tzinfo=JST
             ),
             item[1][
+                "venue_code"
+            ],
+            item[1][
+                "race"
+            ]
+            or 99,
+        )
+    )
+
+    latest_rows = [
+        item[
+            1
+        ]
+        for item
+        in upcoming_rows
+    ]
+
+    latest_md = (
+        Path(
+            "predictions"
+        )
+        / "latest.md"
+    )
+
+    latest_json = (
+        Path(
+            "predictions"
+        )
+        / "latest.json"
+    )
+
+    lines = []
+
+    lines.append(
+        "# ボートレースAI 最新予想"
+    )
+
+    lines.append("")
+
+    lines.append(
+        f"**最終更新："
+        f"{now.strftime('%Y/%m/%d %H:%M')} JST**"
+    )
+
+    lines.append("")
+
+    lines.append(
+        f"締切前："
+        f"**{len(latest_rows)}レース**"
+    )
+
+    lines.append("")
+
+    lines.append(
+        "> スコアは勝率ではありません。"
+        "現在のAIモデル内での比較用スコアです。"
+    )
+
+    lines.append("")
+
+    lines.append(
+        "> フォーメーションは"
+        "100円/点で検証するシミュレーションです。"
+    )
+
+    lines.append("")
+
+    for row in latest_rows:
+
+        deadline_label = (
+            "不明"
+        )
+
+        if row[
+            "deadline"
+        ]:
+            try:
+                deadline_label = (
+                    datetime.fromisoformat(
+                        row[
+                            "deadline"
+                        ]
+                    )
+                    .astimezone(
+                        JST
+                    )
+                    .strftime(
+                        "%H:%M"
+                    )
+                )
+
+            except ValueError:
+                deadline_label = (
+                    row[
+                        "deadline"
+                    ]
+                )
+
+        venue = (
+            row[
+                "venue_name"
+            ]
+            or row[
+                "venue_code"
+            ]
+            or "会場不明"
+        )
+
+        formation = (
+            row[
+                "formation"
+            ]
+        )
+
+        boats = (
+            row[
+                "boats"
+            ]
+        )
+
+        lines.append(
+            f"## {venue} "
+            f"{row['race']}R"
+        )
+
+        lines.append("")
+
+        lines.append(
+            f"締切 **{deadline_label}** ｜ "
+            f"予測 **{row['prediction_type']}** ｜ "
+            f"タイプ **{formation['formation_type']}**"
+        )
+
+        lines.append("")
+
+        lines.append(
+            f"**◎ {racer_label(boats[0])}**"
+        )
+
+        lines.append("")
+
+        lines.append(
+            f"○ {racer_label(boats[1])}"
+        )
+
+        lines.append("")
+
+        lines.append(
+            f"▲ {racer_label(boats[2])}"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "**全6艇スコア（予測順位順）**"
+        )
+
+        lines.append("")
+
+        lines.append(
+            compact_scores(
+                boats
+            )
+        )
+
+        lines.append("")
+
+        if formation[
+            "points"
+        ] > 0:
+
+            lines.append(
+                "**3連単フォーメーション候補**"
+            )
+
+            lines.append("")
+
+            lines.append(
+                "1着："
+                + formation_candidate_text(
+                    formation[
+                        "first_candidates"
+                    ]
+                )
+            )
+
+            lines.append("")
+
+            lines.append(
+                "2着："
+                + formation_candidate_text(
+                    formation[
+                        "second_candidates"
+                    ]
+                )
+            )
+
+            lines.append("")
+
+            lines.append(
+                "3着："
+                + formation_candidate_text(
+                    formation[
+                        "third_candidates"
+                    ]
+                )
+            )
+
+            lines.append("")
+
+            lines.append(
+                f"**シミュレーション買い目 "
+                f"{formation['points']}点 "
+                f"＝ "
+                f"{formation['investment_100yen']}円**"
+            )
+
+            lines.append("")
+
+            lines.append(
+                " / ".join(
+                    formation[
+                        "combinations"
+                    ]
+                )
+            )
+
+        else:
+
+            lines.append(
+                "**フォーメーション："
+                "スコア不足のため今回は生成なし**"
+            )
+
+        lines.append("")
+
+        lines.append(
+            "---"
+        )
+
+        lines.append("")
+
+    latest_md.write_text(
+        "\n".join(
+            lines
+        ),
+        encoding="utf-8",
+    )
+
+    latest_json.write_text(
+        json.dumps(
+            {
+                "target_date": (
+                    target_date
+                ),
+                "generated_at": (
+                    now.isoformat()
+                ),
+                "formation_model": (
+                    FORMATION_MODEL
+                ),
+                "upcoming_race_count": (
+                    len(
+                        latest_rows
+                    )
+                ),
+                "races": (
+                    latest_rows
+                ),
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    print(
+        "========================================"
+    )
+
+    print(
+        "最新予想＋フォーメーション生成"
+    )
+
+    print(
+        "========================================"
+    )
+
+    print(
+        "全予測レース:",
+        len(
+            all_rows
+        ),
+    )
+
+    print(
+        "締切前表示:",
+        len(
+            latest_rows
+        ),
+    )
+
+    print(
+        "全6艇スコア表示: PASS"
+    )
+
+    print(
+        "フォーメーション生成: PASS"
+    )
+
+    print(
+        "predictions/latest.md: PASS"
+    )
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(
+        main()
+    )
