@@ -1,0 +1,83 @@
+name: 家族共有・予想ページ
+
+on:
+  workflow_run:
+    workflows:
+      - "9月30日・直前予測自動テスト"
+      - "毎日朝予測・本番"
+    types:
+      - completed
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: family-prediction-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ファイルを読み込む
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 最新予想ファイルを確認
+        run: |
+          test -s predictions/latest_by_deadline.json
+
+          echo "最新予想ファイル: PASS"
+
+      - name: 家族共有ページを生成
+        run: |
+          python -u collectors/build_family_prediction_page.py
+
+          test -s _family_site/index.html
+
+          echo "家族共有ページ生成: PASS"
+
+      - name: GitHub Pagesを準備
+        uses: actions/configure-pages@v5
+
+      - name: 公開用ファイルを準備
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _family_site
+
+  deploy:
+    needs:
+      - build
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: 家族共有ページを公開
+        id: deployment
+        uses: actions/deploy-pages@v4
