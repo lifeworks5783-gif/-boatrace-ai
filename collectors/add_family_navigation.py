@@ -1,76 +1,49 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
-INDEX = Path(
-    "_family_site/index.html"
+SITE_DIR = Path(
+    "_family_site"
 )
 
+PAGES = {
+    "index.html":
+        "prediction",
 
-NAV_HTML = """
-<nav class="family-nav">
+    "results.html":
+        "results",
 
-<a
-  href="index.html"
-  class="active"
->
-  最新予想
-</a>
-
-<a href="results.html">
-  結果・成績
-</a>
-
-</nav>
-"""
+    "analysis.html":
+        "analysis",
+}
 
 
 NAV_CSS = """
 
+/* family-navigation-v3 */
+
 .family-nav {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-
-  margin-bottom: 14px;
-
-  padding: 6px;
-
-  border:
-    1px solid
-    var(--line);
-
-  border-radius: 14px;
-
-  background: var(--card);
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    ) !important;
 }
 
 .family-nav a {
-  display: block;
-
-  padding: 11px 8px;
-
-  border-radius: 10px;
-
-  text-align: center;
-
-  text-decoration: none;
-
-  color: var(--text);
-
-  font-weight: 800;
+  min-width: 0;
 }
 
-.family-nav a.active {
-  background: #2563eb;
-  color: #ffffff;
-}
+@media (max-width: 560px) {
 
-@media (prefers-color-scheme: dark) {
+  .family-nav a {
+    font-size: 12px;
 
-  .family-nav a.active {
-    background: #3b82f6;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 
 }
@@ -78,72 +51,174 @@ NAV_CSS = """
 """
 
 
-def main() -> int:
+def nav_html(
+    active: str,
+) -> str:
 
-    if not INDEX.exists():
+    def link(
+        href: str,
+        label: str,
+        key: str,
+    ) -> str:
 
-        raise SystemExit(
-            f"missing: {INDEX}"
+        active_class = (
+            ' class="active"'
+            if active == key
+            else ""
         )
 
-    text = INDEX.read_text(
+        return (
+            f'<a href="{href}"'
+            f"{active_class}>"
+            f"{label}"
+            "</a>"
+        )
+
+    return (
+        '<nav class="family-nav">\n'
+        + link(
+            "index.html",
+            "最新予想",
+            "prediction",
+        )
+        + "\n"
+        + link(
+            "results.html",
+            "結果・成績",
+            "results",
+        )
+        + "\n"
+        + link(
+            "analysis.html",
+            "AI分析",
+            "analysis",
+        )
+        + "\n</nav>"
+    )
+
+
+def update_page(
+    path: Path,
+    active: str,
+) -> None:
+
+    if not path.exists():
+
+        raise SystemExit(
+            f"missing: {path}"
+        )
+
+    text = path.read_text(
         encoding="utf-8"
     )
 
-    if (
-        "class=\"family-nav\""
-        in text
+    nav = nav_html(
+        active
+    )
+
+    nav_pattern = re.compile(
+        r'<nav\s+class=["\']family-nav["\'][^>]*>.*?</nav>',
+        re.IGNORECASE
+        | re.DOTALL,
+    )
+
+    if nav_pattern.search(
+        text
     ):
 
-        print(
-            "ナビゲーション追加済み"
+        text = (
+            nav_pattern.sub(
+                nav,
+                text,
+                count=1,
+            )
         )
 
-        return 0
-
-    if "</style>" in text:
-
-        text = text.replace(
-            "</style>",
-            NAV_CSS
-            + "\n</style>",
-            1,
-        )
-
-    else:
-
-        raise SystemExit(
-            "</style> not found"
-        )
-
-    if "</header>" in text:
+    elif "</header>" in text:
 
         text = text.replace(
             "</header>",
             "</header>\n"
-            + NAV_HTML,
+            + nav,
             1,
         )
 
     else:
 
-        raise SystemExit(
-            "</header> not found"
+        body_match = re.search(
+            r"<body[^>]*>",
+            text,
+            flags=re.IGNORECASE,
         )
 
-    INDEX.write_text(
+        if not body_match:
+
+            raise SystemExit(
+                "body/header not found: "
+                f"{path}"
+            )
+
+        insert_at = (
+            body_match.end()
+        )
+
+        text = (
+            text[:insert_at]
+            + "\n"
+            + nav
+            + text[insert_at:]
+        )
+
+    if (
+        "family-navigation-v3"
+        not in text
+    ):
+
+        if "</style>" in text:
+
+            text = text.replace(
+                "</style>",
+                NAV_CSS
+                + "\n</style>",
+                1,
+            )
+
+        else:
+
+            raise SystemExit(
+                "style block not found: "
+                f"{path}"
+            )
+
+    path.write_text(
         text,
         encoding="utf-8",
     )
 
     print(
-        "予想ページへナビゲーション追加: PASS"
+        "3タブナビ更新: PASS -> "
+        f"{path}"
     )
+
+
+def main() -> int:
+
+    for (
+        filename,
+        active,
+    ) in PAGES.items():
+
+        update_page(
+            SITE_DIR
+            / filename,
+            active,
+        )
 
     return 0
 
 
 if __name__ == "__main__":
+
     raise SystemExit(
         main()
     )
