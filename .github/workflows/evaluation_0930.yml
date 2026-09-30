@@ -5,201 +5,207 @@ permissions:
 
 on:
   schedule:
-    # 10/1 03:30 JST と 05:30 JST
-    # 1回目が成功済みなら2回目は即終了
-    - cron: "30 18,20 30 9 *"
+    # 10月1日 00:30 JST
+    - cron: "30 15 30 9 *"
+
+    # 10月1日 00:50 JST
+    - cron: "50 15 30 9 *"
+
+    # 10月1日 01:10 JST
+    - cron: "10 16 30 9 *"
 
   workflow_dispatch:
 
 concurrency:
-  group: boatrace-main-writer
+  group: boatrace-evaluation-0930
   cancel-in-progress: false
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
+
+    env:
+      TARGET_DATE: "20260930"
+      YEAR: "2026"
+      MONTH: "09"
+      DAY: "30"
 
     steps:
-      - name: ファイルを読み込む
+      - name: 最新のmainを読み込む
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           ref: main
+          fetch-depth: 0
 
       - name: Pythonを準備
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: 日本時間の日付を確認
-        run: |
-          CURRENT_JST=$(TZ=Asia/Tokyo date +%Y%m%d)
-
-          echo "CURRENT_JST=${CURRENT_JST}" >> "$GITHUB_ENV"
-
-          if [ "${CURRENT_JST}" = "20261001" ]; then
-            echo "IS_TARGET_DAY=true" >> "$GITHUB_ENV"
-          else
-            echo "IS_TARGET_DAY=false" >> "$GITHUB_ENV"
-          fi
-
-          echo "現在の日本時間日付: ${CURRENT_JST}"
-
-      - name: 既に評価済みか確認
-        if: env.IS_TARGET_DAY == 'true'
-        run: |
-          FILE="evaluations/2026/09/30/prediction_evaluation_20260930.json"
-
-          if [ -s "${FILE}" ] && \
-             grep -q '"status": "PASS"' "${FILE}"; then
-
-            echo "ALREADY_DONE=true" >> "$GITHUB_ENV"
-            echo "9/30評価は既に完了しています"
-
-          else
-
-            echo "ALREADY_DONE=false" >> "$GITHUB_ENV"
-            echo "9/30評価を実行します"
-
-          fi
-
       - name: 必要ライブラリを準備
-        if: env.IS_TARGET_DAY == 'true' && env.ALREADY_DONE != 'true'
         run: |
           python -m pip install --upgrade pip
-          pip install lhafile
+          pip install requests beautifulsoup4 lhafile pandas
 
-      - name: 朝予測と直前予測を確認
-        if: env.IS_TARGET_DAY == 'true' && env.ALREADY_DONE != 'true'
+      - name: 実行時刻を確認
         run: |
-          MORNING="predictions/2026/09/30/morning_predictions_20260930.json"
-          LIVE="predictions/2026/09/30/live/live_predictions_final_20260930.json"
+          NOW_JST=$(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S JST')
 
-          test -s "${MORNING}"
-          test -s "${LIVE}"
-
-          echo "朝予測: OK"
-          echo "直前予測: OK"
-
-      - name: 9月30日の実結果を確保
-        if: env.IS_TARGET_DAY == 'true' && env.ALREADY_DONE != 'true'
-        run: |
-          RESULT_DIR="archive/2026/09/30"
-          BOATS="${RESULT_DIR}/boat_results_20260930_all.csv"
-
-          if [ -s "${BOATS}" ]; then
-            echo "9/30実結果は既にGitHubにあります"
-            exit 0
-          fi
-
-          echo "9/30実結果がまだないため公式データから取得します"
-
-          mkdir -p data
-          mkdir -p "${RESULT_DIR}"
-
-          python -u collectors/daily_results_fast.py \
-            --date 20260930
-
-          python -u collectors/validate_daily.py \
-            --date 20260930
-
-          cp \
-            data/venues_20260930.csv \
-            "${RESULT_DIR}/"
-
-          cp \
-            data/results_20260930_all.csv \
-            "${RESULT_DIR}/"
-
-          cp \
-            data/boat_results_20260930_all.csv \
-            "${RESULT_DIR}/"
-
-          cp \
-            data/validation_20260930.json \
-            "${RESULT_DIR}/"
-
-          cp \
-            data/manifest_20260930.json \
-            "${RESULT_DIR}/"
-
-          if [ -f data/excluded_races_20260930.json ]; then
-            cp \
-              data/excluded_races_20260930.json \
-              "${RESULT_DIR}/"
-          fi
-
-          echo "9/30実結果取得: PASS"
-
-      - name: 朝予測・直前予測・実結果を評価
-        if: env.IS_TARGET_DAY == 'true' && env.ALREADY_DONE != 'true'
-        run: |
           echo "========================================"
-          echo "9月30日 最終評価"
+          echo "9月30日 予測結果評価"
           echo "========================================"
+          echo "対象日: ${TARGET_DATE}"
+          echo "実行時刻: ${NOW_JST}"
 
+      - name: 9月30日の公式結果を取得
+        run: |
+          echo "9月30日の結果取得を開始します"
+
+          timeout 50m python -u collectors/daily_all.py || {
+            CODE=$?
+
+            if [ "${CODE}" -eq 124 ]; then
+              echo "結果取得がタイムアウトしました"
+              exit 1
+            fi
+
+            exit "${CODE}"
+          }
+
+          echo "公式結果取得処理: 完了"
+
+      - name: 取得した結果を確認
+        run: |
+          echo "取得済み結果ファイルを確認します"
+
+          find data \
+            -maxdepth 1 \
+            -type f \
+            -name "*${TARGET_DATE}*" \
+            -print \
+            | sort || true
+
+          echo ""
+          echo "アーカイブも確認します"
+
+          find "archive/${YEAR}/${MONTH}/${DAY}" \
+            -maxdepth 2 \
+            -type f \
+            -print \
+            2>/dev/null \
+            | sort || true
+
+      - name: 朝予測データを確認
+        run: |
+          MORNING_DIR="predictions/${YEAR}/${MONTH}/${DAY}/morning"
+
+          echo "朝予測:"
+          find "${MORNING_DIR}" \
+            -maxdepth 2 \
+            -type f \
+            -print \
+            2>/dev/null \
+            | sort || true
+
+      - name: 直前予測データを確認
+        run: |
+          LIVE_DIR="predictions/${YEAR}/${MONTH}/${DAY}/live"
+
+          echo "直前予測:"
+          find "${LIVE_DIR}" \
+            -maxdepth 3 \
+            -type f \
+            -print \
+            2>/dev/null \
+            | sort || true
+
+      - name: 9月30日の総合評価を実行
+        run: |
           python -u collectors/evaluate_predictions.py \
-            --date 20260930 \
-            --require-live
+            --date "${TARGET_DATE}"
 
-      - name: 評価結果を表示
-        if: env.IS_TARGET_DAY == 'true' && env.ALREADY_DONE != 'true'
+      - name: 評価結果を確認
         run: |
-          cat \
-            evaluations/2026/09/30/prediction_evaluation_20260930.json
+          EVAL_DIR="evaluations/${YEAR}/${MONTH}/${DAY}"
+
+          echo "========================================"
+          echo "生成された評価ファイル"
+          echo "========================================"
+
+          find "${EVAL_DIR}" \
+            -maxdepth 2 \
+            -type f \
+            -print \
+            | sort
+
+          echo ""
+          echo "予測総合評価JSON:"
+          echo ""
+
+          if [ -s "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json" ]; then
+            cat "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json"
+          else
+            echo "prediction_evaluation が生成されていません"
+            exit 1
+          fi
 
           echo ""
           echo "========================================"
-          echo "スコア要素分析"
+          echo "フォーメーション評価JSON"
           echo "========================================"
 
-          cat \
-            evaluations/2026/09/30/score_component_analysis_20260930.json
+          if [ -s "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json" ]; then
+            cat "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json"
+          else
+            echo "formation_simulation が生成されていません"
+            exit 1
+          fi
 
-      - name: 評価成果物をArtifactへ保存
-        if: env.IS_TARGET_DAY == 'true' && env.ALREADY_DONE != 'true'
+      - name: 評価結果をArtifactへ保存
         uses: actions/upload-artifact@v4
         with:
           name: boatrace-evaluation-20260930-${{ github.run_number }}
           path: |
-            evaluations/2026/09/30/*.json
-            evaluations/2026/09/30/*.csv
+            evaluations/2026/09/30/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
-      - name: 実結果と評価をGitHubへ保存
-        if: env.IS_TARGET_DAY == 'true' && env.ALREADY_DONE != 'true'
+      - name: 評価結果と結果データをGitHubへ保存
         run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
-          git add archive/2026/09/30
-          git add evaluations/2026/09/30
+          if [ -d "archive/${YEAR}/${MONTH}/${DAY}" ]; then
+            git add "archive/${YEAR}/${MONTH}/${DAY}"
+          fi
+
+          git add "evaluations/${YEAR}/${MONTH}/${DAY}"
 
           if git diff --cached --quiet; then
-            echo "保存対象に変更はありません"
+            echo "新しく保存する変更はありません"
             exit 0
           fi
 
+          RUN_STAMP=$(TZ=Asia/Tokyo date '+%Y%m%d_%H%M%S')
+
           git commit -m \
-            "Evaluate BOAT RACE predictions 20260930"
+            "Evaluate predictions ${TARGET_DATE} ${RUN_STAMP}"
 
           git push origin HEAD:main
 
-          echo ""
-          echo "9/30最終評価 GitHub保存: PASS"
+          echo "GitHub保存: PASS"
 
       - name: 最終確認
-        if: env.IS_TARGET_DAY == 'true' && env.ALREADY_DONE != 'true'
         run: |
-          echo "========================================"
-          echo "9月30日 本番リハーサル評価 完了"
-          echo "========================================"
+          EVAL_DIR="evaluations/${YEAR}/${MONTH}/${DAY}"
 
-          echo "朝予測 vs 実結果: 評価済み"
-          echo "直前予測 vs 実結果: 評価済み"
-          echo "朝→直前の改善効果: 評価済み"
-          echo "スコア要素別寄与: 分析済み"
-          echo "重み自動変更: していない"
-          echo "次工程: 分析結果を見てv2重み候補を決定"
+          echo ""
+          echo "========================================"
+          echo "9月30日 予測結果総合評価 完了"
+          echo "========================================"
+          echo ""
+          echo "対象:"
+          echo "・朝予測"
+          echo "・直前予測"
+          echo "・
