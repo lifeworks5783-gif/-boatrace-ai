@@ -1,0 +1,151 @@
+name: 9月30日・スコア配分答え合わせ
+
+permissions:
+  contents: write
+
+on:
+  workflow_run:
+    workflows:
+      - "9月30日・高速予測結果評価"
+    types:
+      - completed
+
+  workflow_dispatch:
+
+concurrency:
+  group: boatrace-main-writer
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      TARGET_DATE: "20260930"
+      YEAR: "2026"
+      MONTH: "09"
+      DAY: "30"
+
+    steps:
+      - name: 最新のmainを読み込む
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+
+      - name: 9月30日の結果データを確認
+        run: |
+          RESULT_FILE="archive/${YEAR}/${MONTH}/${DAY}/boat_results_${TARGET_DATE}_all.csv"
+
+          test -s "${RESULT_FILE}"
+
+          echo "実レース結果: PASS"
+
+      - name: 予測データを確認
+        run: |
+          test -d "predictions/${YEAR}/${MONTH}/${DAY}"
+
+          echo "予測データ: PASS"
+
+      - name: スコア配分と実結果を自動照合
+        run: |
+          python -u collectors/analyze_score_components.py \
+            --date "${TARGET_DATE}"
+
+      - name: 分析結果を表示
+        run: |
+          FILE="evaluations/latest_score_analysis.md"
+
+          test -s "${FILE}"
+
+          echo ""
+          echo "========================================"
+          echo "スコア配分・実レース結果 答え合わせ"
+          echo "========================================"
+          echo ""
+
+          cat "${FILE}"
+
+      - name: 分析ファイルを確認
+        run: |
+          DIR="evaluations/${YEAR}/${MONTH}/${DAY}"
+
+          test -s "${DIR}/score_component_analysis_${TARGET_DATE}.json"
+          test -s "${DIR}/score_component_analysis_${TARGET_DATE}.md"
+          test -s "${DIR}/score_answer_check_boats_${TARGET_DATE}.csv"
+
+          echo ""
+          echo "生成ファイル:"
+          echo ""
+
+          find "${DIR}" \
+            -maxdepth 1 \
+            -type f \
+            -name "score_*" \
+            -print \
+            | sort
+
+      - name: 分析結果をArtifactへ保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: boatrace-score-analysis-20260930-${{ github.run_number }}
+          path: |
+            evaluations/2026/09/30/score_component_analysis_20260930.json
+            evaluations/2026/09/30/score_component_analysis_20260930.md
+            evaluations/2026/09/30/score_answer_check_boats_20260930.csv
+            evaluations/2026/09/30/score_feature_stats_20260930.csv
+            evaluations/2026/09/30/score_gap_races_morning_20260930.csv
+            evaluations/2026/09/30/score_gap_races_live_20260930.csv
+            evaluations/latest_score_analysis.md
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: GitHubへ保存
+        run: |
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+
+          git add "evaluations/${YEAR}/${MONTH}/${DAY}"
+          git add "evaluations/latest_score_analysis.md"
+
+          if git diff --cached --quiet; then
+            echo "新しい変更はありません"
+            exit 0
+          fi
+
+          RUN_STAMP=$(TZ=Asia/Tokyo date '+%Y%m%d_%H%M%S')
+
+          git commit -m \
+            "Analyze score components ${TARGET_DATE} ${RUN_STAMP}"
+
+          git push origin HEAD:main
+
+          echo "スコア分析保存: PASS"
+
+      - name: 最終確認
+        run: |
+          echo ""
+          echo "========================================"
+          echo "9月30日 スコア配分答え合わせ 完了"
+          echo "========================================"
+          echo ""
+          echo "今後見るファイル:"
+          echo "evaluations/latest_score_analysis.md"
+          echo ""
+          echo "配点は自動変更していません"
+          echo "分析結果だけを保存しました"
