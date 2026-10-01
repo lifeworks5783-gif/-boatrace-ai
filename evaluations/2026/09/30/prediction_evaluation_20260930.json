@@ -1,7 +1,7 @@
 {
   "status": "PASS",
   "target_date": "20260930",
-  "generated_at": "2026-10-01T00:46:17.799583+09:00",
+  "generated_at": "2026-10-01T15:17:19.332041+09:00",
   "actual_races_available": 144,
   "morning": {
     "stage": "morning",
@@ -101,5 +101,45 @@
       }
     }
   },
-  "note": "各買い目100円固定。当日の結果を見て予測やフォーメーションを後から変更していない。"
+  "top3_box_simulation": {
+    "strategy": "top3_trifecta_box",
+    "selection_rule": "フォーメーションと同じレースを対象に、そのレースで採用した予測段階（直前優先、無ければ朝）のAI順位上位3艇を3連単6点BOXで各100円購入",
+    "points_per_race": 6,
+    "overall": {
+      "races": 144,
+      "hits": 25,
+      "points": 864,
+      "investment": 86400,
+      "return": 32800,
+      "hit_rate": 0.17361,
+      "average_points_per_race": 6.0,
+      "profit": -53600,
+      "recovery_rate_pct": 37.96
+    },
+    "by_prediction_type": {
+      "live": {
+        "races": 104,
+        "hits": 17,
+        "points": 624,
+        "investment": 62400,
+        "return": 20190,
+        "hit_rate": 0.16346,
+        "average_points_per_race": 6.0,
+        "profit": -42210,
+        "recovery_rate_pct": 32.36
+      },
+      "morning": {
+        "races": 40,
+        "hits": 8,
+        "points": 240,
+        "investment": 24000,
+        "return": 12610,
+        "hit_rate": 0.2,
+        "average_points_per_race": 6.0,
+        "profit": -11390,
+        "recovery_rate_pct": 52.54
+      }
+    }
+  },
+  "note": "フォーメーション戦略と上位3艇BOX戦略は完全に別会計。両方を同時購入した収支ではない。各買い目100円固定。"
 }
