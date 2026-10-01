@@ -1,28 +1,30 @@
-name: 前日全場自動収集
+name: 前日全場自動収集・自動評価
 
 permissions:
   contents: write
+  actions: write
 
 on:
   schedule:
-    - cron: "0 1 * * *"
-      timezone: "Asia/Tokyo"
+    # 毎日 01:00 JST（GitHub Actions の cron は UTC）
+    - cron: "0 16 * * *"
 
   workflow_dispatch:
 
 concurrency:
-  group: daily-results-${{ github.ref }}
+  group: boatrace-main-writer
   cancel-in-progress: false
 
 jobs:
-  collect:
+  collect_and_evaluate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: ファイルを読み込む
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Pythonを準備
@@ -35,112 +37,221 @@ jobs:
           python -m pip install --upgrade pip
           pip install lhafile
 
+      - name: 前日の日付を設定
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date -d "yesterday" +%Y%m%d)
+
+          YEAR=${TARGET_DATE:0:4}
+          MONTH=${TARGET_DATE:4:2}
+          DAY=${TARGET_DATE:6:2}
+
+          ARCHIVE_DEST="archive/${YEAR}/${MONTH}/${DAY}"
+          EVALUATION_DEST="evaluations/${YEAR}/${MONTH}/${DAY}"
+          PREDICTION_DEST="predictions/${YEAR}/${MONTH}/${DAY}"
+
+          echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
+          echo "YEAR=${YEAR}" >> "$GITHUB_ENV"
+          echo "MONTH=${MONTH}" >> "$GITHUB_ENV"
+          echo "DAY=${DAY}" >> "$GITHUB_ENV"
+          echo "ARCHIVE_DEST=${ARCHIVE_DEST}" >> "$GITHUB_ENV"
+          echo "EVALUATION_DEST=${EVALUATION_DEST}" >> "$GITHUB_ENV"
+          echo "PREDICTION_DEST=${PREDICTION_DEST}" >> "$GITHUB_ENV"
+          echo "RUN_EVALUATION=false" >> "$GITHUB_ENV"
+          echo "REPO_CHANGED=false" >> "$GITHUB_ENV"
+
+          echo "========================================"
+          echo "前日データ収集・自動評価"
+          echo "対象日: ${TARGET_DATE}"
+          echo "========================================"
+
       - name: dataフォルダを準備
-        run: mkdir -p data
+        run: |
+          mkdir -p data
 
       - name: 前日全場結果を軽量収集
         run: |
           echo "========================================"
           echo "前日全場結果・Kファイル軽量収集"
+          echo "対象日: ${TARGET_DATE}"
           echo "========================================"
 
-          python -u collectors/daily_results_fast.py
+          python -u collectors/daily_results_fast.py \
+            --date "${TARGET_DATE}"
 
           echo ""
-          echo "========================================"
-          echo "軽量収集完了"
-          echo "========================================"
+          echo "軽量収集完了: PASS"
 
       - name: 収集データを自動検証
         run: |
           echo "========================================"
-          echo "日次データ品質検証を開始"
+          echo "日次データ品質検証"
+          echo "対象日: ${TARGET_DATE}"
           echo "========================================"
 
-          python -u collectors/validate_daily.py
+          python -u collectors/validate_daily.py \
+            --date "${TARGET_DATE}"
 
           echo ""
-          echo "========================================"
-          echo "日次データ品質検証 PASS"
-          echo "========================================"
+          echo "日次データ品質検証: PASS"
 
-      - name: 作成ファイルを確認
+      - name: 必須5ファイルを確認
+        run: |
+          REQUIRED_FILES=(
+            "data/venues_${TARGET_DATE}.csv"
+            "data/results_${TARGET_DATE}_all.csv"
+            "data/boat_results_${TARGET_DATE}_all.csv"
+            "data/validation_${TARGET_DATE}.json"
+            "data/manifest_${TARGET_DATE}.json"
+          )
+
+          for FILE in "${REQUIRED_FILES[@]}"; do
+            if [ ! -s "${FILE}" ]; then
+              echo "ERROR: 必須ファイルがありません: ${FILE}"
+              exit 1
+            fi
+          done
+
+          echo "必須5ファイル確認: PASS"
+
+      - name: 前日結果をarchiveへ長期保存
+        run: |
+          mkdir -p "${ARCHIVE_DEST}"
+
+          cp "data/venues_${TARGET_DATE}.csv" "${ARCHIVE_DEST}/"
+          cp "data/results_${TARGET_DATE}_all.csv" "${ARCHIVE_DEST}/"
+          cp "data/boat_results_${TARGET_DATE}_all.csv" "${ARCHIVE_DEST}/"
+          cp "data/validation_${TARGET_DATE}.json" "${ARCHIVE_DEST}/"
+          cp "data/manifest_${TARGET_DATE}.json" "${ARCHIVE_DEST}/"
+
+          echo ""
+          echo "archive保存:"
+          find "${ARCHIVE_DEST}" -maxdepth 1 -type f -print | sort
+
+          echo "前日結果archive保存: PASS"
+
+      - name: 予測評価に必要なファイルを確認
+        run: |
+          MORNING_FILE="${PREDICTION_DEST}/morning_predictions_${TARGET_DATE}.json"
+          FORMATION_FILE="${PREDICTION_DEST}/live/formation_predictions_final_${TARGET_DATE}.json"
+          LIVE_FILE="${PREDICTION_DEST}/live/live_predictions_final_${TARGET_DATE}.json"
+
+          echo "朝予測: ${MORNING_FILE}"
+          echo "フォーメーション: ${FORMATION_FILE}"
+          echo "直前予測: ${LIVE_FILE}"
+
+          if [ -s "${MORNING_FILE}" ] && [ -s "${FORMATION_FILE}" ]; then
+            echo "RUN_EVALUATION=true" >> "$GITHUB_ENV"
+            echo "予測評価: 実行します"
+
+            if [ -s "${LIVE_FILE}" ]; then
+              echo "直前予測: あり"
+            else
+              echo "直前予測: なし（朝予測＋フォーメーションのみ評価）"
+            fi
+          else
+            echo "RUN_EVALUATION=false" >> "$GITHUB_ENV"
+            echo "予測評価に必要なファイルが不足しているため今回はスキップします"
+            echo "結果データの保存は継続します"
+          fi
+
+      - name: 朝・直前・フォーメーション・3艇BOXを自動評価
+        if: env.RUN_EVALUATION == 'true'
         run: |
           echo "========================================"
-          echo "今回作成されたデータ"
+          echo "予測結果の自動答え合わせ"
+          echo "対象日: ${TARGET_DATE}"
           echo "========================================"
 
-          find data -maxdepth 1 -type f \
-            \( -name "*.csv" -o -name "*.json" \) \
-            -print | sort
+          python -u collectors/evaluate_predictions.py \
+            --date "${TARGET_DATE}"
 
-      - name: 結果をArtifactへ短期保存
+          test -s "${EVALUATION_DEST}/prediction_evaluation_${TARGET_DATE}.json"
+          test -s "${EVALUATION_DEST}/formation_simulation_${TARGET_DATE}.json"
+          test -s "${EVALUATION_DEST}/top3_box_simulation_${TARGET_DATE}.json"
+
+          echo ""
+          echo "予測評価: PASS"
+
+      - name: 評価結果を確認
+        if: env.RUN_EVALUATION == 'true'
+        run: |
+          echo "========================================"
+          echo "今回生成された評価ファイル"
+          echo "========================================"
+
+          find "${EVALUATION_DEST}" -maxdepth 1 -type f -print | sort
+
+      - name: 結果と評価をArtifactへ短期保存
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-results-${{ github.run_number }}
+          name: boatrace-daily-evaluation-${{ github.run_number }}
           path: |
             data/venues_*.csv
             data/results_*_all.csv
             data/boat_results_*_all.csv
             data/validation_*.json
             data/manifest_*.json
+            evaluations/**/*.json
+            evaluations/**/*.csv
           if-no-files-found: error
           retention-days: 14
 
-      - name: 検証PASSデータをGitHubへ長期保存
+      - name: GitHubへ長期保存
         run: |
-          VALIDATION_FILE=$(find data -maxdepth 1 \
-            -type f \
-            -name "validation_*.json" \
-            | head -n 1)
-
-          if [ -z "${VALIDATION_FILE}" ]; then
-            echo "validationファイルがありません"
-            exit 1
-          fi
-
-          TARGET_DATE=$(basename "${VALIDATION_FILE}" \
-            | sed -E 's/validation_([0-9]{8})\.json/\1/')
-
-          YEAR=${TARGET_DATE:0:4}
-          MONTH=${TARGET_DATE:4:2}
-          DAY=${TARGET_DATE:6:2}
-
-          DEST="archive/${YEAR}/${MONTH}/${DAY}"
-
-          echo "対象日: ${TARGET_DATE}"
-          echo "保存先: ${DEST}"
-
-          mkdir -p "${DEST}"
-
-          cp "data/venues_${TARGET_DATE}.csv" "${DEST}/"
-          cp "data/results_${TARGET_DATE}_all.csv" "${DEST}/"
-          cp "data/boat_results_${TARGET_DATE}_all.csv" "${DEST}/"
-          cp "data/validation_${TARGET_DATE}.json" "${DEST}/"
-          cp "data/manifest_${TARGET_DATE}.json" "${DEST}/"
-
-          echo ""
-          echo "保存する5ファイル:"
-          find "${DEST}" -maxdepth 1 -type f -print | sort
-
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
-          git add "${DEST}"
+          git add "${ARCHIVE_DEST}"
+
+          if [ "${RUN_EVALUATION}" = "true" ]; then
+            git add "${EVALUATION_DEST}"
+          fi
 
           if git diff --cached --quiet; then
-            echo "同じデータが既に保存されています"
-            echo "重複コミットは行いません"
+            echo "REPO_CHANGED=false" >> "$GITHUB_ENV"
+            echo "保存対象の変更なし"
             exit 0
           fi
 
-          git commit -m "Archive BOAT RACE data ${TARGET_DATE}"
+          git commit -m "Archive and evaluate BOAT RACE ${TARGET_DATE}"
 
-          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git pull --rebase origin main
+          git push origin HEAD:main
 
-          git push origin HEAD:"${GITHUB_REF_NAME}"
+          echo "REPO_CHANGED=true" >> "$GITHUB_ENV"
+          echo "GitHub長期保存: PASS"
 
+      - name: 家族共有ページ更新を開始
+        if: env.RUN_EVALUATION == 'true' && env.REPO_CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run \
+            family_prediction_page.yml \
+            --repo "${GITHUB_REPOSITORY}" \
+            --ref main
+
+          echo "家族共有ページ更新開始: PASS"
+
+      - name: 最終確認
+        run: |
           echo ""
           echo "========================================"
-          echo "GitHub長期保存 完了"
+          echo "前日全場自動収集・自動評価 完了"
+          echo "========================================"
+          echo "対象日: ${TARGET_DATE}"
+          echo "結果収集: PASS"
+          echo "品質検証: PASS"
+          echo "archive保存: PASS"
+          echo "予測評価実行: ${RUN_EVALUATION}"
+          echo "GitHub更新: ${REPO_CHANGED}"
+
+          if [ "${RUN_EVALUATION}" = "true" ]; then
+            echo "フォーメーション評価: PASS"
+            echo "上位3艇BOX評価: PASS"
+            echo "家族共有ページ更新要求: 完了"
+          else
+            echo "予測評価: 必要ファイル不足のためSKIP"
+          fi
+
           echo "========================================"
