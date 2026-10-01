@@ -11,14 +11,15 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import pandas as pd
 
 
+# 現在の morning_heuristic_v2 配点
 WEIGHTS = {
-    "frame": 28,
-    "official_racer": 18,
-    "recent_racer": 22,
-    "racer_venue": 8,
+    "frame": 31,
+    "official_racer": 17,
+    "recent_racer": 20,
+    "racer_venue": 10,
     "motor": 14,
-    "boat_machine": 5,
-    "grade": 5,
+    "boat_machine": 4,
+    "grade": 4,
 }
 
 LABEL = {
@@ -29,7 +30,7 @@ LABEL = {
     "motor": "モーター",
     "boat_machine": "ボート",
     "grade": "級別",
-    "live_beforeinfo": "直前・展示",
+    "total_score": "総合スコア",
 }
 
 COMP_ALIASES = {
@@ -39,37 +40,31 @@ COMP_ALIASES = {
         "course_score",
         "course_points",
     },
-
     "official_racer": {
         "official_racer_score",
         "official_score",
         "racer_official_score",
     },
-
     "recent_racer": {
         "recent_racer_score",
         "recent_score",
         "racer_recent_score",
     },
-
     "racer_venue": {
         "racer_venue_score",
         "venue_score",
         "local_score",
         "racer_local_score",
     },
-
     "motor": {
         "motor_score",
         "motor_points",
     },
-
     "boat_machine": {
         "boat_machine_score",
         "boat_score",
         "boat_points",
     },
-
     "grade": {
         "grade_score",
         "grade_points",
@@ -77,178 +72,79 @@ COMP_ALIASES = {
     },
 }
 
-OUTCOME_WORDS = (
-    "finish",
-    "result",
-    "payout",
-    "return",
-    "race_time",
-    "actual_st",
-    "winner",
-    "trifecta",
-    "exacta",
-)
 
-ID_LEAVES = {
-    "date",
-    "venue_code",
-    "race",
-    "rno",
-    "boat",
-    "frame",
-    "registration_no",
-    "motor_no",
-    "boat_no",
-    "age",
-    "series_day",
-    "distance_m",
-}
-
-
-def nkey(
-    value: Any,
-) -> str:
-
+def nkey(value: Any) -> str:
     return re.sub(
         r"[^a-z0-9_]+",
         "_",
-        str(value)
-        .strip()
-        .lower(),
+        str(value).strip().lower(),
     ).strip("_")
 
 
-def num(
-    value: Any,
-) -> Optional[float]:
-
-    if (
-        value is None
-        or isinstance(
-            value,
-            bool,
-        )
-    ):
+def to_float(value: Any) -> Optional[float]:
+    if value is None or isinstance(value, bool):
         return None
 
-    if isinstance(
-        value,
-        (
-            int,
-            float,
-        ),
-    ):
-
-        if (
-            isinstance(
-                value,
-                float,
-            )
-            and math.isnan(value)
-        ):
-            return None
-
-        return float(value)
-
     try:
-
-        return float(
+        number = float(
             str(value)
             .strip()
             .replace(",", "")
             .replace("%", "")
         )
-
     except Exception:
-
         return None
 
+    if not math.isfinite(number):
+        return None
 
-def flatten_numeric(
+    return number
+
+
+def to_int(value: Any) -> Optional[int]:
+    number = to_float(value)
+
+    if number is None:
+        return None
+
+    return int(number)
+
+
+def venue(value: Any) -> str:
+    try:
+        return f"{int(float(value)):02d}"
+    except Exception:
+        return str(value or "").strip().zfill(2)
+
+
+def flatten(
     obj: Any,
     prefix: str = "",
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
+    output: Dict[str, Any] = {}
 
-    out: Dict[
-        str,
-        float,
-    ] = {}
+    if not isinstance(obj, dict):
+        return output
 
-    if isinstance(
-        obj,
-        dict,
-    ):
+    for key, value in obj.items():
+        path = (
+            f"{prefix}.{nkey(key)}"
+            if prefix
+            else nkey(key)
+        )
 
-        for key, value in obj.items():
-
-            path = (
-                f"{prefix}.{nkey(key)}"
-                if prefix
-                else nkey(key)
+        if isinstance(value, dict):
+            output.update(
+                flatten(
+                    value,
+                    path,
+                )
             )
 
-            if isinstance(
-                value,
-                dict,
-            ):
+        elif not isinstance(value, list):
+            output[path] = value
 
-                out.update(
-                    flatten_numeric(
-                        value,
-                        path,
-                    )
-                )
-
-            elif not isinstance(
-                value,
-                list,
-            ):
-
-                value_num = num(
-                    value
-                )
-
-                if value_num is not None:
-
-                    out[path] = (
-                        value_num
-                    )
-
-    return out
-
-
-def venue(
-    value: Any,
-) -> str:
-
-    text = str(
-        value
-    ).strip()
-
-    try:
-
-        return (
-            f"{int(float(text)):02d}"
-        )
-
-    except Exception:
-
-        return text.zfill(2)
-
-
-def iv(
-    value: Any,
-) -> Optional[int]:
-
-    try:
-
-        return int(
-            float(value)
-        )
-
-    except Exception:
-
-        return None
+    return output
 
 
 def parse_race_id(
@@ -258,258 +154,151 @@ def parse_race_id(
     str,
     Optional[int],
 ]:
-
     match = re.search(
         r"(\d{8})[-_](\d{2})[-_](\d{1,2})",
-        str(
-            value
-            or ""
-        ),
+        str(value or ""),
     )
 
     if not match:
-
-        return (
-            "",
-            "",
-            None,
-        )
+        return "", "", None
 
     return (
         match.group(1),
         match.group(2),
-        int(
-            match.group(3)
-        ),
+        int(match.group(3)),
     )
 
 
 def load_json(
     path: Path,
 ) -> Any:
-
-    with path.open(
-        "r",
-        encoding="utf-8",
-    ) as file:
-
-        return json.load(
-            file
+    return json.loads(
+        path.read_text(
+            encoding="utf-8"
         )
+    )
 
 
 def boat_records(
     root: Any,
     default_date: str,
-) -> List[
-    Dict[str, Any]
-]:
-
-    rows: List[
-        Dict[str, Any]
-    ] = []
+) -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
 
     def walk(
         node: Any,
-        context: Dict[
-            str,
-            Any,
-        ],
+        context: Dict[str, Any],
     ) -> None:
-
-        if isinstance(
-            node,
-            dict,
-        ):
-
-            current = dict(
-                context
-            )
+        if isinstance(node, dict):
+            current = dict(context)
 
             if "race_id" in node:
-
-                date_value, venue_value, race_value = (
-                    parse_race_id(
-                        node.get(
-                            "race_id"
-                        )
-                    )
+                (
+                    race_date,
+                    race_venue,
+                    race_no,
+                ) = parse_race_id(
+                    node.get("race_id")
                 )
 
-                if date_value:
-                    current[
-                        "date"
-                    ] = date_value
+                if race_date:
+                    current["date"] = race_date
 
-                if venue_value:
-                    current[
-                        "venue_code"
-                    ] = venue_value
+                if race_venue:
+                    current["venue_code"] = race_venue
 
-                if race_value is not None:
-                    current[
-                        "race"
-                    ] = race_value
+                if race_no is not None:
+                    current["race"] = race_no
 
-            for source, destination in (
-                (
-                    "date",
-                    "date",
-                ),
-                (
-                    "target_date",
-                    "date",
-                ),
-                (
-                    "venue_code",
-                    "venue_code",
-                ),
-                (
-                    "jcd",
-                    "venue_code",
-                ),
-                (
-                    "race",
-                    "race",
-                ),
-                (
-                    "rno",
-                    "race",
-                ),
+            for source, target in (
+                ("date", "date"),
+                ("target_date", "date"),
+                ("venue_code", "venue_code"),
+                ("jcd", "venue_code"),
+                ("race", "race"),
+                ("rno", "race"),
             ):
-
                 if (
-                    source
-                    in node
+                    source in node
                     and not isinstance(
                         node[source],
-                        (
-                            dict,
-                            list,
-                        ),
+                        (dict, list),
                     )
                 ):
+                    current[target] = node[source]
 
-                    current[
-                        destination
-                    ] = node[source]
+            boat_no = None
 
-            boat_number = None
-
-            for boat_key in (
+            for key in (
                 "boat",
                 "frame",
                 "lane",
             ):
-
                 if (
-                    boat_key
-                    in node
+                    key in node
                     and not isinstance(
-                        node[
-                            boat_key
-                        ],
-                        (
-                            dict,
-                            list,
-                        ),
+                        node[key],
+                        (dict, list),
                     )
                 ):
-
-                    candidate = iv(
-                        node[
-                            boat_key
-                        ]
+                    candidate = to_int(
+                        node[key]
                     )
 
                     if (
-                        candidate
-                        is not None
-                        and 1
-                        <= candidate
-                        <= 6
+                        candidate is not None
+                        and 1 <= candidate <= 6
                     ):
-
-                        boat_number = (
-                            candidate
-                        )
-
+                        boat_no = candidate
                         break
 
             if (
-                boat_number
-                is not None
-                and current.get(
-                    "race"
-                )
-                is not None
+                boat_no is not None
+                and current.get("race") is not None
             ):
-
                 rows.append(
                     {
-                        "date":
-                            str(
-                                current.get(
-                                    "date",
-                                    default_date,
-                                )
-                            ),
-
-                        "venue_code":
-                            venue(
-                                current.get(
-                                    "venue_code",
-                                    "",
-                                )
-                            ),
-
-                        "race":
-                            iv(
-                                current.get(
-                                    "race"
-                                )
-                            ),
-
-                        "boat":
-                            boat_number,
-
-                        "raw":
-                            node,
+                        "date": str(
+                            current.get(
+                                "date",
+                                default_date,
+                            )
+                        ),
+                        "venue_code": venue(
+                            current.get(
+                                "venue_code",
+                                "",
+                            )
+                        ),
+                        "race": to_int(
+                            current.get("race")
+                        ),
+                        "boat": boat_no,
+                        "raw": node,
                     }
                 )
 
-            for value in node.values():
-
+            for child in node.values():
                 if isinstance(
-                    value,
-                    (
-                        dict,
-                        list,
-                    ),
+                    child,
+                    (dict, list),
                 ):
-
                     walk(
-                        value,
+                        child,
                         current,
                     )
 
-        elif isinstance(
-            node,
-            list,
-        ):
-
-            for value in node:
-
+        elif isinstance(node, list):
+            for child in node:
                 walk(
-                    value,
+                    child,
                     context,
                 )
 
     walk(
         root,
         {
-            "date":
-                default_date
+            "date": default_date
         },
     )
 
@@ -520,65 +309,40 @@ def boat_records(
             int,
             int,
         ],
-        Dict[
-            str,
-            Any,
-        ],
+        Dict[str, Any],
     ] = {}
 
     for row in rows:
-
-        if row[
-            "race"
-        ] is None:
-
+        if row["race"] is None:
             continue
 
         key = (
-            row[
-                "date"
-            ],
-            row[
-                "venue_code"
-            ],
-            int(
-                row[
-                    "race"
-                ]
-            ),
-            int(
-                row[
-                    "boat"
-                ]
-            ),
+            row["date"],
+            row["venue_code"],
+            int(row["race"]),
+            int(row["boat"]),
         )
 
         score_hint = any(
-            key_name
-            in row[
-                "raw"
-            ]
-            for key_name
-            in (
+            name in row["raw"]
+            for name in (
                 "score",
                 "total_score",
                 "final_score",
                 "prediction_score",
                 "score_components",
+                "component_scores",
                 "components",
                 "breakdown",
+                "score_breakdown",
             )
         )
 
         if (
-            key
-            not in dedup
+            key not in dedup
             or score_hint
         ):
-
-            dedup[
-                key
-            ] = row
+            dedup[key] = row
 
     return list(
         dedup.values()
@@ -586,35 +350,23 @@ def boat_records(
 
 
 def discover(
-    patterns: Iterable[
-        str
-    ],
+    patterns: Iterable[str],
 ) -> List[Path]:
-
-    output = []
+    output: List[Path] = []
     seen = set()
 
     for pattern in patterns:
-
-        for path in Path(
-            "."
-        ).glob(
+        for path in Path(".").glob(
             pattern
         ):
-
             if (
                 path.is_file()
-                and str(path)
-                not in seen
+                and str(path) not in seen
             ):
-
                 seen.add(
                     str(path)
                 )
-
-                output.append(
-                    path
-                )
+                output.append(path)
 
     return output
 
@@ -624,74 +376,93 @@ def choose_file(
     stage: str,
     kind: str,
 ) -> Optional[Path]:
-
     year = date[:4]
     month = date[4:6]
     day = date[6:8]
 
     if kind == "prediction":
+        if stage == "morning":
+            patterns = [
+                (
+                    f"predictions/"
+                    f"{year}/{month}/{day}/"
+                    f"morning_predictions_{date}.json"
+                ),
+                (
+                    f"predictions/"
+                    f"{year}/{month}/{day}/"
+                    f"morning/**/*final*.json"
+                ),
+                (
+                    f"predictions/"
+                    f"{year}/{month}/{day}/"
+                    f"morning/**/*prediction*.json"
+                ),
+                (
+                    f"data/"
+                    f"*morning*predictions*"
+                    f"{date}*.json"
+                ),
+            ]
 
-        patterns = [
-            (
-                f"predictions/"
-                f"{year}/"
-                f"{month}/"
-                f"{day}/"
-                f"{stage}/"
-                f"**/*final*.json"
-            ),
-
-            (
-                f"predictions/"
-                f"{year}/"
-                f"{month}/"
-                f"{day}/"
-                f"{stage}/"
-                f"**/*prediction*.json"
-            ),
-
-            (
-                f"data/"
-                f"*{stage}*"
-                f"predictions*"
-                f"{date}*.json"
-            ),
-        ]
+        else:
+            patterns = [
+                (
+                    f"predictions/"
+                    f"{year}/{month}/{day}/"
+                    f"live/"
+                    f"live_predictions_final_{date}.json"
+                ),
+                (
+                    f"predictions/"
+                    f"{year}/{month}/{day}/"
+                    f"live/**/*final*.json"
+                ),
+                (
+                    f"predictions/"
+                    f"{year}/{month}/{day}/"
+                    f"live/**/*prediction*.json"
+                ),
+                (
+                    f"data/"
+                    f"*live*predictions*"
+                    f"{date}*.json"
+                ),
+            ]
 
     else:
-
         patterns = [
             (
                 f"data/"
-                f"prediction_input_"
-                f"enriched_"
-                f"{stage}_"
-                f"{date}.json"
+                f"prediction_input_enriched_"
+                f"{stage}_{date}.json"
             ),
-
             (
                 f"data/"
                 f"prediction_input_"
-                f"{stage}_"
-                f"{date}.json"
+                f"{stage}_{date}.json"
             ),
-
             (
                 f"daily_inputs/"
-                f"{year}/"
-                f"{month}/"
-                f"{day}/"
+                f"{year}/{month}/{day}/"
                 f"{stage}/"
                 f"**/*enriched*.json"
             ),
-
             (
                 f"daily_inputs/"
-                f"{year}/"
-                f"{month}/"
-                f"{day}/"
+                f"{year}/{month}/{day}/"
                 f"{stage}/"
                 f"**/*prediction_input*.json"
+            ),
+            (
+                f"daily_inputs/"
+                f"{year}/{month}/{day}/"
+                f"**/*{stage}*enriched*.json"
+            ),
+            (
+                f"daily_inputs/"
+                f"{year}/{month}/{day}/"
+                f"**/*{stage}*prediction_input*.json"
             ),
         ]
 
@@ -700,35 +471,29 @@ def choose_file(
     for path in discover(
         patterns
     ):
-
         try:
-
             count = len(
                 boat_records(
-                    load_json(
-                        path
-                    ),
+                    load_json(path),
                     date,
                 )
             )
 
-            if kind == "input":
+            bonus = 0
 
-                bonus = (
-                    1
-                    if "enriched"
-                    in path.name.lower()
-                    else 0
-                )
+            if (
+                kind == "prediction"
+                and "final"
+                in path.name.lower()
+            ):
+                bonus += 2
 
-            else:
-
-                bonus = (
-                    1
-                    if "final"
-                    in path.name.lower()
-                    else 0
-                )
+            if (
+                kind == "input"
+                and "enriched"
+                in path.name.lower()
+            ):
+                bonus += 1
 
             candidates.append(
                 (
@@ -739,86 +504,72 @@ def choose_file(
             )
 
         except Exception:
-
-            pass
+            continue
 
     if not candidates:
-
         return None
 
     return max(
         candidates,
-        key=lambda value: (
-            value[0],
-            value[1],
+        key=lambda item: (
+            item[0],
+            item[1],
         ),
     )[2]
 
 
 def total_score(
-    raw: Dict[
-        str,
-        Any,
-    ],
+    raw: Dict[str, Any],
 ) -> Optional[float]:
-
     for key in (
         "total_score",
         "final_score",
         "prediction_score",
         "score",
     ):
-
         if key in raw:
-
-            value = num(
+            value = to_float(
                 raw[key]
             )
 
             if value is not None:
-
                 return value
 
-    flat = flatten_numeric(
+    for path, value in flatten(
         raw
-    )
+    ).items():
+        leaf = path.split(".")[-1]
 
-    for leaf in (
-        "total_score",
-        "final_score",
-        "prediction_score",
-        "score",
-    ):
+        if leaf not in (
+            "total_score",
+            "final_score",
+            "prediction_score",
+            "score",
+        ):
+            continue
 
-        for path, value in flat.items():
+        if (
+            "component" in path
+            or "breakdown" in path
+        ):
+            continue
 
-            if (
-                path.split(
-                    "."
-                )[-1]
-                == leaf
-                and "component"
-                not in path
-                and "breakdown"
-                not in path
-            ):
+        number = to_float(
+            value
+        )
 
-                return value
+        if number is not None:
+            return number
 
     return None
 
 
 def component_scores(
-    raw: Dict[
-        str,
-        Any,
-    ],
-) -> Dict[
-    str,
-    float,
-]:
-
-    sources = []
+    raw: Dict[str, Any],
+) -> Dict[str, float]:
+    sources: List[
+        Dict[str, Any]
+    ] = []
 
     for key in (
         "score_components",
@@ -827,23 +578,15 @@ def component_scores(
         "breakdown",
         "score_breakdown",
     ):
-
         if isinstance(
-            raw.get(
-                key
-            ),
+            raw.get(key),
             dict,
         ):
-
             sources.append(
-                raw[
-                    key
-                ]
+                raw[key]
             )
 
-    sources.append(
-        raw
-    )
+    sources.append(raw)
 
     output: Dict[
         str,
@@ -853,163 +596,98 @@ def component_scores(
     for group, aliases in (
         COMP_ALIASES.items()
     ):
-
         for source in sources:
-
-            for path, value in (
-                flatten_numeric(
-                    source
-                ).items()
-            ):
-
+            for path, value in flatten(
+                source
+            ).items():
                 if (
-                    path.split(
-                        "."
-                    )[-1]
-                    in aliases
+                    path.split(".")[-1]
+                    not in aliases
                 ):
+                    continue
 
-                    output[
-                        group
-                    ] = value
+                number = to_float(
+                    value
+                )
 
+                if number is not None:
+                    output[group] = number
                     break
 
             if group in output:
-
                 break
 
     return output
 
 
-def grade_value(
-    value: Any,
-) -> Optional[float]:
-
-    return {
-        "A1": 4.0,
-        "A2": 3.0,
-        "B1": 2.0,
-        "B2": 1.0,
-    }.get(
-        str(
-            value
-            or ""
-        )
-        .strip()
-        .upper()
-    )
-
-
 def feature_group(
     path: str,
 ) -> Optional[str]:
+    lower = path.lower()
 
-    path_lower = (
-        path.lower()
-    )
-
-    leaf = (
-        path_lower
-        .split(".")[-1]
-    )
-
-    if (
-        any(
-            word
-            in path_lower
-            for word
-            in OUTCOME_WORDS
+    if any(
+        word in lower
+        for word in (
+            "finish",
+            "result",
+            "payout",
+            "return",
+            "race_time",
+            "actual_st",
+            "winner",
+            "trifecta",
+            "exacta",
         )
-        or leaf
-        in ID_LEAVES
     ):
-
         return None
 
     if (
-        "beforeinfo"
-        in path_lower
-    ):
-
-        return (
-            "live_beforeinfo"
-        )
-
-    if (
         "history.racer_30d"
-        in path_lower
-        or
-        "history.racer_90d"
-        in path_lower
-        or
-        "recent"
-        in path_lower
+        in lower
+        or "history.racer_90d"
+        in lower
+        or "recent"
+        in lower
     ):
-
-        return (
-            "recent_racer"
-        )
+        return "recent_racer"
 
     if (
         "history.motor_30d"
-        in path_lower
-        or
-        "history.motor_90d"
-        in path_lower
+        in lower
+        or "history.motor_90d"
+        in lower
     ):
-
         return "motor"
 
     if (
         "official_stats.local_"
-        in path_lower
-        or
-        "local_win"
-        in path_lower
-        or
-        "local_top"
-        in path_lower
+        in lower
+        or "local_win"
+        in lower
+        or "local_top"
+        in lower
     ):
-
-        return (
-            "racer_venue"
-        )
+        return "racer_venue"
 
     if (
         "official_stats.national_"
-        in path_lower
-        or
-        "national_win"
-        in path_lower
-        or
-        "national_top"
-        in path_lower
+        in lower
+        or "national_win"
+        in lower
+        or "national_top"
+        in lower
     ):
-
-        return (
-            "official_racer"
-        )
+        return "official_racer"
 
     if (
-        path_lower.startswith(
-            "motor."
-        )
-        or
-        ".motor."
-        in path_lower
+        lower.startswith("motor.")
+        or ".motor."
+        in lower
     ):
-
         return "motor"
 
-    if (
-        "boat_machine"
-        in path_lower
-    ):
-
-        return (
-            "boat_machine"
-        )
+    if "boat_machine" in lower:
+        return "boat_machine"
 
     return None
 
@@ -1018,106 +696,60 @@ def input_frame(
     path: Optional[Path],
     date: str,
 ) -> pd.DataFrame:
-
     if path is None:
-
         return pd.DataFrame()
 
     rows = []
 
     for record in boat_records(
-        load_json(
-            path
-        ),
+        load_json(path),
         date,
     ):
-
-        raw = record[
-            "raw"
-        ]
+        raw = record["raw"]
 
         row: Dict[
             str,
             Any,
         ] = {
-            "date":
-                record[
-                    "date"
-                ],
-
-            "venue_code":
-                record[
-                    "venue_code"
-                ],
-
-            "race":
-                record[
-                    "race"
-                ],
-
-            "boat":
-                record[
-                    "boat"
-                ],
+            "date": record["date"],
+            "venue_code": record[
+                "venue_code"
+            ],
+            "race": record["race"],
+            "boat": record["boat"],
+            (
+                "feature.frame."
+                "frame_advantage"
+            ): (
+                7
+                - int(
+                    record["boat"]
+                )
+            ),
         }
 
-        row[
-            "feature.frame.frame_advantage"
-        ] = (
-            7
-            - int(
-                record[
-                    "boat"
-                ]
-            )
-        )
-
-        racer = (
-            raw.get(
-                "racer"
-            )
-            if isinstance(
-                raw.get(
-                    "racer"
-                ),
-                dict,
-            )
-            else {}
-        )
-
-        grade = grade_value(
-            racer.get(
-                "grade"
-            )
-        )
-
-        if grade is not None:
-
-            row[
-                "feature.grade.grade_numeric"
-            ] = grade
-
-        for key, value in (
-            flatten_numeric(
-                raw
-            ).items()
-        ):
-
+        for key, value in flatten(
+            raw
+        ).items():
             group = feature_group(
                 key
             )
 
-            if group:
+            number = to_float(
+                value
+            )
 
+            if (
+                group
+                and number is not None
+            ):
                 row[
                     f"feature."
                     f"{group}."
                     f"{key}"
-                ] = value
+                ] = number
 
-        rows.append(
-            row
-        )
+        rows.append(row)
 
     return pd.DataFrame(
         rows
@@ -1128,67 +760,40 @@ def prediction_frame(
     path: Optional[Path],
     date: str,
 ) -> pd.DataFrame:
-
     if path is None:
-
         return pd.DataFrame()
 
     rows = []
 
     for record in boat_records(
-        load_json(
-            path
-        ),
+        load_json(path),
         date,
     ):
-
         row: Dict[
             str,
             Any,
         ] = {
-            "date":
-                record[
-                    "date"
-                ],
-
-            "venue_code":
-                record[
-                    "venue_code"
-                ],
-
-            "race":
-                record[
-                    "race"
-                ],
-
-            "boat":
-                record[
-                    "boat"
-                ],
-
-            "total_score":
-                total_score(
-                    record[
-                        "raw"
-                    ]
-                ),
+            "date": record["date"],
+            "venue_code": record[
+                "venue_code"
+            ],
+            "race": record["race"],
+            "boat": record["boat"],
+            "total_score": total_score(
+                record["raw"]
+            ),
         }
 
         for group, value in (
             component_scores(
-                record[
-                    "raw"
-                ]
+                record["raw"]
             ).items()
         ):
-
             row[
                 f"component.{group}"
             ] = value
 
-        rows.append(
-            row
-        )
+        rows.append(row)
 
     return pd.DataFrame(
         rows
@@ -1198,14 +803,12 @@ def prediction_frame(
 def results_frame(
     date: str,
 ) -> pd.DataFrame:
-
     paths = [
         Path(
             f"data/"
             f"boat_results_"
             f"{date}_all.csv"
         ),
-
         Path(
             f"archive/"
             f"{date[:4]}/"
@@ -1218,16 +821,14 @@ def results_frame(
 
     path = next(
         (
-            path
-            for path
-            in paths
-            if path.exists()
+            item
+            for item in paths
+            if item.exists()
         ),
         None,
     )
 
     if path is None:
-
         raise FileNotFoundError(
             f"boat_results_"
             f"{date}_all.csv "
@@ -1246,28 +847,23 @@ def results_frame(
         "finish",
     }
 
-    if not required.issubset(
-        dataframe.columns
-    ):
+    missing = (
+        required
+        - set(
+            dataframe.columns
+        )
+    )
 
+    if missing:
         raise ValueError(
             "result columns missing: "
             + str(
-                sorted(
-                    required
-                    - set(
-                        dataframe.columns
-                    )
-                )
+                sorted(missing)
             )
         )
 
-    dataframe[
-        "date"
-    ] = (
-        dataframe[
-            "date"
-        ]
+    dataframe["date"] = (
+        dataframe["date"]
         .astype(str)
         .str.replace(
             ".0",
@@ -1278,54 +874,42 @@ def results_frame(
 
     dataframe[
         "venue_code"
-    ] = (
-        dataframe[
-            "venue_code"
-        ]
-        .map(
-            venue
+    ] = dataframe[
+        "venue_code"
+    ].map(
+        venue
+    )
+
+    dataframe["race"] = (
+        pd.to_numeric(
+            dataframe["race"],
+            errors="coerce",
         )
     )
 
-    dataframe[
-        "race"
-    ] = pd.to_numeric(
-        dataframe[
-            "race"
-        ],
-        errors="coerce",
-    )
-
-    dataframe[
-        "boat"
-    ] = pd.to_numeric(
-        dataframe[
-            "boat"
-        ],
-        errors="coerce",
+    dataframe["boat"] = (
+        pd.to_numeric(
+            dataframe["boat"],
+            errors="coerce",
+        )
     )
 
     dataframe[
         "finish_num"
     ] = pd.to_numeric(
-        dataframe[
-            "finish"
-        ],
+        dataframe["finish"],
         errors="coerce",
     )
 
-    return (
-        dataframe[
-            [
-                "date",
-                "venue_code",
-                "race",
-                "boat",
-                "finish_num",
-            ]
+    return dataframe[
+        [
+            "date",
+            "venue_code",
+            "race",
+            "boat",
+            "finish_num",
         ]
-        .dropna()
-    )
+    ].dropna()
 
 
 def stage_frame(
@@ -1336,7 +920,6 @@ def stage_frame(
     pd.DataFrame,
     Dict[str, Any],
 ]:
-
     input_path = choose_file(
         date,
         stage,
@@ -1368,75 +951,58 @@ def stage_frame(
         "boat",
     ]
 
-    dataframe = (
-        result.copy()
-    )
+    dataframe = result.copy()
 
     if not input_data.empty:
-
-        dataframe = (
-            dataframe.merge(
-                input_data,
-                on=keys,
-                how="left",
-            )
+        dataframe = dataframe.merge(
+            input_data,
+            on=keys,
+            how="left",
         )
 
     if not prediction_data.empty:
-
-        dataframe = (
-            dataframe.merge(
-                prediction_data,
-                on=keys,
-                how="left",
-            )
+        dataframe = dataframe.merge(
+            prediction_data,
+            on=keys,
+            how="left",
         )
 
     meta = {
-        "input_file":
-            (
-                str(
-                    input_path
+        "input_file": (
+            str(input_path)
+            if input_path
+            else None
+        ),
+        "prediction_file": (
+            str(prediction_path)
+            if prediction_path
+            else None
+        ),
+        "score_rows": (
+            int(
+                pd.to_numeric(
+                    dataframe[
+                        "total_score"
+                    ],
+                    errors="coerce",
                 )
-                if input_path
-                else None
-            ),
-
-        "prediction_file":
-            (
-                str(
-                    prediction_path
-                )
-                if prediction_path
-                else None
-            ),
-
-        "score_rows":
-            (
-                int(
-                    pd.to_numeric(
-                        dataframe[
-                            "total_score"
-                        ],
-                        errors="coerce",
-                    )
-                    .notna()
-                    .sum()
-                )
-                if "total_score"
-                in dataframe
-                else 0
-            ),
-
-        "component_columns":
-            [
-                column
-                for column
+                .notna()
+                .sum()
+            )
+            if (
+                "total_score"
                 in dataframe.columns
-                if column.startswith(
-                    "component."
-                )
-            ],
+            )
+            else 0
+        ),
+        "component_columns": [
+            column
+            for column
+            in dataframe.columns
+            if column.startswith(
+                "component."
+            )
+        ],
     }
 
     return (
@@ -1451,9 +1017,9 @@ def feature_stat(
 ) -> Optional[
     Dict[str, Any]
 ]:
-
     work = dataframe[
         [
+            "date",
             "venue_code",
             "race",
             "finish_num",
@@ -1461,48 +1027,36 @@ def feature_stat(
         ]
     ].copy()
 
-    work[
-        column
-    ] = pd.to_numeric(
-        work[
-            column
-        ],
-        errors="coerce",
+    work[column] = (
+        pd.to_numeric(
+            work[column],
+            errors="coerce",
+        )
     )
 
     work = work.dropna()
 
     if (
-        len(work)
-        < 30
-        or work[
-            column
-        ].nunique()
+        len(work) < 30
+        or work[column].nunique()
         < 2
     ):
-
         return None
 
-    work[
-        "race_key"
-    ] = (
-        work[
+    work["race_key"] = (
+        work["date"].astype(str)
+        + "-"
+        + work[
             "venue_code"
         ].astype(str)
         + "-"
-        + work[
-            "race"
-        ].astype(str)
+        + work["race"].astype(str)
     )
 
-    work[
-        "rank_high"
-    ] = (
+    work["rank_high"] = (
         work.groupby(
             "race_key"
-        )[
-            column
-        ]
+        )[column]
         .rank(
             method="average",
             ascending=False,
@@ -1510,13 +1064,9 @@ def feature_stat(
     )
 
     correlation = (
-        work[
-            "rank_high"
-        ]
+        work["rank_high"]
         .corr(
-            work[
-                "finish_num"
-            ],
+            work["finish_num"],
             method="spearman",
         )
     )
@@ -1529,11 +1079,9 @@ def feature_stat(
             "race_key"
         )
     ):
-
         if len(
             race_data
         ) < 2:
-
             continue
 
         high_finish.append(
@@ -1553,7 +1101,8 @@ def feature_stat(
             float(
                 race_data
                 .sort_values(
-                    column
+                    column,
+                    ascending=True,
                 )
                 .iloc[0][
                     "finish_num"
@@ -1562,38 +1111,29 @@ def feature_stat(
         )
 
     if not high_finish:
-
         return None
 
     return {
-        "column":
-            column,
-
-        "rows":
-            int(
-                len(work)
-            ),
-
-        "races":
-            len(
-                high_finish
-            ),
-
-        "rank_finish_spearman":
-            (
-                None
-                if pd.isna(
+        "column": column,
+        "rows": int(
+            len(work)
+        ),
+        "races": len(
+            high_finish
+        ),
+        "rank_finish_spearman": (
+            None
+            if pd.isna(
+                correlation
+            )
+            else round(
+                float(
                     correlation
-                )
-                else round(
-                    float(
-                        correlation
-                    ),
-                    4,
-                )
-            ),
-
-        "high_leader_win_rate_pct":
+                ),
+                4,
+            )
+        ),
+        "high_leader_win_rate_pct": (
             round(
                 sum(
                     value == 1
@@ -1605,9 +1145,9 @@ def feature_stat(
                 )
                 * 100,
                 1,
-            ),
-
-        "low_leader_win_rate_pct":
+            )
+        ),
+        "low_leader_win_rate_pct": (
             round(
                 sum(
                     value == 1
@@ -1619,9 +1159,9 @@ def feature_stat(
                 )
                 * 100,
                 1,
-            ),
-
-        "high_leader_top3_rate_pct":
+            )
+        ),
+        "high_leader_top3_rate_pct": (
             round(
                 sum(
                     value <= 3
@@ -1633,9 +1173,9 @@ def feature_stat(
                 )
                 * 100,
                 1,
-            ),
-
-        "low_leader_top3_rate_pct":
+            )
+        ),
+        "low_leader_top3_rate_pct": (
             round(
                 sum(
                     value <= 3
@@ -1647,23 +1187,23 @@ def feature_stat(
                 )
                 * 100,
                 1,
-            ),
+            )
+        ),
     }
 
 
 def score_calibration(
     dataframe: pd.DataFrame,
 ) -> Dict[str, Any]:
-
     if (
         "total_score"
-        not in dataframe
+        not in dataframe.columns
     ):
-
         return {}
 
     work = dataframe[
         [
+            "date",
             "venue_code",
             "race",
             "boat",
@@ -1675,9 +1215,7 @@ def score_calibration(
     work[
         "total_score"
     ] = pd.to_numeric(
-        work[
-            "total_score"
-        ],
+        work["total_score"],
         errors="coerce",
     )
 
@@ -1686,19 +1224,21 @@ def score_calibration(
     rows = []
 
     for (
+        race_date,
         venue_code,
-        race_number,
-    ), race_data in work.groupby(
-        [
-            "venue_code",
-            "race",
-        ]
+        race_no,
+    ), race_data in (
+        work.groupby(
+            [
+                "date",
+                "venue_code",
+                "race",
+            ]
+        )
     ):
-
         if len(
             race_data
         ) < 2:
-
             continue
 
         race_data = (
@@ -1719,60 +1259,46 @@ def score_calibration(
 
         rows.append(
             {
-                "venue_code":
-                    venue_code,
-
-                "race":
-                    int(
-                        race_number
-                    ),
-
-                "top_boat":
-                    int(
-                        first[
-                            "boat"
-                        ]
-                    ),
-
-                "top_score":
-                    float(
-                        first[
-                            "total_score"
-                        ]
-                    ),
-
-                "gap":
-                    float(
-                        first[
-                            "total_score"
-                        ]
-                        - second[
-                            "total_score"
-                        ]
-                    ),
-
-                "top_finish":
-                    float(
-                        first[
-                            "finish_num"
-                        ]
-                    ),
-
-                "top_win":
-                    int(
-                        first[
-                            "finish_num"
-                        ]
-                        == 1
-                    ),
-
-                "top3":
-                    int(
-                        first[
-                            "finish_num"
-                        ]
-                        <= 3
-                    ),
+                "date": race_date,
+                "venue_code": (
+                    venue_code
+                ),
+                "race": int(
+                    race_no
+                ),
+                "top_boat": int(
+                    first["boat"]
+                ),
+                "top_score": float(
+                    first[
+                        "total_score"
+                    ]
+                ),
+                "gap": float(
+                    first[
+                        "total_score"
+                    ]
+                    - second[
+                        "total_score"
+                    ]
+                ),
+                "top_finish": float(
+                    first[
+                        "finish_num"
+                    ]
+                ),
+                "top_win": int(
+                    first[
+                        "finish_num"
+                    ]
+                    == 1
+                ),
+                "top3": int(
+                    first[
+                        "finish_num"
+                    ]
+                    <= 3
+                ),
             }
         )
 
@@ -1781,15 +1307,12 @@ def score_calibration(
     )
 
     if result.empty:
-
         return {}
 
     result[
         "gap_bucket"
     ] = pd.cut(
-        result[
-            "gap"
-        ],
+        result["gap"],
         [
             -1e9,
             5,
@@ -1814,7 +1337,6 @@ def score_calibration(
         "10-15未満",
         "15以上",
     ):
-
         bucket = result[
             result[
                 "gap_bucket"
@@ -1823,112 +1345,96 @@ def score_calibration(
         ]
 
         if bucket.empty:
-
             continue
 
         buckets.append(
             {
-                "gap_bucket":
-                    label,
-
-                "races":
-                    len(
-                        bucket
-                    ),
-
-                "win_rate_pct":
+                "gap_bucket": label,
+                "races": len(
+                    bucket
+                ),
+                "win_rate_pct": (
                     round(
                         bucket[
                             "top_win"
                         ].mean()
                         * 100,
                         1,
-                    ),
-
-                "top3_rate_pct":
+                    )
+                ),
+                "top3_rate_pct": (
                     round(
                         bucket[
                             "top3"
                         ].mean()
                         * 100,
                         1,
-                    ),
-
-                "mean_finish":
+                    )
+                ),
+                "mean_finish": (
                     round(
                         bucket[
                             "top_finish"
                         ].mean(),
                         2,
-                    ),
+                    )
+                ),
             }
         )
 
     return {
-        "races":
-            len(
-                result
-            ),
-
-        "top_score_win_rate_pct":
+        "races": len(
+            result
+        ),
+        "top_score_win_rate_pct": (
             round(
                 result[
                     "top_win"
                 ].mean()
                 * 100,
                 1,
-            ),
-
-        "top_score_top3_rate_pct":
+            )
+        ),
+        "top_score_top3_rate_pct": (
             round(
                 result[
                     "top3"
                 ].mean()
                 * 100,
                 1,
-            ),
-
-        "mean_top_finish":
+            )
+        ),
+        "mean_top_finish": (
             round(
                 result[
                     "top_finish"
                 ].mean(),
                 2,
-            ),
-
-        "gap_buckets":
-            buckets,
-
-        "race_rows":
-            rows,
+            )
+        ),
+        "gap_buckets": buckets,
+        "race_rows": rows,
     }
 
 
 def group_of_column(
     column: str,
 ) -> str:
-
     if column.startswith(
         "component."
     ):
-
-        return (
-            column.split(
-                ".",
-                1,
-            )[1]
-        )
+        return column.split(
+            ".",
+            1,
+        )[1]
 
     if column.startswith(
         "feature."
     ):
-
-        return (
-            column.split(
-                ".",
-                2,
-            )[1]
-        )
+        return column.split(
+            ".",
+            2,
+        )[1]
 
     return "total_score"
 
@@ -1940,382 +1446,122 @@ def group_summary(
 ) -> List[
     Dict[str, Any]
 ]:
-
     output = []
 
-    for group in (
-        list(
-            WEIGHTS
-        )
-        + [
-            "live_beforeinfo"
-        ]
+    for group in list(
+        WEIGHTS
     ):
-
         subset = [
             item
-            for item
-            in stats
-            if item[
-                "group"
-            ]
+            for item in stats
+            if item["group"]
             == group
         ]
 
         best = max(
             subset,
-            key=lambda item:
-                abs(
-                    item[
-                        "rank_finish_spearman"
-                    ]
-                    or 0
-                ),
+            key=lambda item: abs(
+                item[
+                    "rank_finish_spearman"
+                ]
+                or 0
+            ),
             default=None,
         )
 
         output.append(
             {
-                "group":
+                "group": group,
+                "label": LABEL.get(
                     group,
-
-                "label":
-                    LABEL.get(
-                        group,
-                        group,
-                    ),
-
-                "current_weight":
+                    group,
+                ),
+                "current_weight": (
                     WEIGHTS.get(
                         group
-                    ),
-
-                "features_tested":
+                    )
+                ),
+                "features_tested": (
                     len(
                         subset
-                    ),
-
-                "exact_component_available":
-                    any(
-                        item[
-                            "kind"
-                        ]
-                        == "exact_component"
-                        for item
-                        in subset
-                    ),
-
-                "best_feature":
-                    (
-                        best[
-                            "column"
-                        ]
-                        if best
-                        else None
-                    ),
-
-                "best_abs_spearman":
-                    (
-                        round(
-                            abs(
-                                best[
-                                    "rank_finish_spearman"
-                                ]
-                            ),
-                            4,
-                        )
-                        if (
-                            best
-                            and best[
+                    )
+                ),
+                (
+                    "exact_component_"
+                    "available"
+                ): any(
+                    item[
+                        "kind"
+                    ]
+                    == (
+                        "exact_component"
+                    )
+                    for item
+                    in subset
+                ),
+                "best_feature": (
+                    best[
+                        "column"
+                    ]
+                    if best
+                    else None
+                ),
+                "best_abs_spearman": (
+                    round(
+                        abs(
+                            best[
                                 "rank_finish_spearman"
                             ]
-                            is not None
-                        )
-                        else None
-                    ),
-
-                "best_high_leader_win_rate_pct":
-                    (
-                        best[
-                            "high_leader_win_rate_pct"
+                        ),
+                        4,
+                    )
+                    if (
+                        best
+                        and best[
+                            "rank_finish_spearman"
                         ]
-                        if best
-                        else None
-                    ),
-
-                "best_low_leader_win_rate_pct":
-                    (
-                        best[
-                            "low_leader_win_rate_pct"
-                        ]
-                        if best
-                        else None
-                    ),
+                        is not None
+                    )
+                    else None
+                ),
+                (
+                    "best_high_leader_"
+                    "win_rate_pct"
+                ): (
+                    best[
+                        "high_leader_win_rate_pct"
+                    ]
+                    if best
+                    else None
+                ),
+                (
+                    "best_low_leader_"
+                    "win_rate_pct"
+                ): (
+                    best[
+                        "low_leader_win_rate_pct"
+                    ]
+                    if best
+                    else None
+                ),
             }
         )
 
     return output
 
 
-def redundancy(
-    dataframe: pd.DataFrame,
-    stats: List[
-        Dict[str, Any]
-    ],
-) -> List[
-    Dict[str, Any]
-]:
-
-    representatives: Dict[
-        str,
-        str,
-    ] = {}
-
-    for group in WEIGHTS:
-
-        exact = (
-            f"component."
-            f"{group}"
-        )
-
-        if exact in dataframe.columns:
-
-            representatives[
-                group
-            ] = exact
-
-            continue
-
-        subset = [
-            item
-            for item
-            in stats
-            if (
-                item[
-                    "group"
-                ]
-                == group
-                and item[
-                    "column"
-                ].startswith(
-                    f"feature."
-                    f"{group}."
-                )
-                and item[
-                    "rank_finish_spearman"
-                ]
-                is not None
-            )
-        ]
-
-        if subset:
-
-            best = max(
-                subset,
-                key=lambda item:
-                    abs(
-                        item[
-                            "rank_finish_spearman"
-                        ]
-                    ),
-            )
-
-            representatives[
-                group
-            ] = best[
-                "column"
-            ]
-
-    output = []
-
-    groups = list(
-        representatives
-    )
-
-    for i in range(
-        len(groups)
-    ):
-
-        for j in range(
-            i + 1,
-            len(groups),
-        ):
-
-            group_a = (
-                groups[i]
-            )
-
-            group_b = (
-                groups[j]
-            )
-
-            column_a = (
-                representatives[
-                    group_a
-                ]
-            )
-
-            column_b = (
-                representatives[
-                    group_b
-                ]
-            )
-
-            work = dataframe[
-                [
-                    "venue_code",
-                    "race",
-                    column_a,
-                    column_b,
-                ]
-            ].copy()
-
-            work[
-                column_a
-            ] = pd.to_numeric(
-                work[
-                    column_a
-                ],
-                errors="coerce",
-            )
-
-            work[
-                column_b
-            ] = pd.to_numeric(
-                work[
-                    column_b
-                ],
-                errors="coerce",
-            )
-
-            work = work.dropna()
-
-            if len(
-                work
-            ) < 30:
-
-                continue
-
-            work[
-                "race_key"
-            ] = (
-                work[
-                    "venue_code"
-                ].astype(str)
-                + "-"
-                + work[
-                    "race"
-                ].astype(str)
-            )
-
-            work[
-                "rank_a"
-            ] = (
-                work.groupby(
-                    "race_key"
-                )[
-                    column_a
-                ]
-                .rank(
-                    method="average",
-                    ascending=False,
-                )
-            )
-
-            work[
-                "rank_b"
-            ] = (
-                work.groupby(
-                    "race_key"
-                )[
-                    column_b
-                ]
-                .rank(
-                    method="average",
-                    ascending=False,
-                )
-            )
-
-            correlation = (
-                work[
-                    "rank_a"
-                ]
-                .corr(
-                    work[
-                        "rank_b"
-                    ],
-                    method="spearman",
-                )
-            )
-
-            if pd.isna(
-                correlation
-            ):
-
-                continue
-
-            correlation = float(
-                correlation
-            )
-
-            output.append(
-                {
-                    "group_a":
-                        group_a,
-
-                    "group_b":
-                        group_b,
-
-                    "label_a":
-                        LABEL[
-                            group_a
-                        ],
-
-                    "label_b":
-                        LABEL[
-                            group_b
-                        ],
-
-                    "rank_spearman":
-                        round(
-                            correlation,
-                            4,
-                        ),
-
-                    "high_overlap_flag":
-                        abs(
-                            correlation
-                        )
-                        >= 0.70,
-                }
-            )
-
-    return sorted(
-        output,
-        key=lambda item:
-            abs(
-                item[
-                    "rank_spearman"
-                ]
-            ),
-        reverse=True,
-    )
-
-
-def table(
+def markdown_table(
     headers: List[str],
     rows: List[
         List[Any]
     ],
 ) -> List[str]:
-
     output = [
         "| "
         + " | ".join(
             headers
         )
         + " |",
-
         "| "
         + " | ".join(
             [
@@ -2327,19 +1573,16 @@ def table(
         + " |",
     ]
 
-    output += [
-        "| "
-        + " | ".join(
-            str(
-                value
+    for row in rows:
+        output.append(
+            "| "
+            + " | ".join(
+                str(value)
+                for value
+                in row
             )
-            for value
-            in row
+            + " |"
         )
-        + " |"
-        for row
-        in rows
-    ]
 
     return output
 
@@ -2348,19 +1591,19 @@ def show(
     value: Any,
     suffix: str = "",
 ) -> str:
-
     if value is None:
-
         return "—"
 
     return (
-        f"{value}{suffix}"
+        f"{value}"
+        f"{suffix}"
     )
 
 
 def main() -> int:
-
-    parser = argparse.ArgumentParser()
+    parser = (
+        argparse.ArgumentParser()
+    )
 
     parser.add_argument(
         "--date",
@@ -2375,7 +1618,6 @@ def main() -> int:
         r"\d{8}",
         date,
     ):
-
         raise SystemExit(
             "--date must be YYYYMMDD"
         )
@@ -2410,13 +1652,13 @@ def main() -> int:
         "morning",
         "live",
     ):
-
-        dataframe, meta = (
-            stage_frame(
-                date,
-                stage,
-                results,
-            )
+        (
+            dataframe,
+            meta,
+        ) = stage_frame(
+            date,
+            stage,
+            results,
         )
 
         all_frames.append(
@@ -2435,8 +1677,7 @@ def main() -> int:
                 column.startswith(
                     "feature."
                 )
-                or
-                column.startswith(
+                or column.startswith(
                     "component."
                 )
             )
@@ -2446,67 +1687,59 @@ def main() -> int:
             "total_score"
             in dataframe.columns
         ):
-
             columns.append(
                 "total_score"
             )
 
         for column in columns:
-
             stat = feature_stat(
                 dataframe,
                 column,
             )
 
-            if stat:
+            if not stat:
+                continue
 
-                stat[
-                    "stage"
-                ] = stage
+            stat[
+                "stage"
+            ] = stage
 
+            stat[
+                "group"
+            ] = group_of_column(
+                column
+            )
+
+            if column.startswith(
+                "component."
+            ):
                 stat[
-                    "group"
+                    "kind"
                 ] = (
-                    group_of_column(
-                        column
-                    )
+                    "exact_component"
                 )
 
-                if column.startswith(
-                    "component."
-                ):
-
-                    stat[
-                        "kind"
-                    ] = (
-                        "exact_component"
-                    )
-
-                elif column.startswith(
-                    "feature."
-                ):
-
-                    stat[
-                        "kind"
-                    ] = (
-                        "raw_feature_proxy"
-                    )
-
-                else:
-
-                    stat[
-                        "kind"
-                    ] = (
-                        "total_score"
-                    )
-
-                stats.append(
-                    stat
+            elif column.startswith(
+                "feature."
+            ):
+                stat[
+                    "kind"
+                ] = (
+                    "raw_feature_proxy"
                 )
 
-                all_stats.append(
-                    stat
-                )
+            else:
+                stat[
+                    "kind"
+                ] = "total_score"
+
+            stats.append(
+                stat
+            )
+
+            all_stats.append(
+                stat
+            )
 
         calibration = (
             score_calibration(
@@ -2517,7 +1750,6 @@ def main() -> int:
         if calibration.get(
             "race_rows"
         ):
-
             pd.DataFrame(
                 calibration[
                     "race_rows"
@@ -2526,8 +1758,7 @@ def main() -> int:
                 output_dir
                 / (
                     f"score_gap_races_"
-                    f"{stage}_"
-                    f"{date}.csv"
+                    f"{stage}_{date}.csv"
                 ),
                 index=False,
                 encoding="utf-8-sig",
@@ -2536,81 +1767,89 @@ def main() -> int:
         stages[
             stage
         ] = {
-            "meta":
-                meta,
-
-            "score_calibration":
-                {
-                    key: value
-                    for key, value
-                    in calibration.items()
-                    if key
-                    != "race_rows"
-                },
-
-            "groups":
+            "meta": meta,
+            "score_calibration": {
+                key: value
+                for key, value
+                in calibration.items()
+                if key
+                != "race_rows"
+            },
+            "groups": (
                 group_summary(
                     stats
-                ),
-
-            "redundancy":
-                redundancy(
-                    dataframe,
-                    stats,
-                ),
+                )
+            ),
         }
 
-    pd.concat(
-        all_frames,
-        ignore_index=True,
-        sort=False,
-    ).to_csv(
-        output_dir
-        / (
-            f"score_answer_check_"
-            f"boats_{date}.csv"
-        ),
-        index=False,
-        encoding="utf-8-sig",
-    )
-
-    if all_stats:
-
-        pd.DataFrame(
-            all_stats
+    if all_frames:
+        pd.concat(
+            all_frames,
+            ignore_index=True,
+            sort=False,
         ).to_csv(
             output_dir
             / (
-                f"score_feature_stats_"
-                f"{date}.csv"
+                "score_answer_check_"
+                f"boats_{date}.csv"
             ),
             index=False,
             encoding="utf-8-sig",
         )
 
+    stat_columns = [
+        "column",
+        "rows",
+        "races",
+        "rank_finish_spearman",
+        "high_leader_win_rate_pct",
+        "low_leader_win_rate_pct",
+        "high_leader_top3_rate_pct",
+        "low_leader_top3_rate_pct",
+        "stage",
+        "group",
+        "kind",
+    ]
+
+    if all_stats:
+        stats_frame = pd.DataFrame(
+            all_stats
+        )
+
+    else:
+        stats_frame = pd.DataFrame(
+            columns=stat_columns
+        )
+
+    stats_frame.to_csv(
+        output_dir
+        / (
+            "score_feature_stats_"
+            f"{date}.csv"
+        ),
+        index=False,
+        encoding="utf-8-sig",
+    )
+
     report = {
-        "date":
-            date,
-
-        "current_weights":
-            WEIGHTS,
-
-        "stage_analysis":
-            stages,
-
-        "note":
-            (
-                "Descriptive answer-check only. "
-                "Actual finish is evaluation "
-                "target only and is never fed "
-                "back into pre-race features."
-            ),
+        "date": date,
+        "model_version": (
+            "morning_heuristic_v2"
+        ),
+        "current_weights": WEIGHTS,
+        "stage_analysis": stages,
+        "note": (
+            "Descriptive answer-check only. "
+            "Actual finish is evaluation "
+            "target only and is never fed "
+            "back into pre-race features."
+        ),
     }
 
     (
         output_dir
         / (
-            f"score_component_"
+            "score_component_"
             f"analysis_{date}.json"
         )
     ).write_text(
@@ -2623,7 +1862,10 @@ def main() -> int:
     )
 
     lines = [
-        "# スコア配分・実レース結果 自動答え合わせ",
+        (
+            "# スコア配分・"
+            "実レース結果 自動答え合わせ"
+        ),
         "",
         (
             f"対象日："
@@ -2633,25 +1875,29 @@ def main() -> int:
         ),
         "",
         (
-            "> 配点を自動変更するレポートではありません。"
-            "予測時点の情報と実際の着順を照合し、"
-            "配点見直しの根拠を蓄積します。"
+            "> 配点を自動変更する"
+            "レポートではありません。"
+            "予測時点の情報と"
+            "実際の着順を照合し、"
+            "配点見直しの根拠を"
+            "蓄積します。"
         ),
         "",
-        "## 現在の配点",
+        (
+            "## 現在の配点"
+            "（morning_heuristic_v2）"
+        ),
         "",
     ]
 
-    lines += table(
+    lines += markdown_table(
         [
             "要素",
             "配点",
         ],
         [
             [
-                LABEL[
-                    key
-                ],
+                LABEL[key],
                 f"{value}点",
             ]
             for key, value
@@ -2669,7 +1915,6 @@ def main() -> int:
             "直前予測",
         ),
     ):
-
         info = stages[
             stage
         ]
@@ -2678,11 +1923,9 @@ def main() -> int:
             "meta"
         ]
 
-        calibration = (
-            info[
-                "score_calibration"
-            ]
-        )
+        calibration = info[
+            "score_calibration"
+        ]
 
         lines += [
             "",
@@ -2708,20 +1951,22 @@ def main() -> int:
         ]
 
         if calibration:
-
             lines += [
-                "### 総合スコアの答え合わせ",
+                (
+                    "### 総合スコアの"
+                    "答え合わせ"
+                ),
                 "",
                 (
-                    f"- スコア1位艇の1着率："
+                    "- スコア1位艇の1着率："
                     f"**{show(calibration.get('top_score_win_rate_pct'), '%')}**"
                 ),
                 (
-                    f"- スコア1位艇の3着内率："
+                    "- スコア1位艇の3着内率："
                     f"**{show(calibration.get('top_score_top3_rate_pct'), '%')}**"
                 ),
                 (
-                    f"- スコア1位艇の平均着順："
+                    "- スコア1位艇の平均着順："
                     f"**{show(calibration.get('mean_top_finish'))}**"
                 ),
                 "",
@@ -2729,7 +1974,7 @@ def main() -> int:
                 "",
             ]
 
-            lines += table(
+            lines += markdown_table(
                 [
                     "スコア差",
                     "R数",
@@ -2769,13 +2014,16 @@ def main() -> int:
             "",
         ]
 
-        lines += table(
+        lines += markdown_table(
             [
                 "要素",
                 "現配点",
                 "検証項目",
                 "構成点",
-                "最も関連が強い指標",
+                (
+                    "最も関連が"
+                    "強い指標"
+                ),
                 "|順位相関|",
                 "高値首位1着率",
                 "低値首位1着率",
@@ -2801,8 +2049,10 @@ def main() -> int:
                         if group[
                             "exact_component_available"
                         ]
-                        else
-                        "なし（代理指標）"
+                        else (
+                            "なし"
+                            "（代理指標）"
+                        )
                     ),
                     (
                         group[
@@ -2835,66 +2085,27 @@ def main() -> int:
             ],
         )
 
-        if info[
-            "redundancy"
-        ]:
-
-            lines += [
-                "",
-                "### 要素どうしの重複チェック",
-                "",
-            ]
-
-            lines += table(
-                [
-                    "要素A",
-                    "要素B",
-                    "順位相関",
-                    "判定",
-                ],
-                [
-                    [
-                        row[
-                            "label_a"
-                        ],
-                        row[
-                            "label_b"
-                        ],
-                        row[
-                            "rank_spearman"
-                        ],
-                        (
-                            "重複強め"
-                            if row[
-                                "high_overlap_flag"
-                            ]
-                            else "—"
-                        ),
-                    ]
-                    for row
-                    in info[
-                        "redundancy"
-                    ]
-                ],
-            )
-
     lines += [
         "",
         "## 注意",
         "",
         (
-            "- 1日分だけでは配点を確定しません。"
-            "数日〜数週間の同じ指標を蓄積して"
-            "再現性を確認します。"
+            "- 1日分だけでは"
+            "配点を確定しません。"
+            "7日・30日など"
+            "複数日の再現性を"
+            "確認します。"
         ),
         (
             "- `構成点なし（代理指標）` は、"
-            "現在の予測JSONに実際の加点内訳が"
-            "保存されていないため、予測前の元データで"
+            "予測JSONに実際の"
+            "加点内訳がないため、"
+            "予測前の元データで"
             "代用しています。"
         ),
         (
-            "- 実際の着順は評価対象としてのみ使用し、"
+            "- 実際の着順は"
+            "評価対象としてのみ使用し、"
             "予測入力には戻しません。"
         ),
         "",
@@ -2910,7 +2121,7 @@ def main() -> int:
     (
         output_dir
         / (
-            f"score_component_"
+            "score_component_"
             f"analysis_{date}.md"
         )
     ).write_text(
@@ -2927,26 +2138,27 @@ def main() -> int:
     )
 
     print(
-        "スコア配分・実レース結果の自動答え合わせ: PASS"
+        "スコア配分・実レース結果の"
+        "自動答え合わせ: PASS"
     )
 
     print(
         output_dir
         / (
-            f"score_component_"
+            "score_component_"
             f"analysis_{date}.md"
         )
     )
 
     print(
-        "evaluations/latest_score_analysis.md"
+        "evaluations/"
+        "latest_score_analysis.md"
     )
 
     return 0
 
 
 if __name__ == "__main__":
-
     raise SystemExit(
         main()
     )
