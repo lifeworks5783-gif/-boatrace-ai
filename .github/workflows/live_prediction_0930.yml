@@ -12,7 +12,7 @@ on:
     # 毎日 09:00〜22:45 JST
     - cron: "0,15,30,45 0-13 * * *"
 
-    # 毎日 23:00 JST 最終確認
+    # 毎日 23:00 JST
     - cron: "0 14 * * *"
 
   workflow_dispatch:
@@ -24,7 +24,7 @@ concurrency:
 jobs:
   live_prediction:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     env:
       HAS_CANDIDATES: "false"
@@ -69,10 +69,64 @@ jobs:
           echo "対象日: ${TARGET_DATE}"
           echo "実行時刻: ${NOW_ISO}"
 
-      - name: 直前情報を収集
+      - name: 当日基本データを準備
         run: |
           mkdir -p data
 
+          echo "当日の番組・出走基本データを準備します"
+
+          python -u collectors/today_basic.py
+
+          echo ""
+          echo "生成された当日ファイル:"
+          find data \
+            -maxdepth 1 \
+            -type f \
+            -name "*${TARGET_DATE}*" \
+            -print \
+            | sort
+
+          echo ""
+          echo "当日基本データ準備: PASS"
+
+      - name: 当日基本データを確認
+        run: |
+          RACES_FILE="data/program_races_${TARGET_DATE}.csv"
+          ENTRIES_FILE="data/program_entries_${TARGET_DATE}.csv"
+
+          if [ ! -s "${RACES_FILE}" ]; then
+            echo "ERROR: ${RACES_FILE} がありません"
+            exit 1
+          fi
+
+          if [ ! -s "${ENTRIES_FILE}" ]; then
+            echo "ERROR: ${ENTRIES_FILE} がありません"
+            exit 1
+          fi
+
+          RACE_LINES=$(wc -l < "${RACES_FILE}")
+          ENTRY_LINES=$(wc -l < "${ENTRIES_FILE}")
+
+          RACE_COUNT=$((RACE_LINES - 1))
+          ENTRY_COUNT=$((ENTRY_LINES - 1))
+
+          echo "当日レース数: ${RACE_COUNT}"
+          echo "当日出走艇数: ${ENTRY_COUNT}"
+
+          if [ "${RACE_COUNT}" -le 0 ]; then
+            echo "ERROR: 当日レースが0件です"
+            exit 1
+          fi
+
+          if [ "${ENTRY_COUNT}" -le 0 ]; then
+            echo "ERROR: 当日出走艇が0件です"
+            exit 1
+          fi
+
+          echo "当日基本データ確認: PASS"
+
+      - name: 直前情報を収集
+        run: |
           python -u collectors/today_beforeinfo.py
 
       - name: 直前候補レース数を確認
@@ -246,8 +300,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "家族共有ページの更新Workflowを開始します"
-
           gh workflow run \
             family_prediction_page.yml \
             --repo "${GITHUB_REPOSITORY}" \
