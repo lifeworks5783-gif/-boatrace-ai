@@ -1,23 +1,24 @@
-name: 9月30日・直前予測自動テスト
+name: 毎日直前予測・本番
 
 permissions:
   contents: write
+  actions: write
 
 on:
   schedule:
-    # 9/30 08:00〜08:45 JST
-    - cron: "0,15,30,45 23 29 9 *"
+    # 毎日 08:00〜08:45 JST
+    - cron: "0,15,30,45 23 * * *"
 
-    # 9/30 09:00〜22:45 JST
-    - cron: "0,15,30,45 0-13 30 9 *"
+    # 毎日 09:00〜22:45 JST
+    - cron: "0,15,30,45 0-13 * * *"
 
-    # 9/30 23:00 JST 最終確認
-    - cron: "0 14 30 9 *"
+    # 毎日 23:00 JST 最終確認
+    - cron: "0 14 * * *"
 
   workflow_dispatch:
 
 concurrency:
-  group: boatrace-live-prediction-0930
+  group: boatrace-main-writer
   cancel-in-progress: false
 
 jobs:
@@ -25,8 +26,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    env:
+      HAS_CANDIDATES: "false"
+      HAS_LIVE_PREDICTION: "false"
+      PRIVATE_CHANGED: "false"
+
     steps:
-      - name: ファイルを読み込む
+      - name: 最新のmainを読み込む
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -63,20 +69,13 @@ jobs:
           echo "対象日: ${TARGET_DATE}"
           echo "実行時刻: ${NOW_ISO}"
 
-      - name: 9月30日以外は終了
-        if: env.TARGET_DATE != '20260930'
-        run: |
-          echo "9月30日専用テストのため処理しません"
-
       - name: 直前情報を収集
-        if: env.TARGET_DATE == '20260930'
         run: |
           mkdir -p data
 
           python -u collectors/today_beforeinfo.py
 
       - name: 直前候補レース数を確認
-        if: env.TARGET_DATE == '20260930'
         run: |
           FILE="data/beforeinfo_races_${TARGET_DATE}.csv"
 
@@ -201,14 +200,12 @@ jobs:
             "${INPUT_DEST}/"
 
       - name: スマホ用最新予想一覧を生成
-        if: env.TARGET_DATE == '20260930'
         run: |
           python -u collectors/build_latest_prediction_view.py \
             --date "${TARGET_DATE}" \
             --now "${NOW_ISO}"
 
       - name: 締切順最新予想一覧を生成
-        if: env.TARGET_DATE == '20260930'
         run: |
           python -u collectors/build_deadline_prediction_view.py \
             --date "${TARGET_DATE}"
@@ -216,7 +213,6 @@ jobs:
           cat predictions/latest_by_deadline.md
 
       - name: GitHubへ保存
-        if: env.TARGET_DATE == '20260930'
         run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
@@ -232,6 +228,7 @@ jobs:
           fi
 
           if git diff --cached --quiet; then
+            echo "PRIVATE_CHANGED=false" >> "$GITHUB_ENV"
             echo "変更なし"
             exit 0
           fi
@@ -241,7 +238,22 @@ jobs:
 
           git push origin HEAD:main
 
+          echo "PRIVATE_CHANGED=true" >> "$GITHUB_ENV"
           echo "GitHub保存: PASS"
+
+      - name: 家族共有ページ更新を開始
+        if: env.PRIVATE_CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "家族共有ページの更新Workflowを開始します"
+
+          gh workflow run \
+            family_prediction_page.yml \
+            --repo "${GITHUB_REPOSITORY}" \
+            --ref main
+
+          echo "家族共有ページ更新開始: PASS"
 
       - name: 直前予測をArtifactへ短期保存
         if: env.HAS_LIVE_PREDICTION == 'true'
@@ -257,12 +269,16 @@ jobs:
           retention-days: 7
 
       - name: 最終確認
-        if: env.TARGET_DATE == '20260930'
         run: |
           echo "========================================"
-          echo "9月30日 最新予想処理 完了"
+          echo "毎日直前予測・本番 完了"
           echo "========================================"
 
           echo "対象日: ${TARGET_DATE}"
+          echo "実行時刻: ${NOW_ISO}"
+          echo "直前候補あり: ${HAS_CANDIDATES}"
+          echo "直前予測あり: ${HAS_LIVE_PREDICTION}"
+          echo "Private更新: ${PRIVATE_CHANGED}"
           echo "通常最新一覧: PASS"
-         
+          echo "締切順一覧: PASS"
+          echo "========================================"
