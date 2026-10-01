@@ -6,7 +6,8 @@ permissions:
 
 on:
   schedule:
-    # 毎日 01:10 JST = 前日 16:10 UTC
+    # 毎日 01:10 JST
+    # UTCでは前日16:10
     - cron: "10 16 * * *"
 
   workflow_dispatch:
@@ -18,7 +19,7 @@ concurrency:
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: 最新のmainを読み込む
@@ -35,7 +36,7 @@ jobs:
       - name: 必要ライブラリを準備
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 pandas
+          pip install requests beautifulsoup4 pandas scipy
 
       - name: 前日の日付を設定
         run: |
@@ -61,7 +62,7 @@ jobs:
           echo "REPO_CHANGED=false" >> "$GITHUB_ENV"
 
           echo "========================================"
-          echo "毎日・高速予測結果評価"
+          echo "毎日・高速予測結果評価＋PDCA"
           echo "対象日: ${TARGET_DATE}"
           echo "========================================"
 
@@ -84,23 +85,27 @@ jobs:
           elif [ -s "${CACHE_RACES}" ] && [ -s "${CACHE_ENTRIES}" ]; then
             cp "${CACHE_RACES}" "${RACES_FILE}"
             cp "${CACHE_ENTRIES}" "${ENTRIES_FILE}"
+
             echo "daily_inputsの基本データをdataへ復元しました"
 
           elif [ -s "${ARCHIVE_RACES}" ] && [ -s "${ARCHIVE_ENTRIES}" ]; then
             cp "${ARCHIVE_RACES}" "${RACES_FILE}"
             cp "${ARCHIVE_ENTRIES}" "${ENTRIES_FILE}"
+
             echo "archiveの基本データをdataへ復元しました"
 
           else
             echo "ERROR: 高速結果取得に必要な番組データがありません"
-            echo "必要:"
-            echo "  program_races_${TARGET_DATE}.csv"
-            echo "  program_entries_${TARGET_DATE}.csv"
             echo ""
-            echo "確認した場所:"
-            echo "  data/"
-            echo "  ${BASE_CACHE_DIR}/"
-            echo "  ${ARCHIVE_BASE_DIR}/"
+            echo "必要:"
+            echo "program_races_${TARGET_DATE}.csv"
+            echo "program_entries_${TARGET_DATE}.csv"
+            echo ""
+            echo "確認場所:"
+            echo "data/"
+            echo "${BASE_CACHE_DIR}/"
+            echo "${ARCHIVE_BASE_DIR}/"
+
             exit 1
           fi
 
@@ -142,22 +147,39 @@ jobs:
 
           date = os.environ["TARGET_DATE"]
 
-          results_path = f"data/results_{date}_all.csv"
-          boats_path = f"data/boat_results_{date}_all.csv"
+          results = pd.read_csv(
+              f"data/results_{date}_all.csv"
+          )
 
-          results = pd.read_csv(results_path)
-          boats = pd.read_csv(boats_path)
+          boats = pd.read_csv(
+              f"data/boat_results_{date}_all.csv"
+          )
 
-          print("results:", len(results), "races")
-          print("boat_results:", len(boats), "rows")
+          print(
+              "results:",
+              len(results),
+              "races"
+          )
+
+          print(
+              "boat_results:",
+              len(boats),
+              "rows"
+          )
 
           if len(results) <= 0:
-              raise SystemExit("結果レースが0件です")
+              raise SystemExit(
+                  "結果レースが0件です"
+              )
 
           if len(boats) <= 0:
-              raise SystemExit("艇別結果が0件です")
+              raise SystemExit(
+                  "艇別結果が0件です"
+              )
 
-          print("結果CSV確認: PASS")
+          print(
+              "結果CSV確認: PASS"
+          )
           PY
 
       - name: 予測ファイルを確認
@@ -190,19 +212,78 @@ jobs:
           python -u collectors/evaluate_predictions.py \
             --date "${TARGET_DATE}"
 
+      - name: スコア構成要素を答え合わせ
+        run: |
+          echo "========================================"
+          echo "スコア配分・実結果の答え合わせ"
+          echo "========================================"
+
+          python -u collectors/analyze_score_components.py \
+            --date "${TARGET_DATE}"
+
+          test -s "${EVAL_DIR}/score_component_analysis_${TARGET_DATE}.json"
+          test -s "${EVAL_DIR}/score_feature_stats_${TARGET_DATE}.csv"
+
+          echo "スコア構成要素分析: PASS"
+
+      - name: 直前要素を答え合わせ
+        run: |
+          echo "========================================"
+          echo "展示・ST・進入・風波の答え合わせ"
+          echo "========================================"
+
+          python -u collectors/analyze_live_factors.py \
+            --date "${TARGET_DATE}"
+
+          test -s "${EVAL_DIR}/live_factor_analysis_${TARGET_DATE}.json"
+          test -s "${EVAL_DIR}/live_factor_answer_check_${TARGET_DATE}.csv"
+
+          echo "直前要素分析: PASS"
+
+      - name: 直近7日PDCAを生成
+        run: |
+          echo "========================================"
+          echo "直近7日PDCAレポート"
+          echo "========================================"
+
+          python -u collectors/build_pdca_report.py \
+            --date "${TARGET_DATE}" \
+            --days 7
+
+          test -s evaluations/latest_pdca.json
+          test -s evaluations/latest_pdca.md
+
+          echo ""
+          echo "========================================"
+          echo "7日PDCAレポート"
+          echo "========================================"
+
+          cat evaluations/latest_pdca.md
+
+          echo ""
+          echo "7日PDCA: PASS"
+
       - name: 評価ファイルを確認
         run: |
           REQUIRED_FILES=(
             "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json"
             "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json"
             "${EVAL_DIR}/top3_box_simulation_${TARGET_DATE}.json"
+            "${EVAL_DIR}/score_component_analysis_${TARGET_DATE}.json"
+            "${EVAL_DIR}/live_factor_analysis_${TARGET_DATE}.json"
+            "evaluations/latest_pdca.json"
+            "evaluations/latest_pdca.md"
           )
 
           for FILE in "${REQUIRED_FILES[@]}"; do
+
             if [ ! -s "${FILE}" ]; then
-              echo "ERROR: 評価ファイルがありません: ${FILE}"
+              echo "ERROR: 評価ファイルがありません"
+              echo "${FILE}"
+
               exit 1
             fi
+
           done
 
           echo "評価ファイル確認: PASS"
@@ -231,53 +312,84 @@ jobs:
             data/boat_results_*_all.csv
             evaluations/**/*.json
             evaluations/**/*.csv
-            evaluations/latest_summary.md
+            evaluations/**/*.md
           if-no-files-found: error
           retention-days: 30
 
       - name: 結果と評価をGitHubへ保存
         run: |
-          git config user.name "boatrace-data-bot"
-          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git config \
+            user.name \
+            "boatrace-data-bot"
 
-          git add "archive/${YEAR}/${MONTH}/${DAY}"
-          git add "evaluations/${YEAR}/${MONTH}/${DAY}"
-          git add "evaluations/latest_summary.md"
+          git config \
+            user.email \
+            "boatrace-data-bot@users.noreply.github.com"
+
+          git add \
+            "archive/${YEAR}/${MONTH}/${DAY}"
+
+          git add \
+            "evaluations/${YEAR}/${MONTH}/${DAY}"
+
+          git add \
+            "evaluations/latest_summary.md"
+
+          git add \
+            "evaluations/latest_score_analysis.md"
+
+          git add \
+            "evaluations/latest_pdca.json"
+
+          git add \
+            "evaluations/latest_pdca.md"
 
           if git diff --cached --quiet; then
             echo "REPO_CHANGED=false" >> "$GITHUB_ENV"
             echo "新しい変更はありません"
+
             exit 0
           fi
 
           RUN_STAMP=$(TZ=Asia/Tokyo date '+%Y%m%d_%H%M%S')
 
-          git commit -m \
-            "Daily fast evaluate predictions ${TARGET_DATE} ${RUN_STAMP}"
+          git commit \
+            -m "Daily evaluate and PDCA ${TARGET_DATE} ${RUN_STAMP}"
 
           for ATTEMPT in 1 2 3; do
+
             echo "push attempt: ${ATTEMPT}"
 
-            git pull --rebase origin main
+            git pull \
+              --rebase \
+              origin \
+              main
 
-            if git push origin HEAD:main; then
+            if git push \
+              origin \
+              HEAD:main
+            then
               echo "REPO_CHANGED=true" >> "$GITHUB_ENV"
               echo "GitHub保存: PASS"
+
               exit 0
             fi
 
             if [ "${ATTEMPT}" -lt 3 ]; then
               sleep 5
             fi
+
           done
 
           echo "ERROR: GitHub保存に3回失敗しました"
+
           exit 1
 
       - name: 家族共有ページ更新を開始
         if: env.REPO_CHANGED == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
         run: |
           gh workflow run \
             family_prediction_page.yml \
@@ -290,14 +402,19 @@ jobs:
         run: |
           echo ""
           echo "========================================"
-          echo "毎日・高速予測結果評価 完了"
+          echo "毎日・高速予測結果評価＋PDCA 完了"
           echo "========================================"
+          echo ""
           echo "対象日: ${TARGET_DATE}"
-          echo "前日番組データ復元: PASS"
+          echo ""
           echo "高速公式結果取得: PASS"
           echo "予測総合評価: PASS"
           echo "フォーメーション評価: PASS"
           echo "上位3艇BOX評価: PASS"
+          echo "スコア構成要素分析: PASS"
+          echo "直前要素分析: PASS"
+          echo "直近7日PDCA: PASS"
           echo "総合結果サマリー: PASS"
           echo "GitHub更新: ${REPO_CHANGED}"
+          echo ""
           echo "========================================"
