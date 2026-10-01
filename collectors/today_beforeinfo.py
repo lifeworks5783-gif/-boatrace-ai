@@ -5,8 +5,10 @@ import csv
 import json
 import re
 import sys
+import threading
 import time
-from datetime import datetime, timedelta, timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import requests
@@ -16,66 +18,40 @@ from bs4 import BeautifulSoup
 JST = timezone(timedelta(hours=9))
 DATA_DIR = Path("data")
 
+DEFAULT_WINDOW_AFTER = 40
+DEFAULT_WINDOW_BEFORE = 0
+DEFAULT_REFRESH_WINDOW = 18
+DEFAULT_MIN_REFRESH_INTERVAL = 8
+DEFAULT_WORKERS = 4
+
+REQUEST_CONNECT_TIMEOUT = 5
+REQUEST_READ_TIMEOUT = 12
+REQUEST_RETRIES = 2
+
+_THREAD_LOCAL = threading.local()
+
 WIND_DIR = {
-    1: "北",
-    2: "北北東",
-    3: "北東",
-    4: "東北東",
-    5: "東",
-    6: "東南東",
-    7: "南東",
-    8: "南南東",
-    9: "南",
-    10: "南南西",
-    11: "南西",
-    12: "西南西",
-    13: "西",
-    14: "西北西",
-    15: "北西",
-    16: "北北西",
+    1: "北", 2: "北北東", 3: "北東", 4: "東北東",
+    5: "東", 6: "東南東", 7: "南東", 8: "南南東",
+    9: "南", 10: "南南西", 11: "南西", 12: "西南西",
+    13: "西", 14: "西北西", 15: "北西", 16: "北北西",
 }
 
-
 RACE_FIELDS = [
-    "date",
-    "venue_code",
-    "venue_name",
-    "race",
-    "race_id",
-    "deadline",
-    "weather",
-    "air_temperature_c",
-    "water_temperature_c",
-    "wind_speed_mps",
-    "wind_direction_code",
-    "wind_direction",
-    "wave_height_cm",
-    "stabilizer",
-    "fixed_course",
-    "source_url",
-    "collected_at",
+    "date", "venue_code", "venue_name", "race", "race_id",
+    "deadline", "weather", "air_temperature_c",
+    "water_temperature_c", "wind_speed_mps",
+    "wind_direction_code", "wind_direction", "wave_height_cm",
+    "stabilizer", "fixed_course", "source_url", "collected_at",
 ]
 
 ENTRY_FIELDS = [
-    "date",
-    "venue_code",
-    "venue_name",
-    "race",
-    "race_id",
-    "boat",
-    "registration_no",
-    "racer_name",
-    "weight_kg",
-    "exhibition_time",
-    "tilt",
-    "exhibition_course",
-    "exhibition_st_raw",
-    "exhibition_st_seconds",
-    "exhibition_st_flag",
-    "change_parts",
-    "is_miss",
-    "source_url",
-    "collected_at",
+    "date", "venue_code", "venue_name", "race", "race_id",
+    "boat", "registration_no", "racer_name", "weight_kg",
+    "exhibition_time", "tilt", "exhibition_course",
+    "exhibition_st_raw", "exhibition_st_seconds",
+    "exhibition_st_flag", "change_parts", "is_miss",
+    "source_url", "collected_at",
 ]
 
 
@@ -90,12 +66,15 @@ def safe_float(value):
         return None
 
     text = str(value).strip()
-
     if not text:
         return None
 
-    match = re.search(r"-?\d+(?:\.\d+)?", text)
+    if text.startswith("."):
+        text = "0" + text
+    elif text.startswith("-."):
+        text = "-0" + text[1:]
 
+    match = re.search(r"-?\d+(?:\.\d+)?", text)
     if not match:
         return None
 
@@ -106,7 +85,7 @@ def safe_float(value):
 
 
 def parse_st(value: str):
-    value = clean_text(value)
+    value = clean_text(value).upper()
 
     if not value:
         return None, ""
@@ -116,21 +95,21 @@ def parse_st(value: str):
     if value.startswith("F"):
         flag = "F"
         raw = value[1:]
+        if raw.startswith("."):
+            raw = "0" + raw
         number = safe_float(raw)
-
         if number is not None:
             number = -abs(number)
-
         return number, flag
 
     if value.startswith("L"):
         flag = "L"
         raw = value[1:]
+        if raw.startswith("."):
+            raw = "0" + raw
         number = safe_float(raw)
-
         if number is not None:
             number = abs(number)
-
         return number, flag
 
     if value.startswith("."):
@@ -147,11 +126,21 @@ def get_text(node) -> str:
 
 def get_base_path(target_date: str) -> Path:
     direct = DATA_DIR / f"program_races_{target_date}.csv"
-
     if direct.exists():
         return direct
 
     dt = datetime.strptime(target_date, "%Y%m%d")
+
+    daily_cache = (
+        Path("daily_inputs")
+        / dt.strftime("%Y")
+        / dt.strftime("%m")
+        / dt.strftime("%d")
+        / "base"
+        / f"program_races_{target_date}.csv"
+    )
+    if daily_cache.exists():
+        return daily_cache
 
     archived = (
         Path("archive")
@@ -162,7 +151,6 @@ def get_base_path(target_date: str) -> Path:
         / "base"
         / f"program_races_{target_date}.csv"
     )
-
     if archived.exists():
         return archived
 
@@ -174,11 +162,7 @@ def get_base_path(target_date: str) -> Path:
 def load_base_races(target_date: str) -> list[dict]:
     path = get_base_path(target_date)
 
-    with path.open(
-        "r",
-        encoding="utf-8",
-        newline="",
-    ) as f:
+    with path.open("r", encoding="utf-8", newline="") as f:
         return list(csv.DictReader(f))
 
 
@@ -199,34 +183,81 @@ def load_existing_csv(
     data_path: Path,
     archive_path: Path,
 ) -> list[dict]:
-
-    target = None
-
     if data_path.exists():
         target = data_path
     elif archive_path.exists():
         target = archive_path
-
-    if target is None:
+    else:
         return []
 
-    with target.open(
-        "r",
-        encoding="utf-8",
-        newline="",
-    ) as f:
+    with target.open("r", encoding="utf-8", newline="") as f:
         return list(csv.DictReader(f))
 
 
-def race_datetime(
-    target_date: str,
-    deadline: str,
-) -> datetime:
-
+def race_datetime(target_date: str, deadline: str) -> datetime:
     return datetime.strptime(
         f"{target_date} {deadline}",
         "%Y%m%d %H:%M",
     ).replace(tzinfo=JST)
+
+
+def parse_iso_datetime(value) -> datetime | None:
+    if not value:
+        return None
+
+    try:
+        dt = datetime.fromisoformat(
+            str(value).strip().replace("Z", "+00:00")
+        )
+    except ValueError:
+        return None
+
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=JST)
+
+    return dt.astimezone(JST)
+
+
+def live_final_path(target_date: str) -> Path:
+    return (
+        Path("predictions")
+        / target_date[:4]
+        / target_date[4:6]
+        / target_date[6:8]
+        / "live"
+        / f"live_predictions_final_{target_date}.json"
+    )
+
+
+def load_existing_live_predictions(
+    target_date: str,
+) -> dict[str, datetime | None]:
+    path = live_final_path(target_date)
+
+    if not path.exists():
+        return {}
+
+    try:
+        payload = json.loads(
+            path.read_text(encoding="utf-8")
+        )
+    except Exception:
+        return {}
+
+    races = payload.get("races")
+    if not isinstance(races, list):
+        return {}
+
+    result = {}
+
+    for race in races:
+        race_id = str(race.get("race_id", "")).strip()
+        if race_id:
+            result[race_id] = parse_iso_datetime(
+                race.get("generated_at")
+            )
+
+    return result
 
 
 def select_races(
@@ -237,13 +268,14 @@ def select_races(
     sample_count: int,
     window_before: int,
     window_after: int,
+    refresh_window: int,
+    min_refresh_interval: int,
 ) -> list[dict]:
-
     if race_id:
         return [
             row
             for row in races
-            if row["race_id"] == race_id
+            if row.get("race_id") == race_id
         ]
 
     if mode == "all":
@@ -251,16 +283,21 @@ def select_races(
 
     now = datetime.now(JST)
 
+    existing_live = (
+        load_existing_live_predictions(target_date)
+        if mode == "live"
+        else {}
+    )
+
     candidates = []
 
     for row in races:
         deadline = row.get("deadline", "")
-
         if not deadline:
             continue
 
         try:
-            race_time = race_datetime(
+            deadline_dt = race_datetime(
                 target_date,
                 deadline,
             )
@@ -268,26 +305,58 @@ def select_races(
             continue
 
         minutes = (
-            race_time - now
-        ).total_seconds() / 60
+            deadline_dt - now
+        ).total_seconds() / 60.0
 
         row_copy = dict(row)
         row_copy["_minutes"] = minutes
+        row_copy["_selection_reason"] = ""
 
         if mode == "live":
             if (
-                -window_before
-                <= minutes
-                <= window_after
+                minutes < -window_before
+                or minutes > window_after
             ):
+                continue
+
+            current_race_id = str(
+                row.get("race_id", "")
+            ).strip()
+
+            # まだ直前予測がないレースは優先して取得
+            if current_race_id not in existing_live:
+                row_copy["_selection_reason"] = "new"
                 candidates.append(row_copy)
+                continue
+
+            # 予測済みで締切がまだ遠いレースは再取得しない
+            if minutes > refresh_window:
+                continue
+
+            # 手動連打などで同じレースを短時間に再取得しない
+            last_prediction_at = existing_live.get(
+                current_race_id
+            )
+
+            if last_prediction_at is not None:
+                elapsed_minutes = (
+                    now - last_prediction_at
+                ).total_seconds() / 60.0
+
+                if elapsed_minutes < min_refresh_interval:
+                    continue
+
+            row_copy["_selection_reason"] = "refresh"
+            candidates.append(row_copy)
 
         elif mode == "sample":
             if -180 <= minutes <= 90:
+                row_copy["_selection_reason"] = "sample"
                 candidates.append(row_copy)
 
+    # 締切が近い順
     candidates.sort(
-        key=lambda x: abs(x["_minutes"])
+        key=lambda row: row.get("_minutes", 999999)
     )
 
     if mode == "sample":
@@ -296,34 +365,51 @@ def select_races(
     return candidates
 
 
-def fetch_html(url: str) -> str:
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 "
-            "(compatible; boatrace-ai-data-collector/1.0)"
-        ),
-        "Accept-Language": "ja,en;q=0.8",
-    }
+def get_session() -> requests.Session:
+    session = getattr(
+        _THREAD_LOCAL,
+        "session",
+        None,
+    )
 
+    if session is None:
+        session = requests.Session()
+        session.headers.update(
+            {
+                "User-Agent": (
+                    "Mozilla/5.0 "
+                    "(compatible; boatrace-ai-data-collector/2.0)"
+                ),
+                "Accept-Language": "ja,en;q=0.8",
+                "Connection": "keep-alive",
+            }
+        )
+        _THREAD_LOCAL.session = session
+
+    return session
+
+
+def fetch_html(url: str) -> str:
+    session = get_session()
     last_error = None
 
-    for attempt in range(1, 4):
+    for attempt in range(1, REQUEST_RETRIES + 1):
         try:
-            response = requests.get(
+            response = session.get(
                 url,
-                headers=headers,
-                timeout=30,
+                timeout=(
+                    REQUEST_CONNECT_TIMEOUT,
+                    REQUEST_READ_TIMEOUT,
+                ),
             )
-
             response.raise_for_status()
-
             return response.text
 
         except Exception as exc:
             last_error = exc
 
-            if attempt < 3:
-                time.sleep(attempt * 2)
+            if attempt < REQUEST_RETRIES:
+                time.sleep(0.5 * attempt)
 
     raise RuntimeError(
         f"取得失敗: {url} / {last_error}"
@@ -331,9 +417,10 @@ def fetch_html(url: str) -> str:
 
 
 def is_no_data(soup: BeautifulSoup) -> bool:
-    text = soup.get_text(" ", strip=True)
-
-    return "データがありません" in text
+    return (
+        "データがありません"
+        in soup.get_text(" ", strip=True)
+    )
 
 
 def parse_weather(soup: BeautifulSoup) -> dict:
@@ -410,10 +497,7 @@ def parse_weather(soup: BeautifulSoup) -> dict:
         ),
         "wind_direction_code": direction_code,
         "wind_direction": (
-            WIND_DIR.get(
-                direction_code,
-                "",
-            )
+            WIND_DIR.get(direction_code, "")
             if direction_code
             else ""
         ),
@@ -432,17 +516,11 @@ def parse_flags(soup: BeautifulSoup) -> dict:
     return {
         "stabilizer": (
             "安定板使用" in labels
-            or any(
-                "安定板" in x
-                for x in labels
-            )
+            or any("安定板" in label for label in labels)
         ),
         "fixed_course": (
             "進入固定" in labels
-            or any(
-                "進入固定" in x
-                for x in labels
-            )
+            or any("進入固定" in label for label in labels)
         ),
     }
 
@@ -450,7 +528,6 @@ def parse_flags(soup: BeautifulSoup) -> dict:
 def parse_exhibition_order(
     soup: BeautifulSoup,
 ) -> tuple[dict[int, int], dict[int, str]]:
-
     course_by_boat = {}
     st_by_boat = {}
 
@@ -495,9 +572,7 @@ def parse_exhibition_order(
     return course_by_boat, st_by_boat
 
 
-def find_entry_tbodies(
-    soup: BeautifulSoup,
-):
+def find_entry_tbodies(soup: BeautifulSoup):
     tbodies = soup.select(
         "table.is-w748 tbody"
     )
@@ -508,16 +583,12 @@ def find_entry_tbodies(
     tables = soup.select("div.table1")
 
     if len(tables) >= 2:
-        tbodies = tables[1].select(
-            "tbody"
-        )
+        tbodies = tables[1].select("tbody")
 
     return tbodies[:6]
 
 
-def parse_entry_table(
-    soup: BeautifulSoup,
-):
+def parse_entry_table(soup: BeautifulSoup):
     course_by_boat, st_by_boat = (
         parse_exhibition_order(soup)
     )
@@ -546,9 +617,7 @@ def parse_entry_table(
             )
 
             if match:
-                registration_no = (
-                    match.group(1)
-                )
+                registration_no = match.group(1)
 
             name = re.sub(
                 r"\s+",
@@ -568,20 +637,17 @@ def parse_entry_table(
         )
 
         texts = [
-            clean_text(
-                get_text(cell)
-            )
+            clean_text(get_text(cell))
             for cell in cells
         ]
 
         weight = None
         exhibition_time = None
         tilt = None
-
         kg_index = None
 
-        for i, text in enumerate(texts):
-            if "kg" in text.lower():
+        for i, cell_text in enumerate(texts):
+            if "kg" in cell_text.lower():
                 kg_index = i
                 break
 
@@ -628,8 +694,8 @@ def parse_entry_table(
                 "weight_kg": weight,
                 "exhibition_time": exhibition_time,
                 "tilt": tilt,
-                "exhibition_course": (
-                    course_by_boat.get(boat)
+                "exhibition_course": course_by_boat.get(
+                    boat
                 ),
                 "exhibition_st_raw": st_raw,
                 "exhibition_st_seconds": st_seconds,
@@ -656,9 +722,7 @@ def parse_beforeinfo(
     if is_no_data(soup):
         return None
 
-    entry_rows = parse_entry_table(
-        soup
-    )
+    entry_rows = parse_entry_table(soup)
 
     if len(entry_rows) != 6:
         return None
@@ -666,8 +730,7 @@ def parse_beforeinfo(
     exhibition_count = sum(
         1
         for row in entry_rows
-        if row["exhibition_time"]
-        is not None
+        if row["exhibition_time"] is not None
     )
 
     st_count = sum(
@@ -676,8 +739,6 @@ def parse_beforeinfo(
         if row["exhibition_st_raw"]
     )
 
-    # 直前情報がまだ出揃っていない場合は保存しない。
-    # 次回の定期実行で再取得する。
     if (
         exhibition_count < 4
         or st_count < 4
@@ -736,6 +797,58 @@ def parse_beforeinfo(
     return race_row, final_entries
 
 
+def build_url(
+    target_date: str,
+    base: dict,
+) -> str:
+    return (
+        "https://www.boatrace.jp/"
+        "owpc/pc/race/beforeinfo"
+        f"?hd={target_date}"
+        f"&jcd={base['venue_code']}"
+        f"&rno={int(base['race'])}"
+    )
+
+
+def fetch_one(
+    base: dict,
+    target_date: str,
+):
+    started = time.monotonic()
+
+    url = build_url(
+        target_date,
+        base,
+    )
+
+    try:
+        html = fetch_html(url)
+
+        parsed = parse_beforeinfo(
+            html,
+            base,
+        )
+
+        return {
+            "base": base,
+            "parsed": parsed,
+            "error": None,
+            "elapsed_seconds": (
+                time.monotonic() - started
+            ),
+        }
+
+    except Exception as exc:
+        return {
+            "base": base,
+            "parsed": None,
+            "error": str(exc),
+            "elapsed_seconds": (
+                time.monotonic() - started
+            ),
+        }
+
+
 def write_csv(
     path: Path,
     rows: list[dict],
@@ -751,7 +864,6 @@ def write_csv(
         encoding="utf-8",
         newline="",
     ) as f:
-
         writer = csv.DictWriter(
             f,
             fieldnames=fields,
@@ -762,10 +874,7 @@ def write_csv(
         for row in rows:
             writer.writerow(
                 {
-                    field: row.get(
-                        field,
-                        "",
-                    )
+                    field: row.get(field, "")
                     for field in fields
                 }
             )
@@ -783,7 +892,6 @@ def merge_rows(
             str(row.get(field, ""))
             for field in key_fields
         )
-
         merged[key] = row
 
     for row in new_rows:
@@ -791,7 +899,6 @@ def merge_rows(
             str(row.get(field, ""))
             for field in key_fields
         )
-
         merged[key] = row
 
     result = list(merged.values())
@@ -817,9 +924,7 @@ def validate(
         for row in race_rows
     ]
 
-    if len(race_ids) != len(
-        set(race_ids)
-    ):
+    if len(race_ids) != len(set(race_ids)):
         errors.append(
             "beforeinfo race_id重複"
         )
@@ -852,8 +957,7 @@ def validate(
 
     bad = {
         race_id: count
-        for race_id, count
-        in count_by_race.items()
+        for race_id, count in count_by_race.items()
         if count != 6
     }
 
@@ -886,11 +990,7 @@ def main():
 
     parser.add_argument(
         "--mode",
-        choices=[
-            "live",
-            "sample",
-            "all",
-        ],
+        choices=["live", "sample", "all"],
         default="live",
     )
 
@@ -908,15 +1008,42 @@ def main():
     parser.add_argument(
         "--window-before",
         type=int,
-        default=15,
+        default=DEFAULT_WINDOW_BEFORE,
         help="締切後何分まで対象にするか",
     )
 
     parser.add_argument(
         "--window-after",
         type=int,
-        default=50,
+        default=DEFAULT_WINDOW_AFTER,
         help="締切何分前から対象にするか",
+    )
+
+    parser.add_argument(
+        "--refresh-window",
+        type=int,
+        default=DEFAULT_REFRESH_WINDOW,
+        help=(
+            "一度直前予測済みのレースを"
+            "再確認する締切前分数"
+        ),
+    )
+
+    parser.add_argument(
+        "--min-refresh-interval",
+        type=int,
+        default=DEFAULT_MIN_REFRESH_INTERVAL,
+        help=(
+            "同じレースを再取得する"
+            "最小間隔（分）"
+        ),
+    )
+
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=DEFAULT_WORKERS,
+        help="並列取得数。最大4",
     )
 
     args = parser.parse_args()
@@ -924,10 +1051,12 @@ def main():
     target_date = (
         args.date
         if args.date
-        else datetime.now(
-            JST
-        ).strftime("%Y%m%d")
+        else datetime.now(JST).strftime(
+            "%Y%m%d"
+        )
     )
+
+    started_all = time.monotonic()
 
     base_races = load_base_races(
         target_date
@@ -941,17 +1070,51 @@ def main():
         sample_count=args.sample_count,
         window_before=args.window_before,
         window_after=args.window_after,
+        refresh_window=args.refresh_window,
+        min_refresh_interval=(
+            args.min_refresh_interval
+        ),
+    )
+
+    new_count = sum(
+        1
+        for row in selected
+        if row.get("_selection_reason") == "new"
+    )
+
+    refresh_count = sum(
+        1
+        for row in selected
+        if row.get("_selection_reason")
+        == "refresh"
+    )
+
+    workers = max(
+        1,
+        min(args.workers, 4),
     )
 
     print(
         "========================================"
     )
-    print("直前情報収集")
+    print("直前情報収集・高速版")
     print(f"対象日: {target_date}")
     print(f"モード: {args.mode}")
     print(
-        f"収集候補レース: {len(selected)}"
+        "対象窓: "
+        f"締切{args.window_after}分前"
+        "〜"
+        f"締切後{args.window_before}分"
     )
+    print(f"収集候補: {len(selected)}R")
+
+    if args.mode == "live":
+        print(f"  新規: {new_count}R")
+        print(
+            f"  再確認: {refresh_count}R"
+        )
+
+    print(f"並列数: {workers}")
     print(
         "========================================"
     )
@@ -962,68 +1125,98 @@ def main():
     fetched = 0
     ready = 0
     failed = []
+    per_request_seconds = []
 
-    for base in selected:
-        race_no = int(base["race"])
+    if selected:
+        with ThreadPoolExecutor(
+            max_workers=workers
+        ) as executor:
+            futures = {
+                executor.submit(
+                    fetch_one,
+                    base,
+                    target_date,
+                ): base
+                for base in selected
+            }
 
-        url = (
-            "https://www.boatrace.jp/"
-            "owpc/pc/race/beforeinfo"
-            f"?hd={target_date}"
-            f"&jcd={base['venue_code']}"
-            f"&rno={race_no}"
-        )
+            for future in as_completed(
+                futures
+            ):
+                result = future.result()
 
-        print(
-            f"{base['venue_name']} "
-            f"{race_no}R"
-        )
-
-        try:
-            html = fetch_html(url)
-            fetched += 1
-
-            parsed = parse_beforeinfo(
-                html,
-                base,
-            )
-
-            if parsed is None:
-                print(
-                    "  → 直前情報未確定"
+                base = result["base"]
+                race_no = int(base["race"])
+                reason = base.get(
+                    "_selection_reason",
+                    "",
                 )
-            else:
-                race_row, entry_rows = parsed
+                elapsed = float(
+                    result.get(
+                        "elapsed_seconds",
+                        0.0,
+                    )
+                )
+
+                per_request_seconds.append(
+                    elapsed
+                )
+
+                if result["error"]:
+                    failed.append(
+                        {
+                            "race_id": base[
+                                "race_id"
+                            ],
+                            "error": result[
+                                "error"
+                            ],
+                        }
+                    )
+
+                    print(
+                        f"{base['venue_name']} "
+                        f"{race_no}R "
+                        f"[{reason}] "
+                        f"→ ERROR "
+                        f"({elapsed:.1f}s): "
+                        f"{result['error']}"
+                    )
+                    continue
+
+                fetched += 1
+
+                parsed = result["parsed"]
+
+                if parsed is None:
+                    print(
+                        f"{base['venue_name']} "
+                        f"{race_no}R "
+                        f"[{reason}] "
+                        "→ 直前情報未確定 "
+                        f"({elapsed:.1f}s)"
+                    )
+                    continue
+
+                race_row, entry_rows = (
+                    parsed
+                )
 
                 new_races.append(
                     race_row
                 )
-
                 new_entries.extend(
                     entry_rows
                 )
-
                 ready += 1
 
                 print(
-                    "  → 取得完了"
+                    f"{base['venue_name']} "
+                    f"{race_no}R "
+                    f"[{reason}] "
+                    "→ 取得完了 "
+                    f"({elapsed:.1f}s)"
                 )
-
-        except Exception as exc:
-            failed.append(
-                {
-                    "race_id": (
-                        base["race_id"]
-                    ),
-                    "error": str(exc),
-                }
-            )
-
-            print(
-                f"  → ERROR: {exc}"
-            )
-
-        time.sleep(0.4)
 
     DATA_DIR.mkdir(
         parents=True,
@@ -1046,14 +1239,12 @@ def main():
 
     old_races = load_existing_csv(
         race_path,
-        archive_dir
-        / race_path.name,
+        archive_dir / race_path.name,
     )
 
     old_entries = load_existing_csv(
         entry_path,
-        archive_dir
-        / entry_path.name,
+        archive_dir / entry_path.name,
     )
 
     merged_races = merge_rows(
@@ -1065,10 +1256,7 @@ def main():
     merged_entries = merge_rows(
         old_entries,
         new_entries,
-        (
-            "race_id",
-            "boat",
-        ),
+        ("race_id", "boat"),
     )
 
     write_csv(
@@ -1088,16 +1276,61 @@ def main():
         merged_entries,
     )
 
+    elapsed_all = (
+        time.monotonic()
+        - started_all
+    )
+
+    average_request_seconds = (
+        sum(per_request_seconds)
+        / len(per_request_seconds)
+        if per_request_seconds
+        else 0.0
+    )
+
+    max_request_seconds = (
+        max(per_request_seconds)
+        if per_request_seconds
+        else 0.0
+    )
+
     validation.update(
         {
             "target_date": target_date,
             "mode": args.mode,
-            "selected_races": len(
-                selected
+            "window_after_minutes": (
+                args.window_after
+            ),
+            "window_before_minutes": (
+                args.window_before
+            ),
+            "refresh_window_minutes": (
+                args.refresh_window
+            ),
+            "min_refresh_interval_minutes": (
+                args.min_refresh_interval
+            ),
+            "workers": workers,
+            "selected_races": len(selected),
+            "selected_new_races": new_count,
+            "selected_refresh_races": (
+                refresh_count
             ),
             "fetched_races": fetched,
             "new_ready_races": ready,
             "failed_races": failed,
+            "average_request_seconds": round(
+                average_request_seconds,
+                3,
+            ),
+            "max_request_seconds": round(
+                max_request_seconds,
+                3,
+            ),
+            "elapsed_seconds": round(
+                elapsed_all,
+                3,
+            ),
             "created_at": datetime.now(
                 JST
             ).isoformat(),
@@ -1123,22 +1356,29 @@ def main():
         "========================================"
     )
     print("直前情報収集結果")
-    print(
-        f"候補: {len(selected)}レース"
-    )
-    print(
-        f"取得アクセス: {fetched}レース"
-    )
-    print(
-        f"今回確定: {ready}レース"
-    )
+    print(f"候補: {len(selected)}R")
+    print(f"取得成功: {fetched}R")
+    print(f"今回確定: {ready}R")
     print(
         "累積保存: "
-        f"{len(merged_races)}レース / "
+        f"{len(merged_races)}R / "
         f"{len(merged_entries)}艇"
     )
     print(
-        f"検証結果: {validation['status']}"
+        "平均アクセス時間: "
+        f"{average_request_seconds:.2f}秒"
+    )
+    print(
+        "最長アクセス時間: "
+        f"{max_request_seconds:.2f}秒"
+    )
+    print(
+        "全体時間: "
+        f"{elapsed_all:.2f}秒"
+    )
+    print(
+        "検証結果: "
+        f"{validation['status']}"
     )
     print(
         "========================================"
@@ -1150,7 +1390,6 @@ def main():
                 f"ERROR: {error}",
                 file=sys.stderr,
             )
-
         return 1
 
     return 0
