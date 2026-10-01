@@ -14,42 +14,42 @@
       "meta": {
         "input_file": "data/prediction_input_enriched_morning_20260930.json",
         "prediction_file": "data/morning_predictions_20260930.json",
-        "score_rows": 854,
+        "score_rows": 864,
         "component_columns": []
       },
       "score_calibration": {
         "races": 144,
-        "top_score_win_rate_pct": 53.5,
-        "top_score_top3_rate_pct": 82.6,
-        "mean_top_finish": 2.01,
+        "top_score_win_rate_pct": 52.8,
+        "top_score_top3_rate_pct": 80.6,
+        "mean_top_finish": 2.1,
         "gap_buckets": [
           {
             "gap_bucket": "0-5未満",
-            "races": 61,
-            "win_rate_pct": 39.3,
-            "top3_rate_pct": 78.7,
-            "mean_finish": 2.34
+            "races": 60,
+            "win_rate_pct": 40.0,
+            "top3_rate_pct": 78.3,
+            "mean_finish": 2.33
           },
           {
             "gap_bucket": "5-10未満",
-            "races": 46,
-            "win_rate_pct": 50.0,
-            "top3_rate_pct": 76.1,
-            "mean_finish": 2.13
+            "races": 45,
+            "win_rate_pct": 51.1,
+            "top3_rate_pct": 75.6,
+            "mean_finish": 2.18
           },
           {
             "gap_bucket": "10-15未満",
             "races": 26,
-            "win_rate_pct": 76.9,
-            "top3_rate_pct": 96.2,
-            "mean_finish": 1.38
+            "win_rate_pct": 73.1,
+            "top3_rate_pct": 92.3,
+            "mean_finish": 1.54
           },
           {
             "gap_bucket": "15以上",
-            "races": 11,
-            "win_rate_pct": 90.9,
-            "top3_rate_pct": 100.0,
-            "mean_finish": 1.09
+            "races": 13,
+            "win_rate_pct": 76.9,
+            "top3_rate_pct": 84.6,
+            "mean_finish": 1.85
           }
         ]
       },
@@ -61,8 +61,8 @@
           "features_tested": 1,
           "exact_component_available": false,
           "best_feature": "feature.frame.frame_advantage",
-          "best_abs_spearman": 0.4245,
-          "best_high_leader_win_rate_pct": 54.9,
+          "best_abs_spearman": 0.3968,
+          "best_high_leader_win_rate_pct": 53.5,
           "best_low_leader_win_rate_pct": 2.1
         },
         {
@@ -72,8 +72,8 @@
           "features_tested": 3,
           "exact_component_available": false,
           "best_feature": "feature.official_racer.official_stats.national_win_rate",
-          "best_abs_spearman": 0.362,
-          "best_high_leader_win_rate_pct": 31.9,
+          "best_abs_spearman": 0.337,
+          "best_high_leader_win_rate_pct": 29.9,
           "best_low_leader_win_rate_pct": 3.5
         },
         {
@@ -82,10 +82,10 @@
           "current_weight": 22,
           "features_tested": 20,
           "exact_component_available": false,
-          "best_feature": "feature.recent_racer.history.racer_90d.top2_rate",
-          "best_abs_spearman": 0.3455,
-          "best_high_leader_win_rate_pct": 28.5,
-          "best_low_leader_win_rate_pct": 5.6
+          "best_feature": "feature.recent_racer.history.racer_90d.win_rate",
+          "best_abs_spearman": 0.3235,
+          "best_high_leader_win_rate_pct": 27.8,
+          "best_low_leader_win_rate_pct": 4.2
         },
         {
           "group": "racer_venue",
@@ -94,8 +94,8 @@
           "features_tested": 3,
           "exact_component_available": false,
           "best_feature": "feature.racer_venue.official_stats.local_win_rate",
-          "best_abs_spearman": 0.2725,
-          "best_high_leader_win_rate_pct": 31.2,
+          "best_abs_spearman": 0.253,
+          "best_high_leader_win_rate_pct": 30.6,
           "best_low_leader_win_rate_pct": 9.0
         },
         {
@@ -105,9 +105,9 @@
           "features_tested": 50,
           "exact_component_available": false,
           "best_feature": "feature.motor.history.motor_30d.top3_rate",
-          "best_abs_spearman": 0.1369,
-          "best_high_leader_win_rate_pct": 21.5,
-          "best_low_leader_win_rate_pct": 12.5
+          "best_abs_spearman": 0.1188,
+          "best_high_leader_win_rate_pct": 20.1,
+          "best_low_leader_win_rate_pct": 11.8
         },
         {
           "group": "boat_machine",
@@ -116,8 +116,8 @@
           "features_tested": 28,
           "exact_component_available": false,
           "best_feature": "feature.boat_machine.history.boat_machine.features.d30.top3_rate",
-          "best_abs_spearman": 0.1273,
-          "best_high_leader_win_rate_pct": 20.1,
+          "best_abs_spearman": 0.1173,
+          "best_high_leader_win_rate_pct": 19.4,
           "best_low_leader_win_rate_pct": 11.8
         },
         {
@@ -127,9 +127,9 @@
           "features_tested": 1,
           "exact_component_available": false,
           "best_feature": "feature.grade.grade_numeric",
-          "best_abs_spearman": 0.3264,
-          "best_high_leader_win_rate_pct": 43.8,
-          "best_low_leader_win_rate_pct": 20.8
+          "best_abs_spearman": 0.3046,
+          "best_high_leader_win_rate_pct": 41.7,
+          "best_low_leader_win_rate_pct": 20.1
         },
         {
           "group": "live_beforeinfo",
@@ -149,7 +149,7 @@
           "group_b": "recent_racer",
           "label_a": "選手公式能力",
           "label_b": "選手直近成績",
-          "rank_spearman": 0.7908,
+          "rank_spearman": 0.7498,
           "high_overlap_flag": true
         },
         {
@@ -157,7 +157,7 @@
           "group_b": "grade",
           "label_a": "選手公式能力",
           "label_b": "級別",
-          "rank_spearman": 0.7208,
+          "rank_spearman": 0.7239,
           "high_overlap_flag": true
         },
         {
@@ -165,7 +165,7 @@
           "group_b": "grade",
           "label_a": "選手直近成績",
           "label_b": "級別",
-          "rank_spearman": 0.6066,
+          "rank_spearman": 0.6116,
           "high_overlap_flag": false
         },
         {
@@ -173,7 +173,7 @@
           "group_b": "racer_venue",
           "label_a": "選手公式能力",
           "label_b": "当地・場適性",
-          "rank_spearman": 0.6003,
+          "rank_spearman": 0.6012,
           "high_overlap_flag": false
         },
         {
@@ -181,7 +181,7 @@
           "group_b": "grade",
           "label_a": "当地・場適性",
           "label_b": "級別",
-          "rank_spearman": 0.593,
+          "rank_spearman": 0.592,
           "high_overlap_flag": false
         },
         {
@@ -189,7 +189,7 @@
           "group_b": "racer_venue",
           "label_a": "選手直近成績",
           "label_b": "当地・場適性",
-          "rank_spearman": 0.5366,
+          "rank_spearman": 0.4905,
           "high_overlap_flag": false
         },
         {
@@ -197,23 +197,15 @@
           "group_b": "boat_machine",
           "label_a": "モーター",
           "label_b": "ボート",
-          "rank_spearman": 0.2346,
+          "rank_spearman": 0.2374,
           "high_overlap_flag": false
         },
         {
-          "group_a": "recent_racer",
-          "group_b": "motor",
-          "label_a": "選手直近成績",
-          "label_b": "モーター",
-          "rank_spearman": 0.1997,
-          "high_overlap_flag": false
-        },
-        {
-          "group_a": "recent_racer",
-          "group_b": "boat_machine",
-          "label_a": "選手直近成績",
-          "label_b": "ボート",
-          "rank_spearman": 0.1859,
+          "group_a": "motor",
+          "group_b": "grade",
+          "label_a": "モーター",
+          "label_b": "級別",
+          "rank_spearman": 0.1767,
           "high_overlap_flag": false
         },
         {
@@ -221,15 +213,7 @@
           "group_b": "boat_machine",
           "label_a": "当地・場適性",
           "label_b": "ボート",
-          "rank_spearman": 0.1748,
-          "high_overlap_flag": false
-        },
-        {
-          "group_a": "motor",
-          "group_b": "grade",
-          "label_a": "モーター",
-          "label_b": "級別",
-          "rank_spearman": 0.1734,
+          "rank_spearman": 0.1757,
           "high_overlap_flag": false
         },
         {
@@ -237,7 +221,15 @@
           "group_b": "motor",
           "label_a": "選手公式能力",
           "label_b": "モーター",
-          "rank_spearman": 0.1668,
+          "rank_spearman": 0.1709,
+          "high_overlap_flag": false
+        },
+        {
+          "group_a": "recent_racer",
+          "group_b": "motor",
+          "label_a": "選手直近成績",
+          "label_b": "モーター",
+          "rank_spearman": 0.168,
           "high_overlap_flag": false
         },
         {
@@ -245,15 +237,7 @@
           "group_b": "boat_machine",
           "label_a": "選手公式能力",
           "label_b": "ボート",
-          "rank_spearman": 0.1647,
-          "high_overlap_flag": false
-        },
-        {
-          "group_a": "boat_machine",
-          "group_b": "grade",
-          "label_a": "ボート",
-          "label_b": "級別",
-          "rank_spearman": 0.1538,
+          "rank_spearman": 0.1559,
           "high_overlap_flag": false
         },
         {
@@ -261,15 +245,15 @@
           "group_b": "official_racer",
           "label_a": "枠・コース",
           "label_b": "選手公式能力",
-          "rank_spearman": 0.1468,
+          "rank_spearman": 0.1445,
           "high_overlap_flag": false
         },
         {
-          "group_a": "frame",
+          "group_a": "boat_machine",
           "group_b": "grade",
-          "label_a": "枠・コース",
+          "label_a": "ボート",
           "label_b": "級別",
-          "rank_spearman": 0.1258,
+          "rank_spearman": 0.144,
           "high_overlap_flag": false
         },
         {
@@ -277,7 +261,15 @@
           "group_b": "motor",
           "label_a": "当地・場適性",
           "label_b": "モーター",
-          "rank_spearman": 0.125,
+          "rank_spearman": 0.1337,
+          "high_overlap_flag": false
+        },
+        {
+          "group_a": "recent_racer",
+          "group_b": "boat_machine",
+          "label_a": "選手直近成績",
+          "label_b": "ボート",
+          "rank_spearman": 0.1298,
           "high_overlap_flag": false
         },
         {
@@ -285,7 +277,15 @@
           "group_b": "racer_venue",
           "label_a": "枠・コース",
           "label_b": "当地・場適性",
-          "rank_spearman": 0.1214,
+          "rank_spearman": 0.1202,
+          "high_overlap_flag": false
+        },
+        {
+          "group_a": "frame",
+          "group_b": "grade",
+          "label_a": "枠・コース",
+          "label_b": "級別",
+          "rank_spearman": 0.1189,
           "high_overlap_flag": false
         },
         {
@@ -293,7 +293,7 @@
           "group_b": "recent_racer",
           "label_a": "枠・コース",
           "label_b": "選手直近成績",
-          "rank_spearman": 0.1022,
+          "rank_spearman": 0.1109,
           "high_overlap_flag": false
         },
         {
@@ -301,7 +301,7 @@
           "group_b": "boat_machine",
           "label_a": "枠・コース",
           "label_b": "ボート",
-          "rank_spearman": 0.0848,
+          "rank_spearman": 0.088,
           "high_overlap_flag": false
         },
         {
@@ -309,7 +309,7 @@
           "group_b": "motor",
           "label_a": "枠・コース",
           "label_b": "モーター",
-          "rank_spearman": 0.0457,
+          "rank_spearman": 0.0458,
           "high_overlap_flag": false
         }
       ]
@@ -318,42 +318,42 @@
       "meta": {
         "input_file": "data/prediction_input_enriched_live_20260930.json",
         "prediction_file": "predictions/2026/09/30/live/formation_predictions_final_20260930.json",
-        "score_rows": 854,
+        "score_rows": 864,
         "component_columns": []
       },
       "score_calibration": {
         "races": 144,
-        "top_score_win_rate_pct": 52.1,
-        "top_score_top3_rate_pct": 83.3,
-        "mean_top_finish": 2.03,
+        "top_score_win_rate_pct": 51.4,
+        "top_score_top3_rate_pct": 80.6,
+        "mean_top_finish": 2.12,
         "gap_buckets": [
           {
             "gap_bucket": "0-5未満",
-            "races": 50,
-            "win_rate_pct": 34.0,
-            "top3_rate_pct": 86.0,
-            "mean_finish": 2.28
+            "races": 48,
+            "win_rate_pct": 35.4,
+            "top3_rate_pct": 85.4,
+            "mean_finish": 2.25
           },
           {
             "gap_bucket": "5-10未満",
-            "races": 38,
-            "win_rate_pct": 44.7,
-            "top3_rate_pct": 71.1,
-            "mean_finish": 2.34
+            "races": 36,
+            "win_rate_pct": 44.4,
+            "top3_rate_pct": 69.4,
+            "mean_finish": 2.39
           },
           {
             "gap_bucket": "10-15未満",
-            "races": 27,
-            "win_rate_pct": 59.3,
-            "top3_rate_pct": 81.5,
-            "mean_finish": 1.93
+            "races": 29,
+            "win_rate_pct": 55.2,
+            "top3_rate_pct": 75.9,
+            "mean_finish": 2.17
           },
           {
             "gap_bucket": "15以上",
-            "races": 29,
-            "win_rate_pct": 86.2,
-            "top3_rate_pct": 96.6,
-            "mean_finish": 1.28
+            "races": 31,
+            "win_rate_pct": 80.6,
+            "top3_rate_pct": 90.3,
+            "mean_finish": 1.58
           }
         ]
       },
@@ -365,8 +365,8 @@
           "features_tested": 1,
           "exact_component_available": false,
           "best_feature": "feature.frame.frame_advantage",
-          "best_abs_spearman": 0.4245,
-          "best_high_leader_win_rate_pct": 54.9,
+          "best_abs_spearman": 0.3968,
+          "best_high_leader_win_rate_pct": 53.5,
           "best_low_leader_win_rate_pct": 2.1
         },
         {
@@ -376,8 +376,8 @@
           "features_tested": 3,
           "exact_component_available": false,
           "best_feature": "feature.official_racer.official_stats.national_win_rate",
-          "best_abs_spearman": 0.362,
-          "best_high_leader_win_rate_pct": 31.9,
+          "best_abs_spearman": 0.337,
+          "best_high_leader_win_rate_pct": 29.9,
           "best_low_leader_win_rate_pct": 3.5
         },
         {
@@ -386,10 +386,10 @@
           "current_weight": 22,
           "features_tested": 20,
           "exact_component_available": false,
-          "best_feature": "feature.recent_racer.history.racer_90d.top2_rate",
-          "best_abs_spearman": 0.3455,
-          "best_high_leader_win_rate_pct": 28.5,
-          "best_low_leader_win_rate_pct": 5.6
+          "best_feature": "feature.recent_racer.history.racer_90d.win_rate",
+          "best_abs_spearman": 0.3235,
+          "best_high_leader_win_rate_pct": 27.8,
+          "best_low_leader_win_rate_pct": 4.2
         },
         {
           "group": "racer_venue",
@@ -398,8 +398,8 @@
           "features_tested": 3,
           "exact_component_available": false,
           "best_feature": "feature.racer_venue.official_stats.local_win_rate",
-          "best_abs_spearman": 0.2725,
-          "best_high_leader_win_rate_pct": 31.2,
+          "best_abs_spearman": 0.253,
+          "best_high_leader_win_rate_pct": 30.6,
           "best_low_leader_win_rate_pct": 9.0
         },
         {
@@ -409,9 +409,9 @@
           "features_tested": 50,
           "exact_component_available": false,
           "best_feature": "feature.motor.history.motor_30d.top3_rate",
-          "best_abs_spearman": 0.1369,
-          "best_high_leader_win_rate_pct": 21.5,
-          "best_low_leader_win_rate_pct": 12.5
+          "best_abs_spearman": 0.1188,
+          "best_high_leader_win_rate_pct": 20.1,
+          "best_low_leader_win_rate_pct": 11.8
         },
         {
           "group": "boat_machine",
@@ -420,8 +420,8 @@
           "features_tested": 28,
           "exact_component_available": false,
           "best_feature": "feature.boat_machine.history.boat_machine.features.d30.top3_rate",
-          "best_abs_spearman": 0.1273,
-          "best_high_leader_win_rate_pct": 20.1,
+          "best_abs_spearman": 0.1173,
+          "best_high_leader_win_rate_pct": 19.4,
           "best_low_leader_win_rate_pct": 11.8
         },
         {
@@ -431,9 +431,9 @@
           "features_tested": 1,
           "exact_component_available": false,
           "best_feature": "feature.grade.grade_numeric",
-          "best_abs_spearman": 0.3264,
-          "best_high_leader_win_rate_pct": 43.8,
-          "best_low_leader_win_rate_pct": 20.8
+          "best_abs_spearman": 0.3046,
+          "best_high_leader_win_rate_pct": 41.7,
+          "best_low_leader_win_rate_pct": 20.1
         },
         {
           "group": "live_beforeinfo",
@@ -442,7 +442,7 @@
           "features_tested": 1,
           "exact_component_available": false,
           "best_feature": "feature.live_beforeinfo.beforeinfo_analysis.live_score_delta",
-          "best_abs_spearman": 0.1905,
+          "best_abs_spearman": 0.1749,
           "best_high_leader_win_rate_pct": 41.0,
           "best_low_leader_win_rate_pct": 21.5
         }
@@ -453,7 +453,7 @@
           "group_b": "recent_racer",
           "label_a": "選手公式能力",
           "label_b": "選手直近成績",
-          "rank_spearman": 0.7908,
+          "rank_spearman": 0.7498,
           "high_overlap_flag": true
         },
         {
@@ -461,7 +461,7 @@
           "group_b": "grade",
           "label_a": "選手公式能力",
           "label_b": "級別",
-          "rank_spearman": 0.7208,
+          "rank_spearman": 0.7239,
           "high_overlap_flag": true
         },
         {
@@ -469,7 +469,7 @@
           "group_b": "grade",
           "label_a": "選手直近成績",
           "label_b": "級別",
-          "rank_spearman": 0.6066,
+          "rank_spearman": 0.6116,
           "high_overlap_flag": false
         },
         {
@@ -477,7 +477,7 @@
           "group_b": "racer_venue",
           "label_a": "選手公式能力",
           "label_b": "当地・場適性",
-          "rank_spearman": 0.6003,
+          "rank_spearman": 0.6012,
           "high_overlap_flag": false
         },
         {
@@ -485,7 +485,7 @@
           "group_b": "grade",
           "label_a": "当地・場適性",
           "label_b": "級別",
-          "rank_spearman": 0.593,
+          "rank_spearman": 0.592,
           "high_overlap_flag": false
         },
         {
@@ -493,7 +493,7 @@
           "group_b": "racer_venue",
           "label_a": "選手直近成績",
           "label_b": "当地・場適性",
-          "rank_spearman": 0.5366,
+          "rank_spearman": 0.4905,
           "high_overlap_flag": false
         },
         {
@@ -501,23 +501,15 @@
           "group_b": "boat_machine",
           "label_a": "モーター",
           "label_b": "ボート",
-          "rank_spearman": 0.2346,
+          "rank_spearman": 0.2374,
           "high_overlap_flag": false
         },
         {
-          "group_a": "recent_racer",
-          "group_b": "motor",
-          "label_a": "選手直近成績",
-          "label_b": "モーター",
-          "rank_spearman": 0.1997,
-          "high_overlap_flag": false
-        },
-        {
-          "group_a": "recent_racer",
-          "group_b": "boat_machine",
-          "label_a": "選手直近成績",
-          "label_b": "ボート",
-          "rank_spearman": 0.1859,
+          "group_a": "motor",
+          "group_b": "grade",
+          "label_a": "モーター",
+          "label_b": "級別",
+          "rank_spearman": 0.1767,
           "high_overlap_flag": false
         },
         {
@@ -525,15 +517,7 @@
           "group_b": "boat_machine",
           "label_a": "当地・場適性",
           "label_b": "ボート",
-          "rank_spearman": 0.1748,
-          "high_overlap_flag": false
-        },
-        {
-          "group_a": "motor",
-          "group_b": "grade",
-          "label_a": "モーター",
-          "label_b": "級別",
-          "rank_spearman": 0.1734,
+          "rank_spearman": 0.1757,
           "high_overlap_flag": false
         },
         {
@@ -541,7 +525,15 @@
           "group_b": "motor",
           "label_a": "選手公式能力",
           "label_b": "モーター",
-          "rank_spearman": 0.1668,
+          "rank_spearman": 0.1709,
+          "high_overlap_flag": false
+        },
+        {
+          "group_a": "recent_racer",
+          "group_b": "motor",
+          "label_a": "選手直近成績",
+          "label_b": "モーター",
+          "rank_spearman": 0.168,
           "high_overlap_flag": false
         },
         {
@@ -549,15 +541,7 @@
           "group_b": "boat_machine",
           "label_a": "選手公式能力",
           "label_b": "ボート",
-          "rank_spearman": 0.1647,
-          "high_overlap_flag": false
-        },
-        {
-          "group_a": "boat_machine",
-          "group_b": "grade",
-          "label_a": "ボート",
-          "label_b": "級別",
-          "rank_spearman": 0.1538,
+          "rank_spearman": 0.1559,
           "high_overlap_flag": false
         },
         {
@@ -565,15 +549,15 @@
           "group_b": "official_racer",
           "label_a": "枠・コース",
           "label_b": "選手公式能力",
-          "rank_spearman": 0.1468,
+          "rank_spearman": 0.1445,
           "high_overlap_flag": false
         },
         {
-          "group_a": "frame",
+          "group_a": "boat_machine",
           "group_b": "grade",
-          "label_a": "枠・コース",
+          "label_a": "ボート",
           "label_b": "級別",
-          "rank_spearman": 0.1258,
+          "rank_spearman": 0.144,
           "high_overlap_flag": false
         },
         {
@@ -581,7 +565,15 @@
           "group_b": "motor",
           "label_a": "当地・場適性",
           "label_b": "モーター",
-          "rank_spearman": 0.125,
+          "rank_spearman": 0.1337,
+          "high_overlap_flag": false
+        },
+        {
+          "group_a": "recent_racer",
+          "group_b": "boat_machine",
+          "label_a": "選手直近成績",
+          "label_b": "ボート",
+          "rank_spearman": 0.1298,
           "high_overlap_flag": false
         },
         {
@@ -589,7 +581,15 @@
           "group_b": "racer_venue",
           "label_a": "枠・コース",
           "label_b": "当地・場適性",
-          "rank_spearman": 0.1214,
+          "rank_spearman": 0.1202,
+          "high_overlap_flag": false
+        },
+        {
+          "group_a": "frame",
+          "group_b": "grade",
+          "label_a": "枠・コース",
+          "label_b": "級別",
+          "rank_spearman": 0.1189,
           "high_overlap_flag": false
         },
         {
@@ -597,7 +597,7 @@
           "group_b": "recent_racer",
           "label_a": "枠・コース",
           "label_b": "選手直近成績",
-          "rank_spearman": 0.1022,
+          "rank_spearman": 0.1109,
           "high_overlap_flag": false
         },
         {
@@ -605,7 +605,7 @@
           "group_b": "boat_machine",
           "label_a": "枠・コース",
           "label_b": "ボート",
-          "rank_spearman": 0.0848,
+          "rank_spearman": 0.088,
           "high_overlap_flag": false
         },
         {
@@ -613,7 +613,7 @@
           "group_b": "motor",
           "label_a": "枠・コース",
           "label_b": "モーター",
-          "rank_spearman": 0.0457,
+          "rank_spearman": 0.0458,
           "high_overlap_flag": false
         }
       ]
