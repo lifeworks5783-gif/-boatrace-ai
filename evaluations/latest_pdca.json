@@ -1,0 +1,2527 @@
+{
+  "target_date": "20261001",
+  "window_days": 7,
+  "requested_dates": [
+    "20260925",
+    "20260926",
+    "20260927",
+    "20260928",
+    "20260929",
+    "20260930",
+    "20261001"
+  ],
+  "available_dates": [
+    "20260930",
+    "20261001"
+  ],
+  "available_day_count": 2,
+  "strategy": {
+    "formation": {
+      "available_days": 2,
+      "overall": {
+        "races": 312,
+        "hits": 115,
+        "hit_rate_pct": 36.9,
+        "points": 2428,
+        "investment": 242800,
+        "return": 186580,
+        "profit": -56220,
+        "recovery_rate_pct": 76.8
+      },
+      "daily": [
+        {
+          "date": "20260930",
+          "races": 144,
+          "hits": 46,
+          "hit_rate_pct": 31.9,
+          "points": 1104,
+          "investment": 110400,
+          "return": 65710,
+          "profit": -44690,
+          "recovery_rate_pct": 59.5
+        },
+        {
+          "date": "20261001",
+          "races": 168,
+          "hits": 69,
+          "hit_rate_pct": 41.1,
+          "points": 1324,
+          "investment": 132400,
+          "return": 120870,
+          "profit": -11530,
+          "recovery_rate_pct": 91.3
+        }
+      ]
+    },
+    "top3_box": {
+      "available_days": 2,
+      "overall": {
+        "races": 312,
+        "hits": 69,
+        "hit_rate_pct": 22.1,
+        "points": 1872,
+        "investment": 187200,
+        "return": 99570,
+        "profit": -87630,
+        "recovery_rate_pct": 53.2
+      },
+      "daily": [
+        {
+          "date": "20260930",
+          "races": 144,
+          "hits": 25,
+          "hit_rate_pct": 17.4,
+          "points": 864,
+          "investment": 86400,
+          "return": 32800,
+          "profit": -53600,
+          "recovery_rate_pct": 38.0
+        },
+        {
+          "date": "20261001",
+          "races": 168,
+          "hits": 44,
+          "hit_rate_pct": 26.2,
+          "points": 1008,
+          "investment": 100800,
+          "return": 66770,
+          "profit": -34030,
+          "recovery_rate_pct": 66.2
+        }
+      ]
+    }
+  },
+  "prediction_quality": {
+    "morning": {
+      "available_days": 2,
+      "races": 312,
+      "top1_win_rate_pct": 51.6,
+      "winner_in_top2_rate_pct": 70.5,
+      "winner_in_top3_rate_pct": 83.3
+    },
+    "live": {
+      "available_days": 2,
+      "races": 215,
+      "top1_win_rate_pct": 54.9,
+      "winner_in_top2_rate_pct": 73.0,
+      "winner_in_top3_rate_pct": 84.2
+    }
+  },
+  "feature_consistency_top10": [
+    {
+      "stage": "morning",
+      "group": "total_score",
+      "label": "総合スコア",
+      "column": "total_score",
+      "days_observed": 2,
+      "total_races": 312,
+      "avg_abs_spearman": 0.4967,
+      "avg_high_leader_win_rate_pct": 51.6
+    },
+    {
+      "stage": "live",
+      "group": "total_score",
+      "label": "総合スコア",
+      "column": "total_score",
+      "days_observed": 2,
+      "total_races": 312,
+      "avg_abs_spearman": 0.4959,
+      "avg_high_leader_win_rate_pct": 53.2
+    },
+    {
+      "stage": "live",
+      "group": "frame",
+      "label": "枠・コース",
+      "column": "feature.frame.frame_advantage",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3968,
+      "avg_high_leader_win_rate_pct": 53.5
+    },
+    {
+      "stage": "morning",
+      "group": "frame",
+      "label": "枠・コース",
+      "column": "feature.frame.frame_advantage",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3968,
+      "avg_high_leader_win_rate_pct": 53.5
+    },
+    {
+      "stage": "live",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.official_stats.national_win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.337,
+      "avg_high_leader_win_rate_pct": 29.9
+    },
+    {
+      "stage": "live",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.relative.national_win_rank",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.337,
+      "avg_high_leader_win_rate_pct": 3.5
+    },
+    {
+      "stage": "morning",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.official_stats.national_win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.337,
+      "avg_high_leader_win_rate_pct": 29.9
+    },
+    {
+      "stage": "morning",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.relative.national_win_rank",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.337,
+      "avg_high_leader_win_rate_pct": 3.5
+    },
+    {
+      "stage": "live",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.official_stats.national_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3296,
+      "avg_high_leader_win_rate_pct": 29.9
+    },
+    {
+      "stage": "morning",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.official_stats.national_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3296,
+      "avg_high_leader_win_rate_pct": 29.9
+    }
+  ],
+  "feature_consistency_all": [
+    {
+      "stage": "morning",
+      "group": "total_score",
+      "label": "総合スコア",
+      "column": "total_score",
+      "days_observed": 2,
+      "total_races": 312,
+      "avg_abs_spearman": 0.4967,
+      "avg_high_leader_win_rate_pct": 51.6
+    },
+    {
+      "stage": "live",
+      "group": "total_score",
+      "label": "総合スコア",
+      "column": "total_score",
+      "days_observed": 2,
+      "total_races": 312,
+      "avg_abs_spearman": 0.4959,
+      "avg_high_leader_win_rate_pct": 53.2
+    },
+    {
+      "stage": "live",
+      "group": "frame",
+      "label": "枠・コース",
+      "column": "feature.frame.frame_advantage",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3968,
+      "avg_high_leader_win_rate_pct": 53.5
+    },
+    {
+      "stage": "morning",
+      "group": "frame",
+      "label": "枠・コース",
+      "column": "feature.frame.frame_advantage",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3968,
+      "avg_high_leader_win_rate_pct": 53.5
+    },
+    {
+      "stage": "live",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.official_stats.national_win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.337,
+      "avg_high_leader_win_rate_pct": 29.9
+    },
+    {
+      "stage": "live",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.relative.national_win_rank",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.337,
+      "avg_high_leader_win_rate_pct": 3.5
+    },
+    {
+      "stage": "morning",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.official_stats.national_win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.337,
+      "avg_high_leader_win_rate_pct": 29.9
+    },
+    {
+      "stage": "morning",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.relative.national_win_rank",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.337,
+      "avg_high_leader_win_rate_pct": 3.5
+    },
+    {
+      "stage": "live",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.official_stats.national_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3296,
+      "avg_high_leader_win_rate_pct": 29.9
+    },
+    {
+      "stage": "morning",
+      "group": "official_racer",
+      "label": "選手公式能力",
+      "column": "feature.official_racer.official_stats.national_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3296,
+      "avg_high_leader_win_rate_pct": 29.9
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3235,
+      "avg_high_leader_win_rate_pct": 27.8
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3235,
+      "avg_high_leader_win_rate_pct": 27.8
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3229,
+      "avg_high_leader_win_rate_pct": 27.1
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3229,
+      "avg_high_leader_win_rate_pct": 27.1
+    },
+    {
+      "stage": "live",
+      "group": "grade",
+      "label": "級別",
+      "column": "feature.grade.grade_numeric",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3046,
+      "avg_high_leader_win_rate_pct": 41.7
+    },
+    {
+      "stage": "morning",
+      "group": "grade",
+      "label": "級別",
+      "column": "feature.grade.grade_numeric",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.3046,
+      "avg_high_leader_win_rate_pct": 41.7
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2989,
+      "avg_high_leader_win_rate_pct": 31.2
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2989,
+      "avg_high_leader_win_rate_pct": 31.2
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2759,
+      "avg_high_leader_win_rate_pct": 25.0
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2759,
+      "avg_high_leader_win_rate_pct": 25.0
+    },
+    {
+      "stage": "live",
+      "group": "racer_venue",
+      "label": "当地・場適性",
+      "column": "feature.racer_venue.official_stats.local_win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.253,
+      "avg_high_leader_win_rate_pct": 30.6
+    },
+    {
+      "stage": "live",
+      "group": "racer_venue",
+      "label": "当地・場適性",
+      "column": "feature.racer_venue.relative.local_win_rank",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.253,
+      "avg_high_leader_win_rate_pct": 9.0
+    },
+    {
+      "stage": "morning",
+      "group": "racer_venue",
+      "label": "当地・場適性",
+      "column": "feature.racer_venue.official_stats.local_win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.253,
+      "avg_high_leader_win_rate_pct": 30.6
+    },
+    {
+      "stage": "morning",
+      "group": "racer_venue",
+      "label": "当地・場適性",
+      "column": "feature.racer_venue.relative.local_win_rank",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.253,
+      "avg_high_leader_win_rate_pct": 9.0
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2458,
+      "avg_high_leader_win_rate_pct": 24.3
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2458,
+      "avg_high_leader_win_rate_pct": 24.3
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2449,
+      "avg_high_leader_win_rate_pct": 27.8
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2449,
+      "avg_high_leader_win_rate_pct": 27.8
+    },
+    {
+      "stage": "live",
+      "group": "racer_venue",
+      "label": "当地・場適性",
+      "column": "feature.racer_venue.official_stats.local_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2079,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "racer_venue",
+      "label": "当地・場適性",
+      "column": "feature.racer_venue.official_stats.local_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.2079,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "live_beforeinfo",
+      "label": "live_beforeinfo",
+      "column": "feature.live_beforeinfo.beforeinfo_analysis.live_score_delta",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1749,
+      "avg_high_leader_win_rate_pct": 41.0
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1729,
+      "avg_high_leader_win_rate_pct": 25.0
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1729,
+      "avg_high_leader_win_rate_pct": 25.0
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1723,
+      "avg_high_leader_win_rate_pct": 25.7
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1723,
+      "avg_high_leader_win_rate_pct": 25.7
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1721,
+      "avg_high_leader_win_rate_pct": 25.0
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1721,
+      "avg_high_leader_win_rate_pct": 25.0
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1421,
+      "avg_high_leader_win_rate_pct": 24.3
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1421,
+      "avg_high_leader_win_rate_pct": 24.3
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1402,
+      "avg_high_leader_win_rate_pct": 24.3
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1402,
+      "avg_high_leader_win_rate_pct": 24.3
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1368,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1368,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1188,
+      "avg_high_leader_win_rate_pct": 20.1
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1188,
+      "avg_high_leader_win_rate_pct": 20.1
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1188,
+      "avg_high_leader_win_rate_pct": 20.1
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1188,
+      "avg_high_leader_win_rate_pct": 20.1
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1173,
+      "avg_high_leader_win_rate_pct": 19.4
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1173,
+      "avg_high_leader_win_rate_pct": 19.4
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1152,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1152,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1152,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1152,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1118,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1118,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1118,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1118,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1068,
+      "avg_high_leader_win_rate_pct": 9.7
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1068,
+      "avg_high_leader_win_rate_pct": 9.7
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1061,
+      "avg_high_leader_win_rate_pct": 11.8
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1061,
+      "avg_high_leader_win_rate_pct": 11.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1047,
+      "avg_high_leader_win_rate_pct": 18.1
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.1047,
+      "avg_high_leader_win_rate_pct": 18.1
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.104,
+      "avg_high_leader_win_rate_pct": 13.2
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.104,
+      "avg_high_leader_win_rate_pct": 13.2
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0975,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0975,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0975,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0975,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0955,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0955,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0955,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0955,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0948,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0948,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0948,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0948,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0942,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0942,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0942,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0942,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.092,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.092,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0914,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0914,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.top2_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0882,
+      "avg_high_leader_win_rate_pct": 18.1
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.top2_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0882,
+      "avg_high_leader_win_rate_pct": 18.1
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.avg_st_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0803,
+      "avg_high_leader_win_rate_pct": 7.6
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.avg_st_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0803,
+      "avg_high_leader_win_rate_pct": 7.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0796,
+      "avg_high_leader_win_rate_pct": 18.1
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0796,
+      "avg_high_leader_win_rate_pct": 18.1
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0796,
+      "avg_high_leader_win_rate_pct": 18.1
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0796,
+      "avg_high_leader_win_rate_pct": 18.1
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.079,
+      "avg_high_leader_win_rate_pct": 22.9
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.079,
+      "avg_high_leader_win_rate_pct": 22.9
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0788,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0788,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0788,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0788,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0787,
+      "avg_high_leader_win_rate_pct": 18.8
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0787,
+      "avg_high_leader_win_rate_pct": 18.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0787,
+      "avg_high_leader_win_rate_pct": 18.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0787,
+      "avg_high_leader_win_rate_pct": 18.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.075,
+      "avg_high_leader_win_rate_pct": 12.5
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.075,
+      "avg_high_leader_win_rate_pct": 12.5
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0722,
+      "avg_high_leader_win_rate_pct": 16.7
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0722,
+      "avg_high_leader_win_rate_pct": 16.7
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.top2_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0703,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.top2_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0703,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.avg_exhibition_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0701,
+      "avg_high_leader_win_rate_pct": 13.2
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.avg_exhibition_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0701,
+      "avg_high_leader_win_rate_pct": 13.2
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.069,
+      "avg_high_leader_win_rate_pct": 19.4
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.069,
+      "avg_high_leader_win_rate_pct": 19.4
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.069,
+      "avg_high_leader_win_rate_pct": 19.4
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.069,
+      "avg_high_leader_win_rate_pct": 19.4
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0674,
+      "avg_high_leader_win_rate_pct": 21.5
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0674,
+      "avg_high_leader_win_rate_pct": 21.5
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0629,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0629,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.061,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.061,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0599,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0599,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0588,
+      "avg_high_leader_win_rate_pct": 43.1
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0588,
+      "avg_high_leader_win_rate_pct": 43.1
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.058,
+      "avg_high_leader_win_rate_pct": 30.6
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.058,
+      "avg_high_leader_win_rate_pct": 30.6
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.top3_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0554,
+      "avg_high_leader_win_rate_pct": 22.2
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.top3_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0554,
+      "avg_high_leader_win_rate_pct": 22.2
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0528,
+      "avg_high_leader_win_rate_pct": 12.5
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0528,
+      "avg_high_leader_win_rate_pct": 12.5
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0528,
+      "avg_high_leader_win_rate_pct": 12.5
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0528,
+      "avg_high_leader_win_rate_pct": 12.5
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.boat_machine.official_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0526,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.boat_machine.official_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0526,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0516,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0516,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0516,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0516,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0501,
+      "avg_high_leader_win_rate_pct": 43.1
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0501,
+      "avg_high_leader_win_rate_pct": 43.1
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0474,
+      "avg_high_leader_win_rate_pct": 36.8
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0474,
+      "avg_high_leader_win_rate_pct": 36.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0472,
+      "avg_high_leader_win_rate_pct": 13.9
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.avg_st",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0472,
+      "avg_high_leader_win_rate_pct": 13.9
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0471,
+      "avg_high_leader_win_rate_pct": 11.8
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0471,
+      "avg_high_leader_win_rate_pct": 11.8
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0425,
+      "avg_high_leader_win_rate_pct": 16.7
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0425,
+      "avg_high_leader_win_rate_pct": 16.7
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.motor.official_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0411,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.motor.official_top2_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0411,
+      "avg_high_leader_win_rate_pct": 20.8
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.avg_exhibition_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0359,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.avg_exhibition_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0359,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0348,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.top3_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0348,
+      "avg_high_leader_win_rate_pct": 15.3
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0313,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.avg_exhibition",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0313,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.win_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.03,
+      "avg_high_leader_win_rate_pct": 13.2
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.trend_30v90.win_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.03,
+      "avg_high_leader_win_rate_pct": 13.2
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.avg_st_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0289,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.avg_st_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0289,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0278,
+      "avg_high_leader_win_rate_pct": 18.8
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d30.win_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0278,
+      "avg_high_leader_win_rate_pct": 18.8
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0245,
+      "avg_high_leader_win_rate_pct": 34.7
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0245,
+      "avg_high_leader_win_rate_pct": 34.7
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0245,
+      "avg_high_leader_win_rate_pct": 34.7
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0245,
+      "avg_high_leader_win_rate_pct": 34.7
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0228,
+      "avg_high_leader_win_rate_pct": 32.6
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0228,
+      "avg_high_leader_win_rate_pct": 32.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.top3_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0226,
+      "avg_high_leader_win_rate_pct": 18.8
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.top3_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0226,
+      "avg_high_leader_win_rate_pct": 18.8
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0221,
+      "avg_high_leader_win_rate_pct": 37.5
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0221,
+      "avg_high_leader_win_rate_pct": 37.5
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0221,
+      "avg_high_leader_win_rate_pct": 37.5
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0221,
+      "avg_high_leader_win_rate_pct": 37.5
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0181,
+      "avg_high_leader_win_rate_pct": 16.7
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0181,
+      "avg_high_leader_win_rate_pct": 16.7
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0181,
+      "avg_high_leader_win_rate_pct": 16.7
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.st_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0181,
+      "avg_high_leader_win_rate_pct": 16.7
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0162,
+      "avg_high_leader_win_rate_pct": 41.0
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0162,
+      "avg_high_leader_win_rate_pct": 41.0
+    },
+    {
+      "stage": "live",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0156,
+      "avg_high_leader_win_rate_pct": 29.2
+    },
+    {
+      "stage": "morning",
+      "group": "boat_machine",
+      "label": "ボート",
+      "column": "feature.boat_machine.history.boat_machine.features.d90.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0156,
+      "avg_high_leader_win_rate_pct": 29.2
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0151,
+      "avg_high_leader_win_rate_pct": 22.2
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0151,
+      "avg_high_leader_win_rate_pct": 22.2
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0151,
+      "avg_high_leader_win_rate_pct": 22.2
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0151,
+      "avg_high_leader_win_rate_pct": 22.2
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0137,
+      "avg_high_leader_win_rate_pct": 36.1
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0137,
+      "avg_high_leader_win_rate_pct": 36.1
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d30.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0137,
+      "avg_high_leader_win_rate_pct": 36.1
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_30d.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0137,
+      "avg_high_leader_win_rate_pct": 36.1
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0114,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0114,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0114,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.starts",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0114,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0091,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0091,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0091,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0091,
+      "avg_high_leader_win_rate_pct": 23.6
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0079,
+      "avg_high_leader_win_rate_pct": 25.7
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0079,
+      "avg_high_leader_win_rate_pct": 25.7
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0079,
+      "avg_high_leader_win_rate_pct": 25.7
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.unique_racers",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0079,
+      "avg_high_leader_win_rate_pct": 25.7
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.win_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0059,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.trend_30v90.win_rate_30v90",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0059,
+      "avg_high_leader_win_rate_pct": 16.0
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0056,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "live",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0056,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor.features.d90.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0056,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "morning",
+      "group": "motor",
+      "label": "モーター",
+      "column": "feature.motor.history.motor_90d.exhibition_samples",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0056,
+      "avg_high_leader_win_rate_pct": 17.4
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0052,
+      "avg_high_leader_win_rate_pct": 29.2
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0052,
+      "avg_high_leader_win_rate_pct": 29.2
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.f_count",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0052,
+      "avg_high_leader_win_rate_pct": 29.2
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_90d.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0052,
+      "avg_high_leader_win_rate_pct": 29.2
+    },
+    {
+      "stage": "live",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0032,
+      "avg_high_leader_win_rate_pct": 40.3
+    },
+    {
+      "stage": "morning",
+      "group": "recent_racer",
+      "label": "選手直近成績",
+      "column": "feature.recent_racer.history.racer_30d.f_rate",
+      "days_observed": 1,
+      "total_races": 144,
+      "avg_abs_spearman": 0.0032,
+      "avg_high_leader_win_rate_pct": 40.3
+    }
+  ],
+  "live_factor_summary": {
+    "coverage": {
+      "exhibition_time": 1516,
+      "exhibition_st": 1552,
+      "exhibition_f": 1554,
+      "exhibition_course": 1516,
+      "course_changed": 1552,
+      "wind_speed": 690,
+      "wind_direction": 1482,
+      "wave_height": 690
+    },
+    "factors": {
+      "exhibition_time": {
+        "days": 2,
+        "races": 253,
+        "best_win_rate_pct": 31.6,
+        "best_top3_rate_pct": 64.4,
+        "worst_win_rate_pct": 8.3
+      },
+      "exhibition_st": {
+        "days": 2,
+        "races": 239,
+        "best_win_rate_pct": 21.0,
+        "best_top3_rate_pct": 56.0,
+        "worst_win_rate_pct": 14.2
+      },
+      "exhibition_f": {
+        "days": 2,
+        "boats": 1554,
+        "flagged_boats": 126
+      },
+      "course_changed": {
+        "days": 2,
+        "boats": 1552,
+        "flagged_boats": 104
+      }
+    },
+    "pooled_weight_search": {
+      "available": true,
+      "races": 312,
+      "baseline_top1_accuracy_pct": 51.6,
+      "best_candidates": [
+        {
+          "exhibition_time_weight": 2,
+          "exhibition_st_weight": 8,
+          "f_penalty": 2,
+          "top1_accuracy_pct": 53.2,
+          "improvement_vs_baseline_pt": 1.6
+        },
+        {
+          "exhibition_time_weight": 2,
+          "exhibition_st_weight": 8,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.9,
+          "improvement_vs_baseline_pt": 1.3
+        },
+        {
+          "exhibition_time_weight": 6,
+          "exhibition_st_weight": 6,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.9,
+          "improvement_vs_baseline_pt": 1.3
+        },
+        {
+          "exhibition_time_weight": 2,
+          "exhibition_st_weight": 8,
+          "f_penalty": 4,
+          "top1_accuracy_pct": 52.9,
+          "improvement_vs_baseline_pt": 1.3
+        },
+        {
+          "exhibition_time_weight": 4,
+          "exhibition_st_weight": 2,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.6,
+          "improvement_vs_baseline_pt": 1.0
+        },
+        {
+          "exhibition_time_weight": 6,
+          "exhibition_st_weight": 4,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.6,
+          "improvement_vs_baseline_pt": 1.0
+        },
+        {
+          "exhibition_time_weight": 0,
+          "exhibition_st_weight": 10,
+          "f_penalty": 2,
+          "top1_accuracy_pct": 52.6,
+          "improvement_vs_baseline_pt": 1.0
+        },
+        {
+          "exhibition_time_weight": 0,
+          "exhibition_st_weight": 12,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.6,
+          "improvement_vs_baseline_pt": 1.0
+        },
+        {
+          "exhibition_time_weight": 2,
+          "exhibition_st_weight": 10,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.6,
+          "improvement_vs_baseline_pt": 1.0
+        },
+        {
+          "exhibition_time_weight": 4,
+          "exhibition_st_weight": 8,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.6,
+          "improvement_vs_baseline_pt": 1.0
+        }
+      ]
+    }
+  },
+  "missing_data": [
+    {
+      "factor": "exhibition_time",
+      "coverage": 1516,
+      "coverage_rate_pct": 81.0,
+      "priority": "良好"
+    },
+    {
+      "factor": "exhibition_st",
+      "coverage": 1552,
+      "coverage_rate_pct": 82.9,
+      "priority": "良好"
+    },
+    {
+      "factor": "exhibition_f",
+      "coverage": 1554,
+      "coverage_rate_pct": 83.0,
+      "priority": "良好"
+    },
+    {
+      "factor": "exhibition_course",
+      "coverage": 1516,
+      "coverage_rate_pct": 81.0,
+      "priority": "良好"
+    },
+    {
+      "factor": "wind_speed",
+      "coverage": 690,
+      "coverage_rate_pct": 36.9,
+      "priority": "要改善"
+    },
+    {
+      "factor": "wind_direction",
+      "coverage": 1482,
+      "coverage_rate_pct": 79.2,
+      "priority": "良好"
+    },
+    {
+      "factor": "wave_height",
+      "coverage": 690,
+      "coverage_rate_pct": 36.9,
+      "priority": "要改善"
+    }
+  ],
+  "policy": {
+    "auto_change_weights": false,
+    "note": "全特徴量を保存・集計し、TOP10だけに固定しない。配点変更は7日以上の再現性を確認してから候補として扱う。"
+  }
+}
