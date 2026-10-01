@@ -1,25 +1,26 @@
-name: 9月30日・高速予測結果評価
+name: 毎日・高速予測結果評価
 
 permissions:
   contents: write
+  actions: write
 
 on:
+  schedule:
+    # 毎日 01:10 JST
+    # 00分ちょうどのGitHub Actions混雑を避けるため10分に設定
+    - cron: "10 1 * * *"
+      timezone: "Asia/Tokyo"
+
   workflow_dispatch:
 
 concurrency:
-  group: boatrace-fast-evaluation-0930
+  group: boatrace-main-writer
   cancel-in-progress: false
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
-    env:
-      TARGET_DATE: "20260930"
-      YEAR: "2026"
-      MONTH: "09"
-      DAY: "30"
 
     steps:
       - name: 最新のmainを読み込む
@@ -38,10 +39,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4 pandas
 
+      - name: 前日の日付を設定
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date -d "yesterday" +%Y%m%d)
+
+          YEAR=${TARGET_DATE:0:4}
+          MONTH=${TARGET_DATE:4:2}
+          DAY=${TARGET_DATE:6:2}
+
+          echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
+          echo "YEAR=${YEAR}" >> "$GITHUB_ENV"
+          echo "MONTH=${MONTH}" >> "$GITHUB_ENV"
+          echo "DAY=${DAY}" >> "$GITHUB_ENV"
+          echo "REPO_CHANGED=false" >> "$GITHUB_ENV"
+
+          echo "========================================"
+          echo "毎日・高速予測結果評価"
+          echo "対象日: ${TARGET_DATE}"
+          echo "========================================"
+
       - name: 高速で公式結果を取得
         run: |
           echo "========================================"
-          echo "9月30日 高速結果取得"
+          echo "高速公式結果取得"
+          echo "対象日: ${TARGET_DATE}"
           echo "========================================"
 
           python -u collectors/fast_results.py \
@@ -65,53 +86,86 @@ jobs:
       - name: 結果CSVを確認
         run: |
           python - <<'PY'
+          import os
           import pandas as pd
 
-          date = "20260930"
+          date = os.environ["TARGET_DATE"]
 
-          results = pd.read_csv(
-              f"data/results_{date}_all.csv"
-          )
+          results_path = f"data/results_{date}_all.csv"
+          boats_path = f"data/boat_results_{date}_all.csv"
 
-          boats = pd.read_csv(
-              f"data/boat_results_{date}_all.csv"
-          )
+          results = pd.read_csv(results_path)
+          boats = pd.read_csv(boats_path)
 
-          print(
-              "results:",
-              len(results),
-              "races"
-          )
+          print("results:", len(results), "races")
+          print("boat_results:", len(boats), "rows")
 
-          print(
-              "boat_results:",
-              len(boats),
-              "rows"
-          )
+          if len(results) <= 0:
+              raise SystemExit("結果レースが0件です")
 
-          if len(results) != 144:
-              raise SystemExit(
-                  "144レース揃っていません"
-              )
+          if len(boats) <= 0:
+              raise SystemExit("艇別結果が0件です")
 
-          print(
-              "144レース確認: PASS"
-          )
+          print("結果CSV確認: PASS")
           PY
 
-      - name: 9月30日の総合評価を実行
+      - name: 予測ファイルを確認
+        run: |
+          PREDICTION_DIR="predictions/${YEAR}/${MONTH}/${DAY}"
+
+          MORNING_FILE="${PREDICTION_DIR}/morning_predictions_${TARGET_DATE}.json"
+          FORMATION_FILE="${PREDICTION_DIR}/live/formation_predictions_final_${TARGET_DATE}.json"
+
+          if [ ! -s "${MORNING_FILE}" ]; then
+            echo "ERROR: 朝予測がありません"
+            echo "${MORNING_FILE}"
+            exit 1
+          fi
+
+          if [ ! -s "${FORMATION_FILE}" ]; then
+            echo "ERROR: フォーメーション予測がありません"
+            echo "${FORMATION_FILE}"
+            exit 1
+          fi
+
+          echo "予測ファイル確認: PASS"
+
+      - name: 前日の総合評価を実行
         run: |
           echo "========================================"
           echo "予測総合評価開始"
+          echo "朝予測・直前予測"
+          echo "フォーメーション・上位3艇BOX"
           echo "========================================"
 
           python -u collectors/evaluate_predictions.py \
             --date "${TARGET_DATE}"
 
+      - name: 評価ファイルを確認
+        run: |
+          EVAL_DIR="evaluations/${YEAR}/${MONTH}/${DAY}"
+
+          REQUIRED_FILES=(
+            "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json"
+            "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json"
+            "${EVAL_DIR}/top3_box_simulation_${TARGET_DATE}.json"
+          )
+
+          for FILE in "${REQUIRED_FILES[@]}"; do
+            if [ ! -s "${FILE}" ]; then
+              echo "ERROR: 評価ファイルがありません: ${FILE}"
+              exit 1
+            fi
+          done
+
+          echo "評価ファイル確認: PASS"
+
       - name: 見やすい総合結果を生成
         run: |
           python -u collectors/build_evaluation_summary.py \
             --date "${TARGET_DATE}"
+
+          test -s evaluations/latest_summary.md
 
           echo ""
           echo "========================================"
@@ -123,12 +177,13 @@ jobs:
       - name: 評価結果をArtifactへ保存
         uses: actions/upload-artifact@v4
         with:
-          name: boatrace-fast-evaluation-20260930-${{ github.run_number }}
+          name: boatrace-daily-fast-evaluation-${{ github.run_number }}
           path: |
-            data/fast_results_validation_20260930.json
-            data/results_20260930_all.csv
-            data/boat_results_20260930_all.csv
-            evaluations/2026/09/30/
+            data/fast_results_validation_*.json
+            data/results_*_all.csv
+            data/boat_results_*_all.csv
+            evaluations/**/*.json
+            evaluations/**/*.csv
             evaluations/latest_summary.md
           if-no-files-found: error
           retention-days: 30
@@ -143,6 +198,7 @@ jobs:
           git add "evaluations/latest_summary.md"
 
           if git diff --cached --quiet; then
+            echo "REPO_CHANGED=false" >> "$GITHUB_ENV"
             echo "新しい変更はありません"
             exit 0
           fi
@@ -150,23 +206,37 @@ jobs:
           RUN_STAMP=$(TZ=Asia/Tokyo date '+%Y%m%d_%H%M%S')
 
           git commit -m \
-            "Fast evaluate predictions ${TARGET_DATE} ${RUN_STAMP}"
+            "Daily fast evaluate predictions ${TARGET_DATE} ${RUN_STAMP}"
 
+          git pull --rebase origin main
           git push origin HEAD:main
 
+          echo "REPO_CHANGED=true" >> "$GITHUB_ENV"
           echo "GitHub保存: PASS"
+
+      - name: 家族共有ページ更新を開始
+        if: env.REPO_CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run \
+            family_prediction_page.yml \
+            --repo "${GITHUB_REPOSITORY}" \
+            --ref main
+
+          echo "家族共有ページ更新開始: PASS"
 
       - name: 最終確認
         run: |
           echo ""
           echo "========================================"
-          echo "9月30日 高速総合評価 完了"
+          echo "毎日・高速予測結果評価 完了"
           echo "========================================"
-          echo ""
-          echo "公式結果取得: PASS"
-          echo "144レース確認: PASS"
-          echo "予測評価: PASS"
+          echo "対象日: ${TARGET_DATE}"
+          echo "高速公式結果取得: PASS"
+          echo "予測総合評価: PASS"
+          echo "フォーメーション評価: PASS"
+          echo "上位3艇BOX評価: PASS"
           echo "総合結果サマリー: PASS"
-          echo ""
-          echo "今後見るファイル:"
-          echo "evaluations/latest_summary.md"
+          echo "GitHub更新: ${REPO_CHANGED}"
+          echo "========================================"
