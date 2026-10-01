@@ -12,7 +12,7 @@ on:
     # 毎日 09:00〜22:45 JST
     - cron: "0,15,30,45 0-13 * * *"
 
-    # 毎日 23:00 JST
+    # 毎日 23:00 JST 最終確認
     - cron: "0 14 * * *"
 
   workflow_dispatch:
@@ -27,6 +27,8 @@ jobs:
     timeout-minutes: 15
 
     env:
+      BASE_CACHE_HIT: "false"
+      BASE_CREATED: "false"
       HAS_CANDIDATES: "false"
       HAS_LIVE_PREDICTION: "false"
       PRIVATE_CHANGED: "false"
@@ -54,26 +56,59 @@ jobs:
           RUN_STAMP=$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S)
           NOW_ISO=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M:%S%:z)
 
-          echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
-          echo "RUN_STAMP=${RUN_STAMP}" >> "$GITHUB_ENV"
-          echo "NOW_ISO=${NOW_ISO}" >> "$GITHUB_ENV"
-
           YEAR=${TARGET_DATE:0:4}
           MONTH=${TARGET_DATE:4:2}
           DAY=${TARGET_DATE:6:2}
 
+          BASE_CACHE_DIR="daily_inputs/${YEAR}/${MONTH}/${DAY}/base"
+
+          echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
+          echo "RUN_STAMP=${RUN_STAMP}" >> "$GITHUB_ENV"
+          echo "NOW_ISO=${NOW_ISO}" >> "$GITHUB_ENV"
           echo "YEAR=${YEAR}" >> "$GITHUB_ENV"
           echo "MONTH=${MONTH}" >> "$GITHUB_ENV"
           echo "DAY=${DAY}" >> "$GITHUB_ENV"
+          echo "BASE_CACHE_DIR=${BASE_CACHE_DIR}" >> "$GITHUB_ENV"
 
           echo "対象日: ${TARGET_DATE}"
           echo "実行時刻: ${NOW_ISO}"
+          echo "基本データ保存先: ${BASE_CACHE_DIR}"
 
-      - name: 当日基本データを準備
+      - name: 保存済み当日基本データを確認
+        run: |
+          RACES_CACHE="${BASE_CACHE_DIR}/program_races_${TARGET_DATE}.csv"
+          ENTRIES_CACHE="${BASE_CACHE_DIR}/program_entries_${TARGET_DATE}.csv"
+
+          if [ -s "${RACES_CACHE}" ] && [ -s "${ENTRIES_CACHE}" ]; then
+            echo "BASE_CACHE_HIT=true" >> "$GITHUB_ENV"
+
+            echo "========================================"
+            echo "当日基本データ: キャッシュあり"
+            echo "today_basic.py は実行しません"
+            echo "========================================"
+
+            mkdir -p data
+
+            find "${BASE_CACHE_DIR}" \
+              -maxdepth 1 \
+              -type f \
+              -exec cp {} data/ \;
+
+            echo "保存済み基本データ復元: PASS"
+          else
+            echo "BASE_CACHE_HIT=false" >> "$GITHUB_ENV"
+
+            echo "========================================"
+            echo "当日基本データ: キャッシュなし"
+            echo "本日初回のため取得します"
+            echo "========================================"
+          fi
+
+      - name: 本日初回のみ当日基本データを取得
+        if: env.BASE_CACHE_HIT != 'true'
         run: |
           mkdir -p data
-
-          echo "当日の番組・出走基本データを準備します"
+          mkdir -p "${BASE_CACHE_DIR}"
 
           python -u collectors/today_basic.py
 
@@ -86,8 +121,30 @@ jobs:
             -print \
             | sort
 
+          echo "BASE_CREATED=true" >> "$GITHUB_ENV"
+
+          echo "当日基本データ取得: PASS"
+
+      - name: 本日初回のみ基本データを長期保存
+        if: env.BASE_CACHE_HIT != 'true'
+        run: |
+          mkdir -p "${BASE_CACHE_DIR}"
+
+          find data \
+            -maxdepth 1 \
+            -type f \
+            -name "*${TARGET_DATE}*" \
+            -exec cp {} "${BASE_CACHE_DIR}/" \;
+
           echo ""
-          echo "当日基本データ準備: PASS"
+          echo "保存した基本データ:"
+          find "${BASE_CACHE_DIR}" \
+            -maxdepth 1 \
+            -type f \
+            -print \
+            | sort
+
+          echo "当日基本データキャッシュ作成: PASS"
 
       - name: 当日基本データを確認
         run: |
@@ -271,11 +328,16 @@ jobs:
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
 
+          # 本日の基本データキャッシュ
+          git add "${BASE_CACHE_DIR}"
+
+          # スマホ用最新表示
           git add predictions/latest.md
           git add predictions/latest.json
           git add predictions/latest_by_deadline.md
           git add predictions/latest_by_deadline.json
 
+          # 直前予測がある場合のみ追加
           if [ "${HAS_LIVE_PREDICTION}" = "true" ]; then
             git add "${LIVE_DEST}"
             git add "${INPUT_DEST}"
@@ -283,7 +345,7 @@ jobs:
 
           if git diff --cached --quiet; then
             echo "PRIVATE_CHANGED=false" >> "$GITHUB_ENV"
-            echo "変更なし"
+            echo "GitHub保存対象の変更なし"
             exit 0
           fi
 
@@ -327,10 +389,19 @@ jobs:
           echo "========================================"
 
           echo "対象日: ${TARGET_DATE}"
-          echo "実行時刻: ${NOW_ISO}"
+
+          if [ "${BASE_CACHE_HIT}" = "true" ]; then
+            echo "当日基本データ: 保存済みを再利用"
+            echo "today_basic.py: SKIP"
+          else
+            echo "当日基本データ: 本日初回取得"
+            echo "today_basic.py: RUN"
+          fi
+
           echo "直前候補あり: ${HAS_CANDIDATES}"
           echo "直前予測あり: ${HAS_LIVE_PREDICTION}"
           echo "Private更新: ${PRIVATE_CHANGED}"
           echo "通常最新一覧: PASS"
           echo "締切順一覧: PASS"
+
           echo "========================================"
