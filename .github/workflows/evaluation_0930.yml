@@ -7,14 +7,13 @@ permissions:
 on:
   schedule:
     # 毎日 01:10 JST
-    # 00分ちょうどのGitHub Actions混雑を避けるため10分に設定
     - cron: "10 1 * * *"
       timezone: "Asia/Tokyo"
 
   workflow_dispatch:
 
 concurrency:
-  group: boatrace-main-writer
+  group: boatrace-fast-evaluation
   cancel-in-progress: false
 
 jobs:
@@ -208,11 +207,25 @@ jobs:
           git commit -m \
             "Daily fast evaluate predictions ${TARGET_DATE} ${RUN_STAMP}"
 
-          git pull --rebase origin main
-          git push origin HEAD:main
+          # 他ワークフローと同時更新しても保存しやすいよう最大3回再試行
+          for ATTEMPT in 1 2 3; do
+            echo "push attempt: ${ATTEMPT}"
 
-          echo "REPO_CHANGED=true" >> "$GITHUB_ENV"
-          echo "GitHub保存: PASS"
+            git pull --rebase origin main
+
+            if git push origin HEAD:main; then
+              echo "REPO_CHANGED=true" >> "$GITHUB_ENV"
+              echo "GitHub保存: PASS"
+              exit 0
+            fi
+
+            if [ "${ATTEMPT}" -lt 3 ]; then
+              sleep 5
+            fi
+          done
+
+          echo "ERROR: GitHub保存に3回失敗しました"
+          exit 1
 
       - name: 家族共有ページ更新を開始
         if: env.REPO_CHANGED == 'true'
