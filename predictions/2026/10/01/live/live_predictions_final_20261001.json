@@ -3,11 +3,405 @@
   "model_version": "live_heuristic_v1",
   "target_date": "20261001",
   "prediction_stage": "live_final",
-  "updated_at": "2026-10-01T12:45:12+09:00",
-  "race_count": 6,
-  "boat_count": 36,
+  "updated_at": "2026-10-01T12:57:23+09:00",
+  "race_count": 9,
+  "boat_count": 54,
   "selection_rule": "同一race_idは締切前に取得した最新の直前予測で更新",
   "races": [
+    {
+      "race_id": "20261001-03-05",
+      "date": "20261001",
+      "venue_code": "03",
+      "venue_name": "江戸川",
+      "race": 5,
+      "race_name": "一般",
+      "deadline": "13:02",
+      "generated_at": "2026-10-01T12:57:23+09:00",
+      "live_data_counts": {
+        "exhibition_time": 6,
+        "exhibition_course": 6,
+        "exhibition_st": 0
+      },
+      "weather_water": {
+        "weather": {
+          "weather": "晴",
+          "air_temperature_c": 27.0,
+          "water_temperature_c": 25.0,
+          "wind_speed_mps": 4.0,
+          "wind_direction_code": 12,
+          "wind_direction": "西南西",
+          "wave_height_cm": 5.0,
+          "stabilizer": false
+        }
+      },
+      "live_order": [
+        1,
+        3,
+        2,
+        5,
+        6,
+        4
+      ],
+      "top3_boats": [
+        1,
+        3,
+        2
+      ],
+      "strength": {
+        "top1_top2_gap": 10.04,
+        "top1_top3_gap": 17.24
+      },
+      "boats": [
+        {
+          "boat": 1,
+          "registration_no": 5004,
+          "racer_name": "河野主樹",
+          "grade": "A2",
+          "motor_no": 62,
+          "boat_no": 31,
+          "score": 66.58,
+          "morning_score_reference": 66.04,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 1,
+          "exhibition_time": 6.63,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.6604,
+              "weight": 70.0,
+              "weighted_points": 46.228,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 8.0,
+              "weighted_points": 8.0,
+              "source": "展示進入コース=1"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.813096,
+              "weight": 7.0,
+              "weighted_points": 5.6917,
+              "source": "選手×実展示コース履歴 source=d30 starts=6"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.25,
+              "weight": 8.0,
+              "weighted_points": 2.0,
+              "source": "展示タイム=6.63"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 1
+        },
+        {
+          "boat": 3,
+          "registration_no": 5032,
+          "racer_name": "谷口知優",
+          "grade": "A2",
+          "motor_no": 36,
+          "boat_no": 26,
+          "score": 56.54,
+          "morning_score_reference": 51.16,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 3,
+          "exhibition_time": 6.55,
+          "exhibition_st": null,
+          "tilt": 0.5,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.5116,
+              "weight": 70.0,
+              "weighted_points": 35.812,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.62,
+              "weight": 8.0,
+              "weighted_points": 4.96,
+              "source": "展示進入コース=3"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.544921,
+              "weight": 7.0,
+              "weighted_points": 3.8144,
+              "source": "選手×実展示コース履歴 source=d30 starts=6"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 8.0,
+              "weighted_points": 8.0,
+              "source": "展示タイム=6.55"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 2
+        },
+        {
+          "boat": 2,
+          "registration_no": 5328,
+          "racer_name": "井上慧人",
+          "grade": "B1",
+          "motor_no": 24,
+          "boat_no": 11,
+          "score": 49.34,
+          "morning_score_reference": 44.78,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 2,
+          "exhibition_time": 6.58,
+          "exhibition_st": null,
+          "tilt": 0.5,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.4478,
+              "weight": 70.0,
+              "weighted_points": 31.346,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.72,
+              "weight": 8.0,
+              "weighted_points": 5.76,
+              "source": "展示進入コース=2"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.397381,
+              "weight": 7.0,
+              "weighted_points": 2.7817,
+              "source": "選手×実展示コース履歴 source=d30 starts=4"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.75,
+              "weight": 8.0,
+              "weighted_points": 6.0,
+              "source": "展示タイム=6.58"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 3
+        },
+        {
+          "boat": 5,
+          "registration_no": 4934,
+          "racer_name": "佐々木翔",
+          "grade": "A2",
+          "motor_no": 31,
+          "boat_no": 66,
+          "score": 49.32,
+          "morning_score_reference": 49.88,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 5,
+          "exhibition_time": 6.59,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.4988,
+              "weight": 70.0,
+              "weighted_points": 34.916,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.46,
+              "weight": 8.0,
+              "weighted_points": 3.68,
+              "source": "展示進入コース=5"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.467976,
+              "weight": 7.0,
+              "weighted_points": 3.2758,
+              "source": "選手×実展示コース履歴 source=d30 starts=4"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.5,
+              "weight": 8.0,
+              "weighted_points": 4.0,
+              "source": "展示タイム=6.59"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 4
+        },
+        {
+          "boat": 6,
+          "registration_no": 5093,
+          "racer_name": "浦野海",
+          "grade": "B2",
+          "motor_no": 30,
+          "boat_no": 51,
+          "score": 39.57,
+          "morning_score_reference": 38.71,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 6,
+          "exhibition_time": 6.58,
+          "exhibition_st": null,
+          "tilt": 0.5,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.3871,
+              "weight": 70.0,
+              "weighted_points": 27.097,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.38,
+              "weight": 8.0,
+              "weighted_points": 3.04,
+              "source": "展示進入コース=6"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.095238,
+              "weight": 7.0,
+              "weighted_points": 0.6667,
+              "source": "選手×実展示コース履歴 source=d30 starts=2"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.75,
+              "weight": 8.0,
+              "weighted_points": 6.0,
+              "source": "展示タイム=6.58"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 5
+        },
+        {
+          "boat": 4,
+          "registration_no": 4615,
+          "racer_name": "板倉敦史",
+          "grade": "B1",
+          "motor_no": 39,
+          "boat_no": 13,
+          "score": 34.98,
+          "morning_score_reference": 38.72,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 4,
+          "exhibition_time": 6.73,
+          "exhibition_st": null,
+          "tilt": 0.5,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.3872,
+              "weight": 70.0,
+              "weighted_points": 27.104,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.58,
+              "weight": 8.0,
+              "weighted_points": 4.64,
+              "source": "展示進入コース=4"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.112381,
+              "weight": 7.0,
+              "weighted_points": 0.7867,
+              "source": "選手×実展示コース履歴 source=d30 starts=2"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.0,
+              "weight": 8.0,
+              "weighted_points": 0.0,
+              "source": "展示タイム=6.73"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 6
+        }
+      ]
+    },
     {
       "race_id": "20261001-04-05",
       "date": "20261001",
@@ -410,7 +804,7 @@
       "race": 5,
       "race_name": "予選",
       "deadline": "13:05",
-      "generated_at": "2026-10-01T12:45:12+09:00",
+      "generated_at": "2026-10-01T12:57:23+09:00",
       "live_data_counts": {
         "exhibition_time": 6,
         "exhibition_course": 6,
@@ -1592,7 +1986,7 @@
       "race": 10,
       "race_name": "準優勝戦",
       "deadline": "13:07",
-      "generated_at": "2026-10-01T12:45:12+09:00",
+      "generated_at": "2026-10-01T12:57:23+09:00",
       "live_data_counts": {
         "exhibition_time": 6,
         "exhibition_course": 6,
@@ -2358,6 +2752,794 @@
               "weight": 8.0,
               "weighted_points": 1.6,
               "source": "展示タイム=6.54"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 6
+        }
+      ]
+    },
+    {
+      "race_id": "20261001-22-05",
+      "date": "20261001",
+      "venue_code": "22",
+      "venue_name": "福岡",
+      "race": 5,
+      "race_name": "予選",
+      "deadline": "13:18",
+      "generated_at": "2026-10-01T12:57:23+09:00",
+      "live_data_counts": {
+        "exhibition_time": 6,
+        "exhibition_course": 6,
+        "exhibition_st": 0
+      },
+      "weather_water": {
+        "weather": {
+          "weather": "晴",
+          "air_temperature_c": 26.0,
+          "water_temperature_c": 25.0,
+          "wind_speed_mps": 2.0,
+          "wind_direction_code": 8,
+          "wind_direction": "南南東",
+          "wave_height_cm": 2.0,
+          "stabilizer": false
+        }
+      },
+      "live_order": [
+        1,
+        6,
+        2,
+        5,
+        3,
+        4
+      ],
+      "top3_boats": [
+        1,
+        6,
+        2
+      ],
+      "strength": {
+        "top1_top2_gap": 16.22,
+        "top1_top3_gap": 23.44
+      },
+      "boats": [
+        {
+          "boat": 1,
+          "registration_no": 3784,
+          "racer_name": "中島友和",
+          "grade": "B1",
+          "motor_no": 26,
+          "boat_no": 115,
+          "score": 69.38,
+          "morning_score_reference": 62.42,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 1,
+          "exhibition_time": 6.79,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.6242,
+              "weight": 70.0,
+              "weighted_points": 43.694,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 8.0,
+              "weighted_points": 8.0,
+              "source": "展示進入コース=1"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.689845,
+              "weight": 7.0,
+              "weighted_points": 4.8289,
+              "source": "選手×実展示コース履歴 source=d30 starts=3"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 8.0,
+              "weighted_points": 8.0,
+              "source": "展示タイム=6.79"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 1
+        },
+        {
+          "boat": 6,
+          "registration_no": 5068,
+          "racer_name": "前田滉",
+          "grade": "A1",
+          "motor_no": 46,
+          "boat_no": 102,
+          "score": 53.16,
+          "morning_score_reference": 54.09,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 6,
+          "exhibition_time": 6.8,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.5409,
+              "weight": 70.0,
+              "weighted_points": 37.863,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.38,
+              "weight": 8.0,
+              "weighted_points": 3.04,
+              "source": "展示進入コース=6"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.362779,
+              "weight": 7.0,
+              "weighted_points": 2.5395,
+              "source": "選手×実展示コース履歴 source=d90 starts=6"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.75,
+              "weight": 8.0,
+              "weighted_points": 6.0,
+              "source": "展示タイム=6.8"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 2
+        },
+        {
+          "boat": 2,
+          "registration_no": 5092,
+          "racer_name": "篠原晟弥",
+          "grade": "A2",
+          "motor_no": 28,
+          "boat_no": 163,
+          "score": 45.94,
+          "morning_score_reference": 46.13,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 2,
+          "exhibition_time": 6.89,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.4613,
+              "weight": 70.0,
+              "weighted_points": 32.291,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.72,
+              "weight": 8.0,
+              "weighted_points": 5.76,
+              "source": "展示進入コース=2"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.09619,
+              "weight": 7.0,
+              "weighted_points": 0.6733,
+              "source": "選手×実展示コース履歴 source=d30 starts=2"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.5,
+              "weight": 8.0,
+              "weighted_points": 4.0,
+              "source": "展示タイム=6.89"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 3
+        },
+        {
+          "boat": 5,
+          "registration_no": 4210,
+          "racer_name": "松村康太",
+          "grade": "A2",
+          "motor_no": 62,
+          "boat_no": 122,
+          "score": 43.02,
+          "morning_score_reference": 46.86,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 5,
+          "exhibition_time": 6.91,
+          "exhibition_st": null,
+          "tilt": -0.5,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.4686,
+              "weight": 70.0,
+              "weighted_points": 32.802,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.46,
+              "weight": 8.0,
+              "weighted_points": 3.68,
+              "source": "展示進入コース=5"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.218572,
+              "weight": 7.0,
+              "weighted_points": 1.53,
+              "source": "選手×実展示コース履歴 source=d30 starts=6"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.25,
+              "weight": 8.0,
+              "weighted_points": 2.0,
+              "source": "展示タイム=6.91"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 4
+        },
+        {
+          "boat": 3,
+          "registration_no": 5369,
+          "racer_name": "岡崎凪汰",
+          "grade": "B1",
+          "motor_no": 50,
+          "boat_no": 146,
+          "score": 39.27,
+          "morning_score_reference": 37.8,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 3,
+          "exhibition_time": 6.89,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.378,
+              "weight": 70.0,
+              "weighted_points": 26.46,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.62,
+              "weight": 8.0,
+              "weighted_points": 4.96,
+              "source": "展示進入コース=3"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.157143,
+              "weight": 7.0,
+              "weighted_points": 1.1,
+              "source": "選手×実展示コース履歴 source=d30 starts=2"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.5,
+              "weight": 8.0,
+              "weighted_points": 4.0,
+              "source": "展示タイム=6.89"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 5
+        },
+        {
+          "boat": 4,
+          "registration_no": 3372,
+          "racer_name": "加藤雅之",
+          "grade": "B2",
+          "motor_no": 75,
+          "boat_no": 132,
+          "score": 35.91,
+          "morning_score_reference": 40.08,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 4,
+          "exhibition_time": 6.99,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.4008,
+              "weight": 70.0,
+              "weighted_points": 28.056,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.58,
+              "weight": 8.0,
+              "weighted_points": 4.64,
+              "source": "展示進入コース=4"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.099429,
+              "weight": 7.0,
+              "weighted_points": 0.696,
+              "source": "選手×実展示コース履歴 source=d90 starts=5"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.0,
+              "weight": 8.0,
+              "weighted_points": 0.0,
+              "source": "展示タイム=6.99"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 6
+        }
+      ]
+    },
+    {
+      "race_id": "20261001-23-10",
+      "date": "20261001",
+      "venue_code": "23",
+      "venue_name": "唐津",
+      "race": 10,
+      "race_name": "予選特賞",
+      "deadline": "13:12",
+      "generated_at": "2026-10-01T12:57:23+09:00",
+      "live_data_counts": {
+        "exhibition_time": 6,
+        "exhibition_course": 6,
+        "exhibition_st": 0
+      },
+      "weather_water": {
+        "weather": {
+          "weather": "晴",
+          "air_temperature_c": 26.0,
+          "water_temperature_c": 24.0,
+          "wind_speed_mps": 4.0,
+          "wind_direction_code": 4,
+          "wind_direction": "東北東",
+          "wave_height_cm": 4.0,
+          "stabilizer": false
+        }
+      },
+      "live_order": [
+        1,
+        2,
+        3,
+        6,
+        5,
+        4
+      ],
+      "top3_boats": [
+        1,
+        2,
+        3
+      ],
+      "strength": {
+        "top1_top2_gap": 1.44,
+        "top1_top3_gap": 9.1
+      },
+      "boats": [
+        {
+          "boat": 1,
+          "registration_no": 4638,
+          "racer_name": "小林遼太",
+          "grade": "B1",
+          "motor_no": 19,
+          "boat_no": 52,
+          "score": 59.03,
+          "morning_score_reference": 54.54,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 1,
+          "exhibition_time": 6.84,
+          "exhibition_st": null,
+          "tilt": -0.5,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.5454,
+              "weight": 70.0,
+              "weighted_points": 38.178,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 8.0,
+              "weighted_points": 8.0,
+              "source": "展示進入コース=1"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.673869,
+              "weight": 7.0,
+              "weighted_points": 4.7171,
+              "source": "選手×実展示コース履歴 source=d90 starts=8"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.5,
+              "weight": 8.0,
+              "weighted_points": 4.0,
+              "source": "展示タイム=6.84"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 1
+        },
+        {
+          "boat": 2,
+          "registration_no": 3918,
+          "racer_name": "深井利寿",
+          "grade": "A1",
+          "motor_no": 52,
+          "boat_no": 14,
+          "score": 57.59,
+          "morning_score_reference": 63.42,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 2,
+          "exhibition_time": 6.95,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.6342,
+              "weight": 70.0,
+              "weighted_points": 44.394,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.72,
+              "weight": 8.0,
+              "weighted_points": 5.76,
+              "source": "展示進入コース=2"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.486669,
+              "weight": 7.0,
+              "weighted_points": 3.4067,
+              "source": "選手×実展示コース履歴 source=d30 starts=3"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.0,
+              "weight": 8.0,
+              "weighted_points": 0.0,
+              "source": "展示タイム=6.95"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 2
+        },
+        {
+          "boat": 3,
+          "registration_no": 4989,
+          "racer_name": "石原翼",
+          "grade": "A2",
+          "motor_no": 17,
+          "boat_no": 12,
+          "score": 49.93,
+          "morning_score_reference": 50.31,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 3,
+          "exhibition_time": 6.86,
+          "exhibition_st": null,
+          "tilt": -0.5,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.5031,
+              "weight": 70.0,
+              "weighted_points": 35.217,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.62,
+              "weight": 8.0,
+              "weighted_points": 4.96,
+              "source": "展示進入コース=3"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.607751,
+              "weight": 7.0,
+              "weighted_points": 4.2543,
+              "source": "選手×実展示コース履歴 source=d90 starts=10"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.25,
+              "weight": 8.0,
+              "weighted_points": 2.0,
+              "source": "展示タイム=6.86"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 3
+        },
+        {
+          "boat": 6,
+          "registration_no": 4011,
+          "racer_name": "堀之内紀",
+          "grade": "A2",
+          "motor_no": 11,
+          "boat_no": 59,
+          "score": 45.37,
+          "morning_score_reference": 40.99,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 6,
+          "exhibition_time": 6.82,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.4099,
+              "weight": 70.0,
+              "weighted_points": 28.693,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.38,
+              "weight": 8.0,
+              "weighted_points": 3.04,
+              "source": "展示進入コース=6"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.637415,
+              "weight": 7.0,
+              "weighted_points": 4.4619,
+              "source": "選手×実展示コース履歴 source=d90 starts=7"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.75,
+              "weight": 8.0,
+              "weighted_points": 6.0,
+              "source": "展示タイム=6.82"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 4
+        },
+        {
+          "boat": 5,
+          "registration_no": 4121,
+          "racer_name": "富永修一",
+          "grade": "A2",
+          "motor_no": 57,
+          "boat_no": 44,
+          "score": 45.34,
+          "morning_score_reference": 41.29,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 5,
+          "exhibition_time": 6.8,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.4129,
+              "weight": 70.0,
+              "weighted_points": 28.903,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.46,
+              "weight": 8.0,
+              "weighted_points": 3.68,
+              "source": "展示進入コース=5"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.225978,
+              "weight": 7.0,
+              "weighted_points": 1.5818,
+              "source": "選手×実展示コース履歴 source=d90 starts=9"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 8.0,
+              "weighted_points": 8.0,
+              "source": "展示タイム=6.8"
+            },
+            "exhibition_st": {
+              "name": "exhibition_st",
+              "available": false,
+              "raw_score_0_1": null,
+              "weight": 7.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=None"
+            }
+          },
+          "rank": 5
+        },
+        {
+          "boat": 4,
+          "registration_no": 3771,
+          "racer_name": "折下寛法",
+          "grade": "B1",
+          "motor_no": 64,
+          "boat_no": 8,
+          "score": 37.98,
+          "morning_score_reference": 36.68,
+          "data_coverage_pct": 93.0,
+          "exhibition_course": 4,
+          "exhibition_time": 6.86,
+          "exhibition_st": null,
+          "tilt": 0.0,
+          "components": {
+            "morning_base": {
+              "name": "morning_base",
+              "available": true,
+              "raw_score_0_1": 0.3668,
+              "weight": 70.0,
+              "weighted_points": 25.676,
+              "source": "朝予測と同じ事前情報・履歴評価"
+            },
+            "exhibition_course": {
+              "name": "exhibition_course",
+              "available": true,
+              "raw_score_0_1": 0.58,
+              "weight": 8.0,
+              "weighted_points": 4.64,
+              "source": "展示進入コース=4"
+            },
+            "racer_course": {
+              "name": "racer_course",
+              "available": true,
+              "raw_score_0_1": 0.429762,
+              "weight": 7.0,
+              "weighted_points": 3.0083,
+              "source": "選手×実展示コース履歴 source=d30 starts=4"
+            },
+            "exhibition_time": {
+              "name": "exhibition_time",
+              "available": true,
+              "raw_score_0_1": 0.25,
+              "weight": 8.0,
+              "weighted_points": 2.0,
+              "source": "展示タイム=6.86"
             },
             "exhibition_st": {
               "name": "exhibition_st",
