@@ -51,3 +51,12 @@ forms=[
  ("補正±25%",lambda b:formula(b,.25)),
  ("補正±30%",lambda b:formula(b,.30)),
 ]
+
+out=[]
+for name,fn in forms:
+ n=t=e=o=0
+ for a,bs in races:
+  p=[x["boat"] for x in sorted(bs,key=lambda x:(-fn(x),x["boat"]))[:3]];n+=1;t+=set(p)==set(a);e+=p==a;o+=p[0]==a[0]
+ out.append({"name":name,"races":n,"top3_matches":t,"top3_alignment_pct":round(100*t/n,2),"exact_matches":e,"exact_alignment_pct":round(100*e/n,2),"top1_matches":o,"top1_accuracy_pct":round(100*o/n,2)})
+out.sort(key=lambda x:(-x["top3_alignment_pct"],-x["exact_alignment_pct"],-x["top1_accuracy_pct"]))
+O.mkdir(parents=True,exist_ok=True);(O/"correction_multiplier_test_20261002.json").write_text(json.dumps({"date":"20261002","rule":"基本=選手コース×級別×今節。直近・展示ST・モーターは1.0中心の補正倍率、公式・ボートは加算。補正幅±5〜30%を比較。","results":out},ensure_ascii=False,indent=2),encoding="utf-8");print(json.dumps(out,ensure_ascii=False,indent=2))
