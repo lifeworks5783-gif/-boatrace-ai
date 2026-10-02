@@ -1,0 +1,49 @@
+name: 3日間・単体要素整合率
+permissions:
+  contents: write
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/component_3day_20260930_20261002.yml"
+  workflow_dispatch:
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 9月30日・10月1日を同一モデルで再構築
+        run: |
+          set -eux
+          for D in 20260930 20261001; do
+            Y=${D:0:4}; M=${D:4:2}; DD=${D:6:2}
+            rm -rf data/rebuild_${D}
+            mkdir -p data/rebuild_${D}
+            cp daily_inputs/${Y}/${M}/${DD}/program_races_${D}.csv data/program_races_${D}.csv
+            cp daily_inputs/${Y}/${M}/${DD}/program_entries_${D}.csv data/program_entries_${D}.csv
+            # その日の最終スナップショットから直前情報を復元
+            SNAP=$(find daily_inputs/${Y}/${M}/${DD}/live/snapshots -mindepth 1 -maxdepth 1 -type d | sort | tail -1)
+            cp "$SNAP"/beforeinfo_races_${D}.csv data/beforeinfo_races_${D}.csv
+            cp "$SNAP"/beforeinfo_entries_${D}.csv data/beforeinfo_entries_${D}.csv
+            python collectors/build_prediction_input.py --date "${D}" --stage live
+            python collectors/build_history_features.py --as-of "${D}"
+            python collectors/enrich_prediction_input.py --date "${D}" --stage live
+            python collectors/build_live_prediction.py --date "${D}" --input data/prediction_input_enriched_live_${D}.json --output-dir data/rebuild_${D} --now "${D:0:4}-${D:4:2}-${D:6:2}T00:00:00+09:00"
+          done
+      - name: 単体要素3日間集計
+        run: python -u collectors/evaluate_components_3day.py
+      - name: 保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/2026/component_3day
+          git commit -m "evaluation: save 3-day single component alignment" || exit 0
+          git pull --rebase origin main
+          git push origin HEAD:main
