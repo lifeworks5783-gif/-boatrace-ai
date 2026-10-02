@@ -2698,18 +2698,20 @@ def fixed_alignment_table(items):
     for key,item in items.items():
         if not isinstance(item,dict): continue
         e=item.get("eligible_races") or 0
-        m=item.get("matches") or 0
-        rate=fmt_pct(item.get("alignment_pct"))
-        cell=f"{fmt_int(m)}/{fmt_int(e)}R = <b>{rate}</b>" if e else "—"
+        def cell(matches_key,pct_key):
+            m=item.get(matches_key) or 0
+            return f"{fmt_int(m)}/{fmt_int(e)}R = <b>{fmt_pct(item.get(pct_key))}</b>" if e else "—"
         rows.append([
             html.escape(ANALYSIS_LABELS.get(key,key)),
-            cell, cell, cell,
+            cell("top3_matches","top3_alignment_pct"),
+            cell("exact_matches","exact_alignment_pct"),
+            cell("top1_matches","top1_accuracy_pct"),
             fmt_yen(item.get("investment")),
             fmt_yen(item.get("return")),
             fmt_yen(item.get("profit")),
             fmt_pct(item.get("recovery_rate_pct")),
         ])
-    return table(["要素","本日","直近7日","累計","投資","払戻","収支","回収率"],rows)
+    return table(["要素","TOP3整合率（3連複型）","完全一致整合率（3連単型）","1着的中率","投資","払戻","収支","回収率"],rows)
 
 def formation_type_table(payload):
     rows=[]
@@ -2732,22 +2734,22 @@ def fixed_20261002_html(root: Path) -> str:
     return (
       '<section class="section-card pdca-hero">'
       '<div class="title-row"><div><h2>10/2 固定定義・AI分析</h2>'
-      '<div class="small-meta">TOP3完全整合率＝予測上位3艇と実着TOP3が順不同で3艇すべて一致</div></div>'
+      '<div class="small-meta">TOP3整合率＝3艇順不同一致（3連複型） / 完全一致整合率＝1〜3着の順番まで一致（3連単型） / 1着的中率＝予測1位が実着1着</div></div>'
       + badge("168R検証","good") + '</div>'
       '<div class="metric-grid mini-grid">'
-      + metric("総合TOP3完全整合率",fmt_pct(overall.get("alignment_pct")),f"{fmt_int(overall.get('matches'))}/{fmt_int(overall.get('races'))}R")
+      + metric("従来総合TOP3整合率",fmt_pct(overall.get("alignment_pct")),f"{fmt_int(overall.get('matches'))}/{fmt_int(overall.get('races'))}R")
       + metric("集計期間","10/2開始","本日・7日・累計を今後自動蓄積")
       + '</div>'
       '<p class="section-note">固定定義の蓄積開始が10/2のため、現時点では本日・直近7日・累計は同じ10/2の値です。9/30・10/1の旧表示は変更しません。</p>'
       '</section>'
-      '<section class="section-card"><h2>朝・基本データ：各要素単体TOP3完全整合率</h2>'
+      '<section class="section-card"><h2>朝・基本データ：各要素3指標</h2>'
       '<p class="section-note">各要素だけで6艇を順位付け。収支はそのTOP3を3連単6点BOX、100円/点で検証。</p>'
       + fixed_alignment_table(align.get("morning_single_components") or {}) + '</section>'
-      '<section class="section-card"><h2>直前データ：各要素単体TOP3完全整合率</h2>'
+      '<section class="section-card"><h2>直前データ：各要素3指標</h2>'
       '<p class="section-note">展示進入・展示ST・展示タイムを単独評価。取得できないレースは母数から除外。</p>'
       + fixed_alignment_table(align.get("live_single_components") or {}) + '</section>'
       '<section class="section-card"><h2>掛け合わせ分析</h2>'
-      '<p class="section-note">現段階は2要素を50:50で合成。コース×場などの相乗効果を同じ完全整合率・BOX収支で比較。</p>'
+      '<p class="section-note">現段階は2要素を50:50で合成。コース×場などの相乗効果をTOP3整合率・完全一致整合率・1着的中率とBOX収支で比較。</p>'
       + fixed_alignment_table(align.get("pair_components") or {}) + '</section>'
       '<section class="section-card"><h2>フォーメーション区分別・収支シミュレーション</h2>'
       '<p class="section-note">1着強軸・準軸・混戦を別集計。各買い目100円。</p>'
