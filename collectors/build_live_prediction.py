@@ -11,7 +11,7 @@ from pathlib import Path
 import build_morning_prediction as morning
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "unified_top3_v1_20261002_live"
+MODEL_VERSION = "racer_course_grade_exst_v1_20261003_live"
 
 
 def parse_args():
@@ -278,11 +278,20 @@ def score_race(race, public_store):
             for c in components.values()
             if c["available"] and c["weight"] > 0
         )
-        score = (
-            0.0
-            if available_weight <= 0
-            else weighted_points / available_weight * 100.0
+        # Production provisional formula selected from 10/2 retrospective test:
+        # racer-course suitability x grade x exhibition-ST.
+        rc = morning.racer_course_score(
+            live_base.get("registration_no"),
+            course if course is not None else lane,
         )
+        gs = morning.grade_score(public_store.card.get(morning.canonical_race_code(race.get("race_id"))), lane)
+        st = get_exhibition_st(boat)
+        is_f = get_exhibition_f(boat) or (st is not None and st < 0)
+        exst_raw = 0.0 if is_f else (None if st is None else max(0.0, min(1.0, 1.0 - st / .35)))
+        if rc is not None and gs is not None and exst_raw is not None:
+            score = rc * gs * exst_raw * 100.0
+        else:
+            score = live_base.get("score", 0.0)
 
         scored.append(
             {
