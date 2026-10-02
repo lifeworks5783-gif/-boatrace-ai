@@ -2,7 +2,7 @@
 # Compare coefficient-free multiplicative corrections around racer-course x grade.
 import csv,json,re
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];F=ROOT/"features";P=ROOT/"evaluations/2026/10/02/backfill_live/prediction_input_enriched_live_20261002.json";R=ROOT/"archive/2026/10/02/boat_results_20261002_all.csv";O=ROOT/"evaluations/2026/10/02/racer_course_7steps"
+ROOT=Path(__file__).resolve().parents[1];F=ROOT/"features";P=ROOT/"evaluations/2026/10/02/backfill_live/prediction_input_enriched_live_20261002.json";PROG=ROOT/"daily_inputs/2026/10/02/base/program_entries_20261002.csv";LIVE=ROOT/"daily_inputs/2026/10/02/live/backfill/beforeinfo_entries_20261002.csv";R=ROOT/"archive/2026/10/02/boat_results_20261002_all.csv";O=ROOT/"evaluations/2026/10/02/racer_course_7steps"
 def rows(p):
  with p.open(encoding="utf-8-sig",newline="") as h:return list(csv.DictReader(h))
 def f(x,d=None):
@@ -19,7 +19,7 @@ def idx(rs,cs):return {tuple(key(r.get(c)) for c in cs):r for r in rs}
 def rcscore(r):
  if not r:return .5
  return .45*rate(r.get("d90_top3_rate"))+.25*rate(r.get("d90_win_rate"))+.15*rate(r.get("d90_top2_rate"))+.15*invst(r.get("d90_avg_st"))
-rc=idx(rows(F/"racer_course_features.csv"),["registration_no","course"]);pred=json.loads(P.read_text(encoding="utf-8"))
+rc=idx(rows(F/"racer_course_features.csv"),["registration_no","course"]);rf=idx(rows(F/"racer_features.csv"),["registration_no"]);prog=idx(rows(PROG),["race_id","boat"]);live=idx(rows(LIVE),["race_id","boat"]);pred=json.loads(P.read_text(encoding="utf-8"))
 actual={}
 for r in rows(R):
  try:actual.setdefault(r["race_id"].replace("_","-"),[]).append((int(float(r["finish"])),int(float(r["boat"]))))
@@ -31,10 +31,12 @@ for race in pred.get("races",[]):
  if not a:continue
  bs=[]
  for b in race.get("boats",[]):
-  lane=int(float(b["boat"]));racer=b.get("racer") or {};reg=key(racer.get("registration_no"));before=b.get("beforeinfo") or {};course=key(before.get("exhibition_course")) if before.get("exhibition_course") else str(lane);com=b.get("components") or {}
-  def raw(x):
-   z=com.get(x) or {};return f(z.get("raw_score_0_1"),.5)
-  bs.append({"boat":lane,"base":rcscore(rc.get((reg,course)))*grades.get(str(racer.get("grade","")).upper(),.4),"official":raw("official"),"series":raw("series"),"boatc":raw("boat"),"exST":raw("exST"),"recent":raw("recent"),"motor":raw("motor")})
+  lane=int(float(b["boat"])); racer=b.get("racer") or {}; pr=prog.get((key(rid),key(lane))) or {}; lr=live.get((key(rid),key(lane))) or {}; reg=key(pr.get("registration_no") or racer.get("registration_no")); course=key(lr.get("exhibition_course")) if lr.get("exhibition_course") else str(lane)
+  nw=f(pr.get("national_win_rate")); n2=f(pr.get("national_top2_rate")); official=.5 if nw is None or n2 is None else (nw/10*.5333333333+n2/100*.4666666667)
+  sr=[int(x) for x in re.findall(r"[1-6]",str(pr.get("series_results_raw") or ""))]; series=.5 if not sr else sum(((7-v)/6)*w for v,w in zip(sr,range(1,len(sr)+1)))/sum(range(1,len(sr)+1))
+  boatc=(f(pr.get("boat_top2_rate")) or 0)/100; motor=(f(pr.get("motor_top2_rate")) or 0)/100; st=f(lr.get("exhibition_st_seconds")); exST=.5 if st is None else clip(1-st/.35)
+  hr=rf.get((reg,)); recent=.5 if not hr else .35*rate(hr.get("last5_top3_rate"))+.30*rate(hr.get("last10_top3_rate"))+.25*rate(hr.get("d30_top3_rate"))+.10*clip((6-f(hr.get("last10_avg_finish"),3.5))/5)
+  bs.append({"boat":lane,"base":rcscore(rc.get((reg,course)))*grades.get(str(pr.get("grade") or racer.get("grade","")).upper(),.4),"official":official,"series":series,"boatc":boatc,"exST":exST,"recent":recent,"motor":motor})
  races.append((a,bs))
 forms=[("基準 選手コース×級別",lambda b:b["base"]),("×公式",lambda b:b["base"]*b["official"]),("×今節",lambda b:b["base"]*b["series"]),("×ボート",lambda b:b["base"]*b["boatc"]),("×展示ST",lambda b:b["base"]*b["exST"]),("×直近",lambda b:b["base"]*b["recent"]),("×モーター",lambda b:b["base"]*b["motor"]),("×公式×今節",lambda b:b["base"]*b["official"]*b["series"]),("×公式×展示ST",lambda b:b["base"]*b["official"]*b["exST"]),("×今節×展示ST",lambda b:b["base"]*b["series"]*b["exST"]),("×公式×今節×展示ST",lambda b:b["base"]*b["official"]*b["series"]*b["exST"]),("×公式×ボート",lambda b:b["base"]*b["official"]*b["boatc"]),("×公式×モーター",lambda b:b["base"]*b["official"]*b["motor"])]
 out=[]
