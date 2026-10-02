@@ -55,7 +55,13 @@ for ncore in (2,3):
   for nr in (1,2):
    for rest in itertools.combinations(pool,nr):addrow(core+rest,"hybrid",ncore)
 rows.sort(key=lambda x:(-(x["top3_alignment_pct"] or -1),-(x["exact_alignment_pct"] or -1),-(x["top1_accuracy_pct"] or -1),-x["eligible_races"],x["formula"]))
-top=rows[:30];O.mkdir(parents=True,exist_ok=True)
-summary={"date":"20261002","rule":"係数なし。積、単純和、相関コア積+独立要素和。","tested_candidates":len(rows),"production_weights_changed":False,"top30":top}
+top=rows[:30]
+live_keys={"live_course","exST","exTime"}
+morning_rows=[x for x in rows if not (set(x["formula"].replace("(","").replace(")","").replace(" × "," + ").split(" + ")) & live_keys)]
+live_rows=[x for x in rows if (set(x["formula"].replace("(","").replace(")","").replace(" × "," + ").split(" + ")) & live_keys)]
+morning_rows.sort(key=lambda x:(-(x["top3_alignment_pct"] or -1),-(x["exact_alignment_pct"] or -1),-(x["top1_accuracy_pct"] or -1),-x["eligible_races"],x["formula"]))
+live_rows.sort(key=lambda x:(-(x["top3_alignment_pct"] or -1),-(x["exact_alignment_pct"] or -1),-(x["top1_accuracy_pct"] or -1),-x["eligible_races"],x["formula"]))
+O.mkdir(parents=True,exist_ok=True)
+summary={"date":"20261002","rule":"係数なし。積、単純和、相関コア積+独立要素和。","tested_candidates":len(rows),"production_weights_changed":False,"top30":top,"morning_only_top20":morning_rows[:20],"live_included_top20":live_rows[:20]}
 (O/"unweighted_formula_top30_20261002.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(summary,ensure_ascii=False,indent=2))
