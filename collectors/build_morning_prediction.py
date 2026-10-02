@@ -187,26 +187,27 @@ def _download_text(url):
 
 
 def _load_source_file(target_date, rel, local_dir=None):
-    yyyy = target_date[:4]
-    mm = target_date[4:6]
-    dd = target_date[6:8]
+    yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
     date_slash = f"{yyyy}/{mm}/{dd}"
-
+    name = Path(rel.format(date=date_slash)).name
+    candidates = []
     if local_dir:
         base = Path(local_dir)
-        name = Path(rel.format(date=date_slash)).name
-        candidates = [
-            base / name,
-            base / f"{target_date}_{name}",
-        ]
-        for p in candidates:
-            if p.exists():
-                return p.read_text(encoding="utf-8-sig")
+        candidates += [base / name, base / f"{target_date}_{name}"]
+    # Production fallback: daily collection already stores public/base inputs locally.
+    candidates += [
+        Path("data") / name,
+        Path("data") / f"{target_date}_{name}",
+        Path("daily_inputs") / yyyy / mm / dd / "base" / name,
+        Path("daily_inputs") / yyyy / mm / dd / "base" / f"{target_date}_{name}",
+    ]
+    for p in candidates:
+        if p.exists():
+            return p.read_text(encoding="utf-8-sig")
+    if local_dir:
         raise FileNotFoundError(f"ローカル公開CSVがありません: {name}")
-
     url = f"{PUBLIC_BASE}/{rel.format(date=date_slash)}"
     return _download_text(url)
-
 
 class PublicStore:
     def __init__(self, target_date, local_dir=None, include_stt=False):
