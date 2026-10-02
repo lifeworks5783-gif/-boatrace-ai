@@ -10,6 +10,7 @@ on:
       - "collectors/search_anchor_live_reorder_20261002.py"
       - "collectors/evaluate_racer_course_7steps_20261002.py"
       - "collectors/evaluate_racer_course_step7_20261002.py"
+      - "collectors/evaluate_racer_course_multipliers_20261002.py"
       - ".github/workflows/structure_search_20261002.yml"
   workflow_dispatch:
 concurrency:
@@ -34,6 +35,8 @@ jobs:
         run: python -u collectors/evaluate_racer_course_7steps_20261002.py
       - name: 選手×コース相性 Step7を実計算
         run: python -u collectors/evaluate_racer_course_step7_20261002.py
+      - name: 選手コース×級別の乗算補正を実計算
+        run: python -u collectors/evaluate_racer_course_multipliers_20261002.py
       - name: 保存
         run: |
           git config user.name "github-actions[bot]"
