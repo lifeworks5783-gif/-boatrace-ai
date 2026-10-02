@@ -1,0 +1,104 @@
+name: 10月2日・新整合率検証
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: boatrace-main-writer
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 新整合率を計算
+        run: |
+          python - <<'PY'
+          import csv,json,math
+          from pathlib import Path
+          D="20261002"
+          predp=Path("evaluations/2026/10/02/backfill_live/live_predictions_final_20261002.json")
+          resp=Path("archive/2026/10/02/boat_results_20261002_all.csv")
+          out=Path("evaluations/2026/10/02/backfill_alignment"); out.mkdir(parents=True,exist_ok=True)
+          pred=json.loads(predp.read_text(encoding="utf-8"))
+          results={}
+          with resp.open(encoding="utf-8",newline="") as f:
+            for r in csv.DictReader(f):
+              rid=str(r["race_id"]); b=int(float(r["boat"]))
+              try: fin=int(float(r["finish"]))
+              except: continue
+              results[(rid,b)]=fin
+          components=["course","official","recent","venue","motor","boat","grade","avgST","series","exTime","exST","discipline"]
+          def val(c):
+            if not isinstance(c,dict) or not c.get("available"): return None
+            x=c.get("weighted_points")
+            try:return float(x)
+            except:return None
+          def metrics(ranking,actual):
+            top3=set(ranking[:3]); actual3=set(actual[:3])
+            return {
+              "top1_exact": int(ranking[0]==actual[0]),
+              "top3_members": len(top3 & actual3),
+              "top3_set_exact": int(top3==actual3),
+              "top3_order_exact": int(ranking[:3]==actual[:3]),
+              "position_matches_top3": sum(ranking[i]==actual[i] for i in range(3)),
+              "position_matches_all6": sum(ranking[i]==actual[i] for i in range(6)),
+            }
+          rows=[]; agg={"total":{}}; compagg={c:[] for c in components}
+          for race in pred["races"]:
+            rid=str(race["race_id"])
+            actual=sorted([b for b in range(1,7) if (rid,b) in results],key=lambda b:results[(rid,b)])
+            if len(actual)!=6: continue
+            boats=race["boats"]
+            ranking=[int(x["boat"]) for x in sorted(boats,key=lambda x:(int(x.get("rank",99)),int(x["boat"])))]
+            m=metrics(ranking,actual)
+            row={"race_id":rid,"venue_name":race.get("venue_name"),"race":race.get("race"),"score_order":"-".join(map(str,ranking)),"actual_order":"-".join(map(str,actual)),**m}
+            rows.append(row)
+            for c in components:
+              scored=[]
+              for b in boats:
+                vv=val((b.get("components") or {}).get(c))
+                if vv is not None: scored.append((int(b["boat"]),vv))
+              if len(scored)==6:
+                rr=[b for b,_ in sorted(scored,key=lambda z:(-z[1],z[0]))]
+                compagg[c].append(metrics(rr,actual))
+          def summarize(ms):
+            n=len(ms)
+            if not n:return {"races":0}
+            return {
+              "races":n,
+              "top1_exact_pct":round(sum(x["top1_exact"] for x in ms)/n*100,1),
+              "top3_member_alignment_pct":round(sum(x["top3_members"] for x in ms)/(n*3)*100,1),
+              "top3_set_exact_pct":round(sum(x["top3_set_exact"] for x in ms)/n*100,1),
+              "top3_order_exact_pct":round(sum(x["top3_order_exact"] for x in ms)/n*100,1),
+              "top3_position_alignment_pct":round(sum(x["position_matches_top3"] for x in ms)/(n*3)*100,1),
+              "all6_position_alignment_pct":round(sum(x["position_matches_all6"] for x in ms)/(n*6)*100,1),
+            }
+          totalms=[{k:r[k] for k in ("top1_exact","top3_members","top3_set_exact","top3_order_exact","position_matches_top3","position_matches_all6")} for r in rows]
+          summary={"date":D,"provenance":"historical_backfill_after_races","definition":{"primary":"AIスコア順位と実着順の整合。TOP3艇一致と並びを別々に計測","note":"レース終了後取得の直前情報を含むため、本番リアルタイム成績とは分離"},"overall":summarize(totalms),"components":{c:summarize(v) for c,v in compagg.items()}}
+          (out/"alignment_summary_20261002.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
+          with (out/"alignment_races_20261002.csv").open("w",encoding="utf-8",newline="") as f:
+            w=csv.DictWriter(f,fieldnames=list(rows[0].keys()));w.writeheader();w.writerows(rows)
+          print(json.dumps(summary,ensure_ascii=False,indent=2))
+          if summary["overall"].get("races")!=168: raise SystemExit("168R未満")
+          PY
+      - name: 保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/2026/10/02/backfill_alignment
+          git commit -m "evaluation: 20261002 backfill alignment" || exit 0
+          git stash push --include-untracked -m temp || true
+          git pull --rebase origin main
+          git push origin HEAD:main
