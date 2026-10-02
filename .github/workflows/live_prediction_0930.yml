@@ -213,6 +213,18 @@ jobs:
           python -u collectors/build_prediction_input.py \
             --stage live
 
+      - name: 当日用30日90日履歴特徴量を準備
+        if: env.HAS_CANDIDATES == 'true'
+        run: |
+          python -u collectors/build_history_features.py \
+            --as-of "${TARGET_DATE}"
+
+          test -s features/history_features_manifest.json
+          grep -q "\"as_of_date\": \"${TARGET_DATE}\"" \
+            features/history_features_manifest.json
+
+          echo "当日用履歴特徴量: PASS"
+
       - name: 30日90日履歴を直前データへ結合
         if: env.HAS_CANDIDATES == 'true'
         run: |
