@@ -2,7 +2,7 @@
 # Compare coefficient-free multiplicative corrections around racer-course x grade.
 import csv,json,re
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1];F=ROOT/"features";P=ROOT/"evaluations/2026/10/02/backfill_live/live_predictions_final_20261002.json";R=ROOT/"archive/2026/10/02/boat_results_20261002_all.csv";O=ROOT/"evaluations/2026/10/02/racer_course_7steps"
+ROOT=Path(__file__).resolve().parents[1];F=ROOT/"features";P=ROOT/"evaluations/2026/10/02/backfill_live/prediction_input_enriched_live_20261002.json";R=ROOT/"archive/2026/10/02/boat_results_20261002_all.csv";O=ROOT/"evaluations/2026/10/02/racer_course_7steps"
 def rows(p):
  with p.open(encoding="utf-8-sig",newline="") as h:return list(csv.DictReader(h))
 def f(x,d=None):
@@ -25,7 +25,7 @@ for r in rows(R):
  try:actual.setdefault(r["race_id"].replace("_","-"),[]).append((int(float(r["finish"])),int(float(r["boat"]))))
  except:pass
 actual={k:[b for _,b in sorted(v)][:3] for k,v in actual.items() if len(v)==6}
-grades={"A1":1.0,"A2":.78,"B1":.48,"B2":.30}; races=[]
+grades={"A1":1.0,"A2":.75,"B1":.45,"B2":.25}; races=[]
 for race in pred.get("races",[]):
  rid=str(race.get("race_id","")).replace("_","-");a=actual.get(rid)
  if not a:continue
@@ -34,7 +34,7 @@ for race in pred.get("races",[]):
   lane=int(float(b["boat"]));racer=b.get("racer") or {};reg=key(racer.get("registration_no"));before=b.get("beforeinfo") or {};course=key(before.get("exhibition_course")) if before.get("exhibition_course") else str(lane);com=b.get("components") or {}
   def raw(x):
    z=com.get(x) or {};return f(z.get("raw_score_0_1"),.5)
-  bs.append({"boat":lane,"base":rcscore(rc.get((reg,course)))*grades.get(str(racer.get("grade","")).upper(),raw("grade")),"official":raw("official"),"series":raw("series"),"boatc":raw("boat"),"exST":raw("exST"),"recent":raw("recent"),"motor":raw("motor")})
+  bs.append({"boat":lane,"base":rcscore(rc.get((reg,course)))*grades.get(str(racer.get("grade","")).upper(),.4),"official":raw("official"),"series":raw("series"),"boatc":raw("boat"),"exST":raw("exST"),"recent":raw("recent"),"motor":raw("motor")})
  races.append((a,bs))
 forms=[("基準 選手コース×級別",lambda b:b["base"]),("×公式",lambda b:b["base"]*b["official"]),("×今節",lambda b:b["base"]*b["series"]),("×ボート",lambda b:b["base"]*b["boatc"]),("×展示ST",lambda b:b["base"]*b["exST"]),("×直近",lambda b:b["base"]*b["recent"]),("×モーター",lambda b:b["base"]*b["motor"]),("×公式×今節",lambda b:b["base"]*b["official"]*b["series"]),("×公式×展示ST",lambda b:b["base"]*b["official"]*b["exST"]),("×今節×展示ST",lambda b:b["base"]*b["series"]*b["exST"]),("×公式×今節×展示ST",lambda b:b["base"]*b["official"]*b["series"]*b["exST"]),("×公式×ボート",lambda b:b["base"]*b["official"]*b["boatc"]),("×公式×モーター",lambda b:b["base"]*b["official"]*b["motor"])]
 out=[]
