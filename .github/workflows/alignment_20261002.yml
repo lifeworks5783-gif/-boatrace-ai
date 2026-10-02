@@ -36,8 +36,10 @@ jobs:
           p="evaluations/2026/10/02/backfill_alignment/alignment_summary_20261002.json"
           d=json.load(open(p,encoding="utf-8"))
           assert d["overall"]["races"]==168
-          assert "順不同で完全一致" in d["definition"]
-          print("固定整合率ルール・168R: PASS")
+          assert "順不同で一致" in d["definitions"]["top3_alignment"]
+          assert "1位=1着" in d["definitions"]["exact_alignment"]
+          assert "予測1位" in d["definitions"]["top1_accuracy"]
+          print("3指標定義・168R: PASS")
           PY
       - name: 保存
         run: |
