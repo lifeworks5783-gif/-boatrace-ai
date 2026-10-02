@@ -51,3 +51,12 @@ def formula(b,s):
  corrected=base*corr(b["recent"],s)*stcorr(b,s)*corr(b["motor"],s)
  return corrected+b["official"]+b["boatc"]
 forms=[("相対ST補正±5%",lambda b:formula(b,.05)),("相対ST補正±10%",lambda b:formula(b,.10)),("相対ST補正±15%",lambda b:formula(b,.15)),("相対ST補正±20%",lambda b:formula(b,.20)),("相対ST補正±25%",lambda b:formula(b,.25)),("相対ST補正±30%",lambda b:formula(b,.30))]
+
+out=[]
+for name,fn in forms:
+ n=t=e=o=0
+ for a,bs in races:
+  p=[x["boat"] for x in sorted(bs,key=lambda x:(-fn(x),x["boat"]))[:3]];n+=1;t+=set(p)==set(a);e+=p==a;o+=p[0]==a[0]
+ out.append({"name":name,"races":n,"top3_matches":t,"top3_alignment_pct":round(100*t/n,2),"exact_matches":e,"exact_alignment_pct":round(100*e/n,2),"top1_matches":o,"top1_accuracy_pct":round(100*o/n,2)})
+out.sort(key=lambda x:(-x["top3_alignment_pct"],-x["exact_alignment_pct"],-x["top1_accuracy_pct"]))
+O.mkdir(parents=True,exist_ok=True);(O/"relative_st_correction_test_20261002.json").write_text(json.dumps({"date":"20261002","rule":"基本=選手コース×級別×今節。直近・モーターは1.0中心補正。展示STは選手90日平均STとの差で補正し、Fはマイナス補正。公式・ボートは加算。","results":out},ensure_ascii=False,indent=2),encoding="utf-8");print(json.dumps(out,ensure_ascii=False,indent=2))
