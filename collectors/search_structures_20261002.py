@@ -65,7 +65,7 @@ def weights(n):
    yield (25,25,10,5,5,10,5,10,5)
    yield (30,25,10,5,5,10,5,5,5)
 def evaluate(keys,w):
- hits=eligible=0
+ top3_hits=exact_hits=top1_hits=eligible=0
  for a,boats in races:
   scored=[];ok=True
   for b in boats:
@@ -80,19 +80,24 @@ def evaluate(keys,w):
     norm={idx:1-(rank/5) for rank,idx in enumerate(order)}
     for i in range(6):scored[i][1][j]=norm[i]
   rank=sorted(((sum(v*x for v,x in zip(vals,w))/sum(w),bn) for bn,vals in scored),key=lambda z:(-z[0],z[1]))
-  p=[b for _,b in rank[:3]];eligible+=1;hits+=set(p)==set(a)
- return eligible,hits,round(hits/eligible*100,2) if eligible else None
+  p=[b for _,b in rank[:3]]
+  eligible+=1
+  top3_hits += set(p)==set(a)
+  exact_hits += p==a
+  top1_hits += p[0]==a[0]
+ def pct(x): return round(x/eligible*100,2) if eligible else None
+ return eligible,top3_hits,pct(top3_hits),exact_hits,pct(exact_hits),top1_hits,pct(top1_hits)
 rows=[]
 for name,keys in STRUCTS:
  for w in weights(len(keys)):
-  e,h,p=evaluate(keys,w)
-  rows.append({"structure":name,"components":keys,"weights_pct":dict(zip(keys,w)),"eligible_races":e,"matches":h,"alignment_pct":p})
-rows.sort(key=lambda x:(-(x["alignment_pct"] or -1),-x["eligible_races"],x["structure"]))
+  e,t3,t3p,ex,exp,t1,t1p=evaluate(keys,w)
+  rows.append({"structure":name,"components":keys,"weights_pct":dict(zip(keys,w)),"eligible_races":e,"top3_matches":t3,"top3_alignment_pct":t3p,"exact_matches":ex,"exact_alignment_pct":exp,"top1_matches":t1,"top1_accuracy_pct":t1p})
+rows.sort(key=lambda x:(-(x["top3_alignment_pct"] or -1),-(x["exact_alignment_pct"] or -1),-(x["top1_accuracy_pct"] or -1),-x["eligible_races"],x["structure"]))
 top=rows[:20]
 OUT.mkdir(parents=True,exist_ok=True)
-summary={"date":DATE,"definition":"TOP3完全整合率。各候補構造について10%刻み係数（多要素core+liveは代表係数）を実計算。","production_weights_changed":False,"tested_candidates":len(rows),"top20":top}
+summary={"date":DATE,"definitions":{"top3_alignment":"予測TOP3と実着TOP3の3艇が順不同で一致（3連複型）","exact_alignment":"予測1位=1着・2位=2着・3位=3着（3連単型）","top1_accuracy":"予測1位=実着1着"},"production_weights_changed":False,"tested_candidates":len(rows),"top20":top}
 (OUT/"structure_search_top20_20261002.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
 with (OUT/"structure_search_top20_20261002.csv").open("w",encoding="utf-8",newline="") as f:
- wr=csv.DictWriter(f,fieldnames=["rank","structure","eligible_races","matches","alignment_pct","weights_pct"]);wr.writeheader()
- for i,x in enumerate(top,1):wr.writerow({"rank":i,"structure":x["structure"],"eligible_races":x["eligible_races"],"matches":x["matches"],"alignment_pct":x["alignment_pct"],"weights_pct":json.dumps(x["weights_pct"],ensure_ascii=False)})
+ wr=csv.DictWriter(f,fieldnames=["rank","structure","eligible_races","top3_matches","top3_alignment_pct","exact_matches","exact_alignment_pct","top1_matches","top1_accuracy_pct","weights_pct"]);wr.writeheader()
+ for i,x in enumerate(top,1):wr.writerow({"rank":i,"structure":x["structure"],"eligible_races":x["eligible_races"],"top3_matches":x["top3_matches"],"top3_alignment_pct":x["top3_alignment_pct"],"exact_matches":x["exact_matches"],"exact_alignment_pct":x["exact_alignment_pct"],"top1_matches":x["top1_matches"],"top1_accuracy_pct":x["top1_accuracy_pct"],"weights_pct":json.dumps(x["weights_pct"],ensure_ascii=False)})
 print(json.dumps(summary,ensure_ascii=False,indent=2))
