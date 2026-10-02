@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "collectors/search_structures_20261002.py"
+      - "collectors/search_unweighted_formula_20261002.py"
       - ".github/workflows/structure_search_20261002.yml"
   workflow_dispatch:
 concurrency:
@@ -22,11 +23,13 @@ jobs:
         with: {python-version: "3.12"}
       - name: 20構造・係数を実計算
         run: python -u collectors/search_structures_20261002.py
+      - name: 係数なし掛け算・足し算を実計算
+        run: python -u collectors/search_unweighted_formula_20261002.py
       - name: 保存
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add evaluations/2026/10/02/structure_search
+          git add evaluations/2026/10/02/structure_search evaluations/2026/10/02/unweighted_formula_search
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "evaluation: search new score structures for 20261002"
           git stash push --include-untracked -m temp || true
