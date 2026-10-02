@@ -1,0 +1,86 @@
+name: 場×コース特徴量生成
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 場×コース特徴量を生成
+        run: |
+          python - <<'PY'
+          import csv
+          import importlib.util
+          from pathlib import Path
+
+          spec = importlib.util.spec_from_file_location(
+              "bhf", "collectors/build_history_features.py"
+          )
+          bhf = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(bhf)
+
+          spec2 = importlib.util.spec_from_file_location(
+              "vc", "collectors/build_venue_course_features.py"
+          )
+          vc = importlib.util.module_from_spec(spec2)
+          spec2.loader.exec_module(vc)
+
+          as_of = bhf.parse_date("20260930")
+          history, source_files, excluded = bhf.load_history("archive", as_of)
+
+          rows = vc.build_venue_course_features(
+              history, as_of,
+              bhf.summarize, bhf.rows_in_days, bhf.prefixed,
+              bhf.trend_fields, bhf.latest_venue_name
+          )
+
+          out = Path("features/venue_course_features.csv")
+          bhf.write_csv(out, rows)
+
+          if not out.exists() or out.stat().st_size == 0:
+              raise RuntimeError("venue_course_features.csv が生成されていません")
+
+          with out.open("r", encoding="utf-8", newline="") as f:
+              check = list(csv.DictReader(f))
+
+          keys = [(r["venue_code"], r["course"]) for r in check]
+          if len(keys) != len(set(keys)):
+              raise RuntimeError("venue_code×course に重複があります")
+
+          print("場×コース特徴量:", len(check), "行")
+          print("使用履歴ファイル:", len(source_files))
+          print("当日・未来結果除外:", excluded, "艇")
+          print("場×コース特徴量生成: PASS")
+          PY
+
+      - name: GitHubへ保存
+        run: |
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git add collectors/build_venue_course_features.py features/venue_course_features.csv
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "Add venue-course history features"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: venue-course-features-${{ github.run_number }}
+          path: features/venue_course_features.csv
+          retention-days: 7
