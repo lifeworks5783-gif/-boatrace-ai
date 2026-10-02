@@ -26,6 +26,354 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: 場×コース特徴量生成を追加
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("collectors/build_history_features.py")
+          text = path.read_text(encoding="utf-8")
+
+          # ---------------------------------------------------------
+          # 1. build_venue_course_features を追加
+          # ---------------------------------------------------------
+
+          function_code = r'''
+
+          def build_venue_course_features(
+              history,
+              as_of_date,
+          ):
+              """
+              競艇場×実進入コース別の
+              30日・90日特徴量を生成する。
+
+              例:
+              戸田×1コース
+              戸田×2コース
+              ...
+              大村×6コース
+
+              予測基準日当日以降の結果は
+              load_history 側ですでに除外されているため、
+              結果漏洩は発生しない。
+              """
+
+              groups = defaultdict(
+                  list
+              )
+
+              for row in history:
+
+                  course = row[
+                      "course"
+                  ]
+
+                  if course not in {
+                      1,
+                      2,
+                      3,
+                      4,
+                      5,
+                      6,
+                  }:
+                      continue
+
+                  groups[
+                      (
+                          row[
+                              "venue_code"
+                          ],
+                          course,
+                      )
+                  ].append(
+                      row
+                  )
+
+              output = []
+
+              for key in sorted(
+                  groups
+              ):
+
+                  (
+                      venue_code,
+                      course,
+                  ) = key
+
+                  rows = groups[
+                      key
+                  ]
+
+                  rows30 = rows_in_days(
+                      rows,
+                      as_of_date,
+                      30,
+                  )
+
+                  rows90 = rows_in_days(
+                      rows,
+                      as_of_date,
+                      90,
+                  )
+
+                  d30 = summarize(
+                      rows30
+                  )
+
+                  d90 = summarize(
+                      rows90
+                  )
+
+                  output.append(
+                      {
+                          "as_of_date": (
+                              as_of_date.strftime(
+                                  "%Y%m%d"
+                              )
+                          ),
+
+                          "venue_code": (
+                              venue_code
+                          ),
+
+                          "venue_name": (
+                              latest_venue_name(
+                                  rows
+                              )
+                          ),
+
+                          "course": (
+                              course
+                          ),
+
+                          "history_first_date": (
+                              rows[
+                                  0
+                              ][
+                                  "date_text"
+                              ]
+                          ),
+
+                          "history_last_date": (
+                              rows[
+                                  -1
+                              ][
+                                  "date_text"
+                              ]
+                          ),
+
+                          "history_starts": (
+                              len(
+                                  rows
+                              )
+                          ),
+
+                          **prefixed(
+                              "d30",
+                              d30,
+                          ),
+
+                          **prefixed(
+                              "d90",
+                              d90,
+                          ),
+
+                          **trend_fields(
+                              d30,
+                              d90,
+                          ),
+                      }
+                  )
+
+              return output
+          '''
+
+          if "def build_venue_course_features(" not in text:
+
+              marker = "\ndef build_equipment_features(\n"
+
+              if marker not in text:
+                  raise RuntimeError(
+                      "build_equipment_features の位置を検出できません"
+                  )
+
+              text = text.replace(
+                  marker,
+                  "\n"
+                  + function_code
+                  + marker,
+                  1,
+              )
+
+          # ---------------------------------------------------------
+          # 2. main() 内で場×コース特徴量を生成
+          # ---------------------------------------------------------
+
+          if "venue_course_features = (" not in text:
+
+              old = '''        motor_features = (
+              build_equipment_features(
+                  history,
+                  as_of_date,
+                  "motor_no",
+              )
+          )'''
+
+              new = '''        venue_course_features = (
+              build_venue_course_features(
+                  history,
+                  as_of_date,
+              )
+          )
+
+
+          motor_features = (
+              build_equipment_features(
+                  history,
+                  as_of_date,
+                  "motor_no",
+              )
+          )'''
+
+              if old not in text:
+                  raise RuntimeError(
+                      "motor_features生成位置を検出できません"
+                  )
+
+              text = text.replace(
+                  old,
+                  new,
+                  1,
+              )
+
+          # ---------------------------------------------------------
+          # 3. CSV出力を追加
+          # ---------------------------------------------------------
+
+          if '"venue_course_features.csv"' not in text:
+
+              old = '''        write_csv(
+              output_dir
+              / "motor_features.csv",
+              motor_features,
+          )'''
+
+              new = '''        write_csv(
+              output_dir
+              / "venue_course_features.csv",
+              venue_course_features,
+          )
+
+
+          write_csv(
+              output_dir
+              / "motor_features.csv",
+              motor_features,
+          )'''
+
+              if old not in text:
+                  raise RuntimeError(
+                      "motor_features.csv出力位置を検出できません"
+                  )
+
+              text = text.replace(
+                  old,
+                  new,
+                  1,
+              )
+
+          # ---------------------------------------------------------
+          # 4. manifest 出力件数を追加
+          # ---------------------------------------------------------
+
+          if '"venue_course_features": (' not in text:
+
+              old = '''                "motor_features": (
+                  len(
+                      motor_features
+                  )
+              ),'''
+
+              new = '''                "venue_course_features": (
+                  len(
+                      venue_course_features
+                  )
+              ),
+
+              "motor_features": (
+                  len(
+                      motor_features
+                  )
+              ),'''
+
+              if old not in text:
+                  raise RuntimeError(
+                      "manifest motor_features位置を検出できません"
+                  )
+
+              text = text.replace(
+                  old,
+                  new,
+                  1,
+              )
+
+          # ---------------------------------------------------------
+          # 5. コンソール表示を追加
+          # ---------------------------------------------------------
+
+          if '"場×コース特徴量:"' not in text:
+
+              old = '''        print(
+              "モーター特徴量:",
+              len(
+                  motor_features
+              ),
+          )'''
+
+              new = '''        print(
+              "場×コース特徴量:",
+              len(
+                  venue_course_features
+              ),
+          )
+
+
+          print(
+              "モーター特徴量:",
+              len(
+                  motor_features
+              ),
+          )'''
+
+              if old not in text:
+                  raise RuntimeError(
+                      "モーター特徴量表示位置を検出できません"
+                  )
+
+              text = text.replace(
+                  old,
+                  new,
+                  1,
+              )
+
+          path.write_text(
+              text,
+              encoding="utf-8",
+          )
+
+          print(
+              "build_history_features.py 更新完了"
+          )
+          PY
+
+      - name: Python構文チェック
+        run: |
+          python -m py_compile \
+            collectors/build_history_features.py
+
+          echo "Python構文チェック: PASS"
+
       - name: featuresフォルダを準備
         run: |
           rm -rf features
@@ -50,6 +398,7 @@ jobs:
           test -s features/racer_features.csv
           test -s features/racer_course_features.csv
           test -s features/racer_venue_features.csv
+          test -s features/venue_course_features.csv
           test -s features/motor_features.csv
           test -s features/boat_features.csv
           test -s features/history_features_manifest.json
@@ -60,12 +409,140 @@ jobs:
 
           echo ""
           echo "CSV行数:"
+
           wc -l \
             features/racer_features.csv \
             features/racer_course_features.csv \
             features/racer_venue_features.csv \
+            features/venue_course_features.csv \
             features/motor_features.csv \
             features/boat_features.csv
+
+      - name: 場×コース特徴量を検証
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          path = Path(
+              "features/venue_course_features.csv"
+          )
+
+          with path.open(
+              "r",
+              encoding="utf-8",
+              newline="",
+          ) as f:
+              rows = list(
+                  csv.DictReader(f)
+              )
+
+          if not rows:
+              raise RuntimeError(
+                  "venue_course_features.csv が空です"
+              )
+
+          required = {
+              "as_of_date",
+              "venue_code",
+              "venue_name",
+              "course",
+
+              "d30_starts",
+              "d30_avg_finish",
+              "d30_win_rate",
+              "d30_top2_rate",
+              "d30_top3_rate",
+              "d30_avg_st",
+
+              "d90_starts",
+              "d90_avg_finish",
+              "d90_win_rate",
+              "d90_top2_rate",
+              "d90_top3_rate",
+              "d90_avg_st",
+
+              "trend_win_rate_30v90",
+              "trend_top2_rate_30v90",
+              "trend_top3_rate_30v90",
+              "trend_avg_finish_30v90",
+              "trend_avg_st_30v90",
+          }
+
+          missing = (
+              required
+              - set(
+                  rows[0].keys()
+              )
+          )
+
+          if missing:
+              raise RuntimeError(
+                  f"場×コース特徴量の列不足: {sorted(missing)}"
+              )
+
+          keys = [
+              (
+                  row[
+                      "venue_code"
+                  ],
+                  row[
+                      "course"
+                  ],
+              )
+              for row
+              in rows
+          ]
+
+          if len(keys) != len(set(keys)):
+              raise RuntimeError(
+                  "venue_code×course に重複があります"
+              )
+
+          bad_courses = [
+              row
+              for row
+              in rows
+              if row[
+                  "course"
+              ] not in {
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+              }
+          ]
+
+          if bad_courses:
+              raise RuntimeError(
+                  "不正なコース番号があります"
+              )
+
+          print(
+              "場×コース特徴量:",
+              len(rows),
+              "行"
+          )
+
+          print(
+              "場数:",
+              len(
+                  {
+                      row[
+                          "venue_code"
+                      ]
+                      for row
+                      in rows
+                  }
+              )
+          )
+
+          print(
+              "場×コース検証: PASS"
+          )
+          PY
 
       - name: 履歴鮮度を確認
         run: |
@@ -80,45 +557,58 @@ jobs:
 
           if ! grep -q '"as_of_date": "20260930"' \
             features/history_features_manifest.json; then
+
             echo "ERROR: 予測基準日が20260930ではありません"
             exit 1
           fi
 
           if ! grep -q '"history_stale_days": 0' \
             features/history_features_manifest.json; then
+
             echo "ERROR: 9月29日までの結果が揃っていません"
-            echo "古い履歴のまま予測には進みません"
+            exit 1
+          fi
+
+          if ! grep -q '"venue_course_features"' \
+            features/history_features_manifest.json; then
+
+            echo "ERROR: 場×コース特徴量がmanifestにありません"
             exit 1
           fi
 
           echo "予測基準日: PASS"
           echo "前日結果反映: PASS"
           echo "リーク防止設計: PASS"
+          echo "場×コース特徴量: PASS"
 
-      - name: 特徴量をGitHubへ保存
+      - name: 特徴量とPython本体をGitHubへ保存
         run: |
           echo "========================================"
           echo "特徴量をGitHubへ保存"
           echo "========================================"
 
           git config user.name "boatrace-data-bot"
-          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git config user.email \
+            "boatrace-data-bot@users.noreply.github.com"
 
-          git add features
+          git add \
+            collectors/build_history_features.py \
+            features
 
           if git diff --cached --quiet; then
-            echo "特徴量に変更はありません"
+            echo "変更はありません"
             exit 0
           fi
 
-          git commit -m "Build BOAT RACE history features 20260930"
+          git commit -m \
+            "Add venue-course BOAT RACE history features"
 
           git pull --rebase origin "${GITHUB_REF_NAME}"
 
           git push origin HEAD:"${GITHUB_REF_NAME}"
 
           echo ""
-          echo "特徴量 GitHub保存完了"
+          echo "GitHub保存完了"
 
       - name: 特徴量をArtifactへ短期保存
         uses: actions/upload-artifact@v4
@@ -140,8 +630,9 @@ jobs:
           echo "選手30日・90日: 作成済み"
           echo "選手コース別: 作成済み"
           echo "選手競艇場別: 作成済み"
+          echo "場×コース別: 作成済み"
           echo "モーター30日・90日: 作成済み"
           echo "ボート30日・90日: 作成済み"
           echo "結果漏洩防止: 有効"
           echo ""
-          echo "次工程: 当日データとの結合"
+          echo "次工程: 新係数で9/30全144Rを再計算"
