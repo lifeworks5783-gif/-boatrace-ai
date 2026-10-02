@@ -30,7 +30,7 @@ rows=[]
 single={c:{"eligible":0,"matches":0} for c in COMPONENTS}
 current_matches=0
 for race in pred["races"]:
-    rid=race["race_id"]; act=actual.get(rid)
+    rid=race["race_id"]; result_rid=rid.replace("-", "_"); act=actual.get(result_rid)
     if not act: continue
     act3=act[:3]
     boats=race["boats"]
