@@ -1755,6 +1755,77 @@ def evaluation_html(
     )
 
 
+
+def simulation_html(prediction, trifecta, payout):
+    """最終予測のフォーメーションと上位3艇BOXを100円/点で照合表示。"""
+    if not prediction:
+        return '<div class="simulation missing">予測データなし</div>'
+
+    raw = prediction.get("raw") or {}
+    formation = raw.get("formation") or {}
+    combos = [str(x) for x in (formation.get("combinations") or [])]
+    points = safe_int(formation.get("points")) or len(combos)
+    investment = safe_int(formation.get("investment_100yen"))
+    if investment is None:
+        investment = points * 100
+
+    hit = trifecta in combos
+    payout_amount = payout if hit and payout is not None else 0
+    profit = payout_amount - investment
+
+    combo_html = []
+    for combo in combos:
+        cls = "combo-pick hit-pick" if combo == trifecta else "combo-pick"
+        combo_html.append(f'<span class="{cls}">{esc(combo)}</span>')
+
+    if combos:
+        formation_detail = " / ".join(combo_html)
+    else:
+        formation_detail = '<span class="missing">買い目なし</span>'
+
+    f_type = esc(formation.get("formation_type") or "不明")
+    f_status = '<span class="hit-status">的中</span>' if hit else '<span class="miss-status">不的中</span>'
+
+    picks = prediction.get("top3") or []
+    box_boats = [int(x["boat"]) for x in picks[:3] if x.get("boat") is not None]
+    box_combos = []
+    if len(box_boats) == 3:
+        a,b,c = box_boats
+        box_combos = [
+            f"{a}-{b}-{c}", f"{a}-{c}-{b}",
+            f"{b}-{a}-{c}", f"{b}-{c}-{a}",
+            f"{c}-{a}-{b}", f"{c}-{b}-{a}",
+        ]
+    box_hit = trifecta in box_combos
+    box_investment = len(box_combos) * 100
+    box_payout = payout if box_hit and payout is not None else 0
+    box_profit = box_payout - box_investment
+
+    box_combo_html = []
+    for combo in box_combos:
+        cls = "combo-pick hit-pick" if combo == trifecta else "combo-pick"
+        box_combo_html.append(f'<span class="{cls}">{esc(combo)}</span>')
+    box_detail = " / ".join(box_combo_html) if box_combo_html else '<span class="missing">BOXなし</span>'
+    box_status = '<span class="hit-status">的中</span>' if box_hit else '<span class="miss-status">不的中</span>'
+
+    return f"""
+    <div class="simulation-grid">
+      <div class="simulation-box">
+        <div class="simulation-title">3連単フォーメーション</div>
+        <div class="simulation-meta">{f_type} ／ {points}点 ／ 投資 {investment:,}円 ／ {f_status}</div>
+        <div class="simulation-combos">{formation_detail}</div>
+        <div class="simulation-money">払戻 <b>{payout_amount:,}円</b> ／ 収支 <b>{profit:+,}円</b></div>
+      </div>
+      <div class="simulation-box">
+        <div class="simulation-title">AI上位3艇・3連単BOX</div>
+        <div class="simulation-meta">{'-'.join(map(str,box_boats)) if box_boats else '—'} ／ {len(box_combos)}点 ／ 投資 {box_investment:,}円 ／ {box_status}</div>
+        <div class="simulation-combos">{box_detail}</div>
+        <div class="simulation-money">払戻 <b>{box_payout:,}円</b> ／ 収支 <b>{box_profit:+,}円</b></div>
+      </div>
+    </div>
+    """
+
+
 # =========================================================
 # HTML生成
 # =========================================================
@@ -1938,6 +2009,9 @@ def render_html(
 
   </div>
 
+
+  <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
+  {simulation_html(row["live"] or row["morning"], row["trifecta"], row["payout"])}
 
   <div class="money-grid">
 
@@ -2350,6 +2424,51 @@ h1 {{
   font-size:12px;
 }}
 
+.simulation-label {{
+  margin-top:12px;
+}}
+.simulation-grid {{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:6px;
+}}
+.simulation-box {{
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--chip);
+}}
+.simulation-title {{
+  font-size:13px;
+  font-weight:900;
+}}
+.simulation-meta,
+.simulation-money {{
+  margin-top:5px;
+  font-size:12px;
+  line-height:1.5;
+}}
+.simulation-combos {{
+  margin-top:7px;
+  font-size:12px;
+  line-height:1.8;
+}}
+.combo-pick {{
+  display:inline-block;
+  margin:1px 3px 1px 0;
+}}
+.hit-pick {{
+  color:#dc2626;
+  font-weight:900;
+}}
+.hit-status {{
+  color:#dc2626;
+  font-weight:900;
+}}
+.miss-status {{
+  color:var(--muted);
+}}
 .money-grid {{
   display:grid;
 
@@ -2420,6 +2539,10 @@ h1 {{
   .summary {{
     grid-template-columns:
       1fr;
+  }}
+
+  .simulation-grid {{
+    grid-template-columns:1fr;
   }}
 
   .money-grid {{
