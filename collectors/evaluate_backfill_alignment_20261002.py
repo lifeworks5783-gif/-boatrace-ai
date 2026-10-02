@@ -29,13 +29,17 @@ def rank_top3(vals,lower=False):
     if len(vals)!=6 or any(v is None for _,v in vals): return None
     return [b for b,v in sorted(vals,key=(lambda z:(z[1],z[0])) if lower else (lambda z:(-z[1],z[0])))[:3]]
 def metric():
-    return {"eligible_races":0,"matches":0,"alignment_pct":None,"investment":0,"return":0,"profit":0,"recovery_rate_pct":None}
-def add(m,hit,payout):
-    m["eligible_races"]+=1;m["matches"]+=int(hit);m["investment"]+=600
-    if hit:m["return"]+=int(payout or 0)
+    return {"eligible_races":0,"top3_matches":0,"top3_alignment_pct":None,"exact_matches":0,"exact_alignment_pct":None,"top1_matches":0,"top1_accuracy_pct":None,"investment":0,"return":0,"profit":0,"recovery_rate_pct":None}
+def add(m,p3,act3,payout):
+    top3=set(p3)==set(act3); exact=p3==act3; top1=p3[0]==act3[0]
+    m["eligible_races"]+=1;m["top3_matches"]+=int(top3);m["exact_matches"]+=int(exact);m["top1_matches"]+=int(top1);m["investment"]+=600
+    if top3:m["return"]+=int(payout or 0)
 def finish(m):
     e=m["eligible_races"];inv=m["investment"]
-    m["alignment_pct"]=round(m["matches"]/e*100,2) if e else None
+    m["top3_alignment_pct"]=round(m["top3_matches"]/e*100,2) if e else None
+    m["exact_alignment_pct"]=round(m["exact_matches"]/e*100,2) if e else None
+    m["top1_accuracy_pct"]=round(m["top1_matches"]/e*100,2) if e else None
+    m["matches"]=m["top3_matches"];m["alignment_pct"]=m["top3_alignment_pct"]
     m["profit"]=m["return"]-inv
     m["recovery_rate_pct"]=round(m["return"]/inv*100,2) if inv else None
     return m
@@ -71,7 +75,7 @@ for race in pred["races"]:
             vals.append((lane,v))
         p3=rank_top3(vals)
         if p3:
-            hit=match(p3,act3);add(morning[name],hit,pay)
+            hit=match(p3,act3);add(morning[name],p3,act3,pay)
             row["morning_"+name+"_top3"]="-".join(map(str,p3));row["morning_"+name+"_match"]=int(hit)
     # 直前単体
     for name in LIVE:
@@ -84,7 +88,7 @@ for race in pred["races"]:
             vals.append((lane,v))
         p3=rank_top3(vals,lower=lower)
         if p3:
-            hit=match(p3,act3);add(live[name],hit,pay)
+            hit=match(p3,act3);add(live[name],p3,act3,pay)
             row["live_"+name+"_top3"]="-".join(map(str,p3));row["live_"+name+"_match"]=int(hit)
     # 50:50掛け合わせ（朝基本成分）
     for key,(a,bn) in PAIRS.items():
@@ -96,13 +100,13 @@ for race in pred["races"]:
             vals.append((lane,None if va is None or vb is None else (va+vb)/2))
         p3=rank_top3(vals)
         if p3:
-            hit=match(p3,act3);add(pairs[key],hit,pay)
+            hit=match(p3,act3);add(pairs[key],p3,act3,pay)
             row[key+"_top3"]="-".join(map(str,p3));row[key+"_match"]=int(hit)
     rows.append(row)
 
 summary={
  "date":DATE,
- "definition":"TOP3完全整合率=単体要素で順位付けした上位3艇と実着1〜3着の3艇が順不同で完全一致した割合。",
+ "definitions":{"top3_alignment":"TOP3整合率=予測TOP3と実着TOP3の3艇が順不同で一致（3連複型）","exact_alignment":"完全一致整合率=予測1位=1着・2位=2着・3位=3着（3連単型）","top1_accuracy":"1着的中率=予測1位が実着1着"},
  "period_note":"固定定義の蓄積開始日が20261002のため、現時点では本日・直近7日・累計は同じ20261002の値。",
  "provenance":"20261002 historical backfill evaluation; production weights unchanged",
  "overall":{"races":len(rows),"matches":overall,"alignment_pct":round(overall/len(rows)*100,2)},
@@ -117,7 +121,7 @@ summary["single_components"]={**summary["morning_single_components"],
  "exTime":summary["live_single_components"]["exTime"]}
 summary["single_component_ranking"]=sorted(
  [{"component":k,**v} for k,v in summary["single_components"].items() if v["eligible_races"]],
- key=lambda x:(-(x["alignment_pct"] or 0),-x["eligible_races"],x["component"]))
+ key=lambda x:(-(x["top3_alignment_pct"] or 0),-(x["exact_alignment_pct"] or 0),-(x["top1_accuracy_pct"] or 0),-x["eligible_races"],x["component"]))
 OUT.mkdir(parents=True,exist_ok=True)
 (OUT/"alignment_summary_20261002.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
 with (OUT/"alignment_races_20261002.csv").open("w",encoding="utf-8",newline="") as f:
