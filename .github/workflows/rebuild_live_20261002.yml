@@ -76,5 +76,9 @@ jobs:
           git add evaluations/2026/10/02/backfill_live
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "evaluation: rebuild 20261002 live scores from backfill"
+
+          # 履歴特徴量生成などで作られた検証用の未追跡・未ステージ変更は
+          # 本コミット対象ではないため、push前に退避する。
+          git stash push --include-untracked -m "temporary rebuild artifacts" || true
           git pull --rebase origin main
-          git push origin main
+          git push origin HEAD:main
