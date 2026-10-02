@@ -1,0 +1,52 @@
+name: 朝予測V2 144R検証
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 構文チェック
+        run: python -m py_compile collectors/evaluate_morning_v2.py
+
+      - name: 9月30日 全144R検証
+        run: python -u collectors/evaluate_morning_v2.py
+
+      - name: 結果ファイル確認
+        run: |
+          test -s evaluations/2026/09/30/morning_v2_report_20260930.json
+          test -s evaluations/2026/09/30/morning_v2_race_results_20260930.csv
+          test -s evaluations/2026/09/30/morning_v2_boat_scores_20260930.csv
+          test -s evaluations/2026/09/30/morning_v2_config_snapshot_20260930.json
+          cat evaluations/2026/09/30/morning_v2_report_20260930.json
+
+      - name: GitHubへ保存
+        run: |
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git add config/morning_v2_config.json collectors/evaluate_morning_v2.py evaluations/2026/09/30
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "Evaluate configurable morning v2 model on 20260930"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: morning-v2-evaluation-${{ github.run_number }}
+          path: evaluations/2026/09/30/morning_v2_*
+          retention-days: 7
