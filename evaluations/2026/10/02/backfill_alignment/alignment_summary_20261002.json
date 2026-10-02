@@ -1,72 +1,245 @@
 {
   "date": "20261002",
-  "definition": "整合率=予測スコア上位3艇と実着1〜3着の3艇が順不同で完全一致したレース割合。3艇完全一致のみ○、2艇以下は×。",
-  "provenance": "historical_backfill_after_races; 本番リアルタイム成績とは分離",
+  "definition": "TOP3完全整合率=単体要素で順位付けした上位3艇と実着1〜3着の3艇が順不同で完全一致した割合。",
+  "period_note": "固定定義の蓄積開始日が20261002のため、現時点では本日・直近7日・累計は同じ20261002の値。",
+  "provenance": "20261002 historical backfill evaluation; production weights unchanged",
   "overall": {
     "races": 168,
     "matches": 38,
     "alignment_pct": 22.62
   },
-  "single_components": {
+  "morning_single_components": {
     "course": {
       "eligible_races": 168,
       "matches": 24,
-      "alignment_pct": 14.29
+      "alignment_pct": 14.29,
+      "investment": 100800,
+      "return": 68190,
+      "profit": -32610,
+      "recovery_rate_pct": 67.65
     },
     "official": {
       "eligible_races": 168,
       "matches": 29,
-      "alignment_pct": 17.26
+      "alignment_pct": 17.26,
+      "investment": 100800,
+      "return": 52170,
+      "profit": -48630,
+      "recovery_rate_pct": 51.76
     },
     "recent": {
       "eligible_races": 168,
       "matches": 23,
-      "alignment_pct": 13.69
+      "alignment_pct": 13.69,
+      "investment": 100800,
+      "return": 45690,
+      "profit": -55110,
+      "recovery_rate_pct": 45.33
     },
     "venue": {
       "eligible_races": 168,
       "matches": 21,
-      "alignment_pct": 12.5
+      "alignment_pct": 12.5,
+      "investment": 100800,
+      "return": 83490,
+      "profit": -17310,
+      "recovery_rate_pct": 82.83
     },
     "motor": {
       "eligible_races": 168,
       "matches": 8,
-      "alignment_pct": 4.76
+      "alignment_pct": 4.76,
+      "investment": 100800,
+      "return": 111780,
+      "profit": 10980,
+      "recovery_rate_pct": 110.89
     },
     "boat": {
       "eligible_races": 168,
       "matches": 6,
-      "alignment_pct": 3.57
+      "alignment_pct": 3.57,
+      "investment": 100800,
+      "return": 52350,
+      "profit": -48450,
+      "recovery_rate_pct": 51.93
     },
     "grade": {
       "eligible_races": 168,
       "matches": 31,
-      "alignment_pct": 18.45
-    },
-    "avgST": {
-      "eligible_races": 0,
-      "matches": 0,
-      "alignment_pct": null
+      "alignment_pct": 18.45,
+      "investment": 100800,
+      "return": 55540,
+      "profit": -45260,
+      "recovery_rate_pct": 55.1
     },
     "series": {
       "eligible_races": 155,
       "matches": 16,
-      "alignment_pct": 10.32
-    },
-    "exTime": {
-      "eligible_races": 0,
-      "matches": 0,
-      "alignment_pct": null
+      "alignment_pct": 10.32,
+      "investment": 93000,
+      "return": 23340,
+      "profit": -69660,
+      "recovery_rate_pct": 25.1
+    }
+  },
+  "live_single_components": {
+    "live_course": {
+      "eligible_races": 168,
+      "matches": 24,
+      "alignment_pct": 14.29,
+      "investment": 100800,
+      "return": 65370,
+      "profit": -35430,
+      "recovery_rate_pct": 64.85
     },
     "exST": {
       "eligible_races": 165,
       "matches": 14,
-      "alignment_pct": 8.48
+      "alignment_pct": 8.48,
+      "investment": 99000,
+      "return": 53190,
+      "profit": -45810,
+      "recovery_rate_pct": 53.73
     },
-    "discipline": {
-      "eligible_races": 0,
-      "matches": 0,
-      "alignment_pct": null
+    "exTime": {
+      "eligible_races": 165,
+      "matches": 18,
+      "alignment_pct": 10.91,
+      "investment": 99000,
+      "return": 51410,
+      "profit": -47590,
+      "recovery_rate_pct": 51.93
+    }
+  },
+  "pair_components": {
+    "course_x_venue": {
+      "eligible_races": 168,
+      "matches": 32,
+      "alignment_pct": 19.05,
+      "investment": 100800,
+      "return": 75570,
+      "profit": -25230,
+      "recovery_rate_pct": 74.97
+    },
+    "course_x_official": {
+      "eligible_races": 168,
+      "matches": 37,
+      "alignment_pct": 22.02,
+      "investment": 100800,
+      "return": 83380,
+      "profit": -17420,
+      "recovery_rate_pct": 82.72
+    },
+    "grade_x_official": {
+      "eligible_races": 168,
+      "matches": 30,
+      "alignment_pct": 17.86,
+      "investment": 100800,
+      "return": 57950,
+      "profit": -42850,
+      "recovery_rate_pct": 57.49
+    },
+    "official_x_recent": {
+      "eligible_races": 168,
+      "matches": 26,
+      "alignment_pct": 15.48,
+      "investment": 100800,
+      "return": 50080,
+      "profit": -50720,
+      "recovery_rate_pct": 49.68
+    }
+  },
+  "simulation_rule": "各単体/掛け合わせのTOP3を3連単6点BOX、100円/点（600円/R）で検証。完全整合なら実際の3連単払戻を100円分計上。",
+  "single_components": {
+    "course": {
+      "eligible_races": 168,
+      "matches": 24,
+      "alignment_pct": 14.29,
+      "investment": 100800,
+      "return": 68190,
+      "profit": -32610,
+      "recovery_rate_pct": 67.65
+    },
+    "official": {
+      "eligible_races": 168,
+      "matches": 29,
+      "alignment_pct": 17.26,
+      "investment": 100800,
+      "return": 52170,
+      "profit": -48630,
+      "recovery_rate_pct": 51.76
+    },
+    "recent": {
+      "eligible_races": 168,
+      "matches": 23,
+      "alignment_pct": 13.69,
+      "investment": 100800,
+      "return": 45690,
+      "profit": -55110,
+      "recovery_rate_pct": 45.33
+    },
+    "venue": {
+      "eligible_races": 168,
+      "matches": 21,
+      "alignment_pct": 12.5,
+      "investment": 100800,
+      "return": 83490,
+      "profit": -17310,
+      "recovery_rate_pct": 82.83
+    },
+    "motor": {
+      "eligible_races": 168,
+      "matches": 8,
+      "alignment_pct": 4.76,
+      "investment": 100800,
+      "return": 111780,
+      "profit": 10980,
+      "recovery_rate_pct": 110.89
+    },
+    "boat": {
+      "eligible_races": 168,
+      "matches": 6,
+      "alignment_pct": 3.57,
+      "investment": 100800,
+      "return": 52350,
+      "profit": -48450,
+      "recovery_rate_pct": 51.93
+    },
+    "grade": {
+      "eligible_races": 168,
+      "matches": 31,
+      "alignment_pct": 18.45,
+      "investment": 100800,
+      "return": 55540,
+      "profit": -45260,
+      "recovery_rate_pct": 55.1
+    },
+    "series": {
+      "eligible_races": 155,
+      "matches": 16,
+      "alignment_pct": 10.32,
+      "investment": 93000,
+      "return": 23340,
+      "profit": -69660,
+      "recovery_rate_pct": 25.1
+    },
+    "exST": {
+      "eligible_races": 165,
+      "matches": 14,
+      "alignment_pct": 8.48,
+      "investment": 99000,
+      "return": 53190,
+      "profit": -45810,
+      "recovery_rate_pct": 53.73
+    },
+    "exTime": {
+      "eligible_races": 165,
+      "matches": 18,
+      "alignment_pct": 10.91,
+      "investment": 99000,
+      "return": 51410,
+      "profit": -47590,
+      "recovery_rate_pct": 51.93
     }
   },
   "single_component_ranking": [
@@ -74,55 +247,101 @@
       "component": "grade",
       "eligible_races": 168,
       "matches": 31,
-      "alignment_pct": 18.45
+      "alignment_pct": 18.45,
+      "investment": 100800,
+      "return": 55540,
+      "profit": -45260,
+      "recovery_rate_pct": 55.1
     },
     {
       "component": "official",
       "eligible_races": 168,
       "matches": 29,
-      "alignment_pct": 17.26
+      "alignment_pct": 17.26,
+      "investment": 100800,
+      "return": 52170,
+      "profit": -48630,
+      "recovery_rate_pct": 51.76
     },
     {
       "component": "course",
       "eligible_races": 168,
       "matches": 24,
-      "alignment_pct": 14.29
+      "alignment_pct": 14.29,
+      "investment": 100800,
+      "return": 68190,
+      "profit": -32610,
+      "recovery_rate_pct": 67.65
     },
     {
       "component": "recent",
       "eligible_races": 168,
       "matches": 23,
-      "alignment_pct": 13.69
+      "alignment_pct": 13.69,
+      "investment": 100800,
+      "return": 45690,
+      "profit": -55110,
+      "recovery_rate_pct": 45.33
     },
     {
       "component": "venue",
       "eligible_races": 168,
       "matches": 21,
-      "alignment_pct": 12.5
+      "alignment_pct": 12.5,
+      "investment": 100800,
+      "return": 83490,
+      "profit": -17310,
+      "recovery_rate_pct": 82.83
+    },
+    {
+      "component": "exTime",
+      "eligible_races": 165,
+      "matches": 18,
+      "alignment_pct": 10.91,
+      "investment": 99000,
+      "return": 51410,
+      "profit": -47590,
+      "recovery_rate_pct": 51.93
     },
     {
       "component": "series",
       "eligible_races": 155,
       "matches": 16,
-      "alignment_pct": 10.32
+      "alignment_pct": 10.32,
+      "investment": 93000,
+      "return": 23340,
+      "profit": -69660,
+      "recovery_rate_pct": 25.1
     },
     {
       "component": "exST",
       "eligible_races": 165,
       "matches": 14,
-      "alignment_pct": 8.48
+      "alignment_pct": 8.48,
+      "investment": 99000,
+      "return": 53190,
+      "profit": -45810,
+      "recovery_rate_pct": 53.73
     },
     {
       "component": "motor",
       "eligible_races": 168,
       "matches": 8,
-      "alignment_pct": 4.76
+      "alignment_pct": 4.76,
+      "investment": 100800,
+      "return": 111780,
+      "profit": 10980,
+      "recovery_rate_pct": 110.89
     },
     {
       "component": "boat",
       "eligible_races": 168,
       "matches": 6,
-      "alignment_pct": 3.57
+      "alignment_pct": 3.57,
+      "investment": 100800,
+      "return": 52350,
+      "profit": -48450,
+      "recovery_rate_pct": 51.93
     }
   ]
 }
