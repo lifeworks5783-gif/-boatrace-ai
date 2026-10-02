@@ -1,32 +1,33 @@
 {
-  "target_date": "20261001",
+  "target_date": "20261002",
   "window_days": 7,
   "requested_dates": [
-    "20260925",
     "20260926",
     "20260927",
     "20260928",
     "20260929",
     "20260930",
-    "20261001"
+    "20261001",
+    "20261002"
   ],
   "available_dates": [
     "20260930",
-    "20261001"
+    "20261001",
+    "20261002"
   ],
-  "available_day_count": 2,
+  "available_day_count": 3,
   "strategy": {
     "formation": {
-      "available_days": 2,
+      "available_days": 3,
       "overall": {
-        "races": 312,
-        "hits": 115,
-        "hit_rate_pct": 36.9,
-        "points": 2428,
-        "investment": 242800,
-        "return": 186580,
-        "profit": -56220,
-        "recovery_rate_pct": 76.8
+        "races": 480,
+        "hits": 169,
+        "hit_rate_pct": 35.2,
+        "points": 3692,
+        "investment": 369200,
+        "return": 283140,
+        "profit": -86060,
+        "recovery_rate_pct": 76.7
       },
       "daily": [
         {
@@ -50,20 +51,31 @@
           "return": 120870,
           "profit": -11530,
           "recovery_rate_pct": 91.3
+        },
+        {
+          "date": "20261002",
+          "races": 168,
+          "hits": 54,
+          "hit_rate_pct": 32.1,
+          "points": 1264,
+          "investment": 126400,
+          "return": 96560,
+          "profit": -29840,
+          "recovery_rate_pct": 76.4
         }
       ]
     },
     "top3_box": {
-      "available_days": 2,
+      "available_days": 3,
       "overall": {
-        "races": 312,
-        "hits": 69,
-        "hit_rate_pct": 22.1,
-        "points": 1872,
-        "investment": 187200,
-        "return": 99570,
-        "profit": -87630,
-        "recovery_rate_pct": 53.2
+        "races": 480,
+        "hits": 104,
+        "hit_rate_pct": 21.7,
+        "points": 2880,
+        "investment": 288000,
+        "return": 150100,
+        "profit": -137900,
+        "recovery_rate_pct": 52.1
       },
       "daily": [
         {
@@ -87,46 +99,57 @@
           "return": 66770,
           "profit": -34030,
           "recovery_rate_pct": 66.2
+        },
+        {
+          "date": "20261002",
+          "races": 168,
+          "hits": 35,
+          "hit_rate_pct": 20.8,
+          "points": 1008,
+          "investment": 100800,
+          "return": 50530,
+          "profit": -50270,
+          "recovery_rate_pct": 50.1
         }
       ]
     }
   },
   "prediction_quality": {
     "morning": {
-      "available_days": 2,
-      "races": 312,
-      "top1_win_rate_pct": 51.6,
-      "winner_in_top2_rate_pct": 70.5,
-      "winner_in_top3_rate_pct": 83.3
+      "available_days": 3,
+      "races": 480,
+      "top1_win_rate_pct": 51.9,
+      "winner_in_top2_rate_pct": 71.7,
+      "winner_in_top3_rate_pct": 82.9
     },
     "live": {
-      "available_days": 2,
-      "races": 215,
-      "top1_win_rate_pct": 54.9,
-      "winner_in_top2_rate_pct": 73.0,
-      "winner_in_top3_rate_pct": 84.2
+      "available_days": 3,
+      "races": 316,
+      "top1_win_rate_pct": 53.5,
+      "winner_in_top2_rate_pct": 71.8,
+      "winner_in_top3_rate_pct": 83.5
     }
   },
   "feature_consistency_top10": [
-    {
-      "stage": "morning",
-      "group": "total_score",
-      "label": "総合スコア",
-      "column": "total_score",
-      "days_observed": 2,
-      "total_races": 312,
-      "avg_abs_spearman": 0.4967,
-      "avg_high_leader_win_rate_pct": 51.6
-    },
     {
       "stage": "live",
       "group": "total_score",
       "label": "総合スコア",
       "column": "total_score",
-      "days_observed": 2,
-      "total_races": 312,
-      "avg_abs_spearman": 0.4959,
-      "avg_high_leader_win_rate_pct": 53.2
+      "days_observed": 3,
+      "total_races": 480,
+      "avg_abs_spearman": 0.486,
+      "avg_high_leader_win_rate_pct": 53.1
+    },
+    {
+      "stage": "morning",
+      "group": "total_score",
+      "label": "総合スコア",
+      "column": "total_score",
+      "days_observed": 3,
+      "total_races": 480,
+      "avg_abs_spearman": 0.4828,
+      "avg_high_leader_win_rate_pct": 51.9
     },
     {
       "stage": "live",
@@ -211,24 +234,24 @@
   ],
   "feature_consistency_all": [
     {
-      "stage": "morning",
-      "group": "total_score",
-      "label": "総合スコア",
-      "column": "total_score",
-      "days_observed": 2,
-      "total_races": 312,
-      "avg_abs_spearman": 0.4967,
-      "avg_high_leader_win_rate_pct": 51.6
-    },
-    {
       "stage": "live",
       "group": "total_score",
       "label": "総合スコア",
       "column": "total_score",
-      "days_observed": 2,
-      "total_races": 312,
-      "avg_abs_spearman": 0.4959,
-      "avg_high_leader_win_rate_pct": 53.2
+      "days_observed": 3,
+      "total_races": 480,
+      "avg_abs_spearman": 0.486,
+      "avg_high_leader_win_rate_pct": 53.1
+    },
+    {
+      "stage": "morning",
+      "group": "total_score",
+      "label": "総合スコア",
+      "column": "total_score",
+      "days_observed": 3,
+      "total_races": 480,
+      "avg_abs_spearman": 0.4828,
+      "avg_high_leader_win_rate_pct": 51.9
     },
     {
       "stage": "live",
@@ -2363,114 +2386,114 @@
   ],
   "live_factor_summary": {
     "coverage": {
-      "exhibition_time": 1516,
-      "exhibition_st": 1552,
-      "exhibition_f": 1554,
-      "exhibition_course": 1516,
-      "course_changed": 1552,
-      "wind_speed": 690,
-      "wind_direction": 1482,
-      "wave_height": 690
+      "exhibition_time": 2122,
+      "exhibition_st": 2158,
+      "exhibition_f": 2160,
+      "exhibition_course": 2122,
+      "course_changed": 2158,
+      "wind_speed": 1296,
+      "wind_direction": 2088,
+      "wave_height": 1296
     },
     "factors": {
       "exhibition_time": {
-        "days": 2,
-        "races": 253,
-        "best_win_rate_pct": 31.6,
-        "best_top3_rate_pct": 64.4,
-        "worst_win_rate_pct": 8.3
+        "days": 3,
+        "races": 354,
+        "best_win_rate_pct": 30.5,
+        "best_top3_rate_pct": 64.1,
+        "worst_win_rate_pct": 8.5
       },
       "exhibition_st": {
-        "days": 2,
-        "races": 239,
-        "best_win_rate_pct": 21.0,
-        "best_top3_rate_pct": 56.0,
-        "worst_win_rate_pct": 14.2
+        "days": 3,
+        "races": 320,
+        "best_win_rate_pct": 20.3,
+        "best_top3_rate_pct": 57.2,
+        "worst_win_rate_pct": 11.9
       },
       "exhibition_f": {
-        "days": 2,
-        "boats": 1554,
-        "flagged_boats": 126
+        "days": 3,
+        "boats": 2160,
+        "flagged_boats": 269
       },
       "course_changed": {
-        "days": 2,
-        "boats": 1552,
-        "flagged_boats": 104
+        "days": 3,
+        "boats": 2158,
+        "flagged_boats": 151
       }
     },
     "pooled_weight_search": {
       "available": true,
-      "races": 312,
-      "baseline_top1_accuracy_pct": 51.6,
+      "races": 480,
+      "baseline_top1_accuracy_pct": 51.9,
       "best_candidates": [
         {
-          "exhibition_time_weight": 2,
-          "exhibition_st_weight": 8,
-          "f_penalty": 2,
-          "top1_accuracy_pct": 53.2,
-          "improvement_vs_baseline_pt": 1.6
-        },
-        {
-          "exhibition_time_weight": 2,
-          "exhibition_st_weight": 8,
+          "exhibition_time_weight": 6,
+          "exhibition_st_weight": 4,
           "f_penalty": 0,
-          "top1_accuracy_pct": 52.9,
-          "improvement_vs_baseline_pt": 1.3
+          "top1_accuracy_pct": 53.5,
+          "improvement_vs_baseline_pt": 1.7
         },
         {
           "exhibition_time_weight": 6,
           "exhibition_st_weight": 6,
           "f_penalty": 0,
-          "top1_accuracy_pct": 52.9,
-          "improvement_vs_baseline_pt": 1.3
+          "top1_accuracy_pct": 53.5,
+          "improvement_vs_baseline_pt": 1.7
+        },
+        {
+          "exhibition_time_weight": 6,
+          "exhibition_st_weight": 8,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 53.5,
+          "improvement_vs_baseline_pt": 1.7
         },
         {
           "exhibition_time_weight": 2,
           "exhibition_st_weight": 8,
-          "f_penalty": 4,
+          "f_penalty": 2,
+          "top1_accuracy_pct": 53.1,
+          "improvement_vs_baseline_pt": 1.2
+        },
+        {
+          "exhibition_time_weight": 6,
+          "exhibition_st_weight": 4,
+          "f_penalty": 2,
+          "top1_accuracy_pct": 53.1,
+          "improvement_vs_baseline_pt": 1.2
+        },
+        {
+          "exhibition_time_weight": 6,
+          "exhibition_st_weight": 2,
+          "f_penalty": 0,
           "top1_accuracy_pct": 52.9,
-          "improvement_vs_baseline_pt": 1.3
+          "improvement_vs_baseline_pt": 1.0
+        },
+        {
+          "exhibition_time_weight": 2,
+          "exhibition_st_weight": 8,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.9,
+          "improvement_vs_baseline_pt": 1.0
         },
         {
           "exhibition_time_weight": 4,
-          "exhibition_st_weight": 2,
+          "exhibition_st_weight": 8,
           "f_penalty": 0,
-          "top1_accuracy_pct": 52.6,
+          "top1_accuracy_pct": 52.9,
+          "improvement_vs_baseline_pt": 1.0
+        },
+        {
+          "exhibition_time_weight": 8,
+          "exhibition_st_weight": 4,
+          "f_penalty": 0,
+          "top1_accuracy_pct": 52.9,
           "improvement_vs_baseline_pt": 1.0
         },
         {
           "exhibition_time_weight": 6,
           "exhibition_st_weight": 4,
-          "f_penalty": 0,
-          "top1_accuracy_pct": 52.6,
-          "improvement_vs_baseline_pt": 1.0
-        },
-        {
-          "exhibition_time_weight": 0,
-          "exhibition_st_weight": 10,
-          "f_penalty": 2,
-          "top1_accuracy_pct": 52.6,
-          "improvement_vs_baseline_pt": 1.0
-        },
-        {
-          "exhibition_time_weight": 0,
-          "exhibition_st_weight": 12,
-          "f_penalty": 0,
-          "top1_accuracy_pct": 52.6,
-          "improvement_vs_baseline_pt": 1.0
-        },
-        {
-          "exhibition_time_weight": 2,
-          "exhibition_st_weight": 10,
-          "f_penalty": 0,
-          "top1_accuracy_pct": 52.6,
-          "improvement_vs_baseline_pt": 1.0
-        },
-        {
-          "exhibition_time_weight": 4,
-          "exhibition_st_weight": 8,
-          "f_penalty": 0,
-          "top1_accuracy_pct": 52.6,
+          "f_penalty": 4,
+          "top1_accuracy_pct": 52.9,
           "improvement_vs_baseline_pt": 1.0
         }
       ]
@@ -2479,44 +2502,44 @@
   "missing_data": [
     {
       "factor": "exhibition_time",
-      "coverage": 1516,
-      "coverage_rate_pct": 81.0,
+      "coverage": 2122,
+      "coverage_rate_pct": 73.7,
       "priority": "良好"
     },
     {
       "factor": "exhibition_st",
-      "coverage": 1552,
-      "coverage_rate_pct": 82.9,
+      "coverage": 2158,
+      "coverage_rate_pct": 74.9,
       "priority": "良好"
     },
     {
       "factor": "exhibition_f",
-      "coverage": 1554,
-      "coverage_rate_pct": 83.0,
+      "coverage": 2160,
+      "coverage_rate_pct": 75.0,
       "priority": "良好"
     },
     {
       "factor": "exhibition_course",
-      "coverage": 1516,
-      "coverage_rate_pct": 81.0,
+      "coverage": 2122,
+      "coverage_rate_pct": 73.7,
       "priority": "良好"
     },
     {
       "factor": "wind_speed",
-      "coverage": 690,
-      "coverage_rate_pct": 36.9,
+      "coverage": 1296,
+      "coverage_rate_pct": 45.0,
       "priority": "要改善"
     },
     {
       "factor": "wind_direction",
-      "coverage": 1482,
-      "coverage_rate_pct": 79.2,
+      "coverage": 2088,
+      "coverage_rate_pct": 72.5,
       "priority": "良好"
     },
     {
       "factor": "wave_height",
-      "coverage": 690,
-      "coverage_rate_pct": 36.9,
+      "coverage": 1296,
+      "coverage_rate_pct": 45.0,
       "priority": "要改善"
     }
   ],
