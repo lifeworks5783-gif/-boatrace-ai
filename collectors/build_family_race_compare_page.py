@@ -883,4 +883,1835 @@ def locate_morning_file(
 
                 return path
 
-    return
+    return None
+
+
+def locate_live_file(
+    root,
+    target_date,
+):
+
+    yyyy = target_date[:4]
+    mm = target_date[4:6]
+    dd = target_date[6:8]
+
+    candidates = [
+        root
+        / yyyy
+        / mm
+        / dd
+        / "live"
+        / (
+            "live_predictions_final_"
+            f"{target_date}.json"
+        ),
+
+        root
+        / yyyy
+        / mm
+        / dd
+        / "live"
+        / (
+            "live_predictions_"
+            f"{target_date}.json"
+        ),
+    ]
+
+    for path in candidates:
+
+        if path.is_file():
+            return path
+
+    search_root = (
+        root
+        / yyyy
+        / mm
+        / dd
+        / "live"
+    )
+
+    if search_root.exists():
+
+        files = sorted(
+            search_root.rglob(
+                "*.json"
+            )
+        )
+
+        preferred = []
+
+        for path in files:
+
+            name = (
+                path.name.lower()
+            )
+
+            if (
+                "validation"
+                in name
+            ):
+                continue
+
+            if (
+                "final"
+                in name
+            ):
+                preferred.append(
+                    path
+                )
+
+        if preferred:
+
+            return preferred[-1]
+
+    return None
+
+
+def load_predictions(
+    predictions_root,
+    target_date,
+):
+
+    root = Path(
+        predictions_root
+    )
+
+    morning_file = locate_morning_file(
+        root,
+        target_date,
+    )
+
+    live_file = locate_live_file(
+        root,
+        target_date,
+    )
+
+    print(
+        "朝予測ファイル:",
+        morning_file
+        if morning_file
+        else "NOT FOUND",
+    )
+
+    print(
+        "直前予測ファイル:",
+        live_file
+        if live_file
+        else "NOT FOUND",
+    )
+
+    morning = {}
+
+    live = {}
+
+    if morning_file:
+
+        morning = load_prediction_file(
+            morning_file,
+            target_date,
+        )
+
+    if live_file:
+
+        live = load_prediction_file(
+            live_file,
+            target_date,
+        )
+
+    print(
+        "朝予測読込:",
+        len(morning),
+        "R",
+    )
+
+    print(
+        "直前予測読込:",
+        len(live),
+        "R",
+    )
+
+    return (
+        morning,
+        live,
+    )
+
+
+# =========================================================
+# 公開結果CSV
+# =========================================================
+
+def latest_by_race(
+    rows,
+):
+
+    output = {}
+
+    for row in rows:
+
+        race_code = str(
+            row.get(
+                "レースコード",
+                "",
+            )
+        ).strip()
+
+        if not race_code:
+            continue
+
+        previous = output.get(
+            race_code
+        )
+
+        current_time = str(
+            row.get(
+                "取得日時",
+                "",
+            )
+        )
+
+        previous_time = (
+            str(
+                previous.get(
+                    "取得日時",
+                    "",
+                )
+            )
+            if previous
+            else ""
+        )
+
+        if (
+            previous is None
+            or current_time
+            >= previous_time
+        ):
+
+            output[
+                race_code
+            ] = row
+
+    return output
+
+
+# =========================================================
+# 評価
+# =========================================================
+
+def evaluate_top3(
+    prediction,
+    actual,
+):
+
+    if not prediction:
+        return None
+
+    picks = prediction.get(
+        "top3",
+        [],
+    )
+
+    if len(picks) < 3:
+        return None
+
+    predicted = [
+        int(
+            x["boat"]
+        )
+        for x in picks[:3]
+    ]
+
+    overlap = len(
+        set(
+            predicted
+        )
+        & set(
+            actual
+        )
+    )
+
+    return {
+        "predicted":
+            predicted,
+
+        "overlap_count":
+            overlap,
+
+        "overlap_rate":
+            overlap
+            / 3
+            * 100,
+
+        "exact":
+            set(
+                predicted
+            )
+            == set(
+                actual
+            ),
+
+        "winner":
+            predicted[0]
+            == actual[0],
+    }
+
+
+# =========================================================
+# オッズ時刻
+# =========================================================
+
+def odds_minutes_before(
+    target_date,
+    deadline,
+    obtained_at,
+):
+
+    if (
+        not deadline
+        or not obtained_at
+    ):
+        return None
+
+    try:
+
+        deadline_text = (
+            str(
+                deadline
+            )
+            .strip()
+            .replace(
+                "締切",
+                "",
+            )
+            .strip()
+        )
+
+        deadline_dt = datetime.strptime(
+            target_date
+            + deadline_text,
+            "%Y%m%d%H:%M",
+        ).replace(
+            tzinfo=JST
+        )
+
+        obtained_text = str(
+            obtained_at
+        ).strip()
+
+        obtained_dt = datetime.fromisoformat(
+            obtained_text.replace(
+                "Z",
+                "+00:00",
+            )
+        )
+
+        if (
+            obtained_dt.tzinfo
+            is None
+        ):
+
+            obtained_dt = (
+                obtained_dt.replace(
+                    tzinfo=JST
+                )
+            )
+
+        obtained_dt = (
+            obtained_dt.astimezone(
+                JST
+            )
+        )
+
+        minutes = (
+            deadline_dt
+            - obtained_dt
+        ).total_seconds() / 60
+
+        return round(
+            minutes,
+            1,
+        )
+
+    except Exception:
+        return None
+
+
+# =========================================================
+# レースデータ統合
+# =========================================================
+
+def build_race_rows(
+    target_date,
+    morning_predictions,
+    live_predictions,
+):
+
+    yyyy = target_date[:4]
+    mm = target_date[4:6]
+    dd = target_date[6:8]
+
+    date_path = (
+        f"{yyyy}/{mm}/{dd}"
+    )
+
+    result_url = (
+        f"{PUBLIC_DATA_BASE}"
+        "/results/realtime/"
+        f"{date_path}.csv"
+    )
+
+    payout_url = (
+        f"{PUBLIC_DATA_BASE}"
+        "/results/payouts/"
+        f"{date_path}.csv"
+    )
+
+    odds_url = (
+        f"{PUBLIC_DATA_BASE}"
+        "/previews/od3/"
+        f"{date_path}.csv"
+    )
+
+    print(
+        "結果CSV:",
+        result_url,
+    )
+
+    print(
+        "払戻CSV:",
+        payout_url,
+    )
+
+    print(
+        "オッズCSV:",
+        odds_url,
+    )
+
+    results = latest_by_race(
+        read_csv_text(
+            fetch_text(
+                result_url
+            )
+        )
+    )
+
+    payouts = latest_by_race(
+        read_csv_text(
+            fetch_text(
+                payout_url
+            )
+        )
+    )
+
+    odds = latest_by_race(
+        read_csv_text(
+            fetch_text(
+                odds_url
+            )
+        )
+    )
+
+    print(
+        "結果取得:",
+        len(results),
+        "R",
+    )
+
+    print(
+        "払戻取得:",
+        len(payouts),
+        "R",
+    )
+
+    print(
+        "オッズ取得:",
+        len(odds),
+        "R",
+    )
+
+    race_rows = []
+
+    for (
+        race_code,
+        result,
+    ) in results.items():
+
+        if not race_code.startswith(
+            target_date
+        ):
+            continue
+
+        actual = []
+
+        actual_names = []
+
+        valid = True
+
+        for rank in range(
+            1,
+            4,
+        ):
+
+            boat = normalize_boat(
+                result.get(
+                    f"{rank}着_艇番"
+                )
+            )
+
+            if boat is None:
+
+                valid = False
+                break
+
+            actual.append(
+                boat
+            )
+
+            name = str(
+                result.get(
+                    f"{rank}着_選手名",
+                    "",
+                )
+            ).replace(
+                "　",
+                " ",
+            ).strip()
+
+            actual_names.append(
+                name
+            )
+
+        if not valid:
+            continue
+
+        morning = (
+            morning_predictions.get(
+                race_code
+            )
+        )
+
+        live = (
+            live_predictions.get(
+                race_code
+            )
+        )
+
+        payout_row = (
+            payouts.get(
+                race_code,
+                {},
+            )
+        )
+
+        odds_row = (
+            odds.get(
+                race_code,
+                {},
+            )
+        )
+
+        trifecta = "-".join(
+            str(x)
+            for x in actual
+        )
+
+        payout_value = safe_int(
+            payout_row.get(
+                "3連単_払戻金"
+            )
+        )
+
+        odds_value = safe_float(
+            odds_row.get(
+                f"3連単_{trifecta}"
+            )
+        )
+
+        venue_code = (
+            race_code[8:10]
+        )
+
+        venue = (
+            CODE_TO_VENUE.get(
+                venue_code,
+                venue_code,
+            )
+        )
+
+        try:
+
+            race_no = int(
+                race_code[-2:]
+            )
+
+        except ValueError:
+
+            race_no = 0
+
+        deadline = str(
+            result.get(
+                "締切時刻",
+                "",
+            )
+        ).strip()
+
+        odds_time = str(
+            odds_row.get(
+                "取得日時",
+                "",
+            )
+        ).strip()
+
+        race_rows.append(
+            {
+                "race_code":
+                    race_code,
+
+                "venue":
+                    venue,
+
+                "race":
+                    race_no,
+
+                "deadline":
+                    deadline,
+
+                "result_time":
+                    str(
+                        result.get(
+                            "結果記録時刻",
+                            "",
+                        )
+                    ).strip(),
+
+                "technique":
+                    str(
+                        result.get(
+                            "決まり手",
+                            "",
+                        )
+                    ).strip(),
+
+                "actual":
+                    actual,
+
+                "actual_names":
+                    actual_names,
+
+                "morning":
+                    morning,
+
+                "live":
+                    live,
+
+                "morning_eval":
+                    evaluate_top3(
+                        morning,
+                        actual,
+                    ),
+
+                "live_eval":
+                    evaluate_top3(
+                        live,
+                        actual,
+                    ),
+
+                "trifecta":
+                    trifecta,
+
+                "payout":
+                    payout_value,
+
+                "odds":
+                    odds_value,
+
+                "odds_time":
+                    odds_time,
+
+                "odds_minutes":
+                    odds_minutes_before(
+                        target_date,
+                        deadline,
+                        odds_time,
+                    ),
+            }
+        )
+
+    # 締切が遅いレースを上に
+    race_rows.sort(
+        key=lambda row: (
+            row["deadline"],
+            row["race_code"],
+        ),
+        reverse=True,
+    )
+
+    return race_rows
+
+
+# =========================================================
+# 集計
+# =========================================================
+
+def aggregate(
+    race_rows,
+    key,
+):
+
+    values = [
+        row[key]
+        for row in race_rows
+        if row.get(key)
+    ]
+
+    if not values:
+
+        return {
+            "count": 0,
+            "overlap": None,
+            "exact": None,
+            "winner": None,
+        }
+
+    count = len(
+        values
+    )
+
+    overlap = (
+        sum(
+            item[
+                "overlap_rate"
+            ]
+            for item in values
+        )
+        / count
+    )
+
+    exact = (
+        sum(
+            100
+            if item["exact"]
+            else 0
+            for item in values
+        )
+        / count
+    )
+
+    winner = (
+        sum(
+            100
+            if item["winner"]
+            else 0
+            for item in values
+        )
+        / count
+    )
+
+    return {
+        "count":
+            count,
+
+        "overlap":
+            overlap,
+
+        "exact":
+            exact,
+
+        "winner":
+            winner,
+    }
+
+
+def percent(
+    value,
+):
+
+    if value is None:
+        return "—"
+
+    return (
+        f"{value:.1f}%"
+    )
+
+
+# =========================================================
+# HTML部品
+# =========================================================
+
+def prediction_html(
+    prediction,
+):
+
+    if not prediction:
+
+        return (
+            '<span class="missing">'
+            "予測なし"
+            "</span>"
+        )
+
+    picks = prediction.get(
+        "top3",
+        [],
+    )
+
+    if len(picks) < 3:
+
+        return (
+            '<span class="missing">'
+            "予測なし"
+            "</span>"
+        )
+
+    output = []
+
+    for pick in picks[:3]:
+
+        boat = pick.get(
+            "boat"
+        )
+
+        name = esc(
+            pick.get(
+                "name",
+                "",
+            )
+        )
+
+        score = pick.get(
+            "score"
+        )
+
+        score_html = ""
+
+        if score is not None:
+
+            score_html = (
+                f'<small>'
+                f'{score:.1f}'
+                f'</small>'
+            )
+
+        output.append(
+            f'<span class="boat">'
+            f'<b>{boat}</b>号艇 '
+            f'{name}'
+            f'{score_html}'
+            f'</span>'
+        )
+
+    return (
+        '<span class="arrow">'
+        " → "
+        "</span>"
+    ).join(
+        output
+    )
+
+
+def evaluation_html(
+    evaluation,
+):
+
+    if not evaluation:
+
+        return (
+            '<span class="missing">'
+            "未評価"
+            "</span>"
+        )
+
+    exact = (
+        "○"
+        if evaluation[
+            "exact"
+        ]
+        else "×"
+    )
+
+    winner = (
+        "○"
+        if evaluation[
+            "winner"
+        ]
+        else "×"
+    )
+
+    return (
+        f'<span class="tag">'
+        f'TOP3 '
+        f'{evaluation["overlap_count"]}/3 '
+        f'('
+        f'{evaluation["overlap_rate"]:.1f}%'
+        f')'
+        f'</span>'
+
+        f'<span class="tag">'
+        f'完全一致 {exact}'
+        f'</span>'
+
+        f'<span class="tag">'
+        f'1着一致 {winner}'
+        f'</span>'
+    )
+
+
+# =========================================================
+# HTML生成
+# =========================================================
+
+def render_html(
+    target_date,
+    race_rows,
+):
+
+    morning_summary = aggregate(
+        race_rows,
+        "morning_eval",
+    )
+
+    live_summary = aggregate(
+        race_rows,
+        "live_eval",
+    )
+
+    now = datetime.now(
+        JST
+    )
+
+    generated = now.strftime(
+        "%Y/%m/%d %H:%M"
+    )
+
+    display_date = (
+        f"{target_date[:4]}/"
+        f"{target_date[4:6]}/"
+        f"{target_date[6:8]}"
+    )
+
+    cards = []
+
+    for row in race_rows:
+
+        actual_parts = []
+
+        for (
+            boat,
+            name,
+        ) in zip(
+            row["actual"],
+            row["actual_names"],
+        ):
+
+            actual_parts.append(
+                f'<span class="boat">'
+                f'<b>{boat}</b>号艇 '
+                f'{esc(name)}'
+                f'</span>'
+            )
+
+        actual_html = (
+            '<span class="arrow">'
+            " → "
+            "</span>"
+        ).join(
+            actual_parts
+        )
+
+        payout_text = "—"
+
+        if row["payout"] is not None:
+
+            payout_text = (
+                f'{row["payout"]:,}円'
+            )
+
+        odds_text = "—"
+
+        if row["odds"] is not None:
+
+            odds_text = (
+                f'{row["odds"]:g}倍'
+            )
+
+        odds_note = ""
+
+        if (
+            row[
+                "odds_minutes"
+            ]
+            is not None
+        ):
+
+            minutes = row[
+                "odds_minutes"
+            ]
+
+            if minutes >= 0:
+
+                odds_note = (
+                    f"締切"
+                    f"{minutes:g}分前"
+                )
+
+            else:
+
+                odds_note = (
+                    f"締切"
+                    f"{abs(minutes):g}分後"
+                )
+
+        cards.append(
+            f"""
+<article class="race-card">
+
+  <div class="race-head">
+
+    <div>
+
+      <div class="race-title">
+        {esc(row["venue"])}
+        {row["race"]}R
+      </div>
+
+      <div class="sub">
+        締切
+        {esc(row["deadline"])}
+        ／
+        結果
+        {esc(row["result_time"])}
+        ／
+        {esc(row["technique"])}
+      </div>
+
+    </div>
+
+    <div class="combo">
+      {esc(row["trifecta"])}
+    </div>
+
+  </div>
+
+
+  <div class="actual">
+
+    <div class="label">
+      実結果
+    </div>
+
+    <div>
+      {actual_html}
+    </div>
+
+  </div>
+
+
+  <div class="prediction-row">
+
+    <div class="label">
+      朝予測
+    </div>
+
+    <div>
+      {prediction_html(row["morning"])}
+    </div>
+
+    <div class="metrics">
+      {evaluation_html(row["morning_eval"])}
+    </div>
+
+  </div>
+
+
+  <div class="prediction-row">
+
+    <div class="label">
+      直前予測
+    </div>
+
+    <div>
+      {prediction_html(row["live"])}
+    </div>
+
+    <div class="metrics">
+      {evaluation_html(row["live_eval"])}
+    </div>
+
+  </div>
+
+
+  <div class="money-grid">
+
+    <div class="money-box">
+
+      <span>
+        3連単払戻
+      </span>
+
+      <strong>
+        {payout_text}
+      </strong>
+
+    </div>
+
+
+    <div class="money-box">
+
+      <span>
+        結果3連単の締切前オッズ
+      </span>
+
+      <strong>
+        {odds_text}
+      </strong>
+
+      <small>
+        {esc(odds_note)}
+      </small>
+
+    </div>
+
+  </div>
+
+</article>
+"""
+        )
+
+    if cards:
+
+        cards_html = "".join(
+            cards
+        )
+
+    else:
+
+        cards_html = """
+<div class="empty">
+  現在、結果確定済みレースはありません。
+</div>
+"""
+
+    return f"""<!doctype html>
+<html lang="ja">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1"
+>
+
+<meta
+  name="robots"
+  content="noindex,nofollow"
+>
+
+<meta
+  http-equiv="refresh"
+  content="300"
+>
+
+<title>
+レース照合
+</title>
+
+
+<style>
+
+:root {{
+  --bg:#f4f6f8;
+  --card:#ffffff;
+  --text:#111827;
+  --muted:#667085;
+  --line:#e5e7eb;
+  --chip:#f3f4f6;
+  --blue:#2563eb;
+}}
+
+* {{
+  box-sizing:border-box;
+}}
+
+body {{
+  margin:0;
+
+  background:
+    var(--bg);
+
+  color:
+    var(--text);
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Hiragino Sans",
+    "Noto Sans JP",
+    sans-serif;
+}}
+
+.wrap {{
+  width:
+    min(
+      980px,
+      100%
+    );
+
+  margin:auto;
+
+  padding:
+    16px
+    12px
+    50px;
+}}
+
+h1 {{
+  margin:0;
+
+  font-size:24px;
+}}
+
+.meta {{
+  margin-top:5px;
+
+  color:
+    var(--muted);
+
+  font-size:12px;
+}}
+
+.nav {{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:6px;
+
+  margin:
+    14px
+    0;
+
+  padding:6px;
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius:14px;
+
+  background:
+    var(--card);
+}}
+
+.nav a {{
+  display:flex;
+
+  justify-content:center;
+  align-items:center;
+
+  min-height:44px;
+
+  padding:
+    7px
+    3px;
+
+  border-radius:10px;
+
+  color:
+    var(--text);
+
+  text-align:center;
+  text-decoration:none;
+
+  font-size:12px;
+  font-weight:800;
+}}
+
+.nav a.active {{
+  background:
+    var(--blue);
+
+  color:white;
+}}
+
+.note {{
+  margin:
+    10px
+    0
+    14px;
+
+  color:
+    var(--muted);
+
+  font-size:12px;
+
+  line-height:1.6;
+}}
+
+.summary {{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:8px;
+
+  margin-bottom:14px;
+}}
+
+.summary-box {{
+  padding:12px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius:12px;
+}}
+
+.summary-box span {{
+  display:block;
+
+  color:
+    var(--muted);
+
+  font-size:11px;
+}}
+
+.summary-box strong {{
+  display:block;
+
+  margin-top:4px;
+
+  font-size:19px;
+}}
+
+.race-card {{
+  margin-bottom:12px;
+
+  padding:14px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius:14px;
+}}
+
+.race-head {{
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  gap:10px;
+}}
+
+.race-title {{
+  font-size:18px;
+
+  font-weight:900;
+}}
+
+.sub {{
+  margin-top:3px;
+
+  color:
+    var(--muted);
+
+  font-size:11px;
+}}
+
+.combo {{
+  white-space:nowrap;
+
+  font-size:20px;
+
+  font-weight:900;
+}}
+
+.actual {{
+  margin-top:11px;
+
+  padding:10px;
+
+  background:
+    var(--chip);
+
+  border-radius:10px;
+
+  line-height:1.6;
+}}
+
+.label {{
+  margin-bottom:4px;
+
+  color:
+    var(--muted);
+
+  font-size:11px;
+
+  font-weight:800;
+}}
+
+.prediction-row {{
+  display:grid;
+
+  grid-template-columns:
+    64px
+    minmax(
+      0,
+      1fr
+    );
+
+  gap:
+    5px
+    10px;
+
+  padding:
+    10px
+    0;
+
+  border-bottom:
+    1px solid
+    var(--line);
+
+  font-size:14px;
+
+  line-height:1.6;
+}}
+
+.prediction-row .label {{
+  margin:0;
+}}
+
+.metrics {{
+  grid-column:2;
+
+  display:flex;
+
+  flex-wrap:wrap;
+
+  gap:5px;
+}}
+
+.tag {{
+  padding:
+    3px
+    7px;
+
+  background:
+    var(--chip);
+
+  border-radius:
+    999px;
+
+  font-size:11px;
+
+  font-weight:700;
+}}
+
+.boat small {{
+  margin-left:4px;
+
+  color:
+    var(--muted);
+}}
+
+.arrow {{
+  color:
+    var(--muted);
+}}
+
+.missing {{
+  color:
+    var(--muted);
+
+  font-size:12px;
+}}
+
+.money-grid {{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:8px;
+
+  margin-top:10px;
+}}
+
+.money-box {{
+  padding:10px;
+
+  background:
+    var(--chip);
+
+  border-radius:10px;
+}}
+
+.money-box span,
+.money-box small {{
+  display:block;
+
+  color:
+    var(--muted);
+
+  font-size:11px;
+}}
+
+.money-box strong {{
+  display:block;
+
+  margin-top:3px;
+
+  font-size:18px;
+}}
+
+.empty {{
+  padding:30px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid
+    var(--line);
+
+  border-radius:14px;
+
+  color:
+    var(--muted);
+
+  text-align:center;
+}}
+
+
+@media (
+  max-width:600px
+) {{
+
+  .summary {{
+    grid-template-columns:
+      1fr;
+  }}
+
+  .money-grid {{
+    grid-template-columns:
+      1fr;
+  }}
+
+  .nav a {{
+    font-size:11px;
+  }}
+}}
+
+
+@media (
+  prefers-color-scheme:dark
+) {{
+
+  :root {{
+    --bg:#0f1115;
+    --card:#171a21;
+    --text:#f3f4f6;
+    --muted:#a8b0bd;
+    --line:#2a3039;
+    --chip:#222833;
+    --blue:#3b82f6;
+  }}
+
+}}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="wrap">
+
+<h1>
+レース照合
+</h1>
+
+<div class="meta">
+  {display_date}
+  ・確定
+  {len(race_rows)}R
+  ・更新
+  {generated}
+  JST
+</div>
+
+
+<nav class="nav">
+
+  <a href="index.html">
+    最新予想
+  </a>
+
+  <a href="results.html">
+    結果・成績
+  </a>
+
+  <a href="analysis.html">
+    AI分析
+  </a>
+
+  <a
+    href="race_compare.html"
+    class="active"
+  >
+    レース照合
+  </a>
+
+</nav>
+
+
+<div class="note">
+
+終了済みレースについて、
+朝予測・最終直前予測と
+実際の結果を照合します。
+
+TOP3整合率は、
+予測TOP3のうち
+実際のTOP3に入った艇の割合です。
+
+完全一致は、
+順不同で予測TOP3と
+実際のTOP3が
+3艇すべて一致した場合です。
+
+</div>
+
+
+<section class="summary">
+
+
+<div class="summary-box">
+
+  <span>
+    確定レース
+  </span>
+
+  <strong>
+    {len(race_rows)}R
+  </strong>
+
+</div>
+
+
+<div class="summary-box">
+
+  <span>
+    朝 TOP3整合 /
+    完全一致
+  </span>
+
+  <strong>
+    {percent(morning_summary["overlap"])}
+    /
+    {percent(morning_summary["exact"])}
+  </strong>
+
+  <span>
+    {morning_summary["count"]}R
+  </span>
+
+</div>
+
+
+<div class="summary-box">
+
+  <span>
+    直前 TOP3整合 /
+    完全一致
+  </span>
+
+  <strong>
+    {percent(live_summary["overlap"])}
+    /
+    {percent(live_summary["exact"])}
+  </strong>
+
+  <span>
+    {live_summary["count"]}R
+  </span>
+
+</div>
+
+
+</section>
+
+
+{cards_html}
+
+
+</div>
+
+</body>
+
+</html>
+"""
+
+
+# =========================================================
+# MAIN
+# =========================================================
+
+def main():
+
+    args = parse_args()
+
+    target_date = str(
+        args.date
+    ).strip()
+
+    if (
+        len(target_date) != 8
+        or not target_date.isdigit()
+    ):
+
+        raise SystemExit(
+            "ERROR: "
+            "--date は YYYYMMDD "
+            "で指定してください"
+        )
+
+    output_dir = Path(
+        args.output_dir
+    )
+
+    output_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    print(
+        "========================================"
+    )
+
+    print(
+        "家族共有・レース照合ページ生成"
+    )
+
+    print(
+        "========================================"
+    )
+
+    print(
+        "対象日:",
+        target_date,
+    )
+
+    # -----------------------------------------------------
+    # 予測
+    # -----------------------------------------------------
+
+    (
+        morning_predictions,
+        live_predictions,
+    ) = load_predictions(
+        args.predictions_root,
+        target_date,
+    )
+
+    # -----------------------------------------------------
+    # 結果
+    # -----------------------------------------------------
+
+    race_rows = build_race_rows(
+        target_date,
+        morning_predictions,
+        live_predictions,
+    )
+
+    print(
+        "結果確定レース:",
+        len(race_rows),
+        "R",
+    )
+
+    # -----------------------------------------------------
+    # HTML
+    # -----------------------------------------------------
+
+    page = render_html(
+        target_date,
+        race_rows,
+    )
+
+    output_path = (
+        output_dir
+        / "race_compare.html"
+    )
+
+    output_path.write_text(
+        page,
+        encoding="utf-8",
+    )
+
+    if not output_path.is_file():
+
+        raise SystemExit(
+            "ERROR: "
+            "race_compare.html "
+            "生成失敗"
+        )
+
+    if (
+        output_path.stat().st_size
+        <= 0
+    ):
+
+        raise SystemExit(
+            "ERROR: "
+            "race_compare.html "
+            "が空です"
+        )
+
+    print(
+        "出力:",
+        output_path,
+    )
+
+    print(
+        "race_compare.html: PASS"
+    )
+
+    print(
+        "========================================"
+    )
+
+
+if __name__ == "__main__":
+    main()
