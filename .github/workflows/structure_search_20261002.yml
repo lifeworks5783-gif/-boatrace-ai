@@ -1,0 +1,34 @@
+name: 10月2日・新スコア構造探索
+permissions:
+  contents: write
+on:
+  push:
+    branches: [main]
+    paths:
+      - "collectors/search_structures_20261002.py"
+      - ".github/workflows/structure_search_20261002.yml"
+  workflow_dispatch:
+concurrency:
+  group: boatrace-main-writer
+  cancel-in-progress: false
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: 20構造・係数を実計算
+        run: python -u collectors/search_structures_20261002.py
+      - name: 保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/2026/10/02/structure_search
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "evaluation: search new score structures for 20261002"
+          git stash push --include-untracked -m temp || true
+          git pull --rebase origin main
+          git push origin HEAD:main
