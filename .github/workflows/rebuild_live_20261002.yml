@@ -1,0 +1,79 @@
+name: 10月2日直前スコア・再構築検証
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: boatrace-main-writer
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TARGET_DATE: "20261002"
+      YEAR: "2026"
+      MONTH: "10"
+      DAY: "02"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 必要ライブラリ
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lhafile
+      - name: 基本・バックフィル直前データをdataへ復元
+        run: |
+          mkdir -p data
+          cp daily_inputs/2026/10/02/base/program_races_20261002.csv data/
+          cp daily_inputs/2026/10/02/base/program_entries_20261002.csv data/
+          cp daily_inputs/2026/10/02/live/backfill/beforeinfo_races_20261002.csv data/
+          cp daily_inputs/2026/10/02/live/backfill/beforeinfo_entries_20261002.csv data/
+          cp daily_inputs/2026/10/02/live/backfill/beforeinfo_validation_20261002.json data/
+      - name: live prediction_input生成
+        run: |
+          python -u collectors/build_prediction_input.py --stage live
+      - name: 10月2日時点の履歴特徴量生成
+        run: |
+          python -u collectors/build_history_features.py --as-of "20261002"
+      - name: 履歴特徴量を結合
+        run: |
+          python -u collectors/enrich_prediction_input.py --date "20261002" --stage live
+      - name: 168R直前スコア再計算
+        run: |
+          mkdir -p evaluations/2026/10/02/backfill_live
+          python -u collectors/build_live_prediction.py \
+            --date "20261002" \
+            --now "2026-10-02T00:00:00+09:00" \
+            --output-dir evaluations/2026/10/02/backfill_live
+          cp data/prediction_input_enriched_live_20261002.json evaluations/2026/10/02/backfill_live/
+          cp data/prediction_input_enriched_validation_live_20261002.json evaluations/2026/10/02/backfill_live/
+      - name: 再構築結果を検証
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("evaluations/2026/10/02/backfill_live/live_predictions_validation_current_20261002.json")
+          d=json.loads(p.read_text(encoding="utf-8"))
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          if d.get("status")!="PASS" or d.get("prediction_race_count")!=168 or d.get("prediction_boat_count")!=1008:
+              raise SystemExit("168R/1008艇の再構築に失敗")
+          PY
+      - name: GitHubへ保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/2026/10/02/backfill_live
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "evaluation: rebuild 20261002 live scores from backfill"
+          git pull --rebase origin main
+          git push origin main
