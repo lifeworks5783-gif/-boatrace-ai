@@ -9,17 +9,18 @@ SITE_DIR = Path("_family_site")
 
 PAGES = {
     "index.html": "prediction",
+    "race_compare.html": "race_compare",
     "results.html": "results",
     "analysis.html": "analysis",
 }
 
 
 NAV_CSS = """
-/* family-navigation-v4-unified */
+/* family-navigation-v5-unified */
 
 .family-nav {
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 8px !important;
   width: 100% !important;
   margin: 0 0 14px 0 !important;
@@ -36,14 +37,14 @@ NAV_CSS = """
   justify-content: center !important;
   min-width: 0 !important;
   min-height: 44px !important;
-  padding: 11px 6px !important;
+  padding: 11px 5px !important;
   border: 0 !important;
   border-radius: 10px !important;
   background: transparent !important;
   color: var(--text) !important;
   text-align: center !important;
   text-decoration: none !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 800 !important;
   line-height: 1.25 !important;
   -webkit-tap-highlight-color: transparent;
@@ -117,14 +118,14 @@ header .meta {
 @media (max-width: 560px) {
 
   .family-nav {
-    gap: 6px !important;
+    gap: 4px !important;
     padding: 5px !important;
   }
 
   .family-nav a {
     min-height: 42px !important;
-    padding: 10px 4px !important;
-    font-size: 12px !important;
+    padding: 9px 2px !important;
+    font-size: 11px !important;
   }
 
   header h1 {
@@ -153,6 +154,11 @@ def nav_html(
             "index.html",
             "最新予想",
             "prediction",
+        ),
+        (
+            "race_compare.html",
+            "レース照合",
+            "race_compare",
         ),
         (
             "results.html",
@@ -205,6 +211,7 @@ def replace_navigation(
         active
     )
 
+    # 既存の共通 family-nav があれば置換
     nav_pattern = re.compile(
         r'<nav\s+class=["\']family-nav["\'][^>]*>'
         r'.*?'
@@ -225,6 +232,28 @@ def replace_navigation(
             count=1,
         )
 
+    # race_compare.html に最初から入っている
+    # class="nav" のメニューも共通UIへ置換
+    old_race_nav_pattern = re.compile(
+        r'<nav\s+class=["\']nav["\'][^>]*>'
+        r'.*?'
+        r'</nav>',
+        flags=(
+            re.IGNORECASE
+            | re.DOTALL
+        ),
+    )
+
+    if old_race_nav_pattern.search(
+        text
+    ):
+
+        return old_race_nav_pattern.sub(
+            nav,
+            text,
+            count=1,
+        )
+
     if "</header>" in text:
 
         return text.replace(
@@ -232,6 +261,32 @@ def replace_navigation(
             "</header>\n\n"
             + nav,
             1,
+        )
+
+    # header がないページでは
+    # h1/meta の後ろへ置ける場合を優先
+    meta_match = re.search(
+        r'<div\s+class=["\']meta["\'][^>]*>'
+        r'.*?'
+        r'</div>',
+        text,
+        flags=(
+            re.IGNORECASE
+            | re.DOTALL
+        ),
+    )
+
+    if meta_match:
+
+        position = (
+            meta_match.end()
+        )
+
+        return (
+            text[:position]
+            + "\n\n"
+            + nav
+            + text[position:]
         )
 
     body_match = re.search(
@@ -263,29 +318,25 @@ def remove_old_nav_css(
     text: str,
 ) -> str:
 
-    text = re.sub(
-        r"/\*\s*family-navigation-v3\s*\*/"
-        r".*?"
-        r"(?=</style>)",
-        "",
-        text,
-        flags=(
-            re.DOTALL
-            | re.IGNORECASE
-        ),
-    )
+    versions = [
+        "family-navigation-v3",
+        "family-navigation-v4-unified",
+        "family-navigation-v5-unified",
+    ]
 
-    text = re.sub(
-        r"/\*\s*family-navigation-v4-unified\s*\*/"
-        r".*?"
-        r"(?=</style>)",
-        "",
-        text,
-        flags=(
-            re.DOTALL
-            | re.IGNORECASE
-        ),
-    )
+    for version in versions:
+
+        text = re.sub(
+            rf"/\*\s*{re.escape(version)}\s*\*/"
+            r".*?"
+            r"(?=</style>)",
+            "",
+            text,
+            flags=(
+                re.DOTALL
+                | re.IGNORECASE
+            ),
+        )
 
     return text
 
@@ -373,11 +424,11 @@ def main() -> int:
 
     print("")
     print(
-        "最新予想 / 結果・成績 / AI分析"
+        "最新予想 / レース照合 / 結果・成績 / AI分析"
     )
 
     print(
-        "3ページ共通UI: PASS"
+        "4ページ共通UI: PASS"
     )
 
     print(
