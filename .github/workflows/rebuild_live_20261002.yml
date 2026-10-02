@@ -53,6 +53,7 @@ jobs:
           mkdir -p evaluations/2026/10/02/backfill_live
           python -u collectors/build_live_prediction.py \
             --date "20261002" \
+            --input "data/prediction_input_enriched_live_20261002.json" \
             --now "2026-10-02T00:00:00+09:00" \
             --output-dir evaluations/2026/10/02/backfill_live
           cp data/prediction_input_enriched_live_20261002.json evaluations/2026/10/02/backfill_live/
