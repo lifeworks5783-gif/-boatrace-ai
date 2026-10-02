@@ -1,0 +1,79 @@
+name: 過去日直前情報・再収集
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "対象日 YYYYMMDD"
+        required: true
+        default: "20261002"
+
+concurrency:
+  group: boatrace-main-writer
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 最新のmainを読み込む
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 必要ライブラリを準備
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lhafile
+
+      - name: 対象日を設定
+        run: |
+          TARGET_DATE="${{ inputs.target_date }}"
+          echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
+          echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
+          echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
+          echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
+
+      - name: 基本データを復元
+        run: |
+          mkdir -p data
+          BASE="daily_inputs/${YEAR}/${MONTH}/${DAY}/base"
+          test -s "${BASE}/program_races_${TARGET_DATE}.csv"
+          test -s "${BASE}/program_entries_${TARGET_DATE}.csv"
+          cp "${BASE}/program_races_${TARGET_DATE}.csv" data/
+          cp "${BASE}/program_entries_${TARGET_DATE}.csv" data/
+
+      - name: 全レースの直前情報を再取得
+        run: |
+          python -u collectors/today_beforeinfo.py --date "${TARGET_DATE}" --mode all
+
+      - name: 再取得結果を保存
+        run: |
+          OUT="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/backfill"
+          mkdir -p "${OUT}"
+          find data -maxdepth 1 -type f -name "beforeinfo_*${TARGET_DATE}*" -exec cp {} "${OUT}/" \;
+          echo "保存ファイル:"
+          find "${OUT}" -maxdepth 1 -type f -print | sort
+
+      - name: 変更をコミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "daily_inputs/${YEAR}/${MONTH}/${DAY}/live/backfill"
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "data: backfill beforeinfo ${TARGET_DATE}"
+          git pull --rebase origin main
+          git push origin main
