@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 
 JST = timezone(timedelta(hours=9))
 
-MODEL_VERSION = "unified_top3_v1_20261002"
+MODEL_VERSION = "racer_course_grade_exst_v1_20261003"
 
 # 9/30+10/1の主評価でTOP3整合率が最も高かった配点（No.4）
 # 合計100。朝は展示STがまだ無いため、残り97点を利用可能分で再正規化。
@@ -44,7 +44,7 @@ MORNING_KEYS = [
 ]
 
 FRAME_PRIOR = {1: 1.00, 2: 0.72, 3: 0.62, 4: 0.58, 5: 0.46, 6: 0.38}
-GRADE_PRIOR = {"A1": 1.00, "A2": 0.78, "B1": 0.48, "B2": 0.30}
+GRADE_PRIOR = {"A1": 1.00, "A2": 0.75, "B1": 0.45, "B2": 0.25}
 
 FORBIDDEN_CURRENT_RESULT_KEYS = {
     "finish",
@@ -310,6 +310,29 @@ def feature_component(name, raw_value, source):
     }
 
 
+_RC_CACHE = None
+def racer_course_score(registration_no, course_no):
+    global _RC_CACHE
+    if _RC_CACHE is None:
+        _RC_CACHE = {}
+        p = Path("features/racer_course_features.csv")
+        if p.exists():
+            with p.open(encoding="utf-8-sig", newline="") as h:
+                for r in csv.DictReader(h):
+                    try: k=(str(int(float(r.get("registration_no")))),str(int(float(r.get("course")))))
+                    except (TypeError,ValueError): continue
+                    def rr(name, default=.5):
+                        try:
+                            v=float(r.get(name)); return v/100.0 if v>1 else v
+                        except (TypeError,ValueError): return default
+                    def invst():
+                        try: return max(0.0,min(1.0,1-float(r.get("d90_avg_st"))/.35))
+                        except (TypeError,ValueError): return .5
+                    _RC_CACHE[k]=.45*rr("d90_top3_rate")+.25*rr("d90_win_rate")+.15*rr("d90_top2_rate")+.15*invst()
+    try: key=(str(int(float(registration_no))),str(int(float(course_no))))
+    except (TypeError,ValueError): return None
+    return _RC_CACHE.get(key)
+
 def score_boat(race, boat, public_store, course_override=None):
     lane = to_int(boat.get("boat"))
     race_code = canonical_race_code(race.get("race_id"))
@@ -394,7 +417,14 @@ def score_boat(race, boat, public_store, course_override=None):
         for c in components.values()
         if c["available"] and c["weight"] > 0
     )
-    score = 0.0 if available_weight <= 0 else weighted_points / available_weight * 100.0
+    # 10/2 retrospective test best racer-course structure for tomorrow's provisional production:
+    # morning = racer-course suitability x grade; live adds exhibition-ST multiplicatively.
+    rc = racer_course_score(public_reg or project_reg, course_no)
+    gs = grade_score(card, lane)
+    if rc is not None and gs is not None:
+        score = rc * gs * 100.0
+    else:
+        score = 0.0 if available_weight <= 0 else weighted_points / available_weight * 100.0
 
     racer = boat.get("racer") or {}
     motor = boat.get("motor") or {}
@@ -417,8 +447,8 @@ def score_boat(race, boat, public_store, course_override=None):
         ),
         "components": components,
         "note": (
-            "unified_top3_v1。朝は展示ST3点が未取得のため、"
-            "残り97点を利用可能要素で再正規化した相対スコア"
+            "racer_course_grade_exst_v1。朝は選手×当該コース適性×級別、"
+            "直前で展示STを乗算する暫定本番スコア"
         ),
     }
 
