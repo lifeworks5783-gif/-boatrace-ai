@@ -1,0 +1,83 @@
+{
+  "date": "20261002",
+  "rule": "係数なし。従来の一般コース項を選手本人×当該コース適性に置換し、選手コース×級別ブロックも比較。",
+  "results": [
+    {
+      "name": "朝B 選手コース×級別ブロック",
+      "formula": "rc*grade + series + boatc + official",
+      "races": 168,
+      "top3_matches": 35,
+      "top3_alignment_pct": 20.83,
+      "exact_matches": 11,
+      "exact_alignment_pct": 6.55,
+      "top1_matches": 91,
+      "top1_accuracy_pct": 54.17
+    },
+    {
+      "name": "朝C 選手コース×級別 + 公式",
+      "formula": "rc*grade + official",
+      "races": 168,
+      "top3_matches": 35,
+      "top3_alignment_pct": 20.83,
+      "exact_matches": 11,
+      "exact_alignment_pct": 6.55,
+      "top1_matches": 91,
+      "top1_accuracy_pct": 54.17
+    },
+    {
+      "name": "朝D 選手コース×級別 + 今節",
+      "formula": "rc*grade + series",
+      "races": 168,
+      "top3_matches": 35,
+      "top3_alignment_pct": 20.83,
+      "exact_matches": 11,
+      "exact_alignment_pct": 6.55,
+      "top1_matches": 91,
+      "top1_accuracy_pct": 54.17
+    },
+    {
+      "name": "直前B 選手コース×級別 + 展示ST + 公式",
+      "formula": "rc*grade + exST + official",
+      "races": 168,
+      "top3_matches": 35,
+      "top3_alignment_pct": 20.83,
+      "exact_matches": 11,
+      "exact_alignment_pct": 6.55,
+      "top1_matches": 91,
+      "top1_accuracy_pct": 54.17
+    },
+    {
+      "name": "直前C 選手コース×級別 + 展示ST + 今節",
+      "formula": "rc*grade + b['exST'] + series",
+      "races": 168,
+      "top3_matches": 35,
+      "top3_alignment_pct": 20.83,
+      "exact_matches": 11,
+      "exact_alignment_pct": 6.55,
+      "top1_matches": 91,
+      "top1_accuracy_pct": 54.17
+    },
+    {
+      "name": "朝A 旧上位式のcourse→選手コース",
+      "formula": "grade*series*boatc + rc + official",
+      "races": 168,
+      "top3_matches": 34,
+      "top3_alignment_pct": 20.24,
+      "exact_matches": 16,
+      "exact_alignment_pct": 9.52,
+      "top1_matches": 90,
+      "top1_accuracy_pct": 53.57
+    },
+    {
+      "name": "直前A 旧上位式のcourse→選手コース",
+      "formula": "official*series*exST + rc + recent",
+      "races": 168,
+      "top3_matches": 33,
+      "top3_alignment_pct": 19.64,
+      "exact_matches": 13,
+      "exact_alignment_pct": 7.74,
+      "top1_matches": 93,
+      "top1_accuracy_pct": 55.36
+    }
+  ]
+}
