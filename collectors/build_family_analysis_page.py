@@ -2684,6 +2684,76 @@ def history_html(
 
     )
 
+
+ANALYSIS_LABELS = {
+    "course":"枠・コース","official":"公式能力","recent":"直近成績","venue":"当地・場適性",
+    "motor":"モーター","boat":"ボート","grade":"級別","series":"今節成績",
+    "live_course":"展示進入コース","exST":"展示ST","exTime":"展示タイム",
+    "course_x_venue":"コース×場","course_x_official":"コース×公式能力",
+    "grade_x_official":"級別×公式能力","official_x_recent":"公式能力×直近成績",
+}
+
+def fixed_alignment_table(items):
+    rows=[]
+    for key,item in items.items():
+        if not isinstance(item,dict): continue
+        e=item.get("eligible_races") or 0
+        m=item.get("matches") or 0
+        rate=fmt_pct(item.get("alignment_pct"))
+        cell=f"{fmt_int(m)}/{fmt_int(e)}R = <b>{rate}</b>" if e else "—"
+        rows.append([
+            html.escape(ANALYSIS_LABELS.get(key,key)),
+            cell, cell, cell,
+            fmt_yen(item.get("investment")),
+            fmt_yen(item.get("return")),
+            fmt_yen(item.get("profit")),
+            fmt_pct(item.get("recovery_rate_pct")),
+        ])
+    return table(["要素","本日","直近7日","累計","投資","払戻","収支","回収率"],rows)
+
+def formation_type_table(payload):
+    rows=[]
+    for key,item in (payload.get("by_formation_type") or {}).items():
+        races=item.get("races") or 0;hits=item.get("hits") or 0
+        rate=(hits/races*100) if races else None
+        rows.append([
+            html.escape(str(key)),fmt_int(races),fmt_int(hits),fmt_pct(rate),
+            fmt_int(item.get("points")),fmt_yen(item.get("investment")),
+            fmt_yen(item.get("return")),fmt_yen(item.get("profit")),
+            fmt_pct(item.get("recovery_rate_pct")),
+        ])
+    return table(["区分","R数","的中","的中率","点数","投資","払戻","収支","回収率"],rows)
+
+def fixed_20261002_html(root: Path) -> str:
+    align=load_json(root/"2026"/"10"/"02"/"backfill_alignment"/"alignment_summary_20261002.json")
+    formation=load_json(root/"2026"/"10"/"02"/"formation_simulation_20261002.json")
+    if not align: return ""
+    overall=align.get("overall") or {}
+    return (
+      '<section class="section-card pdca-hero">'
+      '<div class="title-row"><div><h2>10/2 固定定義・AI分析</h2>'
+      '<div class="small-meta">TOP3完全整合率＝予測上位3艇と実着TOP3が順不同で3艇すべて一致</div></div>'
+      + badge("168R検証","good") + '</div>'
+      '<div class="metric-grid mini-grid">'
+      + metric("総合TOP3完全整合率",fmt_pct(overall.get("alignment_pct")),f"{fmt_int(overall.get('matches'))}/{fmt_int(overall.get('races'))}R")
+      + metric("集計期間","10/2開始","本日・7日・累計を今後自動蓄積")
+      + '</div>'
+      '<p class="section-note">固定定義の蓄積開始が10/2のため、現時点では本日・直近7日・累計は同じ10/2の値です。9/30・10/1の旧表示は変更しません。</p>'
+      '</section>'
+      '<section class="section-card"><h2>朝・基本データ：各要素単体TOP3完全整合率</h2>'
+      '<p class="section-note">各要素だけで6艇を順位付け。収支はそのTOP3を3連単6点BOX、100円/点で検証。</p>'
+      + fixed_alignment_table(align.get("morning_single_components") or {}) + '</section>'
+      '<section class="section-card"><h2>直前データ：各要素単体TOP3完全整合率</h2>'
+      '<p class="section-note">展示進入・展示ST・展示タイムを単独評価。取得できないレースは母数から除外。</p>'
+      + fixed_alignment_table(align.get("live_single_components") or {}) + '</section>'
+      '<section class="section-card"><h2>掛け合わせ分析</h2>'
+      '<p class="section-note">現段階は2要素を50:50で合成。コース×場などの相乗効果を同じ完全整合率・BOX収支で比較。</p>'
+      + fixed_alignment_table(align.get("pair_components") or {}) + '</section>'
+      '<section class="section-card"><h2>フォーメーション区分別・収支シミュレーション</h2>'
+      '<p class="section-note">1着強軸・準軸・混戦を別集計。各買い目100円。</p>'
+      + formation_type_table(formation) + '</section>'
+    )
+
 def build_page(
 
     root: Path,
@@ -2753,6 +2823,10 @@ def build_page(
         )
 
     body: List[str] = []
+
+    fixed = fixed_20261002_html(root)
+    if fixed:
+        body.append(fixed)
 
     if pdca:
 
