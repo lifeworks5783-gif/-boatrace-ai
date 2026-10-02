@@ -41,7 +41,7 @@ jobs:
           cp daily_inputs/2026/10/02/live/backfill/beforeinfo_validation_20261002.json data/
       - name: live prediction_input生成
         run: |
-          python -u collectors/build_prediction_input.py --stage live
+          python -u collectors/build_prediction_input.py --date "20261002" --stage live
       - name: 10月2日時点の履歴特徴量生成
         run: |
           python -u collectors/build_history_features.py --as-of "20261002"
