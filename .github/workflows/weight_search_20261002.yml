@@ -1,0 +1,42 @@
+name: 10月2日・配点探索TOP10
+permissions:
+  contents: write
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/weight_search_20261002.yml"
+  workflow_dispatch:
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 配点探索
+        run: python -u collectors/search_weights_20261002.py
+      - name: 検証
+        run: |
+          python - <<'PY'
+          import json
+          p="evaluations/2026/10/02/weight_search/weight_search_summary_20261002.json"
+          d=json.load(open(p,encoding="utf-8"))
+          assert len(d["top10"])==10
+          assert d["production_weights_changed"] is False
+          assert "順不同" in d["definition"]
+          print("配点探索TOP10: PASS")
+          PY
+      - name: 保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/2026/10/02/weight_search
+          git commit -m "evaluation: save 20261002 weight search top10" || exit 0
+          git pull --rebase origin main
+          git push origin HEAD:main
