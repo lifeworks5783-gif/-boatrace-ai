@@ -13,7 +13,7 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
-      - run: python collectors/evaluate_motor_base_scan.py
+      - run: python collectors/evaluate_motor_base_scan.py\n        # rerun after historical motor backfill
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"
