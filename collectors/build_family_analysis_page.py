@@ -2756,6 +2756,32 @@ def fixed_20261002_html(root: Path) -> str:
       + formation_type_table(formation) + '</section>'
     )
 
+def current_pdca_html(root: Path) -> str:
+ single=load_json(root/"all_candidate_single_factors"/"summary.json")
+ inc=load_json(root/"pdca_incremental_20260930_20261003"/"summary.json")
+ if not single and not inc:return ""
+ parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">9/30〜10/3を日別に比較。平均だけでなく最高−最低の振れ幅も確認し、単日の上振れ・下振れを区別します。</p>']
+ if single:
+  rows=[]
+  for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or -1))):
+   bd=x.get("by_date",{})
+   rows.append([html.escape(str(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_top3_avg_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt'),2)}pt")])
+  parts.append(table(["要素","9/30","10/1","10/2","10/3","4日平均","振れ幅"],rows))
+ if inc:
+  parts.append('<div class="subsection"><h3>AI分析：補正PDCA</h3><p class="section-note">現在の選手基礎B1（コース1着40＋2連対20＋3連対30＋平均ST10）を基準に検証。第1段階では全国2連対率15%が4日すべてで改善し、×→○14件・○→×3件、純改善+11件。これを第2段階の新基準にしています。</p>')
+  best={}
+  for x in inc.get("stage2_results",[]):
+   k=x.get("factor")
+   if k not in best or x.get("net_flips",-999)>best[k].get("net_flips",-999):best[k]=x
+  rows=[]
+  for x in sorted(best.values(),key=lambda z:z.get("net_flips",-999),reverse=True):
+   bd=x.get("by_date",{})
+   rows.append([html.escape(str(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_avg_top3_pct")),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
+  parts.append(table(["第2補正","重み","9/30","10/1","10/2","10/3","4日平均","×→○","○→×","純改善"],rows))
+  parts.append('<div class="policy-note"><b>現時点のAI判断：</b> B1＋全国2連対率15%に対して、今回試した第2補正はすべて純改善が0以下でした。したがって第2補正はまだ追加せず、1週間分まで同じ条件で継続検証します。単日成績だけでは配点変更しません。</div></div>')
+ parts.append("</section>")
+ return "".join(parts)
+
 def build_page(
 
     root: Path,
@@ -2824,7 +2850,7 @@ def build_page(
 
         )
 
-    body: List[str] = []
+    body: List[str] = []\n\n    current_pdca = current_pdca_html(root)\n    if current_pdca:\n        body.append(current_pdca)
 
     fixed = fixed_20261002_html(root)
     if fixed:
