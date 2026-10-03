@@ -62,59 +62,41 @@ def hit(bs,sc):
 def main():
  rows=archive();bd=defaultdict(list)
  for r in rows:bd[r.get("date")].append(r)
- results=[]
- for d in DATES:
-  td=DT(d);prior=[r for r in rows if r.get("date") and td-timedelta(days=90)<=DT(r["date"])<td];pg=program(d);lv=live_entries(d)
-  rg=defaultdict(list);rc=defaultdict(list);mg=defaultdict(list);bg=defaultdict(list)
-  for r in prior:
-   reg=r.get("registration_no","");c=I(r.get("course"));v=str(r.get("venue_code","")).zfill(2);m=I(r.get("motor_no"));bn=I(r.get("boat_no"))
-   if reg:rg[reg].append(r)
-   if reg and c:rc[(reg,c)].append(r)
-   if m is not None:mg[(v,m)].append(r)
-   if bn is not None:bg[(v,bn)].append(r)
-  races=defaultdict(list)
-  for r in bd[d]:
-   bo=I(r.get("boat"));fi=I(r.get("finish"));rid=nid(r.get("race_id"))
-   if bo not in range(1,7) or fi not in range(1,7):continue
-   v=str(r.get("venue_code","")).zfill(2);reg=r.get("registration_no","");P=pg.get((rid,bo),{});L=lv.get((rid,bo),{})
-   expected=bo;entry=I(L.get("exhibition_course")) or I(L.get("course")) or expected
-   cs=stat(rc[(reg,expected)]);ls=stat(rc[(reg,entry)]);ms=stat(mg[(v,I(r.get("motor_no")))]) if I(r.get("motor_no")) is not None else {};bs=stat(bg[(v,I(r.get("boat_no")))]) if I(r.get("boat_no")) is not None else {}
-   races[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"lw":ls.get("win"),"l2":ls.get("top2"),"l3":ls.get("top3"),"lst":ls.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"mw":ms.get("win"),"m3":ms.get("top3"),"b2":bs.get("top2"),"b3":bs.get("top3"),"etime":F(L.get("exhibition_time")),"est":F(L.get("exhibition_st_seconds"))})
-  z={"date":d,"morning_n":0,"morning_hit":0,"live_n":0,"live_hit":0,"common_n":0,"oo":0,"ox":0,"xo":0,"xx":0,"common_morning_hit":0,"entry_only_hit":0,"entry_time_hit":0,"entry_st_hit":0,"full_live_hit":0}
-  for rid,bs in races.items():
-   def block(keys):
-    maps={}
-    for k,w,rev in keys:
-     q=rankmap(bs,k,rev)
-     if q is None:return None
-     maps[k]=(q,w)
-    return {b["boat"]:sum(w*q[b["boat"]] for q,w in maps.values()) for b in bs}
-   racer=block([("cw",.4,False),("c2",.2,False),("c3",.3,False),("cst",.1,True)])
-   motor=block([("mw",.4,False),("m3",.6,False)])
-   boat=block([("b2",.5,False),("b3",.5,False)])
-   gr=rankmap(bs,"grade")
-   morning=None
-   if all(x is not None for x in [racer,motor,boat,gr]):
-    morning={b:.50*racer[b]+.20*gr[b]+.12*motor[b]+.18*boat[b] for b in racer}
-    z["morning_n"]+=1;z["morning_hit"]+=int(hit(bs,morning))
-   lr=block([("lw",.4,False),("l2",.2,False),("l3",.3,False),("lst",.1,True)])
-   et=rankmap(bs,"etime",True);es=rankmap(bs,"est",True)
-   if all(x is not None for x in [morning,lr,motor,boat,gr,et,es]):
-    entry={b:.50*lr[b]+.20*gr[b]+.12*motor[b]+.18*boat[b] for b in lr}
-    entry_time={b:.47*lr[b]+.19*gr[b]+.11*motor[b]+.17*boat[b]+.06*et[b] for b in lr}
-    entry_st={b:.48*lr[b]+.19*gr[b]+.12*motor[b]+.17*boat[b]+.04*es[b] for b in lr}
-    full={b:.46*lr[b]+.18*gr[b]+.11*motor[b]+.15*boat[b]+.06*et[b]+.04*es[b] for b in lr}
-    mh=hit(bs,morning);fh=hit(bs,full)
-    z["common_n"]+=1;z["common_morning_hit"]+=int(mh);z["entry_only_hit"]+=int(hit(bs,entry));z["entry_time_hit"]+=int(hit(bs,entry_time));z["entry_st_hit"]+=int(hit(bs,entry_st));z["full_live_hit"]+=int(fh)
-    z["oo" if mh and fh else "ox" if mh else "xo" if fh else "xx"]+=1
-    z["live_n"]+=1;z["live_hit"]+=int(fh)
-  z["morning_top3_pct"]=round(100*z["morning_hit"]/z["morning_n"],2) if z["morning_n"] else None
-  z["live_top3_pct"]=round(100*z["live_hit"]/z["live_n"],2) if z["live_n"] else None
-  for k in ["common_morning_hit","entry_only_hit","entry_time_hit","entry_st_hit","full_live_hit"]:
-   z[k.replace("_hit","_pct")]=round(100*z[k]/z["common_n"],2) if z["common_n"] else None
-  results.append(z)
- out=Path("evaluations/provisional_morning_live_4day");out.mkdir(parents=True,exist_ok=True)
- mv=[x["morning_top3_pct"] for x in results if x["morning_top3_pct"] is not None];lvv=[x["live_top3_pct"] for x in results if x["live_top3_pct"] is not None]
- summary={"definition":"TOP3 unordered exact set","next_scan":"vary exhibition_time and exhibition_st weights broadly while keeping entry-course replacement structural","provisional":True,"morning_weights":{"racer_course_base":50,"grade":20,"motor_base":12,"boat_base":18},"live_weights":{"racer_exhibition_entry_course_base":46,"grade":18,"motor_base":11,"boat_base":15,"exhibition_time":6,"exhibition_st":4},"by_date":results,"morning_daily_avg_pct":round(sum(mv)/len(mv),2),"morning_spread_pt":round(max(mv)-min(mv),2),"live_daily_avg_pct":round(sum(lvv)/len(lvv),2),"live_spread_pt":round(max(lvv)-min(lvv),2)}
- (out/"summary.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8");print(json.dumps(summary,ensure_ascii=False,indent=2))
+ allres=[]
+ for wt in range(0,21,2):
+  for ws in range(0,21-wt,2):
+   vals=[];flipplus=flipminus=0
+   for d in DATES:
+    td=DT(d);prior=[r for r in rows if r.get("date") and td-timedelta(days=90)<=DT(r["date"])<td];pg=program(d);lv=live_entries(d)
+    rc=defaultdict(list);mg=defaultdict(list);bg=defaultdict(list)
+    for r in prior:
+     reg=r.get("registration_no","");c=I(r.get("course"));v=str(r.get("venue_code","")).zfill(2);mm=I(r.get("motor_no"));bn=I(r.get("boat_no"))
+     if reg and c:rc[(reg,c)].append(r)
+     if mm is not None:mg[(v,mm)].append(r)
+     if bn is not None:bg[(v,bn)].append(r)
+    rr=defaultdict(list)
+    for r in bd[d]:
+     bo=I(r.get("boat"));fi=I(r.get("finish"));rid=nid(r.get("race_id"))
+     if bo not in range(1,7) or fi not in range(1,7):continue
+     v=str(r.get("venue_code","")).zfill(2);reg=r.get("registration_no","");P=pg.get((rid,bo),{});Q=lv.get((rid,bo),{});entry=I(Q.get("exhibition_course")) or bo
+     cs=stat(rc[(reg,bo)]);ls=stat(rc[(reg,entry)]);ms=stat(mg[(v,I(r.get("motor_no")))]) if I(r.get("motor_no")) is not None else {};bs=stat(bg[(v,I(r.get("boat_no")))]) if I(r.get("boat_no")) is not None else {}
+     rr[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"lw":ls.get("win"),"l2":ls.get("top2"),"l3":ls.get("top3"),"lst":ls.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"mw":ms.get("win"),"m3":ms.get("top3"),"b2":bs.get("top2"),"b3":bs.get("top3"),"etime":F(Q.get("exhibition_time")),"est":F(Q.get("exhibition_st_seconds"))})
+    n=mh=lh=0
+    for rid,bs in rr.items():
+     def bk(keys):
+      z=[]
+      for k,w,rev in keys:
+       q=rankmap(bs,k,rev)
+       if q is None:return None
+       z.append((q,w))
+      return {b["boat"]:sum(q[b["boat"]]*w for q,w in z) for b in bs}
+     r0=bk([("cw",.4,False),("c2",.2,False),("c3",.3,False),("cst",.1,True)]);re=bk([("lw",.4,False),("l2",.2,False),("l3",.3,False),("lst",.1,True)]);mo=bk([("mw",.4,False),("m3",.6,False)]);ba=bk([("b2",.5,False),("b3",.5,False)]);gr=rankmap(bs,"grade");et=rankmap(bs,"etime",True);es=rankmap(bs,"est",True)
+     if any(x is None for x in [r0,re,mo,ba,gr,et,es]):continue
+     morning={b:.50*r0[b]+.20*gr[b]+.12*mo[b]+.18*ba[b] for b in r0};struct={b:.50*re[b]+.20*gr[b]+.12*mo[b]+.18*ba[b] for b in re};rem=1-(wt+ws)/100
+     live={b:rem*struct[b]+wt/100*et[b]+ws/100*es[b] for b in struct};a=hit(bs,morning);z=hit(bs,live);n+=1;mh+=a;lh+=z;flipplus+=(not a) and z;flipminus+=a and (not z)
+    vals.append({"date":d,"n":n,"morning_pct":round(100*mh/n,2) if n else None,"live_pct":round(100*lh/n,2) if n else None})
+   vv=[x["live_pct"] for x in vals if x["live_pct"] is not None];allres.append({"time_pct":wt,"st_pct":ws,"structural_pct":100-wt-ws,"by_date":vals,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"x_to_o":flipplus,"o_to_x":flipminus,"net_flips":flipplus-flipminus})
+ allres.sort(key=lambda x:(-x["daily_avg_top3_pct"],x["spread_pt"],-x["net_flips"]))
+ out=Path("evaluations/exhibition_weight_scan_20260930_20261003");out.mkdir(parents=True,exist_ok=True);(out/"summary.json").write_text(json.dumps({"definition":"TOP3 unordered exact set","results":allres},ensure_ascii=False,indent=2),encoding="utf-8")
+ print(json.dumps(allres[:20],ensure_ascii=False,indent=2))
 if __name__=="__main__":main()
