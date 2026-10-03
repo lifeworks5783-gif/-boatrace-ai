@@ -793,14 +793,10 @@ def load_prediction_file(
         output[
             race_code
         ] = {
-            "race_code":
-                race_code,
-
-            "top3":
-                top3,
-
-            "raw":
-                row,
+            "race_code": race_code,
+            "top3": top3,
+            "boats": row.get("boats") or [],
+            "raw": row,
         }
 
     return output
@@ -1526,6 +1522,9 @@ def build_race_rows(
                         actual,
                     ),
 
+                "morning_formation_hit": formation_hit(morning, trifecta),
+                "live_formation_hit": formation_hit(live, trifecta),
+
                 "trifecta":
                     trifecta,
 
@@ -1618,17 +1617,10 @@ def aggregate(
     )
 
     return {
-        "count":
-            count,
-
-        "overlap":
-            overlap,
-
-        "exact":
-            exact,
-
-        "winner":
-            winner,
+        "count": count,
+        "overlap": overlap,
+        "exact": exact,
+        "winner": winner,
     }
 
 
@@ -1717,6 +1709,36 @@ def prediction_html(
     ).join(
         output
     )
+
+
+def all_scores_html(prediction, label):
+    if not prediction:
+        return ""
+    boats = prediction.get("boats") or (prediction.get("raw") or {}).get("boats") or []
+    scored = []
+    for boat in boats:
+        b = normalize_boat(boat.get("boat"))
+        score = safe_float(boat.get("score"))
+        if b is not None and score is not None:
+            scored.append((b, score))
+    if not scored:
+        return ""
+    scored.sort(key=lambda x: (-x[1], x[0]))
+    chips = " ".join(
+        f'<span class="score-chip">{b}号艇 {score:.1f}</span>'
+        for b, score in scored
+    )
+    return f'<details class="all-scores"><summary>{esc(label)}・6艇すべてのスコア</summary><div class="score-chips">{chips}</div></details>'
+
+
+def formation_hit(prediction, trifecta):
+    if not prediction:
+        return None
+    formation = (prediction.get("raw") or {}).get("formation") or {}
+    combos = [str(x) for x in (formation.get("combinations") or [])]
+    if not combos:
+        return None
+    return trifecta in combos
 
 
 def evaluation_html(
@@ -1855,6 +1877,16 @@ def render_html(
         race_rows,
         "live_eval",
     )
+
+    def hit_summary(key):
+        values = [row.get(key) for row in race_rows if row.get(key) is not None]
+        if not values:
+            return {"count": 0, "hits": 0, "rate": None}
+        hits = sum(1 for value in values if value)
+        return {"count": len(values), "hits": hits, "rate": hits / len(values) * 100.0}
+
+    morning_hit_summary = hit_summary("morning_formation_hit")
+    live_hit_summary = hit_summary("live_formation_hit")
 
     now = datetime.now(
         JST
@@ -1995,6 +2027,7 @@ def render_html(
 
     <div>
       {prediction_html(row["morning"])}
+      {all_scores_html(row["morning"], "朝予測")}
     </div>
 
     <div class="metrics">
@@ -2012,6 +2045,7 @@ def render_html(
 
     <div>
       {prediction_html(row["live"])}
+      {all_scores_html(row["live"], "直前予測")}
     </div>
 
     <div class="metrics">
@@ -2286,6 +2320,29 @@ h1 {{
   margin-top:4px;
 
   font-size:19px;
+}}
+
+details.all-scores {{
+  margin-top:8px;
+}}
+details.all-scores summary {{
+  cursor:pointer;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}}
+.score-chips {{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:7px;
+}}
+.score-chip {{
+  padding:5px 8px;
+  border-radius:999px;
+  background:var(--chip);
+  font-size:12px;
+  font-variant-numeric:tabular-nums;
 }}
 
 .race-card {{
@@ -2667,14 +2724,15 @@ TOP3整合率は、
 <div class="summary-box">
 
   <span>
-    朝 TOP3整合 /
-    完全一致
+    朝 TOP3整合 / 完全一致 / 買い目的中
   </span>
 
   <strong>
     {percent(morning_summary["overlap"])}
     /
     {percent(morning_summary["exact"])}
+    /
+    {percent(morning_hit_summary["rate"])}
   </strong>
 
   <span>
@@ -2687,14 +2745,15 @@ TOP3整合率は、
 <div class="summary-box">
 
   <span>
-    直前 TOP3整合 /
-    完全一致
+    直前 TOP3整合 / 完全一致 / 買い目的中
   </span>
 
   <strong>
     {percent(live_summary["overlap"])}
     /
     {percent(live_summary["exact"])}
+    /
+    {percent(live_hit_summary["rate"])}
   </strong>
 
   <span>
