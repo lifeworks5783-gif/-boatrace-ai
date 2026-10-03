@@ -11,7 +11,7 @@ from pathlib import Path
 import build_morning_prediction as morning
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "racer_course_grade_exst_rankfix_v2_20261003_live"
+MODEL_VERSION = "provisional_v1_20261005_live_entry_time6_st14"
 
 
 def parse_args():
@@ -237,109 +237,22 @@ def component_exst(lane, boat, ranks):
 
 
 def score_race(race, public_store):
-    boats = race.get("boats")
-    if not isinstance(boats, list) or len(boats) != 6:
-        raise RuntimeError(f"6艇ではないレース: {race.get('race_id')}")
-
-    st_ranks = rank_exhibition_st(boats)
-    scored = []
-
+    boats=race.get("boats")
+    if not isinstance(boats,list) or len(boats)!=6: raise RuntimeError(f"6艇ではないレース: {race.get('race_id')}")
+    overrides={to_int(x.get("boat")):(get_exhibition_course(x) or to_int(x.get("boat"))) for x in boats}
+    morning_scores=morning.provisional_scores(race,public_store)
+    structural=morning.provisional_scores(race,public_store,overrides)
+    if len(structural)!=6: raise RuntimeError(f"暫定V1構造スコア欠損: {race.get('race_id')}")
+    time_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_time(x) for x in boats if get_exhibition_time(x) is not None})
+    st_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_st(x) for x in boats if get_exhibition_st(x) is not None and not get_exhibition_f(x) and get_exhibition_st(x)>=0})
+    if len(time_ranks)!=6 or len(st_ranks)!=6: raise RuntimeError(f"展示タイム/ST不足: {race.get('race_id')}")
+    scored=[]
     for boat in boats:
-        lane = to_int(boat.get("boat"))
-        course = get_exhibition_course(boat)
-
-        # 朝スコアの参照値（枠番をcourseとして使用）
-        morning_ref = morning.score_boat(
-            race,
-            boat,
-            public_store,
-            course_override=None,
-        )
-
-        # 直前は32点のcourse要素を「展示進入」に差し替える。
-        live_base = morning.score_boat(
-            race,
-            boat,
-            public_store,
-            course_override=course if course is not None else lane,
-        )
-
-        components = dict(live_base["components"])
-        exst = component_exst(lane, boat, st_ranks)
-        components["exST"] = exst
-
-        available_weight = sum(
-            c["weight"]
-            for c in components.values()
-            if c["available"] and c["weight"] > 0
-        )
-        weighted_points = sum(
-            c["weighted_points"]
-            for c in components.values()
-            if c["available"] and c["weight"] > 0
-        )
-        # Production provisional formula selected from 10/2 retrospective test:
-        # racer-course suitability x grade x exhibition-ST.
-        rc = morning.racer_course_score(
-            live_base.get("registration_no"),
-            course if course is not None else lane,
-        )
-        grade_text = str(live_base.get("grade") or "").strip().upper()
-        gs = morning.GRADE_PRIOR.get(grade_text)
-        st = get_exhibition_st(boat)
-        is_f = get_exhibition_f(boat) or (st is not None and st < 0)
-
-        # 展示STは「絶対値を掛けてゼロ近傍まで落とす」のではなく、
-        # レース内順位を穏やかな補正として使う。
-        # これにより通常STの艇が 0 点化して順位全体が崩れるのを防ぐ。
-        if is_f:
-            st_factor = 0.70
-        elif lane in st_ranks:
-            st_rank = st_ranks[lane]
-            st_factor = {
-                1: 1.10,
-                2: 1.06,
-                3: 1.03,
-                4: 1.00,
-                5: 0.97,
-                6: 0.94,
-            }.get(st_rank, 1.00)
-        else:
-            st_factor = 1.00
-
-        if rc is not None and gs is not None:
-            score = rc * gs * st_factor * 100.0
-        else:
-            # racer-course/級別が欠損した艇も0点化せず朝スコアを維持する。
-            score = live_base.get("score", 0.0)
-
-        scored.append(
-            {
-                "boat": lane,
-                "registration_no": live_base.get("registration_no"),
-                "racer_name": live_base.get("racer_name"),
-                "grade": live_base.get("grade"),
-                "motor_no": live_base.get("motor_no"),
-                "boat_no": live_base.get("boat_no"),
-                "score": round(score, 2),
-                "morning_score_reference": morning_ref.get("score"),
-                "data_coverage_pct": round(
-                    available_weight / 100.0 * 100.0, 1
-                ),
-                "exhibition_course": course,
-                "exhibition_time": get_exhibition_time(boat),
-                "exhibition_st": get_exhibition_st(boat),
-                "exhibition_f": bool(get_exhibition_f(boat)),
-                "tilt": get_tilt(boat),
-                "components": components,
-            }
-        )
-
-    scored.sort(key=lambda x: (-x["score"], x["boat"]))
-    for rank, row in enumerate(scored, 1):
-        row["rank"] = rank
+        lane=to_int(boat.get("boat")); live01=.80*(structural[lane]/100.0)+.06*time_ranks[lane]+.14*st_ranks[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
+        scored.append({"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(live01*100,2),"morning_score_reference":round(morning_scores.get(lane,0.0),2),"data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"components":{"structural":{"weight":80.0,"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},"exTime":{"weight":6.0,"raw_score_0_1":round(time_ranks[lane],6),"available":True},"exST":{"weight":14.0,"raw_score_0_1":round(st_ranks[lane],6),"available":True}}})
+    scored.sort(key=lambda x:(-x["score"],x["boat"]))
+    for i,x in enumerate(scored,1):x["rank"]=i
     return scored
-
 
 def race_context(race):
     keys = (
