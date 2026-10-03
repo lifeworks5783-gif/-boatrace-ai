@@ -284,7 +284,8 @@ def score_race(race, public_store):
             live_base.get("registration_no"),
             course if course is not None else lane,
         )
-        gs = morning.grade_score(public_store.card.get(morning.canonical_race_code(race.get("race_id"))), lane)
+        grade_text = str(live_base.get("grade") or "").strip().upper()
+        gs = morning.GRADE_PRIOR.get(grade_text)
         st = get_exhibition_st(boat)
         is_f = get_exhibition_f(boat) or (st is not None and st < 0)
         exst_raw = 0.0 if is_f else (None if st is None else max(0.0, min(1.0, 1.0 - st / .35)))
