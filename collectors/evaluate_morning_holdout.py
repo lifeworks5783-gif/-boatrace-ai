@@ -101,5 +101,5 @@ def main():
   vv=[x["top3_pct"] for x in days.values() if x["top3_pct"] is not None];out.append({"weights":{"racer":wr,"grade":wg,"motor":wm,"boat":wb,"national_top2":wn},"by_date":days,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"pooled":{"n":pooled["n"],"top1_pct":round(100*pooled["top1"]/pooled["n"],2),"top3_pct":round(100*pooled["top3"]/pooled["n"],2),"exact_pct":round(100*pooled["exact"]/pooled["n"],2)}})
  outdir=Path("evaluations/morning_holdout_20260928_20260929");outdir.mkdir(parents=True,exist_ok=True)
  (outdir/"summary.json").write_text(json.dumps({"definition":"TOP3 unordered exact set","baseline":"holdout validation; target dates excluded from weight selection","results":out},ensure_ascii=False,indent=2),encoding="utf-8")
- print(json.dumps(sorted(out,key=lambda x:(-x["net_flips"],-x["daily_avg_top3_pct"]))[:20],ensure_ascii=False,indent=2))
+ print(json.dumps(out,ensure_ascii=False,indent=2))
 if __name__=="__main__":main()
