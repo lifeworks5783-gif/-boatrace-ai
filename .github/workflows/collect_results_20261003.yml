@@ -1,0 +1,42 @@
+name: Collect results 20261003
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/collect_results_20261003.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install lhafile
+      - name: Collect official results
+        run: python -u collectors/daily_results_fast.py --date 20261003
+      - name: Validate
+        run: python -u collectors/validate_daily.py --date 20261003
+      - name: Archive
+        run: |
+          mkdir -p archive/2026/10/03
+          cp data/venues_20261003.csv archive/2026/10/03/
+          cp data/results_20261003_all.csv archive/2026/10/03/
+          cp data/boat_results_20261003_all.csv archive/2026/10/03/
+          cp data/validation_20261003.json archive/2026/10/03/
+          cp data/manifest_20261003.json archive/2026/10/03/
+          if [ -f data/excluded_races_20261003.csv ]; then cp data/excluded_races_20261003.csv archive/2026/10/03/; fi
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add archive/2026/10/03/
+          git diff --cached --quiet || git commit -m "Archive official results for 20261003"
+          git pull --rebase origin main
+          git push origin main
