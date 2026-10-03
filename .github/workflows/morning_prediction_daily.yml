@@ -10,7 +10,8 @@ on:
       - "collectors/build_morning_prediction.py"
       - ".github/workflows/morning_prediction_daily.yml"
   schedule:
-    - cron: "0 18 * * *"\n    - cron: "30 19 * * *"  # 04:30 JST safety retry
+    - cron: "0 18 * * *"
+    - cron: "30 19 * * *"  # 04:30 JST safety retry
 
   workflow_dispatch:
 
