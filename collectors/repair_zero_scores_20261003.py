@@ -30,3 +30,5 @@ for race in data.get("races",[]):
     race.update(src); race["boats"]=new; race["live_order"]=[b["boat"] for b in new]; race["top3_boats"]=[b["boat"] for b in new[:3]]; race["repair_note"]="zero-score repaired with current racer-course x grade x relative-ST formula"; repaired.append(rid)
 final_path.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8"); print("REPAIRED",len(repaired),repaired)
 if len(repaired)!=19: raise SystemExit(f"expected 19 repairs, got {len(repaired)}")
+
+# trigger repair workflow
