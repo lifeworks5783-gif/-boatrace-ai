@@ -2850,7 +2850,11 @@ def build_page(
 
         )
 
-    body: List[str] = []\n\n    current_pdca = current_pdca_html(root)\n    if current_pdca:\n        body.append(current_pdca)
+    body: List[str] = []
+
+    current_pdca = current_pdca_html(root)
+    if current_pdca:
+        body.append(current_pdca)
 
     fixed = fixed_20261002_html(root)
     if fixed:
