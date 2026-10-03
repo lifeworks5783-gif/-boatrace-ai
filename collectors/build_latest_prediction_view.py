@@ -994,6 +994,14 @@ def main():
                 }
             )
 
+        # 朝予測の買い目も別途固定保存する。
+        # 直前予測へ切り替わった後も、朝時点のフォーメーションを失わない。
+        morning_formation = None
+        if race_id in morning:
+            morning_boats = ranked_boats(morning[race_id])
+            if len(morning_boats) == 6:
+                morning_formation = build_formation(morning_boats)
+
         row = {
             "target_date": (
                 target_date
@@ -1045,6 +1053,9 @@ def main():
             ),
             "formation": (
                 formation
+            ),
+            "morning_formation": (
+                morning_formation
             ),
         }
 
