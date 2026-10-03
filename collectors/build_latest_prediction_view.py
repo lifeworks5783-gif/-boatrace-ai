@@ -11,7 +11,7 @@ from pathlib import Path
 
 JST = timezone(timedelta(hours=9))
 
-FORMATION_MODEL = "formation_gap_v1"
+FORMATION_MODEL = "formation_gap_flow_v2"
 
 
 def parse_args():
@@ -442,46 +442,19 @@ def valid_combinations(
 def build_formation(
     boats,
 ):
-    if len(
-        boats
-    ) != 6:
+    if len(boats) != 6:
         return None
 
-    order = [
-        boat_number(
-            row
-        )
-        for row
-        in boats
-    ]
+    order = [boat_number(row) for row in boats]
+    scores = [boat_score(row) for row in boats]
 
-    scores = [
-        boat_score(
-            row
-        )
-        for row
-        in boats
-    ]
-
-    if any(
-        boat is None
-        for boat in order
-    ):
+    if any(boat is None for boat in order):
         return None
 
-    # スコア欠損があるレースは
-    # 無理にフォーメーションを生成しない
-    if any(
-        score is None
-        for score in scores
-    ):
+    if any(score is None for score in scores):
         return {
-            "model_version": (
-                FORMATION_MODEL
-            ),
-            "formation_type": (
-                "スコア不足"
-            ),
+            "model_version": FORMATION_MODEL,
+            "formation_type": "スコア不足",
             "gap_1_2": None,
             "gap_2_3": None,
             "gap_3_4": None,
@@ -494,160 +467,112 @@ def build_formation(
         }
 
     score_by_boat = {
-        boat_number(
-            row
-        ): score_for_calculation(
-            row
-        )
-        for row
-        in boats
+        boat_number(row): score_for_calculation(row)
+        for row in boats
     }
 
-    gap12 = (
-        scores[0]
-        - scores[1]
-    )
+    gap12 = scores[0] - scores[1]
+    gap23 = scores[1] - scores[2]
+    gap34 = scores[2] - scores[3]
 
-    gap23 = (
-        scores[1]
-        - scores[2]
-    )
+    # 流しルール:
+    # 1) 1・2位が接近し、3位以下と明確な差 -> 1・2着折返し＋3着流し
+    # 2) 1位が強く、2位も3位以下と明確な差 -> 1着・2着固定＋3着流し
+    # 3) 1位だけ強い -> 1着固定＋2・3着相手流し
+    if gap12 < 5.0 and gap23 >= 10.0:
+        formation_type = "1・2着折返し＋3着流し"
+        top1, top2 = order[0], order[1]
+        tail = order[2:]
+        combinations = [
+            (top1, top2, c) for c in tail
+        ] + [
+            (top2, top1, c) for c in tail
+        ]
+        first_candidates = [top1, top2]
+        second_candidates = [top1, top2]
+        third_candidates = tail
 
-    gap34 = (
-        scores[2]
-        - scores[3]
-    )
+    elif gap12 >= 10.0 and gap23 >= 10.0:
+        formation_type = "1・2着固定＋3着流し"
+        top1, top2 = order[0], order[1]
+        tail = order[2:]
+        combinations = [(top1, top2, c) for c in tail]
+        first_candidates = [top1]
+        second_candidates = [top2]
+        third_candidates = tail
 
-    if gap12 >= 10.0:
-
-        formation_type = (
-            "1着強軸"
+    elif gap12 >= 10.0:
+        formation_type = "1着固定＋相手流し"
+        top1 = order[0]
+        tail = order[1:]
+        combinations = [
+            (top1, b, c)
+            for b in tail
+            for c in tail
+            if b != c
+        ]
+        combinations.sort(
+            key=lambda combo: (
+                -combo_strength(combo, score_by_boat),
+                combo,
+            )
         )
-
-        first_candidates = (
-            order[:1]
-        )
-
-        second_candidates = (
-            order[1:3]
-        )
-
-        third_candidates = (
-            order[1:4]
-        )
-
-        max_points = 6
+        # 点数過多を避けつつ従来4点より広げる
+        combinations = combinations[:12]
+        first_candidates = [top1]
+        second_candidates = tail
+        third_candidates = tail
 
     elif gap12 >= 5.0:
-
-        formation_type = (
-            "準軸"
-        )
-
-        first_candidates = (
-            order[:2]
-        )
-
-        second_candidates = (
-            order[:3]
-        )
-
-        third_candidates = (
-            order[:4]
-        )
-
-        max_points = 8
-
-    else:
-
-        formation_type = (
-            "混戦"
-        )
-
-        first_candidates = (
-            order[:2]
-        )
-
-        second_candidates = (
-            order[:4]
-        )
-
-        third_candidates = (
-            order[:5]
-        )
-
-        max_points = 12
-
-    combinations = (
-        valid_combinations(
+        formation_type = "準軸"
+        first_candidates = order[:2]
+        second_candidates = order[:3]
+        third_candidates = order[:4]
+        combinations = valid_combinations(
             first_candidates,
             second_candidates,
             third_candidates,
         )
-    )
-
-    combinations.sort(
-        key=lambda combo: (
-            -combo_strength(
+        combinations.sort(
+            key=lambda combo: (
+                -combo_strength(combo, score_by_boat),
                 combo,
-                score_by_boat,
-            ),
-            combo,
+            )
         )
-    )
+        combinations = combinations[:8]
 
-    combinations = (
-        combinations[
-            :max_points
-        ]
-    )
+    else:
+        formation_type = "混戦"
+        first_candidates = order[:2]
+        second_candidates = order[:4]
+        third_candidates = order[:5]
+        combinations = valid_combinations(
+            first_candidates,
+            second_candidates,
+            third_candidates,
+        )
+        combinations.sort(
+            key=lambda combo: (
+                -combo_strength(combo, score_by_boat),
+                combo,
+            )
+        )
+        combinations = combinations[:12]
 
     return {
-        "model_version": (
-            FORMATION_MODEL
-        ),
-        "formation_type": (
-            formation_type
-        ),
-        "gap_1_2": round(
-            gap12,
-            2,
-        ),
-        "gap_2_3": round(
-            gap23,
-            2,
-        ),
-        "gap_3_4": round(
-            gap34,
-            2,
-        ),
-        "first_candidates": (
-            first_candidates
-        ),
-        "second_candidates": (
-            second_candidates
-        ),
-        "third_candidates": (
-            third_candidates
-        ),
+        "model_version": FORMATION_MODEL,
+        "formation_type": formation_type,
+        "gap_1_2": round(gap12, 2),
+        "gap_2_3": round(gap23, 2),
+        "gap_3_4": round(gap34, 2),
+        "first_candidates": first_candidates,
+        "second_candidates": second_candidates,
+        "third_candidates": third_candidates,
         "combinations": [
-            f"{a}-{b}-{c}"
-            for (
-                a,
-                b,
-                c,
-            )
-            in combinations
+            f"{a}-{b}-{c}" for a, b, c in combinations
         ],
-        "points": len(
-            combinations
-        ),
-        "investment_100yen": (
-            len(
-                combinations
-            )
-            * 100
-        ),
+        "points": len(combinations),
+        "investment_100yen": len(combinations) * 100,
     }
 
 
