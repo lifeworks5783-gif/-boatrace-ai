@@ -1,0 +1,621 @@
+{
+  "schema_version": "1.0",
+  "model_version": "racer_course_grade_exst_rankfix_v2_20261003_live",
+  "target_date": "20261003",
+  "prediction_stage": "live",
+  "generated_at": "2026-10-03T13:01:55+09:00",
+  "weights": {
+    "course": 32.0,
+    "official": 12.0,
+    "recent": 8.0,
+    "venue": 6.0,
+    "motor": 1.0,
+    "boat": 6.0,
+    "grade": 15.0,
+    "avgST": 0.0,
+    "series": 17.0,
+    "exTime": 0.0,
+    "exST": 3.0,
+    "discipline": 0.0
+  },
+  "live_policy": {
+    "course": "32点を展示進入コースへ差し替え",
+    "exhibition_st": "3点。Fは0点",
+    "exhibition_time": "0点"
+  },
+  "race_count": 1,
+  "boat_count": 6,
+  "races": [
+    {
+      "race_id": "20261003-16-06",
+      "date": "20261003",
+      "venue_code": "16",
+      "venue_name": "児島",
+      "race": 6,
+      "race_name": "一般",
+      "deadline": "13:19",
+      "generated_at": "2026-10-03T13:01:55+09:00",
+      "live_data_counts": {
+        "exhibition_course": 6,
+        "exhibition_st": 6
+      },
+      "weather_water": {
+        "weather": {
+          "weather": "晴",
+          "air_temperature_c": 23.0,
+          "water_temperature_c": 25.0,
+          "wind_speed_mps": 5.0,
+          "wind_direction_code": 11,
+          "wind_direction": "南西",
+          "wave_height_cm": 5.0,
+          "stabilizer": false
+        }
+      },
+      "live_order": [
+        4,
+        1,
+        2,
+        3,
+        5,
+        6
+      ],
+      "top3_boats": [
+        4,
+        1,
+        2
+      ],
+      "strength": {
+        "top1_top2_gap": 3.06,
+        "top1_top3_gap": 8.05
+      },
+      "boats": [
+        {
+          "boat": 4,
+          "registration_no": 4776,
+          "racer_name": "竹田和哉",
+          "grade": "A1",
+          "motor_no": 56,
+          "boat_no": 52,
+          "score": 57.14,
+          "morning_score_reference": 57.14,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 4,
+          "exhibition_time": 6.57,
+          "exhibition_st": 0.1,
+          "exhibition_f": false,
+          "tilt": -0.5,
+          "components": {
+            "course": {
+              "name": "course",
+              "available": true,
+              "raw_score_0_1": 0.58,
+              "weight": 32.0,
+              "weighted_points": 18.56,
+              "source": "展示進入コース=4"
+            },
+            "official": {
+              "name": "official",
+              "available": true,
+              "raw_score_0_1": 0.6679,
+              "weight": 12.0,
+              "weighted_points": 8.0148,
+              "source": "全国勝率40%＋全国2連率35%＋全国3連率25%"
+            },
+            "recent": {
+              "name": "recent",
+              "available": true,
+              "raw_score_0_1": 0.760847,
+              "weight": 8.0,
+              "weighted_points": 6.0868,
+              "source": "全国直近5節の着順列（直近5,4,3,2,1重み）"
+            },
+            "venue": {
+              "name": "venue",
+              "available": true,
+              "raw_score_0_1": 0.740992,
+              "weight": 6.0,
+              "weighted_points": 4.446,
+              "source": "当地勝率/2連/3連＋当地直近5節"
+            },
+            "motor": {
+              "name": "motor",
+              "available": true,
+              "raw_score_0_1": 0.4224,
+              "weight": 1.0,
+              "weighted_points": 0.4224,
+              "source": "モーター2連率55%＋3連率45%"
+            },
+            "boat": {
+              "name": "boat",
+              "available": true,
+              "raw_score_0_1": 0.40735,
+              "weight": 6.0,
+              "weighted_points": 2.4441,
+              "source": "ボート2連率55%＋3連率45%"
+            },
+            "grade": {
+              "name": "grade",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 15.0,
+              "weighted_points": 15.0,
+              "source": "級別 A1=1.00/A2=.78/B1=.48/B2=.30"
+            },
+            "series": {
+              "name": "series",
+              "available": true,
+              "raw_score_0_1": 0.642857,
+              "weight": 17.0,
+              "weighted_points": 10.9286,
+              "source": "今節の当該日より前までの着順"
+            },
+            "exST": {
+              "name": "exST",
+              "available": true,
+              "raw_score_0_1": 0.0,
+              "weight": 3.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=0.1 レース内順位"
+            }
+          },
+          "rank": 1
+        },
+        {
+          "boat": 1,
+          "registration_no": 3783,
+          "racer_name": "瓜生正義",
+          "grade": "A1",
+          "motor_no": 42,
+          "boat_no": 64,
+          "score": 54.08,
+          "morning_score_reference": 77.26,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 1,
+          "exhibition_time": 6.51,
+          "exhibition_st": -0.02,
+          "exhibition_f": true,
+          "tilt": 0.0,
+          "components": {
+            "course": {
+              "name": "course",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 32.0,
+              "weighted_points": 32.0,
+              "source": "展示進入コース=1"
+            },
+            "official": {
+              "name": "official",
+              "available": true,
+              "raw_score_0_1": 0.5473,
+              "weight": 12.0,
+              "weighted_points": 6.5676,
+              "source": "全国勝率40%＋全国2連率35%＋全国3連率25%"
+            },
+            "recent": {
+              "name": "recent",
+              "available": true,
+              "raw_score_0_1": 0.612901,
+              "weight": 8.0,
+              "weighted_points": 4.9032,
+              "source": "全国直近5節の着順列（直近5,4,3,2,1重み）"
+            },
+            "venue": {
+              "name": "venue",
+              "available": true,
+              "raw_score_0_1": 0.256593,
+              "weight": 6.0,
+              "weighted_points": 1.5396,
+              "source": "当地勝率/2連/3連＋当地直近5節"
+            },
+            "motor": {
+              "name": "motor",
+              "available": true,
+              "raw_score_0_1": 0.3869,
+              "weight": 1.0,
+              "weighted_points": 0.3869,
+              "source": "モーター2連率55%＋3連率45%"
+            },
+            "boat": {
+              "name": "boat",
+              "available": true,
+              "raw_score_0_1": 0.4788,
+              "weight": 6.0,
+              "weighted_points": 2.8728,
+              "source": "ボート2連率55%＋3連率45%"
+            },
+            "grade": {
+              "name": "grade",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 15.0,
+              "weighted_points": 15.0,
+              "source": "級別 A1=1.00/A2=.78/B1=.48/B2=.30"
+            },
+            "series": {
+              "name": "series",
+              "available": true,
+              "raw_score_0_1": 0.642857,
+              "weight": 17.0,
+              "weighted_points": 10.9286,
+              "source": "今節の当該日より前までの着順"
+            },
+            "exST": {
+              "name": "exST",
+              "available": true,
+              "raw_score_0_1": 0.0,
+              "weight": 3.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=-0.02 F扱いで0点"
+            }
+          },
+          "rank": 2
+        },
+        {
+          "boat": 2,
+          "registration_no": 4704,
+          "racer_name": "河野大",
+          "grade": "A1",
+          "motor_no": 60,
+          "boat_no": 48,
+          "score": 49.09,
+          "morning_score_reference": 44.63,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 2,
+          "exhibition_time": 6.56,
+          "exhibition_st": 0.01,
+          "exhibition_f": false,
+          "tilt": -0.5,
+          "components": {
+            "course": {
+              "name": "course",
+              "available": true,
+              "raw_score_0_1": 0.72,
+              "weight": 32.0,
+              "weighted_points": 23.04,
+              "source": "展示進入コース=2"
+            },
+            "official": {
+              "name": "official",
+              "available": true,
+              "raw_score_0_1": 0.56095,
+              "weight": 12.0,
+              "weighted_points": 6.7314,
+              "source": "全国勝率40%＋全国2連率35%＋全国3連率25%"
+            },
+            "recent": {
+              "name": "recent",
+              "available": true,
+              "raw_score_0_1": 0.603415,
+              "weight": 8.0,
+              "weighted_points": 4.8273,
+              "source": "全国直近5節の着順列（直近5,4,3,2,1重み）"
+            },
+            "venue": {
+              "name": "venue",
+              "available": true,
+              "raw_score_0_1": 0.573183,
+              "weight": 6.0,
+              "weighted_points": 3.4391,
+              "source": "当地勝率/2連/3連＋当地直近5節"
+            },
+            "motor": {
+              "name": "motor",
+              "available": true,
+              "raw_score_0_1": 0.51225,
+              "weight": 1.0,
+              "weighted_points": 0.5122,
+              "source": "モーター2連率55%＋3連率45%"
+            },
+            "boat": {
+              "name": "boat",
+              "available": true,
+              "raw_score_0_1": 0.4098,
+              "weight": 6.0,
+              "weighted_points": 2.4588,
+              "source": "ボート2連率55%＋3連率45%"
+            },
+            "grade": {
+              "name": "grade",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 15.0,
+              "weighted_points": 15.0,
+              "source": "級別 A1=1.00/A2=.78/B1=.48/B2=.30"
+            },
+            "series": {
+              "name": "series",
+              "available": true,
+              "raw_score_0_1": 0.380952,
+              "weight": 17.0,
+              "weighted_points": 6.4762,
+              "source": "今節の当該日より前までの着順"
+            },
+            "exST": {
+              "name": "exST",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 3.0,
+              "weighted_points": 3.0,
+              "source": "展示ST=0.01 レース内順位"
+            }
+          },
+          "rank": 3
+        },
+        {
+          "boat": 3,
+          "registration_no": 3984,
+          "racer_name": "坂口周",
+          "grade": "A1",
+          "motor_no": 37,
+          "boat_no": 23,
+          "score": 46.09,
+          "morning_score_reference": 46.09,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 3,
+          "exhibition_time": 6.63,
+          "exhibition_st": 0.07,
+          "exhibition_f": false,
+          "tilt": -0.5,
+          "components": {
+            "course": {
+              "name": "course",
+              "available": true,
+              "raw_score_0_1": 0.62,
+              "weight": 32.0,
+              "weighted_points": 19.84,
+              "source": "展示進入コース=3"
+            },
+            "official": {
+              "name": "official",
+              "available": true,
+              "raw_score_0_1": 0.52085,
+              "weight": 12.0,
+              "weighted_points": 6.2502,
+              "source": "全国勝率40%＋全国2連率35%＋全国3連率25%"
+            },
+            "recent": {
+              "name": "recent",
+              "available": true,
+              "raw_score_0_1": 0.538316,
+              "weight": 8.0,
+              "weighted_points": 4.3065,
+              "source": "全国直近5節の着順列（直近5,4,3,2,1重み）"
+            },
+            "venue": {
+              "name": "venue",
+              "available": true,
+              "raw_score_0_1": 0.21468,
+              "weight": 6.0,
+              "weighted_points": 1.2881,
+              "source": "当地勝率/2連/3連＋当地直近5節"
+            },
+            "motor": {
+              "name": "motor",
+              "available": true,
+              "raw_score_0_1": 0.43325,
+              "weight": 1.0,
+              "weighted_points": 0.4333,
+              "source": "モーター2連率55%＋3連率45%"
+            },
+            "boat": {
+              "name": "boat",
+              "available": true,
+              "raw_score_0_1": 0.39645,
+              "weight": 6.0,
+              "weighted_points": 2.3787,
+              "source": "ボート2連率55%＋3連率45%"
+            },
+            "grade": {
+              "name": "grade",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 15.0,
+              "weighted_points": 15.0,
+              "source": "級別 A1=1.00/A2=.78/B1=.48/B2=.30"
+            },
+            "series": {
+              "name": "series",
+              "available": true,
+              "raw_score_0_1": 0.547619,
+              "weight": 17.0,
+              "weighted_points": 9.3095,
+              "source": "今節の当該日より前までの着順"
+            },
+            "exST": {
+              "name": "exST",
+              "available": true,
+              "raw_score_0_1": 0.5,
+              "weight": 3.0,
+              "weighted_points": 1.5,
+              "source": "展示ST=0.07 レース内順位"
+            }
+          },
+          "rank": 4
+        },
+        {
+          "boat": 5,
+          "registration_no": 4787,
+          "racer_name": "椎名豊",
+          "grade": "A1",
+          "motor_no": 50,
+          "boat_no": 50,
+          "score": 32.26,
+          "morning_score_reference": 46.08,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 5,
+          "exhibition_time": 6.49,
+          "exhibition_st": -0.09,
+          "exhibition_f": true,
+          "tilt": 0.0,
+          "components": {
+            "course": {
+              "name": "course",
+              "available": true,
+              "raw_score_0_1": 0.46,
+              "weight": 32.0,
+              "weighted_points": 14.72,
+              "source": "展示進入コース=5"
+            },
+            "official": {
+              "name": "official",
+              "available": true,
+              "raw_score_0_1": 0.7351,
+              "weight": 12.0,
+              "weighted_points": 8.8212,
+              "source": "全国勝率40%＋全国2連率35%＋全国3連率25%"
+            },
+            "recent": {
+              "name": "recent",
+              "available": true,
+              "raw_score_0_1": 0.707231,
+              "weight": 8.0,
+              "weighted_points": 5.6578,
+              "source": "全国直近5節の着順列（直近5,4,3,2,1重み）"
+            },
+            "venue": {
+              "name": "venue",
+              "available": true,
+              "raw_score_0_1": 0.561038,
+              "weight": 6.0,
+              "weighted_points": 3.3662,
+              "source": "当地勝率/2連/3連＋当地直近5節"
+            },
+            "motor": {
+              "name": "motor",
+              "available": true,
+              "raw_score_0_1": 0.4835,
+              "weight": 1.0,
+              "weighted_points": 0.4835,
+              "source": "モーター2連率55%＋3連率45%"
+            },
+            "boat": {
+              "name": "boat",
+              "available": true,
+              "raw_score_0_1": 0.4419,
+              "weight": 6.0,
+              "weighted_points": 2.6514,
+              "source": "ボート2連率55%＋3連率45%"
+            },
+            "grade": {
+              "name": "grade",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 15.0,
+              "weighted_points": 15.0,
+              "source": "級別 A1=1.00/A2=.78/B1=.48/B2=.30"
+            },
+            "series": {
+              "name": "series",
+              "available": true,
+              "raw_score_0_1": 0.714286,
+              "weight": 17.0,
+              "weighted_points": 12.1429,
+              "source": "今節の当該日より前までの着順"
+            },
+            "exST": {
+              "name": "exST",
+              "available": true,
+              "raw_score_0_1": 0.0,
+              "weight": 3.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=-0.09 F扱いで0点"
+            }
+          },
+          "rank": 5
+        },
+        {
+          "boat": 6,
+          "registration_no": 4324,
+          "racer_name": "海野康志",
+          "grade": "A1",
+          "motor_no": 12,
+          "boat_no": 40,
+          "score": 31.7,
+          "morning_score_reference": 45.29,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 6,
+          "exhibition_time": 6.56,
+          "exhibition_st": -0.06,
+          "exhibition_f": true,
+          "tilt": -0.5,
+          "components": {
+            "course": {
+              "name": "course",
+              "available": true,
+              "raw_score_0_1": 0.38,
+              "weight": 32.0,
+              "weighted_points": 12.16,
+              "source": "展示進入コース=6"
+            },
+            "official": {
+              "name": "official",
+              "available": true,
+              "raw_score_0_1": 0.6502,
+              "weight": 12.0,
+              "weighted_points": 7.8024,
+              "source": "全国勝率40%＋全国2連率35%＋全国3連率25%"
+            },
+            "recent": {
+              "name": "recent",
+              "available": true,
+              "raw_score_0_1": 0.579942,
+              "weight": 8.0,
+              "weighted_points": 4.6395,
+              "source": "全国直近5節の着順列（直近5,4,3,2,1重み）"
+            },
+            "venue": {
+              "name": "venue",
+              "available": true,
+              "raw_score_0_1": 0.737117,
+              "weight": 6.0,
+              "weighted_points": 4.4227,
+              "source": "当地勝率/2連/3連＋当地直近5節"
+            },
+            "motor": {
+              "name": "motor",
+              "available": true,
+              "raw_score_0_1": 0.4707,
+              "weight": 1.0,
+              "weighted_points": 0.4707,
+              "source": "モーター2連率55%＋3連率45%"
+            },
+            "boat": {
+              "name": "boat",
+              "available": true,
+              "raw_score_0_1": 0.39185,
+              "weight": 6.0,
+              "weighted_points": 2.3511,
+              "source": "ボート2連率55%＋3連率45%"
+            },
+            "grade": {
+              "name": "grade",
+              "available": true,
+              "raw_score_0_1": 1.0,
+              "weight": 15.0,
+              "weighted_points": 15.0,
+              "source": "級別 A1=1.00/A2=.78/B1=.48/B2=.30"
+            },
+            "series": {
+              "name": "series",
+              "available": true,
+              "raw_score_0_1": 0.583333,
+              "weight": 17.0,
+              "weighted_points": 9.9167,
+              "source": "今節の当該日より前までの着順"
+            },
+            "exST": {
+              "name": "exST",
+              "available": true,
+              "raw_score_0_1": 0.0,
+              "weight": 3.0,
+              "weighted_points": 0.0,
+              "source": "展示ST=-0.06 F扱いで0点"
+            }
+          },
+          "rank": 6
+        }
+      ]
+    }
+  ]
+}
