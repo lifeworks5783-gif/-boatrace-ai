@@ -82,7 +82,10 @@ def main():
  for name,w in models.items():
   x,ds=ev(races,w);out.append({"model":name,"weights":json.dumps(w),"factor_count":len(w),**x})
   for d,z in ds.items():days.append({"model":name,"date":d,**z})
- history_models=[x for x in out if "d90_" in x["weights"]]\n common_n=max(x["races"] for x in history_models)\n fair=[x for x in out if x["races"]==common_n]\n fair.sort(key=lambda x:(-x["top3_pct"],-x["top1_pct"],-x["exact_pct"]))
+ history_models=[x for x in out if "d90_" in x["weights"]]
+ common_n=max(x["races"] for x in history_models)
+ fair=[x for x in out if x["races"]==common_n]
+ fair.sort(key=lambda x:(-x["top3_pct"],-x["top1_pct"],-x["exact_pct"]))
  OUT.mkdir(parents=True,exist_ok=True)
  for fn,data in [("all_models.csv",out),("fair_top3_ranked.csv",fair),("by_date.csv",days)]:
   with (OUT/fn).open("w",encoding="utf-8",newline="") as h:w=csv.DictWriter(h,fieldnames=list(data[0]));w.writeheader();w.writerows(data)
