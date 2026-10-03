@@ -71,7 +71,8 @@ def main():
     rc=defaultdict(list);rg=defaultdict(list);mg=defaultdict(list);bg=defaultdict(list)
     for r in prior:
      reg=r.get("registration_no","");c=I(r.get("course"));v=str(r.get("venue_code","")).zfill(2);mm=I(r.get("motor_no"));bn=I(r.get("boat_no"))
-     if reg:rg[reg].append(r)\n     if reg and c:rc[(reg,c)].append(r)
+     if reg:rg[reg].append(r)
+     if reg and c:rc[(reg,c)].append(r)
      if mm is not None:mg[(v,mm)].append(r)
      if bn is not None:bg[(v,bn)].append(r)
     rr=defaultdict(list)
@@ -92,7 +93,8 @@ def main():
       return {b["boat"]:sum(q[b["boat"]]*w for q,w in z) for b in bs}
      r0=bk([("cw",.4,False),("c2",.2,False),("c3",.3,False),("cst",.1,True)]);re=bk([("lw",.4,False),("l2",.2,False),("l3",.3,False),("lst",.1,True)]);mo=bk([("mw",.4,False),("m3",.6,False)]);ba=bk([("b2",.5,False),("b3",.5,False)]);gr=rankmap(bs,"grade");nat=rankmap(bs,"nat2");et=rankmap(bs,"etime",True);es=rankmap(bs,"est",True)
      if any(x is None for x in [r0,re,mo,ba,gr,nat,et,es]):continue
-     wr,wg,wm,wb,wn=weights\n     morning={b:wr/100*r0[b]+wg/100*gr[b]+wm/100*mo[b]+wb/100*ba[b]+wn/100*nat[b] for b in r0};struct={b:wr/100*re[b]+wg/100*gr[b]+wm/100*mo[b]+wb/100*ba[b]+wn/100*nat[b] for b in re};rem=1-(wt+ws)/100
+     wr,wg,wm,wb,wn=weights
+     morning={b:wr/100*r0[b]+wg/100*gr[b]+wm/100*mo[b]+wb/100*ba[b]+wn/100*nat[b] for b in r0};struct={b:wr/100*re[b]+wg/100*gr[b]+wm/100*mo[b]+wb/100*ba[b]+wn/100*nat[b] for b in re};rem=1-(wt+ws)/100
      live={b:rem*struct[b]+wt/100*et[b]+ws/100*es[b] for b in struct};a=hit(bs,morning);z=hit(bs,live);n+=1;mh+=a;lh+=z;flipplus+=(not a) and z;flipminus+=a and (not z)
     vals.append({"date":d,"n":n,"morning_pct":round(100*mh/n,2) if n else None,"live_pct":round(100*lh/n,2) if n else None})
    vv=[x["live_pct"] for x in vals if x["live_pct"] is not None];allres.append({"model":model,"weights":weights,"time_pct":wt,"st_pct":ws,"structural_pct":100-wt-ws,"by_date":vals,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"x_to_o":flipplus,"o_to_x":flipminus,"net_flips":flipplus-flipminus})
