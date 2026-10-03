@@ -80,7 +80,8 @@ def main():
    expected=bo;entry=I(L.get("exhibition_course")) or I(L.get("course")) or expected
    cs=stat(rc[(reg,expected)]);ls=stat(rc[(reg,entry)]);ms=stat(mg[(v,I(r.get("motor_no")))]) if I(r.get("motor_no")) is not None else {};bs=stat(bg[(v,I(r.get("boat_no")))]) if I(r.get("boat_no")) is not None else {}
    races[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"lw":ls.get("win"),"l2":ls.get("top2"),"l3":ls.get("top3"),"lst":ls.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"mw":ms.get("win"),"m3":ms.get("top3"),"b2":bs.get("top2"),"b3":bs.get("top3"),"etime":F(L.get("exhibition_time")),"est":F(L.get("exhibition_st_seconds")),"entry":entry})
-  cats=defaultdict(lambda:{"n":0,"morning":0,"entry":0,"xo":0,"ox":0})\n  z={"date":d,"morning_n":0,"morning_hit":0,"live_n":0,"live_hit":0,"common_n":0,"oo":0,"ox":0,"xo":0,"xx":0,"common_morning_hit":0,"entry_only_hit":0,"entry_time_hit":0,"entry_st_hit":0,"full_live_hit":0}
+  cats=defaultdict(lambda:{"n":0,"morning":0,"entry":0,"xo":0,"ox":0})
+  z={"date":d,"morning_n":0,"morning_hit":0,"live_n":0,"live_hit":0,"common_n":0,"oo":0,"ox":0,"xo":0,"xx":0,"common_morning_hit":0,"entry_only_hit":0,"entry_time_hit":0,"entry_st_hit":0,"full_live_hit":0}
   for rid,bs in races.items():
    def block(keys):
     maps={}
@@ -105,7 +106,12 @@ def main():
     entry_st={b:.48*lr[b]+.19*gr[b]+.12*motor[b]+.17*boat[b]+.04*es[b] for b in lr}
     full={b:.46*lr[b]+.18*gr[b]+.11*motor[b]+.15*boat[b]+.06*et[b]+.04*es[b] for b in lr}
     mh=hit(bs,morning);fh=hit(bs,full)
-    eh=hit(bs,entry)\n    changed=[b for b in bs if b["entry"]!=b["boat"]];delta=[b["entry"]-b["boat"] for b in changed];keys=["any_change" if changed else "no_change"]\n    if changed: keys+=["has_inward" if any(x<0 for x in delta) else "no_inward","has_outward" if any(x>0 for x in delta) else "no_outward","max_move_ge2" if max(abs(x) for x in delta)>=2 else "max_move_1"]\n    for key in keys:\n     q=cats[key];q["n"]+=1;q["morning"]+=int(mh);q["entry"]+=int(eh);q["xo"]+=int((not mh) and eh);q["ox"]+=int(mh and (not eh))\n    z["common_n"]+=1;z["common_morning_hit"]+=int(mh);z["entry_only_hit"]+=int(eh);z["entry_time_hit"]+=int(hit(bs,entry_time));z["entry_st_hit"]+=int(hit(bs,entry_st));z["full_live_hit"]+=int(fh)
+    eh=hit(bs,entry)
+    changed=[b for b in bs if b["entry"]!=b["boat"]];delta=[b["entry"]-b["boat"] for b in changed];keys=["any_change" if changed else "no_change"]
+    if changed: keys+=["has_inward" if any(x<0 for x in delta) else "no_inward","has_outward" if any(x>0 for x in delta) else "no_outward","max_move_ge2" if max(abs(x) for x in delta)>=2 else "max_move_1"]
+    for key in keys:
+     q=cats[key];q["n"]+=1;q["morning"]+=int(mh);q["entry"]+=int(eh);q["xo"]+=int((not mh) and eh);q["ox"]+=int(mh and (not eh))
+    z["common_n"]+=1;z["common_morning_hit"]+=int(mh);z["entry_only_hit"]+=int(eh);z["entry_time_hit"]+=int(hit(bs,entry_time));z["entry_st_hit"]+=int(hit(bs,entry_st));z["full_live_hit"]+=int(fh)
     z["oo" if mh and fh else "ox" if mh else "xo" if fh else "xx"]+=1
     z["live_n"]+=1;z["live_hit"]+=int(fh)
   z["morning_top3_pct"]=round(100*z["morning_hit"]/z["morning_n"],2) if z["morning_n"] else None
