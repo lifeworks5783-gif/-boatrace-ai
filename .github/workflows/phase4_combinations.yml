@@ -1,0 +1,23 @@
+name: Phase4 combination evaluation
+on:
+  push:
+    branches: [main]
+    paths: [collectors/evaluate_phase4_combinations.py, .github/workflows/phase4_combinations.yml]
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python collectors/evaluate_phase4_combinations.py
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/phase4_combinations/
+          git diff --cached --quiet || git commit -m "Add phase 4 combination evaluation results"
+          git push
