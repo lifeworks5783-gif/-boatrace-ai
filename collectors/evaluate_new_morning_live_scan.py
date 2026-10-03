@@ -63,7 +63,7 @@ def main():
  rows=archive();bd=defaultdict(list)
  for r in rows:bd[r.get("date")].append(r)
  allres=[]
- for model,weights in [("avg_best",(40,20,20,5,15)),("stable",(40,20,10,10,20)):
+ for model,weights in [("avg_best",(40,20,20,5,15)),("stable",(40,20,10,10,20))]:
   for wt in [0,4,8]:
    for ws in [14,16,18,20]:
    vals=[];flipplus=flipminus=0
