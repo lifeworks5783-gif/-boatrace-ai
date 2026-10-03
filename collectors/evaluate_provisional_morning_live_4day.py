@@ -101,7 +101,9 @@ def main():
     sc={b:.46*lr[b]+.18*gr[b]+.11*motor[b]+.15*boat[b]+.06*et[b]+.04*es[b] for b in lr}
     z["live_n"]+=1;z["live_hit"]+=int(hit(bs,sc))
   z["morning_top3_pct"]=round(100*z["morning_hit"]/z["morning_n"],2) if z["morning_n"] else None
-  z["live_top3_pct"]=round(100*z["live_hit"]/z["live_n"],2) if z["live_n"] else None\n  for k in ["entry_only_hit","etime_only_hit","est_only_hit"]:\n   z[k.replace("_hit","_pct")]=round(100*z[k]/z["common_n"],2) if z["common_n"] else None
+  z["live_top3_pct"]=round(100*z["live_hit"]/z["live_n"],2) if z["live_n"] else None
+  for k in ["entry_only_hit","etime_only_hit","est_only_hit"]:
+   z[k.replace("_hit","_pct")]=round(100*z[k]/z["common_n"],2) if z["common_n"] else None
   results.append(z)
  out=Path("evaluations/provisional_morning_live_4day");out.mkdir(parents=True,exist_ok=True)
  mv=[x["morning_top3_pct"] for x in results if x["morning_top3_pct"] is not None];lvv=[x["live_top3_pct"] for x in results if x["live_top3_pct"] is not None]
