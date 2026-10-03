@@ -1,0 +1,26 @@
+name: Candidate single factor evaluation
+on:
+  push:
+    branches: [main]
+    paths:
+      - collectors/evaluate_all_candidate_single_factors.py
+      - .github/workflows/candidate_single_factors.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python collectors/evaluate_all_candidate_single_factors.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/all_candidate_single_factors/
+          git diff --cached --quiet || git commit -m "Add candidate single factor results"
+          git pull --rebase origin main
+          git push origin main
