@@ -86,7 +86,28 @@ def main():
  def hit(bs,sc):
   p=sorted(bs,key=lambda b:(-sc[b["boat"]],b["boat"]));a=sorted(bs,key=lambda b:(b["finish"],b["boat"]))
   return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])
- # combined base: racer B1 + motor(win40/top3 60) + boat(top2 50/top3 50), equal block sum\n combined=[]\n for d in DATES:\n  n=h=0\n  for rid,bs in daily[d].items():\n   racer=scores(bs);mw=rankmap(bs,"motor_win");m3=rankmap(bs,"motor_top3");b2=rankmap(bs,"boat2");b3=rankmap(bs,"boat3")\n   if racer is None or any(x is None for x in [mw,m3,b2,b3]):continue\n   sc={b:racer[b]+(.4*mw[b]+.6*m3[b])+(.5*b2[b]+.5*b3[b]) for b in racer}\n   n+=1;h+=hit(bs,sc)\n  combined.append({"date":d,"races":n,"hits":h,"top3_pct":round(100*h/n,2) if n else None})\n vals=[x["top3_pct"] for x in combined if x["top3_pct"] is not None]\n OUT2=Path("evaluations/base3_combined_20260930_20261003");OUT2.mkdir(parents=True,exist_ok=True)\n result={"definition":"TOP3 unordered exact set","formula":"racer B1 + motor(d90 win40 + d90 top3 60) + boat(d90 top2 50 + d90 top3 50), equal block sum","by_date":combined,"daily_avg_top3_pct":round(sum(vals)/len(vals),2),"spread_pt":round(max(vals)-min(vals),2)}\n (OUT2/"summary.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")\n print(json.dumps(result,ensure_ascii=False,indent=2))\n return\n specs=[("grade","級別"),("nat2","全国2連対率"),("etime","展示タイム"),("boat2","ボート90日2連対率"),("motor_win","モーター90日1着率"),("motor_top3","モーター90日3連対率"),("boat3","ボート90日3連対率")]
+ # combined base: all racers + motor + boat. No grade/additional correction.
+ combined=[]
+ for d in DATES:
+  n=h=0
+  for rid,bs in daily[d].items():
+   racer=scores(bs)
+   mw=rankmap(bs,"motor_win");m3=rankmap(bs,"motor_top3")
+   b2=rankmap(bs,"boat2");b3=rankmap(bs,"boat3")
+   if racer is None or any(x is None for x in [mw,m3,b2,b3]):
+    continue
+   sc={boat:racer[boat]+(.4*mw[boat]+.6*m3[boat])+(.5*b2[boat]+.5*b3[boat]) for boat in racer}
+   n+=1
+   h+=int(hit(bs,sc))
+  combined.append({"date":d,"races":n,"hits":h,"top3_pct":round(100*h/n,2) if n else None})
+ vals=[x["top3_pct"] for x in combined if x["top3_pct"] is not None]
+ outdir=Path("evaluations/base3_combined_20260930_20261003")
+ outdir.mkdir(parents=True,exist_ok=True)
+ result={"definition":"TOP3 unordered exact set","scope":"all racers; no grade correction","formula":"racer course base(win40/top2 20/top3 30/avgST10) + motor(d90 win40/top3 60) + boat(d90 top2 50/top3 50), equal block sum","by_date":combined,"daily_avg_top3_pct":round(sum(vals)/len(vals),2),"spread_pt":round(max(vals)-min(vals),2)}
+ (outdir/"summary.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
+ print(json.dumps(result,ensure_ascii=False,indent=2))
+ return
+ specs=[("grade","級別"),("nat2","全国2連対率"),("etime","展示タイム"),("boat2","ボート90日2連対率"),("motor_win","モーター90日1着率"),("motor_top3","モーター90日3連対率"),("boat3","ボート90日3連対率")]
  out=[]
  for key,label in specs:
   for w in [.02,.05,.10,.15,.20,.30]:
