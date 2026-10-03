@@ -1,0 +1,22 @@
+name: Motor history coverage audit
+on:
+  push:
+    branches: [main]
+    paths: [collectors/check_motor_history_coverage.py, .github/workflows/motor_history_coverage.yml]
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python collectors/check_motor_history_coverage.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/motor_history_coverage/
+          git diff --cached --quiet || git commit -m "Add motor history coverage audit results"
+          git push
