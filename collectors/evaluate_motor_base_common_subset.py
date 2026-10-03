@@ -80,4 +80,4 @@ def main():
   with (OUT/fn).open("w",encoding="utf-8",newline="") as h:w=csv.DictWriter(h,fieldnames=list(data[0]));w.writeheader();w.writerows(data)
  (OUT/"summary.json").write_text(json.dumps({"rule":"all four motor metrics complete for all six boats before model comparison; prior 90d only; TOP3 primary","coverage":coverage,"common_races":len(allr),"tested":len(out),"top30":out[:30]},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps({"coverage":coverage,"common_races":len(allr),"tested":len(out),"top20":out[:20]},ensure_ascii=False,indent=2))
-if __name__=="__main__":main()
+if __name__=="__main__":main()  metric_complete={k:sum(1 for x in full if all(b.get(k) is not None for b in x[2])) for k in ["official_top2","d90_win","d90_top2","d90_top3"]}\n  any_history=sum(1 for x in full if all(any(b.get(k) is not None for k in ["d90_win","d90_top2","d90_top3"]) for b in x[2]))\n  coverage[d]={"completed_races":len(full),"common_complete_races":len(common),"six_boat_complete_by_metric":metric_complete,"six_boat_any_d90_history":any_history};allr+=common
