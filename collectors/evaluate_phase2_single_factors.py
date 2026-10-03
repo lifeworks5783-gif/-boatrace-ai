@@ -31,7 +31,7 @@ def load_program(d):
     out={}
     if p.exists():
         with p.open(encoding="utf-8-sig",newline="") as h:
-            for r in csv.DictReader(h): out[(r.get("race_id"),i(r.get("boat")))]=r
+            for r in csv.DictReader(h): out[("".join(c for c in (r.get("race_id") or "") if c.isdigit()),i(r.get("boat")))]=r
     return out
 
 def hist_summary(rows):
@@ -75,11 +75,9 @@ def main():
     factors=[
       ("racer_d90_win","選手90日1着率",False),("racer_d90_top2","選手90日2連対率",False),
       ("racer_d90_top3","選手90日3連対率",False),("racer_d90_avg_finish","選手90日平均着順",True),
-      ("racer_d90_avg_st","選手90日平均ST",True),("grade","級別係数",False),
+      ("racer_d90_avg_st","選手90日平均ST",True),("grade","級別係数",False),("motor_official_top2","モーター公式2連対率",False),("boat_official_top2","ボート公式2連対率",False),
       ("racer_course_d90_win","選手×コース90日1着率",False),("racer_course_d90_top3","選手×コース90日3連対率",False),
       ("racer_venue_d90_win","選手×場90日1着率",False),("racer_venue_d90_top3","選手×場90日3連対率",False),
-      ("motor_d90_win","モーター90日1着率",False),("motor_d90_top2","モーター90日2連対率",False),("motor_d90_top3","モーター90日3連対率",False),
-      ("boat_d90_win","ボート90日1着率",False),("boat_d90_top2","ボート90日2連対率",False),("boat_d90_top3","ボート90日3連対率",False),
     ]
     for d in DATES:
         td=date(d); start=td-timedelta(days=90); prog=load_program(d)
@@ -98,14 +96,14 @@ def main():
             fin=i(r.get("finish")); boat=i(r.get("boat"))
             if fin not in range(1,7) or boat not in range(1,7): continue
             rid=r["race_id"]; venue=r.get("venue_code","").zfill(2); reg=r.get("registration_no","")
-            pr=prog.get((rid,boat),{})
+            pr=prog.get(("".join(c for c in rid if c.isdigit()),boat),{})
             course=boat # morning-safe: frame as assumed course
             rs=hist_summary(rg[reg]); rcs=hist_summary(rc[(reg,course)]); rvs=hist_summary(rv[(reg,venue)])
             ms=hist_summary(mg[(venue,i(r.get("motor_no")))]) if i(r.get("motor_no")) is not None else {}
             bs=hist_summary(bg[(venue,i(r.get("boat_no")))]) if i(r.get("boat_no")) is not None else {}
             b={"boat":boat,"finish":fin,
                "racer_d90_win":rs.get("win_rate"),"racer_d90_top2":rs.get("top2_rate"),"racer_d90_top3":rs.get("top3_rate"),"racer_d90_avg_finish":rs.get("avg_finish"),"racer_d90_avg_st":rs.get("avg_st"),
-               "grade":GRADE.get(pr.get("grade","")),
+               "grade":GRADE.get(pr.get("grade","")),"motor_official_top2":(f(pr.get("motor_top2_rate"))/100 if f(pr.get("motor_top2_rate")) is not None else None),"boat_official_top2":(f(pr.get("boat_top2_rate"))/100 if f(pr.get("boat_top2_rate")) is not None else None),
                "racer_course_d90_win":rcs.get("win_rate"),"racer_course_d90_top3":rcs.get("top3_rate"),
                "racer_venue_d90_win":rvs.get("win_rate"),"racer_venue_d90_top3":rvs.get("top3_rate"),
                "motor_d90_win":ms.get("win_rate"),"motor_d90_top2":ms.get("top2_rate"),"motor_d90_top3":ms.get("top3_rate"),
