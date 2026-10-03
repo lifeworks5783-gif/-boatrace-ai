@@ -1,0 +1,22 @@
+name: 直前追加要素検証
+on:
+  push:
+    branches: [main]
+    paths: ["collectors/evaluate_live_extra_factors.py",".github/workflows/live_extra_factors.yml"]
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python collectors/evaluate_live_extra_factors.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/live_extra_factors_20260930_20261003/
+          git diff --cached --quiet || git commit -m "Save live extra factor validation"
+          git pull --rebase origin main
+          git push origin main
