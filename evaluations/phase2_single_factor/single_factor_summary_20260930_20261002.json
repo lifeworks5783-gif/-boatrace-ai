@@ -1,0 +1,191 @@
+{
+  "dates": [
+    "20260930",
+    "20261001",
+    "20261002"
+  ],
+  "definition": {
+    "top1": "予測1位=実1着",
+    "top3": "予測上位3艇と実上位3艇が順不同で3艇すべて一致",
+    "exact": "予測1-3位と実1-3着が順番まで一致"
+  },
+  "leakage_guard": "各対象日より前90日だけで特徴量を再計算。対象日結果は評価ラベルのみに使用。朝コースは枠番を使用。",
+  "summary": [
+    {
+      "races": 454,
+      "top1_matches": 251,
+      "top1_accuracy_pct": 55.29,
+      "top3_matches": 86,
+      "top3_alignment_pct": 18.94,
+      "exact_matches": 32,
+      "exact_alignment_pct": 7.05,
+      "factor": "racer_course_d90_win",
+      "label": "選手×コース90日1着率"
+    },
+    {
+      "races": 454,
+      "top1_matches": 237,
+      "top1_accuracy_pct": 52.2,
+      "top3_matches": 89,
+      "top3_alignment_pct": 19.6,
+      "exact_matches": 32,
+      "exact_alignment_pct": 7.05,
+      "factor": "racer_course_d90_top3",
+      "label": "選手×コース90日3連対率"
+    },
+    {
+      "races": 480,
+      "top1_matches": 155,
+      "top1_accuracy_pct": 32.29,
+      "top3_matches": 77,
+      "top3_alignment_pct": 16.04,
+      "exact_matches": 14,
+      "exact_alignment_pct": 2.92,
+      "factor": "racer_d90_win",
+      "label": "選手90日1着率"
+    },
+    {
+      "races": 480,
+      "top1_matches": 154,
+      "top1_accuracy_pct": 32.08,
+      "top3_matches": 75,
+      "top3_alignment_pct": 15.62,
+      "exact_matches": 17,
+      "exact_alignment_pct": 3.54,
+      "factor": "racer_d90_avg_finish",
+      "label": "選手90日平均着順"
+    },
+    {
+      "races": 480,
+      "top1_matches": 154,
+      "top1_accuracy_pct": 32.08,
+      "top3_matches": 74,
+      "top3_alignment_pct": 15.42,
+      "exact_matches": 17,
+      "exact_alignment_pct": 3.54,
+      "factor": "racer_d90_top3",
+      "label": "選手90日3連対率"
+    },
+    {
+      "races": 480,
+      "top1_matches": 149,
+      "top1_accuracy_pct": 31.04,
+      "top3_matches": 80,
+      "top3_alignment_pct": 16.67,
+      "exact_matches": 16,
+      "exact_alignment_pct": 3.33,
+      "factor": "racer_d90_top2",
+      "label": "選手90日2連対率"
+    },
+    {
+      "races": 376,
+      "top1_matches": 96,
+      "top1_accuracy_pct": 25.53,
+      "top3_matches": 52,
+      "top3_alignment_pct": 13.83,
+      "exact_matches": 12,
+      "exact_alignment_pct": 3.19,
+      "factor": "racer_venue_d90_top3",
+      "label": "選手×場90日3連対率"
+    },
+    {
+      "races": 376,
+      "top1_matches": 94,
+      "top1_accuracy_pct": 25.0,
+      "top3_matches": 43,
+      "top3_alignment_pct": 11.44,
+      "exact_matches": 10,
+      "exact_alignment_pct": 2.66,
+      "factor": "racer_venue_d90_win",
+      "label": "選手×場90日1着率"
+    },
+    {
+      "races": 480,
+      "top1_matches": 103,
+      "top1_accuracy_pct": 21.46,
+      "top3_matches": 34,
+      "top3_alignment_pct": 7.08,
+      "exact_matches": 3,
+      "exact_alignment_pct": 0.62,
+      "factor": "racer_d90_avg_st",
+      "label": "選手90日平均ST"
+    },
+    {
+      "races": 0,
+      "top1_matches": 0,
+      "top1_accuracy_pct": null,
+      "top3_matches": 0,
+      "top3_alignment_pct": null,
+      "exact_matches": 0,
+      "exact_alignment_pct": null,
+      "factor": "grade",
+      "label": "級別係数"
+    },
+    {
+      "races": 0,
+      "top1_matches": 0,
+      "top1_accuracy_pct": null,
+      "top3_matches": 0,
+      "top3_alignment_pct": null,
+      "exact_matches": 0,
+      "exact_alignment_pct": null,
+      "factor": "motor_d90_win",
+      "label": "モーター90日1着率"
+    },
+    {
+      "races": 0,
+      "top1_matches": 0,
+      "top1_accuracy_pct": null,
+      "top3_matches": 0,
+      "top3_alignment_pct": null,
+      "exact_matches": 0,
+      "exact_alignment_pct": null,
+      "factor": "motor_d90_top2",
+      "label": "モーター90日2連対率"
+    },
+    {
+      "races": 0,
+      "top1_matches": 0,
+      "top1_accuracy_pct": null,
+      "top3_matches": 0,
+      "top3_alignment_pct": null,
+      "exact_matches": 0,
+      "exact_alignment_pct": null,
+      "factor": "motor_d90_top3",
+      "label": "モーター90日3連対率"
+    },
+    {
+      "races": 0,
+      "top1_matches": 0,
+      "top1_accuracy_pct": null,
+      "top3_matches": 0,
+      "top3_alignment_pct": null,
+      "exact_matches": 0,
+      "exact_alignment_pct": null,
+      "factor": "boat_d90_win",
+      "label": "ボート90日1着率"
+    },
+    {
+      "races": 0,
+      "top1_matches": 0,
+      "top1_accuracy_pct": null,
+      "top3_matches": 0,
+      "top3_alignment_pct": null,
+      "exact_matches": 0,
+      "exact_alignment_pct": null,
+      "factor": "boat_d90_top2",
+      "label": "ボート90日2連対率"
+    },
+    {
+      "races": 0,
+      "top1_matches": 0,
+      "top1_accuracy_pct": null,
+      "top3_matches": 0,
+      "top3_alignment_pct": null,
+      "exact_matches": 0,
+      "exact_alignment_pct": null,
+      "factor": "boat_d90_top3",
+      "label": "ボート90日3連対率"
+    }
+  ]
+}
