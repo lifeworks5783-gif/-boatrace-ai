@@ -896,6 +896,17 @@ def locate_live_file(
     dd = target_date[6:8]
 
     candidates = [
+        # レース照合では、買い目を含む最終フォーメーションを最優先する。
+        root
+        / yyyy
+        / mm
+        / dd
+        / "live"
+        / (
+            "formation_predictions_final_"
+            f"{target_date}.json"
+        ),
+
         root
         / yyyy
         / mm
