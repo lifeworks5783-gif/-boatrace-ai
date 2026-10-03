@@ -1,0 +1,29 @@
+name: Phase2 single factor evaluation
+on:
+  push:
+    branches: [main]
+    paths:
+      - collectors/evaluate_phase2_single_factors.py
+      - .github/workflows/phase2_single_factor.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Evaluate
+        run: python collectors/evaluate_phase2_single_factors.py
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/phase2_single_factor/
+          git diff --cached --quiet || git commit -m "Add phase 2 single-factor evaluation results"
+          git push
