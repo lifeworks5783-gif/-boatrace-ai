@@ -80,7 +80,7 @@ def main():
    expected=bo;entry=I(L.get("exhibition_course")) or I(L.get("course")) or expected
    cs=stat(rc[(reg,expected)]);ls=stat(rc[(reg,entry)]);ms=stat(mg[(v,I(r.get("motor_no")))]) if I(r.get("motor_no")) is not None else {};bs=stat(bg[(v,I(r.get("boat_no")))]) if I(r.get("boat_no")) is not None else {}
    races[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"lw":ls.get("win"),"l2":ls.get("top2"),"l3":ls.get("top3"),"lst":ls.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"mw":ms.get("win"),"m3":ms.get("top3"),"b2":bs.get("top2"),"b3":bs.get("top3"),"etime":F(L.get("exhibition_time")),"est":F(L.get("exhibition_st_seconds"))})
-  z={"date":d,"morning_n":0,"morning_hit":0,"live_n":0,"live_hit":0,"common_n":0,"oo":0,"ox":0,"xo":0,"xx":0,"entry_only_hit":0,"etime_only_hit":0,"est_only_hit":0}
+  z={"date":d,"morning_n":0,"morning_hit":0,"live_n":0,"live_hit":0,"common_n":0,"oo":0,"ox":0,"xo":0,"xx":0,"common_morning_hit":0,"entry_only_hit":0,"entry_time_hit":0,"entry_st_hit":0,"full_live_hit":0}
   for rid,bs in races.items():
    def block(keys):
     maps={}
@@ -89,20 +89,28 @@ def main():
      if q is None:return None
      maps[k]=(q,w)
     return {b["boat"]:sum(w*q[b["boat"]] for q,w in maps.values()) for b in bs}
-   # provisional weights follow single-factor strength: racer course 50, grade 20, motor 12, boat 18.
    racer=block([("cw",.4,False),("c2",.2,False),("c3",.3,False),("cst",.1,True)])
-   motor=block([("mw",.4,False),("m3",.6,False)]);boat=block([("b2",.5,False),("b3",.5,False)]);gr=rankmap(bs,"grade")
+   motor=block([("mw",.4,False),("m3",.6,False)])
+   boat=block([("b2",.5,False),("b3",.5,False)])
+   gr=rankmap(bs,"grade")
+   morning=None
    if all(x is not None for x in [racer,motor,boat,gr]):
-    sc={b:.50*racer[b]+.20*gr[b]+.12*motor[b]+.18*boat[b] for b in racer}
-    z["morning_n"]+=1;z["morning_hit"]+=int(hit(bs,sc))
-   # live: replace racer expected-course base with exhibition-entry-course base; morning structural blocks + exhibition time/ST.
-   lr=block([("lw",.4,False),("l2",.2,False),("l3",.3,False),("lst",.1,True)]);et=rankmap(bs,"etime",True);es=rankmap(bs,"est",True)
-   if all(x is not None for x in [lr,motor,boat,gr,et,es]):
-    sc={b:.46*lr[b]+.18*gr[b]+.11*motor[b]+.15*boat[b]+.06*et[b]+.04*es[b] for b in lr}
-    z["live_n"]+=1;z["live_hit"]+=int(hit(bs,sc))
+    morning={b:.50*racer[b]+.20*gr[b]+.12*motor[b]+.18*boat[b] for b in racer}
+    z["morning_n"]+=1;z["morning_hit"]+=int(hit(bs,morning))
+   lr=block([("lw",.4,False),("l2",.2,False),("l3",.3,False),("lst",.1,True)])
+   et=rankmap(bs,"etime",True);es=rankmap(bs,"est",True)
+   if all(x is not None for x in [morning,lr,motor,boat,gr,et,es]):
+    entry={b:.50*lr[b]+.20*gr[b]+.12*motor[b]+.18*boat[b] for b in lr}
+    entry_time={b:.47*lr[b]+.19*gr[b]+.11*motor[b]+.17*boat[b]+.06*et[b] for b in lr}
+    entry_st={b:.48*lr[b]+.19*gr[b]+.12*motor[b]+.17*boat[b]+.04*es[b] for b in lr}
+    full={b:.46*lr[b]+.18*gr[b]+.11*motor[b]+.15*boat[b]+.06*et[b]+.04*es[b] for b in lr}
+    mh=hit(bs,morning);fh=hit(bs,full)
+    z["common_n"]+=1;z["common_morning_hit"]+=int(mh);z["entry_only_hit"]+=int(hit(bs,entry));z["entry_time_hit"]+=int(hit(bs,entry_time));z["entry_st_hit"]+=int(hit(bs,entry_st));z["full_live_hit"]+=int(fh)
+    z["oo" if mh and fh else "ox" if mh else "xo" if fh else "xx"]+=1
+    z["live_n"]+=1;z["live_hit"]+=int(fh)
   z["morning_top3_pct"]=round(100*z["morning_hit"]/z["morning_n"],2) if z["morning_n"] else None
   z["live_top3_pct"]=round(100*z["live_hit"]/z["live_n"],2) if z["live_n"] else None
-  for k in ["entry_only_hit","etime_only_hit","est_only_hit"]:
+  for k in ["common_morning_hit","entry_only_hit","entry_time_hit","entry_st_hit","full_live_hit"]:
    z[k.replace("_hit","_pct")]=round(100*z[k]/z["common_n"],2) if z["common_n"] else None
   results.append(z)
  out=Path("evaluations/provisional_morning_live_4day");out.mkdir(parents=True,exist_ok=True)
