@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 
 JST = timezone(timedelta(hours=9))
 
-MODEL_VERSION = "racer_course_grade_exst_v1_20261003"
+MODEL_VERSION = "provisional_v1_20261005_morning_40_20_20_5_15"
 
 # 9/30+10/1の主評価でTOP3整合率が最も高かった配点（No.4）
 # 合計100。朝は展示STがまだ無いため、残り97点を利用可能分で再正規化。
@@ -312,27 +312,47 @@ def feature_component(name, raw_value, source):
 
 
 _RC_CACHE = None
-def racer_course_score(registration_no, course_no):
-    global _RC_CACHE
-    if _RC_CACHE is None:
-        _RC_CACHE = {}
-        p = Path("features/racer_course_features.csv")
-        if p.exists():
-            with p.open(encoding="utf-8-sig", newline="") as h:
-                for r in csv.DictReader(h):
-                    try: k=(str(int(float(r.get("registration_no")))),str(int(float(r.get("course")))))
-                    except (TypeError,ValueError): continue
-                    def rr(name, default=.5):
-                        try:
-                            v=float(r.get(name)); return v/100.0 if v>1 else v
-                        except (TypeError,ValueError): return default
-                    def invst():
-                        try: return max(0.0,min(1.0,1-float(r.get("d90_avg_st"))/.35))
-                        except (TypeError,ValueError): return .5
-                    _RC_CACHE[k]=.45*rr("d90_top3_rate")+.25*rr("d90_win_rate")+.15*rr("d90_top2_rate")+.15*invst()
-    try: key=(str(int(float(registration_no))),str(int(float(course_no))))
-    except (TypeError,ValueError): return None
-    return _RC_CACHE.get(key)
+def _feature_rows(path):
+    if not Path(path).exists(): return []
+    with Path(path).open(encoding="utf-8-sig", newline="") as h: return list(csv.DictReader(h))
+
+def _keynum(v):
+    try:return str(int(float(v)))
+    except (TypeError,ValueError):return ""
+
+def _rate(v):
+    n=to_float(v)
+    if n is None:return None
+    return n/100.0 if n>1 else n
+
+def _rank6(values, lower=False):
+    valid=[(k,v) for k,v in values.items() if v is not None]
+    if len(valid)!=6:return {}
+    valid.sort(key=lambda x:(x[1] if lower else -x[1],x[0]))
+    return {k:1.0-i/5.0 for i,(k,_) in enumerate(valid)}
+
+def _feature_maps():
+    rc={}; rf={}; mf={}; bf={}
+    for r in _feature_rows("features/racer_course_features.csv"):rc[(_keynum(r.get("registration_no")),_keynum(r.get("course")))]=r
+    for r in _feature_rows("features/racer_features.csv"):rf[_keynum(r.get("registration_no"))]=r
+    for r in _feature_rows("features/motor_features.csv"):mf[(str(r.get("venue_code","")).zfill(2),_keynum(r.get("motor_no")))]=r
+    for r in _feature_rows("features/boat_features.csv"):bf[(str(r.get("venue_code","")).zfill(2),_keynum(r.get("boat_no")))]=r
+    return rc,rf,mf,bf
+
+def provisional_scores(race, public_store, course_overrides=None):
+    rc,rf,mf,bf=_feature_maps(); boats=race.get("boats") or []; race_code=canonical_race_code(race.get("race_id")); card=public_store.card.get(race_code) or {}; venue=str(race.get("venue_code") or race.get("stadium_code") or "").zfill(2)
+    raw={}
+    for boat in boats:
+        lane=to_int(boat.get("boat")); racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}; reg=_keynum(racer.get("registration_no") or card.get(f"艇{lane}_登録番号")); course=(course_overrides or {}).get(lane,lane); cr=rc.get((reg,str(course)),{}); rr=rf.get(reg,{}); mm=mf.get((venue,_keynum(motor.get("motor_no"))),{}); bb=bf.get((venue,_keynum(bm.get("boat_no"))),{})
+        st=to_float(cr.get("d90_avg_st")); stscore=None if st is None else clamp(1-st/.35)
+        raw[lane]={"cw":_rate(cr.get("d90_win_rate")),"c2":_rate(cr.get("d90_top2_rate")),"c3":_rate(cr.get("d90_top3_rate")),"cst":stscore,"grade":GRADE_PRIOR.get(text(racer.get("grade") or card.get(f"艇{lane}_級別")).upper()),"nat2":_rate(rr.get("d90_top2_rate")),"mw":_rate(mm.get("d90_win_rate")),"m3":_rate(mm.get("d90_top3_rate")),"b2":_rate(bb.get("d90_top2_rate")),"b3":_rate(bb.get("d90_top3_rate"))}
+    ranks={k:_rank6({b:v[k] for b,v in raw.items()},lower=k=="cst") for k in ["cw","c2","c3","cst","grade","nat2","mw","m3","b2","b3"]}
+    if any(len(v)!=6 for v in ranks.values()):return {}
+    out={}
+    for b in raw:
+        racer=.4*ranks["cw"][b]+.2*ranks["c2"][b]+.3*ranks["c3"][b]+.1*ranks["cst"][b]; motor=.4*ranks["mw"][b]+.6*ranks["m3"][b]; boat=.5*ranks["b2"][b]+.5*ranks["b3"][b]
+        out[b]=100*(.40*racer+.20*ranks["grade"][b]+.20*motor+.05*boat+.15*ranks["nat2"][b])
+    return out
 
 def score_boat(race, boat, public_store, course_override=None):
     lane = to_int(boat.get("boat"))
@@ -419,15 +439,7 @@ def score_boat(race, boat, public_store, course_override=None):
         for c in components.values()
         if c["available"] and c["weight"] > 0
     )
-    # 10/2 retrospective test best racer-course structure for tomorrow's provisional production:
-    # morning = racer-course suitability x grade; live adds exhibition-ST multiplicatively.
-    rc = racer_course_score(public_reg or project_reg, course_no)
-    gs = grade_score(card, lane)
-    if rc is not None and gs is not None:
-        score = rc * gs * 100.0
-    else:
-        score = 0.0 if available_weight <= 0 else weighted_points / available_weight * 100.0
-
+    scores = provisional_scores(race, public_store)\n    score = scores.get(lane, 0.0)\n
     racer = boat.get("racer") or {}
     motor = boat.get("motor") or {}
     boat_machine = boat.get("boat_machine") or {}
