@@ -63,8 +63,9 @@ def main():
  rows=archive();bd=defaultdict(list)
  for r in rows:bd[r.get("date")].append(r)
  allres=[]
- for wt in range(0,21,2):
-  for ws in range(0,21-wt,2):
+ for model,weights in [("avg_best",(40,20,20,5,15)),("stable",(40,20,10,10,20)):
+  for wt in [0,4,8]:
+   for ws in [14,16,18,20]:
    vals=[];flipplus=flipminus=0
    for d in DATES:
     td=DT(d);prior=[r for r in rows if r.get("date") and td-timedelta(days=90)<=DT(r["date"])<td];pg=program(d);lv=live_entries(d)
