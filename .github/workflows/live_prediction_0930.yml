@@ -367,7 +367,19 @@ jobs:
           git commit -m \
             "Update live predictions ${TARGET_DATE} ${RUN_STAMP}"
 
-          git push origin HEAD:main
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              break
+            fi
+            if [ "$attempt" = "3" ]; then
+              echo "ERROR: 3回試してもGitHub保存できませんでした"
+              exit 1
+            fi
+            echo "main更新競合。最新mainを取得して再試行"
+            git fetch origin main
+            git rebase origin/main
+            sleep 3
+          done
 
           echo "PRIVATE_CHANGED=true" >> "$GITHUB_ENV"
           echo "GitHub保存: PASS"
