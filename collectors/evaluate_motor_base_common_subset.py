@@ -36,7 +36,7 @@ def score(races,w):
   n+=1;t1+=p[0]["boat"]==a[0]["boat"];t3+=set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3]);ex+=[x["boat"] for x in p[:3]]==[x["boat"] for x in a[:3]]
   z=by[d];z[0]+=1;z[1]+=p[0]["boat"]==a[0]["boat"];z[2]+=set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3]);z[3]+=[x["boat"] for x in p[:3]]==[x["boat"] for x in a[:3]]
  def fmt(v):
-  q=v[0];return {"races":q,"top1_pct":round(v[1]*100/q,2),"top3_pct":round(v[2]*100/q,2),"exact_pct":round(v[3]*100/q,2)}
+  q=v[0];return {"races":q,"top1_pct":round(v[1]*100/q,2) if q else 0,"top3_pct":round(v[2]*100/q,2) if q else 0,"exact_pct":round(v[3]*100/q,2) if q else 0}
  return fmt([n,t1,t3,ex]),{d:fmt(v) for d,v in by.items()}
 def main():
  rows=load();bd=defaultdict(list)
@@ -55,7 +55,7 @@ def main():
    P=pg.get((nid(r.get("race_id")),bo),{});M=stat(mg[(v,m)]) if m is not None else {}
    rr[r["race_id"]].append({"boat":bo,"finish":fi,"official_top2":F(P.get("motor_top2_rate"))/100 if F(P.get("motor_top2_rate")) is not None else None,"d90_win":M.get("win"),"d90_top2":M.get("top2"),"d90_top3":M.get("top3")})
   full=[(d,rid,bs) for rid,bs in rr.items() if len(bs)==6];common=[x for x in full if all(all(b.get(k) is not None for k in ["official_top2","d90_win","d90_top2","d90_top3"]) for b in x[2])]
-  coverage[d]={"completed_races":len(full),"common_complete_races":len(common)};allr+=common
+  \n  metric_complete={k:sum(1 for x in full if all(b.get(k) is not None for b in x[2])) for k in ["official_top2","d90_win","d90_top2","d90_top3"]}\n  any_history=sum(1 for x in full if all(any(b.get(k) is not None for k in ["d90_win","d90_top2","d90_top3"]) for b in x[2]))\n  coverage[d]={"completed_races":len(full),"common_complete_races":len(common),"six_boat_complete_by_metric":metric_complete,"six_boat_any_d90_history":any_history};allr+=common
  factors=["official_top2","d90_win","d90_top2","d90_top3"];models={}
  for k in factors:models[k+"100"]={k:1}
  for a,b in itertools.combinations(factors,2):
