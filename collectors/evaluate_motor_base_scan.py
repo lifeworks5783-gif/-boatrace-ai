@@ -3,7 +3,7 @@ import csv,json,itertools
 from collections import defaultdict
 from datetime import datetime,timedelta
 from pathlib import Path
-DATES=["20260930","20261001","20261002"];OUT=Path("evaluations/motor_base_scan")
+DATES=["20260930","20261001","20261002"];OUT=Path("evaluations/motor_base_scan")\n# rerun after historical motor_no backfill completed 2026-10-03
 def F(v):
  try:return float(v)
  except:return None
