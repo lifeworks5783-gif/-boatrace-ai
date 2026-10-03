@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json
 from pathlib import Path
-from collectors import build_morning_prediction as morning
+import build_morning_prediction as morning
 DATE="20261003"; base=Path("predictions/2026/10/03/live"); final_path=base/f"live_predictions_final_{DATE}.json"; snap_root=base/"snapshots"
 def norm(v): return str(v or "").replace("-","")
 def factor(b,ranks):
