@@ -574,30 +574,30 @@ def main():
       font-weight: 700;
     }}
 
-    .race-status {
+    .race-status {{
       flex: 0 0 auto;
       border-radius: 999px;
       padding: 5px 8px;
       font-size: 11px;
       font-weight: 800;
-    }
+    }}
 
-    .race-status.completed {
+    .race-status.completed {{
       color: var(--muted);
       border: 1px solid var(--line);
-    }
+    }}
 
-    .race-status.upcoming {
+    .race-status.upcoming {{
       display: none;
-    }
+    }}
 
-    .section-title {
+    .section-title {{
       margin: 22px 2px 10px;
       padding-top: 12px;
       border-top: 2px solid var(--line);
       font-size: 18px;
       font-weight: 900;
-    }
+    }}
 
     .badge {{
       flex: 0 0 auto;
