@@ -1,0 +1,25 @@
+name: 10月3日・予測結果評価
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/evaluate_20261003.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python collectors/evaluate_predictions.py --date 20261003
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/2026/10/03/
+          git diff --cached --quiet || git commit -m "Save Oct 3 prediction evaluation"
+          git pull --rebase origin main
+          git push origin main
