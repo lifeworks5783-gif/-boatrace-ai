@@ -1,0 +1,18 @@
+name: 暫定V1構文確認
+on:
+  push:
+    branches: [main]
+    paths: ["collectors/build_morning_prediction.py","collectors/build_live_prediction.py",".github/workflows/provisional_v1_syntax.yml"]
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m py_compile collectors/build_morning_prediction.py collectors/build_live_prediction.py
+      - run: |
+          grep -q 'provisional_v1_20261005_morning_40_20_20_5_15' collectors/build_morning_prediction.py
+          grep -q 'provisional_v1_20261005_live_entry_time6_st14' collectors/build_live_prediction.py
+          echo "PROVISIONAL_V1_READY"
