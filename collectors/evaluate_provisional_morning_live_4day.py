@@ -55,7 +55,11 @@ def rankmap(bs,key,reverse=False):
  if len(bs)!=6 or any(b.get(key) is None for b in bs):return None
  o=sorted(bs,key=lambda b:((b[key] if reverse else -b[key]),b["boat"]))
  return {b["boat"]:1-j/5 for j,b in enumerate(o)}
-def hit(bs,sc):\n p=sorted(bs,key=lambda b:(-sc[b["boat"]],b["boat"]));a=sorted(bs,key=lambda b:(b["finish"],b["boat"]))\n return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])\ndef main():
+def hit(bs,sc):
+ p=sorted(bs,key=lambda b:(-sc[b["boat"]],b["boat"]))
+ a=sorted(bs,key=lambda b:(b["finish"],b["boat"]))
+ return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])
+def main():
  rows=archive();bd=defaultdict(list)
  for r in rows:bd[r.get("date")].append(r)
  results=[]
