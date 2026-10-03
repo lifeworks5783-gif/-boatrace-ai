@@ -1,21 +1,46 @@
 name: Backfill motor history
 on:
   workflow_dispatch:
-permissions: {contents: write}
+permissions:
+  contents: write
 jobs:
   backfill:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
-        with: {fetch-depth: 0}
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11'}
+        with:
+          python-version: '3.11'
       - run: pip install lhafile
-      - run: python collectors/backfill_motor_history.py --start 20260702 --end 20261002
-      - run: |
+      - name: Backfill in checkpoints
+        shell: bash
+        run: |
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add archive/ evaluations/motor_history_backfill/ data/program_entries_*.csv data/program_races_*.csv data/program_validation_*.json data/program_manifest_*.json
-          git diff --cached --quiet || git commit -m "Backfill historical motor data"
-          git pull --rebase origin main\n          git push
+          ranges=(
+            "20260702 20260711"
+            "20260712 20260721"
+            "20260722 20260731"
+            "20260801 20260810"
+            "20260811 20260820"
+            "20260821 20260830"
+            "20260831 20260909"
+            "20260910 20260919"
+            "20260920 20260929"
+            "20260930 20261002"
+          )
+          for range in "${ranges[@]}"; do
+            read start end <<< "$range"
+            echo "=== checkpoint $start-$end ==="
+            python collectors/backfill_motor_history.py --start "$start" --end "$end"
+            git add archive/ evaluations/motor_history_backfill/ data/program_entries_*.csv data/program_races_*.csv data/program_validation_*.json data/program_manifest_*.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Backfill motor history $start-$end"
+              git pull --rebase origin main
+              git push origin main
+            fi
+          done
