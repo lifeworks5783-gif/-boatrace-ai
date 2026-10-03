@@ -4,6 +4,11 @@ permissions:
   contents: write
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "collectors/build_morning_prediction.py"
+      - ".github/workflows/morning_prediction_daily.yml"
   schedule:
     - cron: "0 18 * * *"\n    - cron: "30 19 * * *"  # 04:30 JST safety retry
 
