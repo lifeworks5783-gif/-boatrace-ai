@@ -344,7 +344,8 @@ def score_boat(race, boat, public_store, course_override=None):
     if lane not in {1, 2, 3, 4, 5, 6}:
         raise RuntimeError(f"艇番異常: {race.get('race_id')} {boat.get('boat')}")
     if not card:
-        raise RuntimeError(f"公開番組CSVにrace_idがありません: {race.get('race_id')}")
+        grade = text((boat.get("racer") or {}).get("grade")).upper()
+        card = {f"艇{lane}_級別": grade}
 
     # 登録番号が取れる場合は突合して、艇ズレを検知。
     project_reg = to_int((boat.get("racer") or {}).get("registration_no"))
