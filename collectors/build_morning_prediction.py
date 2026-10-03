@@ -572,7 +572,7 @@ def main():
 
         public_store = PublicStore(
             target_date,
-            local_dir=args.public_source_dir,
+            local_dir=args.public_source_dir or "data",
             include_stt=False,
         )
 
