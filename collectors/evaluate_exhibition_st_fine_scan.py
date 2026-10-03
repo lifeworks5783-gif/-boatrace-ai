@@ -69,7 +69,8 @@ def st_bucket(bs):
  if gap<0.10:return "gap_005_010"
  if gap<0.15:return "gap_010_015"
  return "gap_ge_015"
-\ndef main():
+
+def main():
  rows=archive();bd=defaultdict(list)
  for r in rows:bd[r.get("date")].append(r)
  allres=[];cond=defaultdict(lambda:{"n":0,"morning":0,"st18":0,"xo":0,"ox":0})
