@@ -96,7 +96,36 @@ def main():
      live={b:rem*struct[b]+wt/100*et[b]+ws/100*es[b] for b in struct};a=hit(bs,morning);z=hit(bs,live);n+=1;mh+=a;lh+=z;flipplus+=(not a) and z;flipminus+=a and (not z)
     vals.append({"date":d,"n":n,"morning_pct":round(100*mh/n,2) if n else None,"live_pct":round(100*lh/n,2) if n else None})
    vv=[x["live_pct"] for x in vals if x["live_pct"] is not None];allres.append({"time_pct":wt,"st_pct":ws,"structural_pct":100-wt-ws,"by_date":vals,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"x_to_o":flipplus,"o_to_x":flipminus,"net_flips":flipplus-flipminus})
+ # conditional ST18 diagnostics: compare race-level exhibition ST spread and F presence.
+ cond=defaultdict(lambda:{"n":0,"morning":0,"live":0,"xo":0,"ox":0})
+ for d in DATES:
+  td=DT(d);prior=[r for r in rows if r.get("date") and td-timedelta(days=90)<=DT(r["date"])<td];pg=program(d);lv=live_entries(d);rc=defaultdict(list);mg=defaultdict(list);bg=defaultdict(list)
+  for r in prior:
+   reg=r.get("registration_no","");c=I(r.get("course"));v=str(r.get("venue_code","")).zfill(2);mm=I(r.get("motor_no"));bn=I(r.get("boat_no"))
+   if reg and c:rc[(reg,c)].append(r)
+   if mm is not None:mg[(v,mm)].append(r)
+   if bn is not None:bg[(v,bn)].append(r)
+  rr=defaultdict(list)
+  for r in bd[d]:
+   bo=I(r.get("boat"));fi=I(r.get("finish"));rid=nid(r.get("race_id"))
+   if bo not in range(1,7) or fi not in range(1,7):continue
+   v=str(r.get("venue_code","")).zfill(2);reg=r.get("registration_no","");P=pg.get((rid,bo),{});Q=lv.get((rid,bo),{});entry=I(Q.get("exhibition_course")) or bo;cs=stat(rc[(reg,bo)]);ls=stat(rc[(reg,entry)]);ms=stat(mg[(v,I(r.get("motor_no")))]) if I(r.get("motor_no")) is not None else {};bs=stat(bg[(v,I(r.get("boat_no")))]) if I(r.get("boat_no")) is not None else {}
+   rr[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"lw":ls.get("win"),"l2":ls.get("top2"),"l3":ls.get("top3"),"lst":ls.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"mw":ms.get("win"),"m3":ms.get("top3"),"b2":bs.get("top2"),"b3":bs.get("top3"),"est":F(Q.get("exhibition_st_seconds")),"flag":(Q.get("exhibition_st_flag") or "").strip()})
+  for rid,bs in rr.items():
+   def bk(keys):
+    z=[]
+    for k,w,rev in keys:
+     q=rankmap(bs,k,rev)
+     if q is None:return None
+     z.append((q,w))
+    return {b["boat"]:sum(q[b["boat"]]*w for q,w in z) for b in bs}
+   r0=bk([("cw",.4,False),("c2",.2,False),("c3",.3,False),("cst",.1,True)]);re=bk([("lw",.4,False),("l2",.2,False),("l3",.3,False),("lst",.1,True)]);mo=bk([("mw",.4,False),("m3",.6,False)]);ba=bk([("b2",.5,False),("b3",.5,False)]);gr=rankmap(bs,"grade");es=rankmap(bs,"est",True)
+   if any(x is None for x in [r0,re,mo,ba,gr,es]):continue
+   m={b:.50*r0[b]+.20*gr[b]+.12*mo[b]+.18*ba[b] for b in r0};stc={b:.50*re[b]+.20*gr[b]+.12*mo[b]+.18*ba[b] for b in re};live={b:.82*stc[b]+.18*es[b] for b in stc};a=hit(bs,m);z=hit(bs,live)
+   ev=[b["est"] for b in bs];spread=max(ev)-min(ev);bucket="st_spread_<0.05" if spread<.05 else "st_spread_0.05-0.09" if spread<.10 else "st_spread_>=0.10";c=cond[bucket];c["n"]+=1;c["morning"]+=a;c["live"]+=z;c["xo"]+=(not a) and z;c["ox"]+=a and (not z)
+   fb="F_present" if any(b["flag"]=="F" for b in bs) else "F_none";c=cond[fb];c["n"]+=1;c["morning"]+=a;c["live"]+=z;c["xo"]+=(not a) and z;c["ox"]+=a and (not z)
+ conditional={k:{**v,"morning_pct":round(100*v["morning"]/v["n"],2),"live_pct":round(100*v["live"]/v["n"],2),"net":v["xo"]-v["ox"]} for k,v in cond.items()}
  allres.sort(key=lambda x:(-x["daily_avg_top3_pct"],x["spread_pt"],-x["net_flips"]))
- out=Path("evaluations/exhibition_st_fine_scan_20260930_20261003");out.mkdir(parents=True,exist_ok=True);(out/"summary.json").write_text(json.dumps({"definition":"TOP3 unordered exact set","results":allres},ensure_ascii=False,indent=2),encoding="utf-8")
+ out=Path("evaluations/exhibition_st_fine_scan_20260930_20261003");out.mkdir(parents=True,exist_ok=True);(out/"summary.json").write_text(json.dumps({"definition":"TOP3 unordered exact set","results":allres,"st18_conditions":conditional},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps(allres[:20],ensure_ascii=False,indent=2))
 if __name__=="__main__":main()
