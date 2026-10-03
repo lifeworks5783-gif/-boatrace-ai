@@ -1522,8 +1522,8 @@ def build_race_rows(
                         actual,
                     ),
 
-                "morning_formation_hit": formation_hit(morning, trifecta),
-                "live_formation_hit": formation_hit(live, trifecta),
+                "morning_formation_hit": formation_hit(live, trifecta, "morning_formation"),
+                "live_formation_hit": formation_hit(live, trifecta, "formation"),
 
                 "trifecta":
                     trifecta,
@@ -1731,10 +1731,10 @@ def all_scores_html(prediction, label):
     return f'<details class="all-scores"><summary>{esc(label)}・6艇すべてのスコア</summary><div class="score-chips">{chips}</div></details>'
 
 
-def formation_hit(prediction, trifecta):
+def formation_hit(prediction, trifecta, formation_key="formation"):
     if not prediction:
         return None
-    formation = (prediction.get("raw") or {}).get("formation") or {}
+    formation = (prediction.get("raw") or {}).get(formation_key) or {}
     combos = [str(x) for x in (formation.get("combinations") or [])]
     if not combos:
         return None
