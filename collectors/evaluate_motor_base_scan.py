@@ -82,10 +82,10 @@ def main():
  for name,w in models.items():
   x,ds=ev(races,w);out.append({"model":name,"weights":json.dumps(w),"factor_count":len(w),**x})
   for d,z in ds.items():days.append({"model":name,"date":d,**z})
- maxn=max(x["races"] for x in out);fair=[x for x in out if x["races"]==maxn];fair.sort(key=lambda x:(-x["top3_pct"],-x["top1_pct"],-x["exact_pct"]))
+ history_models=[x for x in out if "d90_" in x["weights"]]\n common_n=max(x["races"] for x in history_models)\n fair=[x for x in out if x["races"]==common_n]\n fair.sort(key=lambda x:(-x["top3_pct"],-x["top1_pct"],-x["exact_pct"]))
  OUT.mkdir(parents=True,exist_ok=True)
  for fn,data in [("all_models.csv",out),("fair_top3_ranked.csv",fair),("by_date.csv",days)]:
   with (OUT/fn).open("w",encoding="utf-8",newline="") as h:w=csv.DictWriter(h,fieldnames=list(data[0]));w.writeheader();w.writerows(data)
- (OUT/"summary.json").write_text(json.dumps({"rule":"motor-only base scan; official top2 and prior-90d motor win/top2/top3; rank-normalized; same maximum eligible race count; TOP3 primary; no target-day leakage","tested":len(out),"max_common_races":maxn,"top30":fair[:30]},ensure_ascii=False,indent=2),encoding="utf-8")
+ (OUT/"summary.json").write_text(json.dumps({"rule":"motor-only base scan; official top2 and prior-90d motor win/top2/top3; rank-normalized; same maximum eligible race count; TOP3 primary; no target-day leakage","tested":len(out),"max_common_races":common_n,"top30":fair[:30]},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps({"tested":len(out),"max_common_races":maxn,"top20":fair[:20]},ensure_ascii=False,indent=2))
 if __name__=="__main__":main()
