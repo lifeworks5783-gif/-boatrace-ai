@@ -36,7 +36,7 @@ def hs(rows):
 def rankpct(vals,key,reverse=False):
     good=[(b,b.get(key)) for b in vals if b.get(key) is not None]
     if len(good)!=6:return None
-    ordered=sorted(good,key=lambda x:(x[1],x[0]["boat"]),reverse=not reverse)
+    ordered=sorted(good,key=(lambda x:(x[1],x[0]["boat"])) if reverse else (lambda x:(-x[1],x[0]["boat"])))
     # 1.00 best ... 0.00 worst
     return {b["boat"]:1-j/5 for j,(b,v) in enumerate(ordered)}
 def eval_model(races,name,fn):
