@@ -136,8 +136,13 @@ def main():
     )
 
     source_path = Path(
-        "predictions/latest.json"
-    )
+        "predictions"
+    ) / target_date[:4] / target_date[4:6] / target_date[6:8] / "live" / f"formation_predictions_final_{target_date}.json"
+
+    if not source_path.exists():
+        source_path = Path(
+            "predictions/latest.json"
+        )
 
     if not source_path.exists():
         raise RuntimeError(
@@ -159,6 +164,8 @@ def main():
 
     races = payload.get("races") or []
 
+    # 家族ページでは締切後も当日に予測したフォーメーションを残す。
+    # latest.json は締切前だけなので、可能なら formation_predictions_final を正本にする。
     races = sorted(
         races,
         key=lambda race: (
@@ -226,8 +233,8 @@ def main():
     lines.append("")
 
     lines.append(
-        f"締切前："
-        f"**{len(races)}レース**"
+        f"本日の予測："
+        f"**{len(races)}レース**（終了済みを含む）"
     )
 
     lines.append("")
