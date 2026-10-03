@@ -727,3 +727,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+    scores = provisional_scores(race, public_store)
+    score = scores.get(lane, 0.0)
