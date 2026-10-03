@@ -1,0 +1,21 @@
+name: Backfill motor history
+on:
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install lhafile
+      - run: python collectors/backfill_motor_history.py --start 20260702 --end 20261002
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add archive/ evaluations/motor_history_backfill/ data/program_entries_*.csv data/program_races_*.csv data/program_validation_*.json data/program_manifest_*.json
+          git diff --cached --quiet || git commit -m "Backfill historical motor data"
+          git push
