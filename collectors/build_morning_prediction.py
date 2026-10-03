@@ -439,7 +439,9 @@ def score_boat(race, boat, public_store, course_override=None):
         for c in components.values()
         if c["available"] and c["weight"] > 0
     )
-    scores = provisional_scores(race, public_store)\n    score = scores.get(lane, 0.0)\n
+    scores = provisional_scores(race, public_store)
+    score = scores.get(lane, 0.0)
+
     racer = boat.get("racer") or {}
     motor = boat.get("motor") or {}
     boat_machine = boat.get("boat_machine") or {}
