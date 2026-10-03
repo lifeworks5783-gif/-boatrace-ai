@@ -339,8 +339,8 @@ def _feature_maps():
     for r in _feature_rows("features/boat_features.csv"):bf[(str(r.get("venue_code","")).zfill(2),_keynum(r.get("boat_no")))]=r
     return rc,rf,mf,bf
 
-def provisional_scores(race, public_store, course_overrides=None):
-    rc,rf,mf,bf=_feature_maps(); boats=race.get("boats") or []; race_code=canonical_race_code(race.get("race_id")); card=public_store.card.get(race_code) or {}; venue=str(race.get("venue_code") or race.get("stadium_code") or "").zfill(2)
+def provisional_scores(race, public_store=None, course_overrides=None):
+    rc,rf,mf,bf=_feature_maps(); boats=race.get("boats") or []; card={}; venue=str(race.get("venue_code") or race.get("stadium_code") or "").zfill(2)
     raw={}
     for boat in boats:
         lane=to_int(boat.get("boat")); racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}; reg=_keynum(racer.get("registration_no") or card.get(f"艇{lane}_登録番号")); course=(course_overrides or {}).get(lane,lane); cr=rc.get((reg,str(course)),{}); rr=rf.get(reg,{}); mm=mf.get((venue,_keynum(motor.get("motor_no"))),{}); bb=bf.get((venue,_keynum(bm.get("boat_no"))),{})
@@ -354,7 +354,7 @@ def provisional_scores(race, public_store, course_overrides=None):
         out[b]=100*(.40*racer+.20*ranks["grade"][b]+.20*motor+.05*boat+.15*ranks["nat2"][b])
     return out
 
-def score_boat(race, boat, public_store, course_override=None):
+def score_boat(race, boat, public_store=None, course_override=None):
     lane = to_int(boat.get("boat"))
     race_code = canonical_race_code(race.get("race_id"))
     card = public_store.card.get(race_code)
@@ -570,11 +570,7 @@ def main():
         if violations:
             raise RuntimeError(f"当日結果データ混入を検出: {violations[:5]}")
 
-        public_store = PublicStore(
-            target_date,
-            local_dir=args.public_source_dir or "data",
-            include_stt=False,
-        )
+        public_store = None
 
         races = payload.get("races")
         if not isinstance(races, list):
