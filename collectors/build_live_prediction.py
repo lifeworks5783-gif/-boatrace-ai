@@ -11,7 +11,7 @@ from pathlib import Path
 import build_morning_prediction as morning
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "racer_course_grade_exst_v1_20261003_live"
+MODEL_VERSION = "racer_course_grade_exst_rankfix_v2_20261003_live"
 
 
 def parse_args():
@@ -288,10 +288,29 @@ def score_race(race, public_store):
         gs = morning.GRADE_PRIOR.get(grade_text)
         st = get_exhibition_st(boat)
         is_f = get_exhibition_f(boat) or (st is not None and st < 0)
-        exst_raw = 0.0 if is_f else (None if st is None else max(0.0, min(1.0, 1.0 - st / .35)))
-        if rc is not None and gs is not None and exst_raw is not None:
-            score = rc * gs * exst_raw * 100.0
+
+        # 展示STは「絶対値を掛けてゼロ近傍まで落とす」のではなく、
+        # レース内順位を穏やかな補正として使う。
+        # これにより通常STの艇が 0 点化して順位全体が崩れるのを防ぐ。
+        if is_f:
+            st_factor = 0.70
+        elif lane in st_ranks:
+            st_rank = st_ranks[lane]
+            st_factor = {
+                1: 1.10,
+                2: 1.06,
+                3: 1.03,
+                4: 1.00,
+                5: 0.97,
+                6: 0.94,
+            }.get(st_rank, 1.00)
         else:
+            st_factor = 1.00
+
+        if rc is not None and gs is not None:
+            score = rc * gs * st_factor * 100.0
+        else:
+            # racer-course/級別が欠損した艇も0点化せず朝スコアを維持する。
             score = live_base.get("score", 0.0)
 
         scored.append(
