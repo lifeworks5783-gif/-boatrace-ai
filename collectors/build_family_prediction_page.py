@@ -129,7 +129,7 @@ def boat_line(boat, mark=""):
     )
 
 
-def build_card(race, index):
+def build_card(race, index, is_completed=False):
     venue = (
         text(race.get("venue_name"))
         or text(race.get("venue_code"))
@@ -153,6 +153,12 @@ def build_card(race, index):
         "live"
         if prediction_type == "直前"
         else "morning"
+    )
+
+    status_html = (
+        '<div class="race-status completed">終了済み</div>'
+        if is_completed
+        else '<div class="race-status upcoming">締切前</div>'
     )
 
     boats = (
@@ -295,6 +301,8 @@ def build_card(race, index):
 
         </div>
 
+        {status_html}
+
         <div class="badge {badge_class}">
           {esc(prediction_type)}
         </div>
@@ -348,17 +356,34 @@ def main():
         payload.get("generated_at")
     )
 
+    now_jst = datetime.now(JST)
+
+    def completed(race):
+        raw = text(race.get("deadline"))
+        if not raw:
+            return False
+        try:
+            dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=JST)
+            return dt.astimezone(JST) <= now_jst
+        except ValueError:
+            return False
+
+    upcoming_races = [race for race in races if not completed(race)]
+    completed_races = [race for race in races if completed(race)]
+
     cards = "".join(
-        build_card(
-            race,
-            index,
-        )
-        for index, race
-        in enumerate(
-            races,
-            start=1,
-        )
+        build_card(race, index, False)
+        for index, race in enumerate(upcoming_races, start=1)
     )
+
+    if completed_races:
+        cards += '<div class="section-title">終了済みレース</div>'
+        cards += "".join(
+            build_card(race, index, True)
+            for index, race in enumerate(completed_races, start=1)
+        )
 
     if not cards:
         cards = """
@@ -548,6 +573,31 @@ def main():
       font-size: 16px;
       font-weight: 700;
     }}
+
+    .race-status {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .race-status.completed {
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    .race-status.upcoming {
+      display: none;
+    }
+
+    .section-title {
+      margin: 22px 2px 10px;
+      padding-top: 12px;
+      border-top: 2px solid var(--line);
+      font-size: 18px;
+      font-weight: 900;
+    }
 
     .badge {{
       flex: 0 0 auto;
@@ -742,7 +792,7 @@ def main():
         </span>
 
         <span>
-          本日の予測 {len(races)}レース（終了済み含む）
+          締切前 {len(upcoming_races)}レース ／ 終了済み {len(completed_races)}レース
         </span>
 
       </div>
@@ -751,7 +801,7 @@ def main():
 
     <div class="notice">
 
-      本日の予測を締切時刻順に表示しています。終了済みレースも予測内容を残しています。
+      締切前レースを先頭に表示し、終了済みレースは下部へ分けて予測内容を保存しています。
 
       「直前」は展示等を反映済み、
       「朝」は朝予測です。
