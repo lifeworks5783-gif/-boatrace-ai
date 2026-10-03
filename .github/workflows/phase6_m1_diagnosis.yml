@@ -1,0 +1,23 @@
+name: Phase6 M1 diagnosis
+on:
+  push:
+    branches: [main]
+    paths: [collectors/evaluate_phase6_m1_diagnosis.py, .github/workflows/phase6_m1_diagnosis.yml]
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python collectors/evaluate_phase6_m1_diagnosis.py
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/phase6_m1_diagnosis/
+          git diff --cached --quiet || git commit -m "Add phase 6 M1 diagnosis results"
+          git push
