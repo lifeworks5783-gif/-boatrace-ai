@@ -59,10 +59,20 @@ def hit(bs,sc):
  p=sorted(bs,key=lambda b:(-sc[b["boat"]],b["boat"]))
  a=sorted(bs,key=lambda b:(b["finish"],b["boat"]))
  return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])
-def main():
+
+# condition buckets for exhibition ST diagnosis
+def st_bucket(bs):
+ vals=sorted([b["est"] for b in bs if b.get("est") is not None])
+ if len(vals)!=6:return None
+ gap=vals[-1]-vals[0]
+ if gap<0.05:return "gap_lt_005"
+ if gap<0.10:return "gap_005_010"
+ if gap<0.15:return "gap_010_015"
+ return "gap_ge_015"
+\ndef main():
  rows=archive();bd=defaultdict(list)
  for r in rows:bd[r.get("date")].append(r)
- allres=[]
+ allres=[];cond=defaultdict(lambda:{"n":0,"morning":0,"st18":0,"xo":0,"ox":0})
  for wt in [0]:
   for ws in range(14,21):
    vals=[];flipplus=flipminus=0
@@ -93,7 +103,7 @@ def main():
      r0=bk([("cw",.4,False),("c2",.2,False),("c3",.3,False),("cst",.1,True)]);re=bk([("lw",.4,False),("l2",.2,False),("l3",.3,False),("lst",.1,True)]);mo=bk([("mw",.4,False),("m3",.6,False)]);ba=bk([("b2",.5,False),("b3",.5,False)]);gr=rankmap(bs,"grade");et=rankmap(bs,"etime",True);es=rankmap(bs,"est",True)
      if any(x is None for x in [r0,re,mo,ba,gr,et,es]):continue
      morning={b:.50*r0[b]+.20*gr[b]+.12*mo[b]+.18*ba[b] for b in r0};struct={b:.50*re[b]+.20*gr[b]+.12*mo[b]+.18*ba[b] for b in re};rem=1-(wt+ws)/100
-     live={b:rem*struct[b]+wt/100*et[b]+ws/100*es[b] for b in struct};a=hit(bs,morning);z=hit(bs,live);n+=1;mh+=a;lh+=z;flipplus+=(not a) and z;flipminus+=a and (not z)
+     live={b:rem*struct[b]+wt/100*et[b]+ws/100*es[b] for b in struct};a=hit(bs,morning);z=hit(bs,live);n+=1;mh+=a;lh+=z;flipplus+=(not a) and z;flipminus+=a and (not z)\n     if wt==0 and ws==18:\n      key=st_bucket(bs);q=cond[(d,key)];q["n"]+=1;q["morning"]+=int(a);q["st18"]+=int(z);q["xo"]+=int((not a) and z);q["ox"]+=int(a and (not z))
     vals.append({"date":d,"n":n,"morning_pct":round(100*mh/n,2) if n else None,"live_pct":round(100*lh/n,2) if n else None})
    vv=[x["live_pct"] for x in vals if x["live_pct"] is not None];allres.append({"time_pct":wt,"st_pct":ws,"structural_pct":100-wt-ws,"by_date":vals,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"x_to_o":flipplus,"o_to_x":flipminus,"net_flips":flipplus-flipminus})
  # conditional ST18 diagnostics: compare race-level exhibition ST spread and F presence.
