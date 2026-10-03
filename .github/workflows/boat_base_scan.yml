@@ -1,0 +1,29 @@
+name: Boat base ability scan
+on:
+  push:
+    branches: [main]
+    paths:
+      - collectors/evaluate_boat_base_scan.py
+      - .github/workflows/boat_base_scan.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python collectors/evaluate_boat_base_scan.py
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/boat_base_scan/
+          git diff --cached --quiet || git commit -m "Add boat base scan results"
+          git pull --rebase origin main
+          git push origin main
