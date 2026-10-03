@@ -103,8 +103,28 @@ def main():
     for x in ["n","base","new","xx","xo","ox","oo"]:tot[x]+=z[x]
    vals=[x["new_pct"] for x in days.values() if x["new_pct"] is not None]
    out.append({"factor":label,"weight_pct":int(w*100),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"]})
+ # Stage2: fixed baseline = B1 + national top2 15%, then add one second correction.
+ stage2=[]
+ for key,label in [("grade","級別"),("boat2","ボート90日2連対率"),("etime","展示タイム"),("motor_win","モーター90日1着率"),("motor_top3","モーター90日3連対率"),("boat3","ボート90日3連対率")]:
+  for w in [.02,.05,.10,.15,.20]:
+   days={};tot={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0}
+   for d in DATES:
+    z={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0}
+    for rid,bs in daily[d].items():
+     b1=scores(bs);nat=rankmap(bs,"nat2")
+     q=rankmap(bs,key,key=="etime")
+     if b1 is None or nat is None or q is None:continue
+     base2={b:b1[b]+.15*nat[b] for b in b1}
+     new={b:base2[b]+w*q[b] for b in base2}
+     bh=hit(bs,base2);nh=hit(bs,new);z["n"]+=1;z["base"]+=bh;z["new"]+=nh
+     z["oo" if bh and nh else "ox" if bh else "xo" if nh else "xx"]+=1
+    z["base_pct"]=round(100*z["base"]/z["n"],2) if z["n"] else None;z["new_pct"]=round(100*z["new"]/z["n"],2) if z["n"] else None;z["delta_pt"]=round(z["new_pct"]-z["base_pct"],2) if z["n"] else None
+    days[d]=z
+    for x in ["n","base","new","xx","xo","ox","oo"]:tot[x]+=z[x]
+   vals=[x["new_pct"] for x in days.values() if x["new_pct"] is not None]
+   stage2.append({"factor":label,"weight_pct":int(w*100),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"]})
  OUT=Path("evaluations/pdca_incremental_20260930_20261003");OUT.mkdir(parents=True,exist_ok=True)
- (OUT/"summary.json").write_text(json.dumps({"dates":DATES,"baseline":"B1 racer course base = win40+top2 20+top3 30+avgST10","definition":"TOP3 unordered exact set","results":out},ensure_ascii=False,indent=2),encoding="utf-8")
+ (OUT/"summary.json").write_text(json.dumps({"dates":DATES,"baseline":"B1 racer course base = win40+top2 20+top3 30+avgST10","definition":"TOP3 unordered exact set","results":out,"stage2_results":stage2},ensure_ascii=False,indent=2),encoding="utf-8")
  flat=[]
  for x in out:
   flat.append({"factor":x["factor"],"weight_pct":x["weight_pct"],"daily_avg_top3_pct":x["daily_avg_top3_pct"],"spread_pt":x["spread_pt"],"x_to_o":x["total_x_to_o"],"o_to_x":x["total_o_to_x"],"net_flips":x["net_flips"],"eligible_races":x["eligible_races"],**{d:x["by_date"][d]["new_pct"] for d in DATES}})
