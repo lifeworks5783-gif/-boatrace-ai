@@ -1127,34 +1127,32 @@ def evaluate_top3(
         for x in picks[:3]
     ]
 
-    overlap = len(
-        set(
-            predicted
-        )
-        & set(
-            actual
-        )
+    top3_match = (
+        set(predicted)
+        == set(actual)
+    )
+
+    exact_order = (
+        predicted
+        == list(actual)
     )
 
     return {
         "predicted":
             predicted,
 
+        # TOP3整合: 予測上位3艇と実着上位3艇が
+        # 順不同で3艇すべて一致したレースだけ1（100%）。
+        # 1艇でも違えば0（0%）。
         "overlap_count":
-            overlap,
+            3 if top3_match else 0,
 
         "overlap_rate":
-            overlap
-            / 3
-            * 100,
+            100.0 if top3_match else 0.0,
 
+        # 完全一致: 1着・2着・3着の順番まで一致。
         "exact":
-            set(
-                predicted
-            )
-            == set(
-                actual
-            ),
+            exact_order,
 
         "winner":
             predicted[0]
@@ -1771,11 +1769,8 @@ def evaluation_html(
 
     return (
         f'<span class="tag">'
-        f'TOP3 '
-        f'{evaluation["overlap_count"]}/3 '
-        f'('
-        f'{evaluation["overlap_rate"]:.1f}%'
-        f')'
+        f'TOP3整合 '
+        f'{"○" if evaluation["overlap_rate"] == 100.0 else "×"}'
         f'</span>'
 
         f'<span class="tag">'
@@ -2694,13 +2689,14 @@ details.all-scores summary {{
 実際の結果を照合します。
 
 TOP3整合率は、
-予測TOP3のうち
-実際のTOP3に入った艇の割合です。
+予測TOP3と実際のTOP3が
+順不同で3艇すべて一致したレースを1、
+1艇でも違うレースを0として集計します。
 
 完全一致は、
-順不同で予測TOP3と
-実際のTOP3が
-3艇すべて一致した場合です。
+予測した1着・2着・3着と
+実際の1着・2着・3着が
+着順まで一致した場合です。
 
 </div>
 
