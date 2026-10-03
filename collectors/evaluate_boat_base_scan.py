@@ -89,6 +89,6 @@ def main():
  OUT.mkdir(parents=True,exist_ok=True)
  for fn,data in [("all_models.csv",out),("fair_top3_ranked.csv",fair),("by_date.csv",days)]:
   with (OUT/fn).open("w",encoding="utf-8",newline="") as h:w=csv.DictWriter(h,fieldnames=list(data[0]));w.writeheader();w.writerows(data)
- (OUT/"summary.json").write_text(json.dumps({"rule":"boat-only base scan; official top2 and prior-90d motor win/top2/top3; rank-normalized; same maximum eligible race count; TOP3 primary; no target-day leakage","tested":len(out),"max_common_races":common_n,"top30":fair[:30]},ensure_ascii=False,indent=2),encoding="utf-8")
+ (OUT/"summary.json").write_text(json.dumps({"rule":"boat-only base scan; official top2 and prior-90d boat win/top2/top3; rank-normalized; same maximum eligible race count; TOP3 primary; no target-day leakage","tested":len(out),"max_common_races":common_n,"top30":fair[:30]},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps({"tested":len(out),"max_common_races":common_n,"top20":fair[:20]},ensure_ascii=False,indent=2))
 if __name__=="__main__":main()
