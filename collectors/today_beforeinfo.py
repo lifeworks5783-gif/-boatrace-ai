@@ -311,8 +311,9 @@ def select_races(
                 row.get("race_id", "")
             ).strip()
 
-            # まだ直前予測がないレースは優先して取得
-            if current_race_id not in existing_live:
+            # raw直前情報がまだないレースは最優先で取得。
+            # 予測処理の成功・失敗とは完全に独立させる。
+            if current_race_id not in existing_raw:
                 row_copy["_selection_reason"] = "new"
                 candidates.append(row_copy)
                 continue
@@ -322,7 +323,7 @@ def select_races(
                 continue
 
             # 手動連打などで同じレースを短時間に再取得しない
-            last_prediction_at = existing_live.get(
+            last_collection_at = existing_raw.get(
                 current_race_id
             )
 
