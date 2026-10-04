@@ -209,7 +209,7 @@ def rank_exhibition_st(boats):
 
 
 def component_exst(lane, boat, ranks):
-    weight = morning.UNIFIED_WEIGHTS["exST"]
+    weight = 14.0
     st = get_exhibition_st(boat)
     is_f = get_exhibition_f(boat) or (st is not None and st < 0)
     raw = 0.0 if is_f else ranks.get(lane)
@@ -379,11 +379,7 @@ def main():
         if violations:
             raise RuntimeError(f"当日結果混入: {violations[:5]}")
 
-        public_store = morning.PublicStore(
-            target_date,
-            local_dir=args.public_source_dir,
-            include_stt=False,
-        )
+        public_store = None
 
         races = payload.get("races")
         if not isinstance(races, list):
@@ -411,10 +407,12 @@ def main():
             st_count = sum(
                 get_exhibition_st(boat) is not None for boat in boats
             )
+            time_count = sum(
+                get_exhibition_time(boat) is not None for boat in boats
+            )
 
-            # 今回の本番モデルはcourse32点＋展示ST3点。
-            # 直前情報が概ね揃うまでは直前版を出さない。
-            if course_count < 5 or st_count < 4:
+            # 暫定Ver.1: 展示進入・展示タイム・展示STが6艇分揃ってから更新。
+            if course_count < 6 or time_count < 6 or st_count < 6:
                 skipped_no_live_data.append(race_id)
                 continue
 
@@ -477,7 +475,7 @@ def main():
             "model_version": MODEL_VERSION,
             "target_date": target_date,
             "generated_at": now.isoformat(),
-            "weights": morning.UNIFIED_WEIGHTS,
+            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
             "input_race_count": len(races),
             "prediction_race_count": len(predicted_races),
             "prediction_boat_count": len(csv_rows),
@@ -501,7 +499,7 @@ def main():
             "target_date": target_date,
             "prediction_stage": "live",
             "generated_at": now.isoformat(),
-            "weights": morning.UNIFIED_WEIGHTS,
+            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
             "live_policy": {
                 "course": "32点を展示進入コースへ差し替え",
                 "exhibition_st": "3点。Fは0点",
@@ -569,12 +567,12 @@ def main():
             "target_date": target_date,
             "prediction_stage": "live_final",
             "updated_at": now.isoformat(),
-            "weights": morning.UNIFIED_WEIGHTS,
+            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
             "race_count": len(final_races),
             "boat_count": len(final_rows),
             "selection_rule": (
                 "締切済みrace_idは既存最終予測を保持。"
-                "締切前race_idだけunified_top3_v1で更新"
+                "締切前race_idだけprovisional_v1_80_6_14で更新"
             ),
             "races": final_races,
         }
