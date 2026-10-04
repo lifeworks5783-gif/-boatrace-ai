@@ -30,10 +30,12 @@ def health():
     return jsonify({"ok": True})
 
 @app.route("/trigger", methods=["OPTIONS"])
+@app.route("/trigger-morning", methods=["OPTIONS"])
 def trigger_options():
     return ("", 204)
 
 @app.route("/trigger", methods=["POST"])
+@app.route("/trigger-morning", methods=["POST"])
 def trigger():
     origin = request.headers.get("Origin")
     if origin and origin != ALLOWED_ORIGIN:
@@ -44,7 +46,12 @@ def trigger():
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
     }
-    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{TRIGGER_PATH}"
+    trigger_path = (
+        "config/run_morning_now.txt"
+        if request.path == "/trigger-morning"
+        else TRIGGER_PATH
+    )
+    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{trigger_path}"
 
     r = requests.get(url, headers=headers, timeout=15)
     if r.status_code != 200:
