@@ -8,7 +8,7 @@ app = Flask(__name__)
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 GITHUB_OWNER = os.environ.get("GITHUB_OWNER", "lifeworks5783-gif")
 GITHUB_REPO = os.environ.get("GITHUB_REPO", "-boatrace-ai")
-TRIGGER_PATH = os.environ.get("TRIGGER_PATH", "config/run_fast_live_v3_now.txt")
+TRIGGER_PATH = os.environ.get("TRIGGER_PATH", "config/run_family_full_refresh_now.txt")
 ALLOWED_ORIGIN = os.environ.get(
     "ALLOWED_ORIGIN",
     "https://lifeworks5783-gif.github.io",
