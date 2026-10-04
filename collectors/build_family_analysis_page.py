@@ -2806,7 +2806,27 @@ def current_pdca_html(root: Path) -> str:
   rows=[]
   dates=[str(d) for d in single.get("dates",[])] or sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
   date_labels=[f"{int(d[4:6])}/{int(d[6:8])}" for d in dates]
-  for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or z.get("daily_avg_top3_pct") or -1))):
+  # 比較しやすいよう、成績順ではなく大分類→同一要素→補正率の昇順で表示する。
+  factor_order = {
+   "級別": 10, "grade": 10,
+   "全国2連対率": 20, "national_top2": 20,
+   "コース1着率": 30, "course_win": 30,
+   "コース2連対率": 31, "course_top2": 31,
+   "コース3連対率": 32, "course_top3": 32,
+   "コース平均ST": 33, "course_avg_st": 33,
+   "モーター90日1着率": 40, "motor_d90_win": 40, "motor_win": 40,
+   "モーター90日3連対率": 41, "motor_d90_top3": 41, "motor_top3": 41,
+   "ボート90日2連対率": 50, "boat_d90_top2": 50, "boat_top2": 50,
+   "ボート90日3連対率": 51, "boat_d90_top3": 51, "boat_top3": 51,
+   "展示進入": 60, "展示コース": 60, "exhibition_course": 60,
+   "展示タイム": 61, "exhibition_time": 61,
+   "展示ST": 62, "exhibition_st": 62,
+  }
+  def pdca_display_sort(z):
+   factor = str(z.get("factor") or "")
+   weight = num(z.get("weight_pct"))
+   return (factor_order.get(factor, 999), factor_ja(factor), weight if weight is not None else 9999)
+  for x in sorted(single.get("results",[]), key=pdca_display_sort):
    bd=x.get("by_date",{})
    total_n=0
    total_hit=0
