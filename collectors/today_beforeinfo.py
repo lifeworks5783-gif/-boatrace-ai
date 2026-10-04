@@ -218,47 +218,35 @@ def parse_iso_datetime(value) -> datetime | None:
     return dt.astimezone(JST)
 
 
-def live_final_path(target_date: str) -> Path:
-    return (
-        Path("predictions")
-        / target_date[:4]
-        / target_date[4:6]
-        / target_date[6:8]
-        / "live"
-        / f"live_predictions_final_{target_date}.json"
-    )
-
-
-def load_existing_live_predictions(
+def load_existing_beforeinfo_times(
     target_date: str,
 ) -> dict[str, datetime | None]:
-    path = live_final_path(target_date)
+    """Return the last raw beforeinfo collection time for each race.
 
-    if not path.exists():
-        return {}
+    Collection refresh decisions must depend only on collected source data,
+    never on whether prediction/scoring succeeded.
+    """
+    archive_dir = archive_beforeinfo_dir(target_date)
+    rows = load_existing_csv(
+        DATA_DIR / f"beforeinfo_races_{target_date}.csv",
+        archive_dir / f"beforeinfo_races_{target_date}.csv",
+    )
 
-    try:
-        payload = json.loads(
-            path.read_text(encoding="utf-8")
-        )
-    except Exception:
-        return {}
-
-    races = payload.get("races")
-    if not isinstance(races, list):
-        return {}
-
-    result = {}
-
-    for race in races:
-        race_id = str(race.get("race_id", "")).strip()
-        if race_id:
-            result[race_id] = parse_iso_datetime(
-                race.get("generated_at")
-            )
+    result: dict[str, datetime | None] = {}
+    for row in rows:
+        race_id = str(row.get("race_id", "")).strip()
+        if not race_id:
+            continue
+        collected_at = parse_iso_datetime(row.get("collected_at"))
+        previous = result.get(race_id)
+        if collected_at is not None and (
+            previous is None or collected_at > previous
+        ):
+            result[race_id] = collected_at
+        elif race_id not in result:
+            result[race_id] = None
 
     return result
-
 
 def select_races(
     races: list[dict],
@@ -283,8 +271,8 @@ def select_races(
 
     now = datetime.now(JST)
 
-    existing_live = (
-        load_existing_live_predictions(target_date)
+    existing_raw = (
+        load_existing_beforeinfo_times(target_date)
         if mode == "live"
         else {}
     )
@@ -329,7 +317,7 @@ def select_races(
                 candidates.append(row_copy)
                 continue
 
-            # 予測済みで締切がまだ遠いレースは再取得しない
+            # raw取得済みで締切がまだ遠いレースは再取得しない
             if minutes > refresh_window:
                 continue
 
@@ -338,9 +326,9 @@ def select_races(
                 current_race_id
             )
 
-            if last_prediction_at is not None:
+            if last_collection_at is not None:
                 elapsed_minutes = (
-                    now - last_prediction_at
+                    now - last_collection_at
                 ).total_seconds() / 60.0
 
                 if elapsed_minutes < min_refresh_interval:
