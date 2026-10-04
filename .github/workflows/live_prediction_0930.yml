@@ -10,6 +10,12 @@ on:
     paths:
       - config/run_live_now.txt
   workflow_dispatch:
+    inputs:
+      raw_ready:
+        description: "高速収集済みrawを再利用する"
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: boatrace-live-writer
@@ -26,6 +32,7 @@ jobs:
       HAS_CANDIDATES: "false"
       HAS_LIVE_PREDICTION: "false"
       PRIVATE_CHANGED: "false"
+      RAW_READY: ${{ github.event_name == 'workflow_dispatch' && inputs.raw_ready && 'true' || 'false' }}
 
     steps:
       - name: 最新のmainを読み込む
@@ -176,7 +183,23 @@ jobs:
 
           echo "当日基本データ確認: PASS"
 
+      - name: 高速収集済みrawを復元
+        if: env.RAW_READY == 'true'
+        shell: bash
+        run: |
+          RAW_ROOT="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/raw"
+          LATEST_RAW=$(find "${RAW_ROOT}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | tail -n 1)
+          if [ -z "${LATEST_RAW}" ]; then
+            echo "ERROR: 高速収集済みrawが見つかりません"
+            exit 1
+          fi
+          cp "${LATEST_RAW}"/beforeinfo_*"${TARGET_DATE}"* data/ 2>/dev/null || true
+          test -s "data/beforeinfo_races_${TARGET_DATE}.csv"
+          test -s "data/beforeinfo_entries_${TARGET_DATE}.csv"
+          echo "高速収集raw再利用: ${LATEST_RAW}"
+
       - name: 直前情報を収集
+        if: env.RAW_READY != 'true'
         run: |
           python -u collectors/today_beforeinfo.py
 
