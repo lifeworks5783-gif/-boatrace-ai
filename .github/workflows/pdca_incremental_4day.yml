@@ -18,12 +18,40 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python collectors/evaluate_pdca_incremental_4day.py
+      - name: Set today JST
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+          echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
+          echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
+          echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
+          echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
+
+      - name: Collect today's official results
+        run: python -u collectors/daily_results_fast.py --date "$TARGET_DATE"
+
+      - name: Validate today's results
+        run: python -u collectors/validate_daily.py --date "$TARGET_DATE"
+
+      - name: Archive today's results
+        run: |
+          mkdir -p "archive/$YEAR/$MONTH/$DAY"
+          cp "data/venues_${TARGET_DATE}.csv" "archive/$YEAR/$MONTH/$DAY/"
+          cp "data/results_${TARGET_DATE}_all.csv" "archive/$YEAR/$MONTH/$DAY/"
+          cp "data/boat_results_${TARGET_DATE}_all.csv" "archive/$YEAR/$MONTH/$DAY/"
+          cp "data/validation_${TARGET_DATE}.json" "archive/$YEAR/$MONTH/$DAY/"
+          cp "data/manifest_${TARGET_DATE}.json" "archive/$YEAR/$MONTH/$DAY/"
+          if [ -f "data/excluded_races_${TARGET_DATE}.csv" ]; then cp "data/excluded_races_${TARGET_DATE}.csv" "archive/$YEAR/$MONTH/$DAY/"; fi
+
+      - name: Evaluate today's predictions and betting
+        run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
+
+      - name: Run expanding PDCA
+        run: python collectors/evaluate_pdca_incremental_4day.py
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add evaluations/pdca_incremental_20260930_20261003/
-          git diff --cached --quiet || git commit -m "Save four-day incremental PDCA results"
+          git add "archive/$YEAR/$MONTH/$DAY" "evaluations/$YEAR/$MONTH/$DAY" evaluations/pdca_incremental_latest/
+          git diff --cached --quiet || git commit -m "Save daily results and expanding PDCA $TARGET_DATE"
           git pull --rebase origin main
           git push origin main
 
