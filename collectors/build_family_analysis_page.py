@@ -2808,8 +2808,21 @@ def current_pdca_html(root: Path) -> str:
   date_labels=[f"{int(d[4:6])}/{int(d[6:8])}" for d in dates]
   for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or z.get("daily_avg_top3_pct") or -1))):
    bd=x.get("by_date",{})
-   rows.append([html.escape(factor_ja(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct") if (bd.get(d) or {}).get("top3_pct") is not None else (bd.get(d) or {}).get("new_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct") if x.get("daily_top3_avg_pct") is not None else x.get("daily_avg_top3_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt') if x.get('top3_spread_pt') is not None else x.get('spread_pt'),2)}pt")])
-  headers=["要素",*date_labels,f"{len(dates)}日平均","振れ幅"]
+   total_n=0
+   total_hit=0
+   for d in dates:
+    day=bd.get(d) or {}
+    n=int(num(day.get("n")) or 0)
+    hit=day.get("top3_hits")
+    if hit is None:
+     hit=day.get("new")
+    if hit is not None and n>0:
+     total_n+=n
+     total_hit+=int(num(hit) or 0)
+   cumulative=(100.0*total_hit/total_n) if total_n else None
+   cumulative_text=(f"{fmt_pct(cumulative)} ({total_hit}/{total_n}R)") if cumulative is not None else "—"
+   rows.append([html.escape(factor_ja(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct") if (bd.get(d) or {}).get("top3_pct") is not None else (bd.get(d) or {}).get("new_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct") if x.get("daily_top3_avg_pct") is not None else x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(f"{fmt_num(x.get('top3_spread_pt') if x.get('top3_spread_pt') is not None else x.get('spread_pt'),2)}pt")])
+  headers=["要素",*date_labels,f"{len(dates)}日平均","累積","振れ幅"]
   raw=table(headers,rows)
   raw=raw.replace('<div class="table-wrap">','<div class="table-wrap pdca-sticky-table">',1)
   parts.append(raw)
@@ -2824,8 +2837,12 @@ def current_pdca_html(root: Path) -> str:
   rows=[]
   for x in sorted(best.values(),key=lambda z:z.get("net_flips",-999),reverse=True):
    bd=x.get("by_date",{})
-   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
-  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","×→○","○→×","純改善"],rows))
+   total_n=sum(int(num((bd.get(d) or {}).get("n")) or 0) for d in inc_dates)
+   total_hit=sum(int(num((bd.get(d) or {}).get("new")) or 0) for d in inc_dates)
+   cumulative=(100.0*total_hit/total_n) if total_n else None
+   cumulative_text=(f"{fmt_pct(cumulative)} ({total_hit}/{total_n}R)") if cumulative is not None else "—"
+   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),html.escape(cumulative_text),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
+  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","累積","×→○","○→×","純改善"],rows))
   parts.append('<div class="policy-note"><b>現時点のAI判断：</b> B1＋全国2連対率15%に対して、今回試した第2補正はすべて純改善が0以下でした。したがって第2補正はまだ追加せず、1週間分まで同じ条件で継続検証します。単日成績だけでは配点変更しません。</div></div>')
  parts.append("</section>")
  return "".join(parts)
