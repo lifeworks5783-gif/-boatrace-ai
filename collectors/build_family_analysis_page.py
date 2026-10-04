@@ -2823,7 +2823,7 @@ def current_pdca_html(root: Path) -> str:
    cumulative_text=(f"{fmt_pct(cumulative)} ({total_hit}/{total_n}R)") if cumulative is not None else "—"
    factor_name = factor_ja(x.get("factor","—"))
    weight_pct = x.get("weight_pct")
-   display_name = f"{factor_name}（補正{fmt_num(weight_pct, 0)}%）" if weight_pct is not None else factor_name
+   display_name = f"{factor_name}（補正{fmt_int(weight_pct)}%）" if weight_pct is not None else factor_name
    rows.append([html.escape(display_name),*[fmt_pct((bd.get(d) or {}).get("top3_pct") if (bd.get(d) or {}).get("top3_pct") is not None else (bd.get(d) or {}).get("new_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct") if x.get("daily_top3_avg_pct") is not None else x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(f"{fmt_num(x.get('top3_spread_pt') if x.get('top3_spread_pt') is not None else x.get('spread_pt'),2)}pt")])
   headers=["要素",*date_labels,f"{len(dates)}日平均","累積","振れ幅"]
   raw=table(headers,rows)
