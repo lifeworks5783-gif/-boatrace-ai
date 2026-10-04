@@ -2801,9 +2801,9 @@ def fixed_20261002_html(root: Path) -> str:
 
 def current_pdca_html(root: Path) -> str:
  single=load_json(root/"all_candidate_single_factors"/"summary.json")
- inc=load_json(root/"pdca_incremental_20260930_20261003"/"summary.json")
+ inc=load_json(root/"pdca_incremental_latest"/"summary.json")
  if not single and not inc:return ""
- parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">9/30〜10/3を日別に比較。平均だけでなく最高−最低の振れ幅も確認し、単日の上振れ・下振れを区別します。</p>']
+ parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく最高−最低の振れ幅も確認し、単日の上振れ・下振れを区別します。</p>']
  if single:
   rows=[]
   for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or -1))):
