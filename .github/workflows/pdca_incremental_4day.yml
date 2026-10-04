@@ -21,15 +21,27 @@ jobs:
       - name: Install result collector dependencies
         run: pip install lhafile requests beautifulsoup4
 
-      - name: Set today JST
+      - name: Select latest analyzable date
         run: |
-          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+          TARGET_DATE=$(find daily_inputs -type f -name 'program_races_????????.csv' -path '*/base/*' -print \
+            | sed -n 's/.*program_races_\([0-9]\{8\}\)\.csv/\1/p' \
+            | sort -r \
+            | while read d; do
+                y="${d:0:4}"; m="${d:4:2}"; day="${d:6:2}"
+                base="daily_inputs/$y/$m/$day/base"
+                if [ -s "$base/program_entries_$d.csv" ]; then
+                  echo "$d"
+                  break
+                fi
+              done)
+          test -n "$TARGET_DATE" || { echo "No analyzable base date found"; exit 1; }
           echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
           echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
           echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
           echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
+          echo "Selected latest analyzable date: $TARGET_DATE"
 
-      - name: Restore today's base data
+      - name: Restore selected base data
         run: |
           BASE="daily_inputs/$YEAR/$MONTH/$DAY/base"
           test -s "$BASE/program_races_$TARGET_DATE.csv"
@@ -63,13 +75,13 @@ jobs:
           mkdir -p "$OUT"
           find data -maxdepth 1 -type f -name "beforeinfo_*$TARGET_DATE*" -exec cp {} "$OUT/" \;
 
-      - name: Collect today's official results
+      - name: Collect selected date official results
         run: python -u collectors/daily_results_fast.py --date "$TARGET_DATE"
 
-      - name: Validate today's results
+      - name: Validate selected date results
         run: python -u collectors/validate_daily.py --date "$TARGET_DATE"
 
-      - name: Archive today's results
+      - name: Archive selected date results
         run: |
           mkdir -p "archive/$YEAR/$MONTH/$DAY"
           cp "data/venues_${TARGET_DATE}.csv" "archive/$YEAR/$MONTH/$DAY/"
@@ -79,7 +91,7 @@ jobs:
           cp "data/manifest_${TARGET_DATE}.json" "archive/$YEAR/$MONTH/$DAY/"
           if [ -f "data/excluded_races_${TARGET_DATE}.csv" ]; then cp "data/excluded_races_${TARGET_DATE}.csv" "archive/$YEAR/$MONTH/$DAY/"; fi
 
-      - name: Evaluate today's predictions and betting
+      - name: Evaluate selected date predictions and betting
         run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
 
       - name: Run expanding PDCA
