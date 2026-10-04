@@ -100,8 +100,12 @@ def main():
      for wn in range(13,18):
       if wr+wg+wm+wb+wn==100:configs.append((wr,wg,wm,wb,wn))
  out=[]
+ # Fixed candidates are always included so whole-system PDCA can compare them
+ # against the current production allocation on every eligible race.
+ for fixed in [(40,20,20,5,15),(35,20,25,5,15),(36,20,25,4,15),(36,19,28,4,13)]:
+  if fixed not in configs:configs.append(fixed)
  for wr,wg,wm,wb,wn in configs:
-  days={};xo=ox=0
+  days={};xo=ox=0;AG={"n":0,"top1":0,"w2":0,"w3":0,"exact3":0,"ordered3":0,"winner_rank_sum":0}
   for d in DATES:
    n=h=0
    for rid,bs in daily[d].items():
@@ -110,8 +114,14 @@ def main():
     motor={b:.4*mo1[b]+.6*mo3[b] for b in base};boat={b:.5*bo2[b]+.5*bo3[b] for b in base}
     current={b:.40*base[b]+.20*gr[b]+.20*motor[b]+.05*boat[b]+.15*nat[b] for b in base}
     sc={b:wr/100*base[b]+wg/100*gr[b]+wm/100*motor[b]+wb/100*boat[b]+wn/100*nat[b] for b in base};bh=hit(bs,current);nh=hit(bs,sc);n+=1;h+=nh;xo+=(not bh) and nh;ox+=bh and (not nh)
+    pred=sorted(bs,key=lambda b:(-sc[b["boat"]],b["boat"]));actual=sorted(bs,key=lambda b:(b["finish"],b["boat"]))
+    po=[x["boat"] for x in pred];ao=[x["boat"] for x in actual];winner_rank=po.index(ao[0])+1
+    AG["n"]+=1;AG["top1"]+=winner_rank==1;AG["w2"]+=winner_rank<=2;AG["w3"]+=winner_rank<=3
+    AG["exact3"]+=set(po[:3])==set(ao[:3]);AG["ordered3"]+=po[:3]==ao[:3];AG["winner_rank_sum"]+=winner_rank
    days[d]={"n":n,"top3_pct":round(100*h/n,2) if n else None}
-  vv=[x["top3_pct"] for x in days.values() if x["top3_pct"] is not None];out.append({"racer":wr,"grade":wg,"motor":wm,"boat":wb,"national_top2":wn,"by_date":days,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"x_to_o":xo,"o_to_x":ox,"net_flips":xo-ox})
+  vv=[x["top3_pct"] for x in days.values() if x["top3_pct"] is not None]
+  whole={"n":AG["n"],"top1_pct":round(100*AG["top1"]/AG["n"],2),"winner_top2_pct":round(100*AG["w2"]/AG["n"],2),"winner_top3_pct":round(100*AG["w3"]/AG["n"],2),"exact_top3_unordered_pct":round(100*AG["exact3"]/AG["n"],2),"ordered_top3_pct":round(100*AG["ordered3"]/AG["n"],2),"avg_winner_pred_rank":round(AG["winner_rank_sum"]/AG["n"],4)}
+  out.append({"racer":wr,"grade":wg,"motor":wm,"boat":wb,"national_top2":wn,"by_date":days,"whole_sample":whole,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"x_to_o":xo,"o_to_x":ox,"net_flips":xo-ox})
  out.sort(key=lambda x:(-x["daily_avg_top3_pct"],x["spread_pt"],-x["net_flips"]))
  outdir=Path("evaluations/morning_weight_grid_20260930_20261003");outdir.mkdir(parents=True,exist_ok=True)
  (outdir/"summary.json").write_text(json.dumps({"definition":"TOP3 unordered exact set","baseline":"current 40/20/20/5/15; fine neighborhood around 35/20/25/5/15","results":out},ensure_ascii=False,indent=2),encoding="utf-8")
