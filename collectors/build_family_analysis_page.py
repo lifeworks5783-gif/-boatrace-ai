@@ -2884,8 +2884,13 @@ def current_pdca_html(root: Path) -> str:
    changed_worsened=int(x.get("changed_worsened") or 0)
    changed_neutral=int(x.get("changed_neutral") or 0)
    changed_effect=(100.0*(changed_improved-changed_worsened)/changed) if changed else None
-   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(base_text),html.escape(delta_text),html.escape(f"{fmt_num(spread,2)}pt" if spread is not None else "—"),f"{positive_days}/{observed_days}日",str(total_n),stability,str(changed) if changed else "—",str(changed_improved) if changed else "—",str(changed_worsened) if changed else "—",str(changed_neutral) if changed else "—",fmt_pct(changed_effect),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{net:+d}"])
-  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","補正後累積","現行ベース累積","ベース差","振れ幅","改善日","母数","評価","順位変動R","変動後良化","変動後悪化","変動・中立","変動効果","×→○","○→×","純改善"],rows))
+   base_top1=int(x.get("base_top1") or 0);new_top1=int(x.get("new_top1") or 0)
+   base_top1_pct=(100.0*base_top1/total_n) if total_n else None
+   new_top1_pct=(100.0*new_top1/total_n) if total_n else None
+   top1_delta=(new_top1_pct-base_top1_pct) if base_top1_pct is not None and new_top1_pct is not None else None
+   top1_improved=int(x.get("top1_improved") or 0);top1_worsened=int(x.get("top1_worsened") or 0)
+   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(base_text),html.escape(delta_text),fmt_pct(new_top1_pct),html.escape(f"{top1_delta:+.2f}pt" if top1_delta is not None else "—"),f"{top1_improved}/{top1_worsened}",html.escape(f"{fmt_num(spread,2)}pt" if spread is not None else "—"),f"{positive_days}/{observed_days}日",str(total_n),stability,str(changed) if changed else "—",str(changed_improved) if changed else "—",str(changed_worsened) if changed else "—",str(changed_neutral) if changed else "—",fmt_pct(changed_effect),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{net:+d}"])
+  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","TOP3補正後累積","TOP3現行ベース","TOP3差","1着補正後累積","1着差","1着 良化/悪化","振れ幅","改善日","母数","評価","順位変動R","変動後良化","変動後悪化","変動・中立","変動効果","TOP3 ×→○","TOP3 ○→×","TOP3純改善"],rows))
   parts.append('<div class="policy-note"><b>現時点のAI判断：</b> B1＋全国2連対率15%に対して、今回試した第2補正はすべて純改善が0以下でした。したがって第2補正はまだ追加せず、1週間分まで同じ条件で継続検証します。評価は累積差・純改善・改善日数・振れ幅・母数を組み合わせた参考判定で、配点は自動変更しません。</div></div>')
  parts.append("</section>")
  return "".join(parts)
