@@ -4,6 +4,9 @@ permissions:
   contents: write
 
 on:
+  push:
+    paths:
+      - "config/run_backfill_now.txt"
   workflow_dispatch:
     inputs:
       target_date:
@@ -38,7 +41,7 @@ jobs:
 
       - name: 対象日を設定
         run: |
-          TARGET_DATE="${{ inputs.target_date }}"
+          TARGET_DATE="${{ inputs.target_date || '20261004' }}"
           echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
           echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
           echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
