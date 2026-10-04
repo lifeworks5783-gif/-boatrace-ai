@@ -2840,9 +2840,14 @@ def current_pdca_html(root: Path) -> str:
    total_n=sum(int(num((bd.get(d) or {}).get("n")) or 0) for d in inc_dates)
    total_hit=sum(int(num((bd.get(d) or {}).get("new")) or 0) for d in inc_dates)
    cumulative=(100.0*total_hit/total_n) if total_n else None
+   base_hit=sum(int(num((bd.get(d) or {}).get("base")) or 0) for d in inc_dates)
+   base_cumulative=(100.0*base_hit/total_n) if total_n else None
+   delta_cumulative=(cumulative-base_cumulative) if cumulative is not None and base_cumulative is not None else None
    cumulative_text=(f"{fmt_pct(cumulative)} ({total_hit}/{total_n}R)") if cumulative is not None else "—"
-   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),html.escape(cumulative_text),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
-  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","累積","×→○","○→×","純改善"],rows))
+   base_text=(f"{fmt_pct(base_cumulative)} ({base_hit}/{total_n}R)") if base_cumulative is not None else "—"
+   delta_text=(f"{delta_cumulative:+.2f}pt") if delta_cumulative is not None else "—"
+   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(base_text),html.escape(delta_text),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
+  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","補正後累積","現行ベース累積","ベース差","×→○","○→×","純改善"],rows))
   parts.append('<div class="policy-note"><b>現時点のAI判断：</b> B1＋全国2連対率15%に対して、今回試した第2補正はすべて純改善が0以下でした。したがって第2補正はまだ追加せず、1週間分まで同じ条件で継続検証します。単日成績だけでは配点変更しません。</div></div>')
  parts.append("</section>")
  return "".join(parts)
