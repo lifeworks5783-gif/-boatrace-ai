@@ -9,9 +9,12 @@ on:
     branches: [main]
     paths:
       - config/run_fast_live_now.txt
+
   schedule:
-    # JST 08:03-22:53: 10分間隔。00/05等の混雑しやすい境界を避ける。
+    # JST 08:03-22:53
+    # 10分間隔。00/05等の混雑しやすい境界を避ける。
     - cron: "3,13,23,33,43,53 23,0-13 * * *"
+
   workflow_dispatch:
 
 concurrency:
@@ -22,72 +25,58 @@ jobs:
   collect:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+
     steps:
+      # ==========================================
+      # 1. 最新main
+      # ==========================================
       - name: 最新mainを取得
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
+      # ==========================================
+      # 2. Python
+      # ==========================================
       - name: Python準備
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: 依存ライブラリ
-        run: pip install -q requests beautifulsoup4
+        run: |
+          pip install -q requests beautifulsoup4
 
+      # ==========================================
+      # 3. 本日日付・基本データ
+      # ==========================================
       - name: 日付と基本データを準備
         shell: bash
         run: |
           TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
-          YEAR=${TARGET_DATE:0:4}; MONTH=${TARGET_DATE:4:2}; DAY=${TARGET_DATE:6:2}
+
+          YEAR=${TARGET_DATE:0:4}
+          MONTH=${TARGET_DATE:4:2}
+          DAY=${TARGET_DATE:6:2}
+
           echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
           echo "YEAR=$YEAR" >> "$GITHUB_ENV"
           echo "MONTH=$MONTH" >> "$GITHUB_ENV"
           echo "DAY=$DAY" >> "$GITHUB_ENV"
+
           mkdir -p data
+
           BASE="daily_inputs/$YEAR/$MONTH/$DAY/base"
+
           if [ -s "$BASE/program_races_$TARGET_DATE.csv" ]; then
+
+            echo "daily_inputs の基本データを使用"
+
             cp "$BASE"/* data/ 2>/dev/null || true
+
           elif [ -s "archive/$YEAR/$MONTH/$DAY/pre_race/base/program_races_$TARGET_DATE.csv" ]; then
-            cp "archive/$YEAR/$MONTH/$DAY/pre_race/base/"* data/ 2>/dev/null || true
-          fi
-          test -s "data/program_races_$TARGET_DATE.csv"
 
-      - name: 直前情報を高速収集
-        run: |
-          python -u collectors/today_beforeinfo.py --mode live
+            echo "archive の基本データを使用"
 
-      - name: rawスナップショットを必ず保存
-        if: always()
-        shell: bash
-        run: |
-          STAMP=$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S)
-          DEST="daily_inputs/$YEAR/$MONTH/$DAY/live/raw/$STAMP"
-          mkdir -p "$DEST"
-          find data -maxdepth 1 -type f -name "beforeinfo_*$TARGET_DATE*" -exec cp {} "$DEST/" \; 2>/dev/null || true
-          COUNT=$(find "$DEST" -type f | wc -l)
-          echo "saved_files=$COUNT"
-          if [ "$COUNT" -eq 0 ]; then
-            rmdir "$DEST" 2>/dev/null || true
-            exit 0
-          fi
-          git config user.name "boatrace-fast-live-bot"
-          git config user.email "boatrace-fast-live-bot@users.noreply.github.com"
-          git add "$DEST"
-          git diff --cached --quiet && exit 0
-          git commit -m "Fast beforeinfo snapshot $STAMP"
-          for attempt in 1 2 3; do
-            git pull --rebase origin main || true
-            if git push origin HEAD:main; then exit 0; fi
-            sleep 2
-          done
-          exit 1
-
-      - name: 予測本体を起動
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh workflow run live_prediction_0930.yml --ref main -f raw_ready=true
+           
