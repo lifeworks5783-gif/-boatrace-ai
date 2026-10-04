@@ -44,11 +44,17 @@ jobs:
           test -s "${BASE}/program_entries_${TARGET_DATE}.csv"
           cp "${BASE}/program_races_${TARGET_DATE}.csv" data/
           cp "${BASE}/program_entries_${TARGET_DATE}.csv" data/
-          LIVE="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/latest"
-          [ -s "${LIVE}/beforeinfo_races_${TARGET_DATE}.csv" ] && cp "${LIVE}/beforeinfo_races_${TARGET_DATE}.csv" data/ || true
-          [ -s "${LIVE}/beforeinfo_entries_${TARGET_DATE}.csv" ] && cp "${LIVE}/beforeinfo_entries_${TARGET_DATE}.csv" data/ || true
-      - name: 当日全レースの直前情報を補完
-        run: python -u collectors/today_beforeinfo.py --date "${TARGET_DATE}" --mode all
+          # 既存データを最優先で再利用。backfill → 最新raw の順に重ねる。
+          BF="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/backfill"
+          [ -s "${BF}/beforeinfo_races_${TARGET_DATE}.csv" ] && cp "${BF}/beforeinfo_races_${TARGET_DATE}.csv" data/ || true
+          [ -s "${BF}/beforeinfo_entries_${TARGET_DATE}.csv" ] && cp "${BF}/beforeinfo_entries_${TARGET_DATE}.csv" data/ || true
+          RAW_ROOT="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/raw"
+          LATEST_RAW=$(find "$RAW_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | tail -n 1 || true)
+          if [ -n "$LATEST_RAW" ]; then
+            find "$LATEST_RAW" -maxdepth 1 -type f -name "beforeinfo_*${TARGET_DATE}*" -exec cp {} data/ \;
+          fi
+      - name: 未取得レースだけ直前情報を補完
+        run: python -u collectors/today_beforeinfo.py --date "${TARGET_DATE}" --mode missing
       - name: リーク検査用live入力を生成
         run: |
           python -u collectors/build_prediction_input.py --date "${TARGET_DATE}" --stage live
