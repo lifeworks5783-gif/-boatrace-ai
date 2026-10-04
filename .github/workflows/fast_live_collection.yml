@@ -9,12 +9,8 @@ on:
     branches: [main]
     paths:
       - config/run_fast_live_now.txt
-
   schedule:
-    # JST 08:03-22:53
-    # 10分間隔。00/05等の混雑しやすい境界を避ける。
     - cron: "3,13,23,33,43,53 23,0-13 * * *"
-
   workflow_dispatch:
 
 concurrency:
@@ -25,58 +21,104 @@ jobs:
   collect:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-
     steps:
-      # ==========================================
-      # 1. 最新main
-      # ==========================================
       - name: 最新mainを取得
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      # ==========================================
-      # 2. Python
-      # ==========================================
       - name: Python準備
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: 依存ライブラリ
-        run: |
-          pip install -q requests beautifulsoup4
+        run: pip install -q requests beautifulsoup4
 
-      # ==========================================
-      # 3. 本日日付・基本データ
-      # ==========================================
       - name: 日付と基本データを準備
         shell: bash
         run: |
           TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
-
           YEAR=${TARGET_DATE:0:4}
           MONTH=${TARGET_DATE:4:2}
           DAY=${TARGET_DATE:6:2}
-
           echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
           echo "YEAR=$YEAR" >> "$GITHUB_ENV"
           echo "MONTH=$MONTH" >> "$GITHUB_ENV"
           echo "DAY=$DAY" >> "$GITHUB_ENV"
-
           mkdir -p data
-
           BASE="daily_inputs/$YEAR/$MONTH/$DAY/base"
-
+          ARCHIVE_BASE="archive/$YEAR/$MONTH/$DAY/pre_race/base"
           if [ -s "$BASE/program_races_$TARGET_DATE.csv" ]; then
-
-            echo "daily_inputs の基本データを使用"
-
             cp "$BASE"/* data/ 2>/dev/null || true
+          elif [ -s "$ARCHIVE_BASE/program_races_$TARGET_DATE.csv" ]; then
+            cp "$ARCHIVE_BASE"/* data/ 2>/dev/null || true
+          fi
+          test -s "data/program_races_$TARGET_DATE.csv"
+          echo "基本データ準備: PASS"
 
-          elif [ -s "archive/$YEAR/$MONTH/$DAY/pre_race/base/program_races_$TARGET_DATE.csv" ]; then
+      - name: 保存済み直前rawを復元
+        shell: bash
+        run: |
+          RAW_ROOT="daily_inputs/$YEAR/$MONTH/$DAY/live/raw"
+          if [ ! -d "$RAW_ROOT" ]; then
+            echo "本日初回のため保存済みrawなし"
+            exit 0
+          fi
+          LATEST_RAW=$(find "$RAW_ROOT" -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)
+          if [ -z "$LATEST_RAW" ]; then
+            echo "保存済みrawフォルダなし"
+            exit 0
+          fi
+          echo "復元元: $LATEST_RAW"
+          for file in beforeinfo_races beforeinfo_entries beforeinfo_validation; do
+            for ext in csv json; do
+              SRC="$LATEST_RAW/${file}_$TARGET_DATE.$ext"
+              if [ -s "$SRC" ]; then cp "$SRC" data/; fi
+            done
+          done
+          echo "保存済み直前raw復元: PASS"
 
-            echo "archive の基本データを使用"
+      - name: 直前情報を高速収集
+        run: python -u collectors/today_beforeinfo.py --mode live
 
-           
+      - name: 累積rawスナップショットを保存
+        shell: bash
+        run: |
+          STAMP=$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S)
+          DEST="daily_inputs/$YEAR/$MONTH/$DAY/live/raw/$STAMP"
+          mkdir -p "$DEST"
+          find data -maxdepth 1 -type f -name "beforeinfo_*$TARGET_DATE*" -exec cp {} "$DEST/" \; 2>/dev/null || true
+          COUNT=$(find "$DEST" -type f | wc -l)
+          echo "保存先: $DEST"
+          echo "saved_files=$COUNT"
+          if [ "$COUNT" -eq 0 ]; then
+            rmdir "$DEST" 2>/dev/null || true
+            exit 0
+          fi
+          git config user.name "boatrace-fast-live-bot"
+          git config user.email "boatrace-fast-live-bot@users.noreply.github.com"
+          git add "$DEST"
+          if git diff --cached --quiet; then
+            echo "GitHub保存対象の変更なし"
+            exit 0
+          fi
+          git commit -m "Fast beforeinfo cumulative snapshot $STAMP"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main || true
+            if git push origin HEAD:main; then
+              echo "raw保存: PASS"
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: 予測本体を起動
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run live_prediction_0930.yml --ref main -f raw_ready=true
+          echo "直前予測起動: PASS"
