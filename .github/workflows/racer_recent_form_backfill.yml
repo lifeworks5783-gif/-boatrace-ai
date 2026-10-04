@@ -1,0 +1,26 @@
+name: Racer recent form backfill
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "archive/**/boat_results_*_all.csv"
+      - "collectors/build_racer_recent_form_backfill.py"
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python collectors/build_racer_recent_form_backfill.py
+      - name: Commit output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/racer_recent_form/racer_recent_form_backfill.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data: backfill racer recent form"
+          git push
