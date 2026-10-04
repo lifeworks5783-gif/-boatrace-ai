@@ -6,6 +6,9 @@ permissions:
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "config/run_fast_live_v3_now.txt"
   schedule:
     - cron: "7,22,37,52 23,0-13 * * *"
 
