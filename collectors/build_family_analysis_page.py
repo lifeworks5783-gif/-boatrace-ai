@@ -2846,9 +2846,23 @@ def current_pdca_html(root: Path) -> str:
    cumulative_text=(f"{fmt_pct(cumulative)} ({total_hit}/{total_n}R)") if cumulative is not None else "—"
    base_text=(f"{fmt_pct(base_cumulative)} ({base_hit}/{total_n}R)") if base_cumulative is not None else "—"
    delta_text=(f"{delta_cumulative:+.2f}pt") if delta_cumulative is not None else "—"
-   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(base_text),html.escape(delta_text),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
-  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","補正後累積","現行ベース累積","ベース差","×→○","○→×","純改善"],rows))
-  parts.append('<div class="policy-note"><b>現時点のAI判断：</b> B1＋全国2連対率15%に対して、今回試した第2補正はすべて純改善が0以下でした。したがって第2補正はまだ追加せず、1週間分まで同じ条件で継続検証します。単日成績だけでは配点変更しません。</div></div>')
+   daily_values=[num((bd.get(d) or {}).get("new_pct")) for d in inc_dates]
+   daily_values=[v for v in daily_values if v is not None]
+   spread=(max(daily_values)-min(daily_values)) if daily_values else None
+   positive_days=sum(1 for d in inc_dates if num((bd.get(d) or {}).get("delta_pt")) is not None and num((bd.get(d) or {}).get("delta_pt"))>0)
+   observed_days=sum(1 for d in inc_dates if num((bd.get(d) or {}).get("delta_pt")) is not None)
+   net=int(x.get("net_flips") or 0)
+   if total_n < 100 or observed_days < 3:
+    stability="データ不足"
+   elif delta_cumulative is not None and delta_cumulative >= 1.0 and net > 0 and positive_days >= max(2,(observed_days+1)//2) and (spread is None or spread <= 15):
+    stability="有力"
+   elif delta_cumulative is not None and delta_cumulative > 0 and net >= 0:
+    stability="継続観察"
+   else:
+    stability="見送り"
+   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(base_text),html.escape(delta_text),html.escape(f"{fmt_num(spread,2)}pt" if spread is not None else "—"),f"{positive_days}/{observed_days}日",str(total_n),stability,str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{net:+d}"])
+  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","補正後累積","現行ベース累積","ベース差","振れ幅","改善日","母数","評価","×→○","○→×","純改善"],rows))
+  parts.append('<div class="policy-note"><b>現時点のAI判断：</b> B1＋全国2連対率15%に対して、今回試した第2補正はすべて純改善が0以下でした。したがって第2補正はまだ追加せず、1週間分まで同じ条件で継続検証します。評価は累積差・純改善・改善日数・振れ幅・母数を組み合わせた参考判定で、配点は自動変更しません。</div></div>')
  parts.append("</section>")
  return "".join(parts)
 
