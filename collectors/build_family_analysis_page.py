@@ -2511,18 +2511,6 @@ def stage_html(
 
         + "</div>"
 
-        '<div class="subsection">'
-
-        "<h3>配点要素別</h3>"
-
-        + groups_html(
-
-            stage
-
-        )
-
-        + "</div>"
-
         "</section>"
 
     )
