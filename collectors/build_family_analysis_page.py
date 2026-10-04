@@ -1199,7 +1199,7 @@ def top10_html(
 
         )
 
-    return table(
+    raw = table(
 
         [
 
@@ -1220,6 +1220,16 @@ def top10_html(
         ],
 
         rows,
+
+    )
+
+    return raw.replace(
+
+        '<div class="table-wrap">',
+
+        '<div class="table-wrap consistency-top10-table">',
+
+        1,
 
     )
 
@@ -3594,6 +3604,38 @@ tr:last-child td {{
 
 .table-wrap th:first-child {{
   z-index: 4;
+}}
+
+.consistency-top10-table th:nth-child(1),
+.consistency-top10-table td:nth-child(1) {{
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  min-width: 52px;
+  background: var(--card);
+}}
+
+.consistency-top10-table th:nth-child(2),
+.consistency-top10-table td:nth-child(2) {{
+  position: sticky;
+  left: 52px;
+  z-index: 5;
+  min-width: 58px;
+  background: var(--card);
+}}
+
+.consistency-top10-table th:nth-child(3),
+.consistency-top10-table td:nth-child(3) {{
+  position: sticky;
+  left: 110px;
+  z-index: 5;
+  min-width: 150px;
+  background: var(--card);
+  box-shadow: 1px 0 0 var(--line);
+}}
+
+.consistency-top10-table th:nth-child(-n+3) {{
+  z-index: 6;
 }}
 
 .pdca-sticky-table {{
