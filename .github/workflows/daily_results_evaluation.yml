@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install lhafile
+      - run: pip install lhafile requests beautifulsoup4
       - name: Set target date
         run: |
           TARGET_DATE=$(TZ=Asia/Tokyo date -d 'yesterday' +%Y%m%d)
@@ -42,6 +42,28 @@ jobs:
           cp "data/validation_${TARGET_DATE}.json" "$DEST/"
           cp "data/manifest_${TARGET_DATE}.json" "$DEST/"
           if [ -f "data/excluded_races_${TARGET_DATE}.csv" ]; then cp "data/excluded_races_${TARGET_DATE}.csv" "$DEST/"; fi
+      - name: Audit data completeness
+        run: python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+
+      - name: Retry missing beforeinfo without using results for prediction
+        run: |
+          REPORT="evaluations/${YEAR}/${MONTH}/${DAY}/data_quality/completeness_${TARGET_DATE}.json"
+          if grep -q '"needs_recollection": true' "$REPORT"; then
+            BASE="daily_inputs/${YEAR}/${MONTH}/${DAY}/base"
+            if [ -s "${BASE}/program_races_${TARGET_DATE}.csv" ] && [ -s "${BASE}/program_entries_${TARGET_DATE}.csv" ]; then
+              mkdir -p data
+              cp "${BASE}/program_races_${TARGET_DATE}.csv" data/
+              cp "${BASE}/program_entries_${TARGET_DATE}.csv" data/
+              python -u collectors/today_beforeinfo.py --date "${TARGET_DATE}" --mode all || true
+              RETRY="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results"
+              mkdir -p "$RETRY"
+              find data -maxdepth 1 -type f -name "beforeinfo_*${TARGET_DATE}*" -exec cp {} "$RETRY/" \;
+            fi
+          fi
+
+      - name: Re-audit after retry
+        run: python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+
       - name: Evaluate morning live and betting
         run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
       - name: Build evaluation summary
@@ -50,6 +72,7 @@ jobs:
         run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}" "daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results" 2>/dev/null || true
           git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}"
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Results and evaluation ${TARGET_DATE}"
