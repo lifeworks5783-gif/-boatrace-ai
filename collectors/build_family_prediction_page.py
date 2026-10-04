@@ -501,6 +501,39 @@ def main():
       font-size: 13px;
     }}
 
+    .refresh-panel {{
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      background: var(--card);
+      border: 1px solid var(--line);
+    }}
+
+    .refresh-button {{
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      background: #2563eb;
+      color: #ffffff;
+    }}
+
+    .refresh-button:disabled {{
+      opacity: .6;
+      cursor: wait;
+    }}
+
+    .refresh-status {{
+      margin-top: 8px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }}
+
     .notice {{
       padding: 10px 12px;
       margin-bottom: 12px;
@@ -799,6 +832,19 @@ def main():
 
     </header>
 
+    <div class="refresh-panel">
+      <button
+        id="refreshPredictionButton"
+        class="refresh-button"
+        type="button"
+      >
+        最新データに更新して予測
+      </button>
+      <div id="refreshStatus" class="refresh-status">
+        押すと直前情報を再収集し、最新予測へ更新します。
+      </div>
+    </div>
+
     <div class="notice">
 
       締切前レースを先頭に表示し、終了済みレースは下部へ分けて予測内容を保存しています。
@@ -825,6 +871,39 @@ def main():
     </footer>
 
   </div>
+
+  <script>
+    (() => {{
+      const button = document.getElementById("refreshPredictionButton");
+      const status = document.getElementById("refreshStatus");
+      const endpoint = "https://boatrace-family-trigger.onrender.com/trigger";
+
+      if (!button || !status) return;
+
+      button.addEventListener("click", async () => {{
+        if (!window.confirm("最新の直前情報を収集して予測を更新します。実行しますか？")) return;
+
+        button.disabled = true;
+        status.textContent = "更新を受け付けています…";
+
+        try {{
+          const response = await fetch(endpoint, {{
+            method: "POST",
+            headers: {{ "Content-Type": "application/json" }},
+            body: "{{}}"
+          }});
+
+          if (response.status !== 202) throw new Error("request_failed");
+
+          status.textContent = "更新を開始しました。約1分後に自動で再読み込みします。";
+          window.setTimeout(() => window.location.reload(), 65000);
+        }} catch (error) {{
+          status.textContent = "更新を開始できませんでした。少し時間をおいて再度お試しください。";
+          button.disabled = false;
+        }}
+      }});
+    }})();
+  </script>
 
 </body>
 
