@@ -132,6 +132,12 @@ jobs:
           echo "朝版prediction_input保存完了"
           echo "========================================"
 
+      - name: 朝予測を起動
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run morning_prediction.yml --ref main || gh workflow run morning_prediction_0930.yml --ref main
+
   schedule_registration_probe:
     if: github.event_name == 'schedule' && github.event.schedule == '*/5 * * * *'
     runs-on: ubuntu-latest
