@@ -97,7 +97,19 @@ jobs:
 
       - name: レース照合ページを生成
         run: |
-          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+          # レース照合は「結果・評価が完成している最新日」を使う。
+          # 日付が0時を跨いでも当日の0Rへ切り替えない。
+          TARGET_DATE=$(find evaluations -mindepth 3 -maxdepth 3 -type d 2>/dev/null \
+            | sed -n 's#^evaluations/\([0-9]\{4\}\)/\([0-9]\{2\}\)/\([0-9]\{2\}\)$#\1\2\3#p' \
+            | while read d; do
+                test -s "evaluations/${d:0:4}/${d:4:2}/${d:6:2}/prediction_evaluation_${d}.json" && echo "$d"
+              done \
+            | sort \
+            | tail -1)
+
+          test -n "${TARGET_DATE}"
+
+          echo "レース照合対象日: ${TARGET_DATE}"
 
           python -u collectors/build_family_race_compare_page.py \
             --date "${TARGET_DATE}" \
