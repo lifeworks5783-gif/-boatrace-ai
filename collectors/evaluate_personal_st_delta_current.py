@@ -51,3 +51,5 @@ for k,v in groups.items():
 os.makedirs("evaluations/personal_st_delta",exist_ok=True)
 json.dump(out,open("evaluations/personal_st_delta/summary.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 print(json.dumps(out,ensure_ascii=False,indent=2))
+
+# trigger evaluation run 20261005
