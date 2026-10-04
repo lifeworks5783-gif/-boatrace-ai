@@ -3186,9 +3186,9 @@ def build_page(
     action_panel = """
     <section class="section-card analysis-action-card" id="analysisActionCard">
       <h2>AI分析を実行</h2>
-      <p class="section-note">保存済みの予測・結果データを使って、既存のPDCA分析を実行します。配点は自動変更しません。</p>
+      <p class="section-note">最新の分析可能日を自動判定し、不足直前情報の補完・完全性確認・結果収集・予測評価・累積PDCA・順位変動・1着/TOP3分析・ページ更新まで一括実行します。配点は自動変更しません。</p>
       <button id="runAiAnalysisButton" class="analysis-action-button" type="button">AI分析を開始</button>
-      <div id="runAiAnalysisStatus" class="small-meta">ボタンを押したときだけ分析を開始します。</div>
+      <div id="runAiAnalysisStatus" class="small-meta">ボタンを押したときだけ一連のAI分析を開始します。日付をまたいでも最新の分析可能日を自動選択します。</div>
     </section>
     """
 
@@ -4067,7 +4067,7 @@ footer {{
   const status = document.getElementById("runAiAnalysisStatus");
   if (!button || !status) return;
   button.addEventListener("click", async () => {{
-    if (!window.confirm("本日の全レース終了後のPDCA分析を開始します。よろしいですか？")) return;
+    if (!window.confirm("最新の分析可能日を対象に、データ補完からPDCA・ページ更新まで一括実行します。よろしいですか？")) return;
     button.disabled = true;
     status.textContent = "AI分析を開始しています…";
     try {{
@@ -4077,7 +4077,7 @@ footer {{
         body: "{{}}"
       }});
       if (response.status !== 202) throw new Error("request_failed");
-      status.textContent = "AI分析を受け付けました。完了後、このページに結果が反映されます。";
+      status.textContent = "AI分析を受け付けました。データ補完・検証・PDCA・ページ更新を順番に実行します。完了後、このページに結果が反映されます。";
     }} catch (error) {{
       status.textContent = "AI分析を開始できませんでした。少し時間をおいて再度お試しください。";
       button.disabled = false;
