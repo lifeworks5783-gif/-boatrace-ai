@@ -2766,7 +2766,10 @@ def current_pdca_html(root: Path) -> str:
   for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or -1))):
    bd=x.get("by_date",{})
    rows.append([html.escape(str(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_top3_avg_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt'),2)}pt")])
-  parts.append(table(["要素","9/30","10/1","10/2","10/3","4日平均","振れ幅"],rows))
+  headers=["要素","9/30","10/1","10/2","10/3","4日平均","振れ幅"]
+  raw=table(headers,rows)
+  raw=raw.replace('<div class="table-wrap">','<div class="table-wrap pdca-sticky-table">',1)
+  parts.append(raw)
  if inc:
   parts.append('<div class="subsection"><h3>AI分析：補正PDCA</h3><p class="section-note">現在の選手基礎B1（コース1着40＋2連対20＋3連対30＋平均ST10）を基準に検証。第1段階では全国2連対率15%が4日すべてで改善し、×→○14件・○→×3件、純改善+11件。これを第2段階の新基準にしています。</p>')
   best={}
@@ -3546,6 +3549,46 @@ tr:last-child td {{
 
   border-bottom: 0;
 
+}}
+
+.pdca-sticky-table {{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}}
+
+.pdca-sticky-table table {{
+  width: max-content;
+  min-width: 100%;
+}}
+
+.pdca-sticky-table th:first-child,
+.pdca-sticky-table td:first-child {{
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  min-width: 190px;
+  background: var(--card);
+  box-shadow: 1px 0 0 var(--line);
+}}
+
+.pdca-sticky-table th:last-child,
+.pdca-sticky-table td:last-child {{
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  min-width: 84px;
+  background: var(--card);
+  box-shadow: -1px 0 0 var(--line);
+}}
+
+.pdca-sticky-table th:first-child,
+.pdca-sticky-table th:last-child {{
+  z-index: 4;
+}}
+
+.pdca-sticky-table th:not(:first-child):not(:last-child),
+.pdca-sticky-table td:not(:first-child):not(:last-child) {{
+  min-width: 82px;
 }}
 
 .factor-list {{
