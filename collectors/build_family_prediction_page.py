@@ -397,12 +397,6 @@ def main():
           <div id="morningCollectionStatus" class="refresh-status">
             朝の番組表・選手・モーター情報を取得して朝予測を更新します。
           </div>
-          <a class="refresh-button ai-analysis-link" href="analysis.html">
-            AI分析を開始
-          </a>
-          <div class="refresh-status">
-            本日の全レース終了後のPDCA分析はこちらから実行できます。
-          </div>
         </div>
         """
 
@@ -568,15 +562,6 @@ def main():
 
     .morning-collection-button {{
       margin-top: 4px;
-    }}
-
-    .ai-analysis-link {{
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 12px;
-      text-decoration: none;
-      background: #475467;
     }}
 
     .notice {{
