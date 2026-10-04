@@ -402,7 +402,6 @@ def build_page(evaluation_root: Path) -> str:
         box_overall = overall_metrics(box)
 
         body_parts = [
-            comparison_html(formation_overall, box_overall),
             strategy_html(
                 "3連単フォーメーション",
                 "現在の1着強軸・準軸・混戦ルールによる買い目。各買い目100円。",
