@@ -5,6 +5,10 @@ permissions:
   actions: write
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - config/run_live_now.txt
   schedule:
     # 通常取得: 15分間隔
     - cron: "0,15,30,45 23 * * *"
