@@ -2801,7 +2801,7 @@ def current_pdca_html(root: Path) -> str:
  inc=load_json(root/"pdca_incremental_latest"/"summary.json")
  single=inc if inc else load_json(root/"all_candidate_single_factors"/"summary.json")
  if not single and not inc:return ""
- parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく累積・母数・振れ幅も確認し、単日の上振れ・下振れを区別します。緑文字＋「朝・採用中」「直前・採用中」は、現在の本番予測コードで実際に採用している要素・配点と完全一致する条件です。</p>']
+ parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく累積・母数・振れ幅も確認し、単日の上振れ・下振れを区別します。</p><div class="logic-legend"><span class="legend-green">緑文字</span>＝現在の本番予測で採用中の要素</div>']
  if single:
   rows=[]
   dates=[str(d) for d in single.get("dates",[])] or sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
@@ -2836,9 +2836,9 @@ def current_pdca_html(root: Path) -> str:
    }
    live_adopted_factors = {"展示進入","展示コース","exhibition_course","展示タイム","exhibition_time","展示ST","exhibition_st"}
    if factor_key in morning_adopted_factors:
-    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">朝・採用要素</span>'
+    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span>'
    elif factor_key in live_adopted_factors:
-    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">直前・採用要素</span>'
+    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span>'
    else:
     display_html = html.escape(display_name)
    rows.append([display_html,*[fmt_pct((bd.get(d) or {}).get("top3_pct") if (bd.get(d) or {}).get("top3_pct") is not None else (bd.get(d) or {}).get("new_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct") if x.get("daily_top3_avg_pct") is not None else x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(f"{float(num(x.get('top3_spread_pt') if x.get('top3_spread_pt') is not None else x.get('spread_pt')) or 0):.2f}pt")])
@@ -3081,10 +3081,12 @@ def build_page(
                 ("ボート3連対率（90日）", "2.5点相当", "ボート5 × 内部50%"),
             ]
             morning_chips = "".join(
-                '<div class="weight-chip adopted-logic">'
+                '<div class="logic-chip adopted-logic">'
+                '<div class="logic-chip-head">'
                 f"<span>{html.escape(name)}</span>"
                 f"<b>{html.escape(points)}</b>"
-                f'<small class="small-meta">{html.escape(detail)}</small>'
+                "</div>"
+                f'<div class="logic-chip-detail">{html.escape(detail)}</div>'
                 "</div>"
                 for name, points, detail in morning_logic
             )
@@ -3095,10 +3097,12 @@ def build_page(
                 ("展示進入コース", "構造へ反映", "固定の枠コースではなく展示進入へ差し替え"),
             ]
             live_chips = "".join(
-                '<div class="weight-chip adopted-logic">'
+                '<div class="logic-chip adopted-logic">'
+                '<div class="logic-chip-head">'
                 f"<span>{html.escape(name)}</span>"
                 f"<b>{html.escape(points)}</b>"
-                f'<small class="small-meta">{html.escape(detail)}</small>'
+                "</div>"
+                f'<div class="logic-chip-detail">{html.escape(detail)}</div>'
                 "</div>"
                 for name, points, detail in live_logic
             )
@@ -3107,9 +3111,9 @@ def build_page(
                 "<h2>現在の計算ロジック（本番）</h2>"
                 '<p class="section-note">旧「現在の配点」は大分類だけでは実計算を誤解しやすいため廃止し、実際にスコアへ入る要素を内側まで分解して表示します。緑表示は本番採用中です。</p>'
                 "<h3>朝予測：基礎構造100</h3>"
-                f'<div class="weight-grid">{morning_chips}</div>'
+                f'<div class="logic-grid">{morning_chips}</div>'
                 '<div class="subsection"><h3>直前予測：朝構造＋展示補正</h3>'
-                f'<div class="weight-grid">{live_chips}</div></div>'
+                f'<div class="logic-grid">{live_chips}</div></div>'
                 "</section>"
             )
 
@@ -3896,6 +3900,60 @@ tr:last-child td {{
 
 }}
 
+.logic-grid {{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}}
+
+.logic-chip {{
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--chip);
+}}
+
+.logic-chip-head {{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}}
+
+.logic-chip-head span {{
+  min-width: 0;
+  font-weight: 800;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}}
+
+.logic-chip-head b {{
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 16px;
+}}
+
+.logic-chip-detail {{
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}}
+
+.logic-legend {{
+  margin: 8px 0 12px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: var(--chip);
+  color: var(--muted);
+  font-size: 12px;
+}}
+
+.legend-green {{
+  color: var(--good-text);
+  font-weight: 900;
+}}
+
 .history-list details {{
 
   margin-top: 8px;
@@ -3980,6 +4038,15 @@ footer {{
 
     grid-template-columns: 1fr;
 
+  }}
+
+  .logic-grid {{
+    grid-template-columns: 1fr;
+  }}
+
+  .logic-chip-head span {{
+    overflow-wrap: normal;
+    word-break: keep-all;
   }}
 
   .title-row {{
