@@ -1,0 +1,46 @@
+name: Portable Backup Snapshot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/portable_backup_snapshot.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build portable backup
+        shell: bash
+        run: |
+          STAMP=$(TZ=Asia/Tokyo date +%Y%m%d_%H%M%S)
+          ROOT="boatrace-ai_portable_backup_$STAMP"
+          mkdir -p "$ROOT"
+          rsync -a ./ "$ROOT/" --exclude ".git/" --exclude "$ROOT/" --exclude "__pycache__/" --exclude "*.pyc"
+          printf '%s\n' \
+            "BOATRACE AI portable backup" \
+            "created_jst: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S %Z')" \
+            "source_repository: lifeworks5783-gif/-boatrace-ai" \
+            "source_commit: $GITHUB_SHA" \
+            "source_branch: $GITHUB_REF_NAME" \
+            "purpose: Restore code, collected data, prediction logic, evaluations, configs, and workflow references on another server." \
+            "note: GitHub Actions YAML files are included as execution-reference specifications. Replace scheduling/deployment layer as needed on a new host." \
+            > "$ROOT/BACKUP_MANIFEST.txt"
+          tar -czf "$ROOT.tar.gz" "$ROOT"
+          echo "BACKUP_FILE=$ROOT.tar.gz" >> "$GITHUB_ENV"
+          echo "BACKUP_NAME=$ROOT" >> "$GITHUB_ENV"
+      - name: Upload portable backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKUP_NAME }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 30
+          compression-level: 0
