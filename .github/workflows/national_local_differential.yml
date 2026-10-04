@@ -1,0 +1,23 @@
+name: National local differential accumulation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "data/program_entries_*.csv"
+      - "daily_inputs/**/program_entries_*.csv"
+      - "collectors/build_national_local_differential.py"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: python collectors/build_national_local_differential.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/national_local_differential
+          git diff --cached --quiet && exit 0
+          git commit -m "data: accumulate national-local racer differentials"
+          git push
