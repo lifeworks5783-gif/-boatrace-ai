@@ -2,6 +2,7 @@ name: 当日予測用基本データ収集
 
 permissions:
   contents: write
+  actions: write
 
 on:
   schedule:
@@ -9,6 +10,10 @@ on:
       timezone: "Asia/Tokyo"
 
   workflow_dispatch:
+
+  push:
+    paths:
+      - "config/run_morning_now.txt"
 
 concurrency:
   group: today-basic-${{ github.ref }}
