@@ -2824,12 +2824,21 @@ def current_pdca_html(root: Path) -> str:
    factor_name = factor_ja(x.get("factor","—"))
    weight_pct = x.get("weight_pct")
    display_name = f"{factor_name}（補正{fmt_int(weight_pct)}%）" if weight_pct is not None else factor_name
-   morning_adopted = ((x.get("factor") == "級別" and weight_pct == 20) or (x.get("factor") == "全国2連対率" and weight_pct == 15))
-   live_adopted = ((x.get("factor") == "展示タイム" and weight_pct == 6) or (x.get("factor") == "展示ST" and weight_pct == 14))
-   if morning_adopted:
-    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">朝・採用中</span>'
-   elif live_adopted:
-    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">直前・採用中</span>'
+   factor_key = str(x.get("factor") or "")
+   morning_adopted_factors = {
+    "級別","全国2連対率",
+    "course_win","course_top2","course_top3","course_avg_st",
+    "コース1着率","コース2連対率","コース3連対率","コース平均ST",
+    "motor_win","motor_top3","motor_d90_win","motor_d90_top3",
+    "モーター90日1着率","モーター90日3連対率",
+    "boat_top2","boat_top3","boat_d90_top2","boat_d90_top3",
+    "ボート90日2連対率","ボート90日3連対率",
+   }
+   live_adopted_factors = {"展示進入","展示コース","exhibition_course","展示タイム","exhibition_time","展示ST","exhibition_st"}
+   if factor_key in morning_adopted_factors:
+    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">朝・採用要素</span>'
+   elif factor_key in live_adopted_factors:
+    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">直前・採用要素</span>'
    else:
     display_html = html.escape(display_name)
    rows.append([display_html,*[fmt_pct((bd.get(d) or {}).get("top3_pct") if (bd.get(d) or {}).get("top3_pct") is not None else (bd.get(d) or {}).get("new_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct") if x.get("daily_top3_avg_pct") is not None else x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(f"{float(num(x.get('top3_spread_pt') if x.get('top3_spread_pt') is not None else x.get('spread_pt')) or 0):.2f}pt")])
@@ -3056,42 +3065,52 @@ def build_page(
 
         if weights:
 
-            chips = "".join(
-
-                (
-
-                    '<div class="weight-chip">'
-
-                    f"<span>{html.escape(LABELS.get(key, str(key)))}</span>"
-
-                    f"<b>{html.escape(str(value))}点</b>"
-
-                    "</div>"
-
-                )
-
-                for (
-
-                    key,
-
-                    value,
-
-                )
-
-                in weights.items()
-
+            # 旧analysis JSONの大分類「配点」は現在の本番計算を十分に表さないため、
+            # build_morning_prediction.py / build_live_prediction.py の実計算式を
+            # 内側の構成要素まで分解して表示する。
+            morning_logic = [
+                ("コース1着率（90日）", "16.0点相当", "選手×コース40 × 内部40%"),
+                ("コース2連対率（90日）", "8.0点相当", "選手×コース40 × 内部20%"),
+                ("コース3連対率（90日）", "12.0点相当", "選手×コース40 × 内部30%"),
+                ("コース平均ST（90日）", "4.0点相当", "選手×コース40 × 内部10%"),
+                ("級別", "20.0点相当", "A1=1.00 / A2=0.75 / B1=0.45 / B2=0.25 をレース内順位化"),
+                ("全国2連対率（90日）", "15.0点相当", "選手の直近90日"),
+                ("モーター1着率（90日）", "8.0点相当", "モーター20 × 内部40%"),
+                ("モーター3連対率（90日）", "12.0点相当", "モーター20 × 内部60%"),
+                ("ボート2連対率（90日）", "2.5点相当", "ボート5 × 内部50%"),
+                ("ボート3連対率（90日）", "2.5点相当", "ボート5 × 内部50%"),
+            ]
+            morning_chips = "".join(
+                '<div class="weight-chip adopted-logic">'
+                f"<span>{html.escape(name)}</span>"
+                f"<b>{html.escape(points)}</b>"
+                f'<small class="small-meta">{html.escape(detail)}</small>'
+                "</div>"
+                for name, points, detail in morning_logic
             )
-
+            live_logic = [
+                ("朝の基礎構造", "80%", "展示進入コースへ差し替えて再計算"),
+                ("展示タイム", "6%", "レース内順位で補正"),
+                ("展示ST", "14%", "レース内順位で補正。Fは独立して0扱い"),
+                ("展示進入コース", "構造へ反映", "固定の枠コースではなく展示進入へ差し替え"),
+            ]
+            live_chips = "".join(
+                '<div class="weight-chip adopted-logic">'
+                f"<span>{html.escape(name)}</span>"
+                f"<b>{html.escape(points)}</b>"
+                f'<small class="small-meta">{html.escape(detail)}</small>'
+                "</div>"
+                for name, points, detail in live_logic
+            )
             body.append(
-
                 '<section class="section-card">'
-
-                "<h2>現在の配点</h2>"
-
-                f'<div class="weight-grid">{chips}</div>'
-
+                "<h2>現在の計算ロジック（本番）</h2>"
+                '<p class="section-note">旧「現在の配点」は大分類だけでは実計算を誤解しやすいため廃止し、実際にスコアへ入る要素を内側まで分解して表示します。緑表示は本番採用中です。</p>'
+                "<h3>朝予測：基礎構造100</h3>"
+                f'<div class="weight-grid">{morning_chips}</div>'
+                '<div class="subsection"><h3>直前予測：朝構造＋展示補正</h3>'
+                f'<div class="weight-grid">{live_chips}</div></div>'
                 "</section>"
-
             )
 
         morning = (
