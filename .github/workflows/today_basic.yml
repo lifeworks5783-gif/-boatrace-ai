@@ -7,6 +7,8 @@ on:
   schedule:
     - cron: "0 6 * * *"
       timezone: "Asia/Tokyo"
+    # 診断用: GitHub schedule登録の切り分け。収集本体はこのcronでは動かさない。
+    - cron: "*/5 * * * *"
 
   workflow_dispatch:
 
@@ -16,6 +18,7 @@ concurrency:
 
 jobs:
   collect_today_basic:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule != '*/5 * * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -126,3 +129,13 @@ jobs:
           echo "========================================"
           echo "朝版prediction_input保存完了"
           echo "========================================"
+
+  schedule_registration_probe:
+    if: github.event_name == 'schedule' && github.event.schedule == '*/5 * * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Confirm existing workflow schedule registration
+        run: |
+          echo "existing workflow schedule probe"
+          date -u
