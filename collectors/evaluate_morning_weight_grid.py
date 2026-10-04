@@ -93,11 +93,14 @@ def main():
   p=sorted(bs,key=lambda b:(-sc[b["boat"]],b["boat"]));a=sorted(bs,key=lambda b:(b["finish"],b["boat"]))
   return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])
  configs=[]
- for wr in range(32,39):
-  for wg in range(18,23):
-   for wm in range(22,29):
-    for wb in range(3,8):
-     for wn in range(13,18):
+ # Local boundary scan around current production 40/20/20/5/15.
+ # Keep the search narrow so we test whether a small motor increase can
+ # improve TOP3 without sacrificing the current winner metrics.
+ for wr in range(38,41):
+  for wg in range(19,22):
+   for wm in range(20,24):
+    for wb in range(4,7):
+     for wn in range(14,17):
       if wr+wg+wm+wb+wn==100:configs.append((wr,wg,wm,wb,wn))
  out=[]
  # Fixed candidates are always included so whole-system PDCA can compare them
