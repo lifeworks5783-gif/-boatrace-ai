@@ -98,8 +98,10 @@ def main():
   return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])
  specs=[("grade","級別"),("nat2","全国2連対率"),("etime","展示タイム"),("boat2","ボート90日2連対率"),("motor_win","モーター90日1着率"),("motor_top3","モーター90日3連対率"),("boat3","ボート90日3連対率")]
  out=[]
+ production_weights={"motor_win":.08,"motor_top3":.12,"boat2":.025,"boat3":.025}
  for key,label in specs:
-  for w in [.02,.05,.10,.15,.20,.30]:
+  candidate_weights=sorted(set([.02,.05,.10,.15,.20,.30]+([production_weights[key]] if key in production_weights else [])))
+  for w in candidate_weights:
    days={};tot={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0,"changed":0,"changed_improved":0,"changed_worsened":0,"changed_neutral":0}
    for d in DATES:
     z={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0,"changed":0,"changed_improved":0,"changed_worsened":0,"changed_neutral":0}
@@ -112,7 +114,7 @@ def main():
     days[d]=z
     for x in ["n","base","new","xx","xo","ox","oo","changed","changed_improved","changed_worsened","changed_neutral"]:tot[x]+=z[x]
    vals=[x["new_pct"] for x in days.values() if x["new_pct"] is not None]
-   out.append({"factor":label,"weight_pct":int(w*100),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"]})
+   out.append({"factor":label,"weight_pct":round(w*100,1),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"]})
  # Stage2: fixed baseline = B1 + national top2 15%, then add one second correction.
  stage2=[]
  for key,label in [("grade","級別"),("boat2","ボート90日2連対率"),("etime","展示タイム"),("motor_win","モーター90日1着率"),("motor_top3","モーター90日3連対率"),("boat3","ボート90日3連対率")]:
