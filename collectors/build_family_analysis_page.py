@@ -3201,11 +3201,26 @@ def build_page(
 
             )
 
-        # 3. 実績・予測タイプ・累積PDCAを確認し、その後に過去履歴へ進む。
+        # 3. 実績・予測タイプ・累積PDCAを確認し、前回PDCA議事録を挟んで過去履歴へ進む。
         if fixed:
             body.append(fixed)
         if pdca_section:
             body.append(pdca_section)
+
+        minutes_path = root / "PDCA_OPERATING_RULES.md"
+        if minutes_path.exists():
+            minutes_text = minutes_path.read_text(encoding="utf-8")
+            carry = minutes_text.split("## 6. 現在の重要繰り越し", 1)
+            minutes_body = carry[1].strip() if len(carry) == 2 else minutes_text.strip()
+            body.append(
+                '<section class="section-card">'
+                '<h2>前回PDCA議事録</h2>'
+                '<p class="section-note">前回終了時点の結論・未解決事項・解決方針・次回の開始地点です。</p>'
+                '<div class="pdca-minutes">'
+                f'<pre>{html.escape(minutes_body)}</pre>'
+                '</div>'
+                '</section>'
+            )
 
         past = (
 
@@ -4025,6 +4040,19 @@ tr:last-child td {{
   margin-top: 10px;
 
 }}
+
+.pdca-minutes pre {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--chip);
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.7;
+}
 
 .empty {{
 
