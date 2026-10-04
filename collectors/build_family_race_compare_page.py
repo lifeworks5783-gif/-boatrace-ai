@@ -1520,7 +1520,7 @@ def build_race_rows(
                         actual,
                     ),
 
-                "morning_formation_hit": formation_hit(morning, trifecta, "formation"),
+                "morning_formation_hit": formation_hit(live, trifecta, "morning_formation"),
                 "live_formation_hit": formation_hit(live, trifecta, "formation"),
 
                 "trifecta":
@@ -2797,20 +2797,6 @@ TOP3整合率は、
 
 
 </section>
-
-<section class="summary">
-<div class="summary-box">
-  <span>最終予測・3連単フォーメーション</span>
-  <strong>{final_formation_summary["hits"]}/{final_formation_summary["count"]} ・ {percent(final_formation_summary["rate"])}</strong>
-  <span>結果・成績ページと同じ最終予測基準</span>
-</div>
-<div class="summary-box">
-  <span>最終予測・AI上位3艇BOX</span>
-  <strong>{final_box_summary["hits"]}/{final_box_summary["count"]} ・ {percent(final_box_summary["rate"])}</strong>
-  <span>結果・成績ページと同じ6点BOX</span>
-</div>
-</section>
-
 
 {cards_html}
 
