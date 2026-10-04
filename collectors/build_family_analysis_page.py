@@ -2801,7 +2801,7 @@ def current_pdca_html(root: Path) -> str:
  inc=load_json(root/"pdca_incremental_latest"/"summary.json")
  single=inc if inc else load_json(root/"all_candidate_single_factors"/"summary.json")
  if not single and not inc:return ""
- parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく累積・母数・振れ幅も確認し、単日の上振れ・下振れを区別します。緑文字＋「採用中」は現在の本番朝予測で実際に採用している要素・配点です。</p>']
+ parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく累積・母数・振れ幅も確認し、単日の上振れ・下振れを区別します。緑文字＋「朝・採用中」「直前・採用中」は、現在の本番予測コードで実際に採用している要素・配点と完全一致する条件です。</p>']
  if single:
   rows=[]
   dates=[str(d) for d in single.get("dates",[])] or sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
@@ -2824,8 +2824,14 @@ def current_pdca_html(root: Path) -> str:
    factor_name = factor_ja(x.get("factor","—"))
    weight_pct = x.get("weight_pct")
    display_name = f"{factor_name}（補正{fmt_int(weight_pct)}%）" if weight_pct is not None else factor_name
-   adopted = ((x.get("factor") == "級別" and weight_pct == 20) or (x.get("factor") == "全国2連対率" and weight_pct == 15))
-   display_html = (f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">採用中</span>' if adopted else html.escape(display_name))
+   morning_adopted = ((x.get("factor") == "級別" and weight_pct == 20) or (x.get("factor") == "全国2連対率" and weight_pct == 15))
+   live_adopted = ((x.get("factor") == "展示タイム" and weight_pct == 6) or (x.get("factor") == "展示ST" and weight_pct == 14))
+   if morning_adopted:
+    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">朝・採用中</span>'
+   elif live_adopted:
+    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span><span class="adopted-badge">直前・採用中</span>'
+   else:
+    display_html = html.escape(display_name)
    rows.append([display_html,*[fmt_pct((bd.get(d) or {}).get("top3_pct") if (bd.get(d) or {}).get("top3_pct") is not None else (bd.get(d) or {}).get("new_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct") if x.get("daily_top3_avg_pct") is not None else x.get("daily_avg_top3_pct")),html.escape(cumulative_text),html.escape(f"{float(num(x.get('top3_spread_pt') if x.get('top3_spread_pt') is not None else x.get('spread_pt')) or 0):.2f}pt")])
   headers=["要素",*date_labels,f"{len(dates)}日平均","累積","振れ幅"]
   raw=table(headers,rows)
