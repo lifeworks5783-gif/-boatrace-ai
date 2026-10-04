@@ -77,6 +77,20 @@ FACTOR_JA = {
     "motor_top3": "モーター3連対率",
     "boat_top2": "ボート2連対率",
     "boat_top3": "ボート3連対率",
+    "exhibition_time": "展示タイム",
+    "exhibition_st": "展示ST",
+    "exhibition_st_f_penalized": "展示ST・F補正後",
+    "boat_d90_top2": "ボート直近90日2連対率",
+    "boat_d90_top3": "ボート直近90日3連対率",
+    "boat_d90_win": "ボート直近90日1着率",
+    "motor_d90_top2": "モーター直近90日2連対率",
+    "motor_d90_top3": "モーター直近90日3連対率",
+    "motor_d90_win": "モーター直近90日1着率",
+    "boat_official_top2": "ボート公式2連対率",
+    "motor_official_top2": "モーター公式2連対率",
+    "motor_d30_win": "モーター直近30日1着率",
+    "motor_d30_top2": "モーター直近30日2連対率",
+    "motor_d30_top3": "モーター直近30日3連対率",
 }
 
 def factor_ja(value: Any) -> str:
