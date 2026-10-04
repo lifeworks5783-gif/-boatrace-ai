@@ -2808,9 +2808,9 @@ def current_pdca_html(root: Path) -> str:
   rows=[]
   dates=sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
   date_labels=[f"{int(d[4:6])}/{int(d[6:8])}" for d in dates]
-  for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or -1))):
+  for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or z.get("daily_avg_top3_pct") or -1))):
    bd=x.get("by_date",{})
-   rows.append([html.escape(factor_ja(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt'),2)}pt")])
+   rows.append([html.escape(factor_ja(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct") if x.get("daily_top3_avg_pct") is not None else x.get("daily_avg_top3_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt'),2)}pt")])
   headers=["要素",*date_labels,f"{len(dates)}日平均","振れ幅"]
   raw=table(headers,rows)
   raw=raw.replace('<div class="table-wrap">','<div class="table-wrap pdca-sticky-table">',1)
