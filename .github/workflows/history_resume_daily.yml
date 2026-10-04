@@ -1,0 +1,35 @@
+name: Historical Data Resume
+'on':
+  workflow_dispatch:
+  schedule:
+    - cron: '10 16 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: boatrace-main-writer
+  cancel-in-progress: false
+jobs:
+  resume:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install lhafile requests beautifulsoup4
+      - name: Resume missing historical result collection
+        run: |
+          python -u collectors/backfill_history.py --start 20260621 --end 20261003 --sleep 0.7
+      - name: Save checkpoints
+        run: |
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git add archive history
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Resume historical data backfill"
+          git pull --rebase origin main
+          git push origin main
