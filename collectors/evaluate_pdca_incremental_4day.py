@@ -100,9 +100,9 @@ def main():
  out=[]
  for key,label in specs:
   for w in [.02,.05,.10,.15,.20,.30]:
-   days={};tot={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0}
+   days={};tot={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0,"changed":0,"changed_improved":0,"changed_worsened":0,"changed_neutral":0}
    for d in DATES:
-    z={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0}
+    z={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0,"changed":0,"changed_improved":0,"changed_worsened":0,"changed_neutral":0}
     for rid,bs in daily[d].items():
      bsc=scores(bs);nsc=scores(bs,key,w)
      if bsc is None or nsc is None:continue
@@ -110,29 +110,36 @@ def main():
      z["oo" if bh and nh else "ox" if bh else "xo" if nh else "xx"]+=1
     z["base_pct"]=round(100*z["base"]/z["n"],2) if z["n"] else None;z["new_pct"]=round(100*z["new"]/z["n"],2) if z["n"] else None;z["delta_pt"]=round(z["new_pct"]-z["base_pct"],2) if z["n"] else None
     days[d]=z
-    for x in ["n","base","new","xx","xo","ox","oo"]:tot[x]+=z[x]
+    for x in ["n","base","new","xx","xo","ox","oo","changed","changed_improved","changed_worsened","changed_neutral"]:tot[x]+=z[x]
    vals=[x["new_pct"] for x in days.values() if x["new_pct"] is not None]
    out.append({"factor":label,"weight_pct":int(w*100),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"]})
  # Stage2: fixed baseline = B1 + national top2 15%, then add one second correction.
  stage2=[]
  for key,label in [("grade","級別"),("boat2","ボート90日2連対率"),("etime","展示タイム"),("motor_win","モーター90日1着率"),("motor_top3","モーター90日3連対率"),("boat3","ボート90日3連対率")]:
   for w in [.02,.05,.10,.15,.20]:
-   days={};tot={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0}
+   days={};tot={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0,"changed":0,"changed_improved":0,"changed_worsened":0,"changed_neutral":0}
    for d in DATES:
-    z={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0}
+    z={"n":0,"base":0,"new":0,"xx":0,"xo":0,"ox":0,"oo":0,"changed":0,"changed_improved":0,"changed_worsened":0,"changed_neutral":0}
     for rid,bs in daily[d].items():
      b1=scores(bs);nat=rankmap(bs,"nat2")
      q=rankmap(bs,key,key=="etime")
      if b1 is None or nat is None or q is None:continue
      base2={b:b1[b]+.15*nat[b] for b in b1}
      new={b:base2[b]+w*q[b] for b in base2}
+     base_order=tuple(b["boat"] for b in sorted(bs,key=lambda b:(-base2[b["boat"]],b["boat"])))
+     new_order=tuple(b["boat"] for b in sorted(bs,key=lambda b:(-new[b["boat"]],b["boat"])))
+     changed=base_order!=new_order
      bh=hit(bs,base2);nh=hit(bs,new);z["n"]+=1;z["base"]+=bh;z["new"]+=nh
+     if changed:z["changed"]+=1
+     if changed and (not bh) and nh:z["changed_improved"]+=1
+     if changed and bh and (not nh):z["changed_worsened"]+=1
+     if changed and bh==nh:z["changed_neutral"]+=1
      z["oo" if bh and nh else "ox" if bh else "xo" if nh else "xx"]+=1
     z["base_pct"]=round(100*z["base"]/z["n"],2) if z["n"] else None;z["new_pct"]=round(100*z["new"]/z["n"],2) if z["n"] else None;z["delta_pt"]=round(z["new_pct"]-z["base_pct"],2) if z["n"] else None
     days[d]=z
     for x in ["n","base","new","xx","xo","ox","oo"]:tot[x]+=z[x]
    vals=[x["new_pct"] for x in days.values() if x["new_pct"] is not None]
-   stage2.append({"factor":label,"weight_pct":int(w*100),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"]})
+   stage2.append({"factor":label,"weight_pct":int(w*100),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"],"changed_races":tot["changed"],"changed_improved":tot["changed_improved"],"changed_worsened":tot["changed_worsened"],"changed_neutral":tot["changed_neutral"]})
  if not DATES: raise RuntimeError("PDCA対象日がありません")
  OUT=Path("evaluations/pdca_incremental_latest");OUT.mkdir(parents=True,exist_ok=True)
  (OUT/"summary.json").write_text(json.dumps({"dates":DATES,"baseline":"B1 racer course base = win40+top2 20+top3 30+avgST10","definition":"TOP3 unordered exact set","results":out,"stage2_results":stage2},ensure_ascii=False,indent=2),encoding="utf-8")
