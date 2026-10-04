@@ -1,6 +1,7 @@
 name: Morning Prediction Production
 permissions:
   contents: write
+  actions: write
 'on':
   push:
     branches: [main]
@@ -58,6 +59,14 @@ jobs:
               sleep 3
             done
           fi
+
+      - name: 家族共有の朝予測ページを更新
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run family_prediction_page.yml --ref main
+          echo "朝予測の家族共有ページ更新を開始しました。"
 
       - name: 履歴特徴量と朝予測入力を生成
         run: |
