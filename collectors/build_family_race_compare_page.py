@@ -1858,6 +1858,14 @@ def simulation_html(prediction, trifecta, payout):
 # HTML生成
 # =========================================================
 
+def hit_summary_from_rows(rows, key):
+    values = [row.get(key) for row in rows if row.get(key) is not None]
+    if not values:
+        return {"count": 0, "hits": 0, "rate": None}
+    hits = sum(1 for value in values if value)
+    return {"count": len(values), "hits": hits, "rate": hits / len(values) * 100.0}
+
+
 def render_html(
     target_date,
     race_rows,
@@ -1882,6 +1890,33 @@ def render_html(
 
     morning_hit_summary = hit_summary("morning_formation_hit")
     live_hit_summary = hit_summary("live_formation_hit")
+
+    # 結果・成績ページと同じ「最終予測」定義:
+    # 直前予測が保存されているレースは直前、未保存は朝予測を採用する。
+    final_rows = []
+    for row in race_rows:
+        final_prediction = row.get("live") or row.get("morning")
+        final_rows.append({
+            **row,
+            "final_prediction": final_prediction,
+            "final_formation_hit": formation_hit(final_prediction, row.get("trifecta"), "formation"),
+            "final_box_hit": (
+                (lambda picks, trifecta:
+                    trifecta in [
+                        f"{a}-{b}-{c}", f"{a}-{c}-{b}",
+                        f"{b}-{a}-{c}", f"{b}-{c}-{a}",
+                        f"{c}-{a}-{b}", f"{c}-{b}-{a}",
+                    ]
+                    if len(picks) == 3
+                    else None
+                )(
+                    [int(x["boat"]) for x in (final_prediction or {}).get("top3", [])[:3] if x.get("boat") is not None],
+                    row.get("trifecta"),
+                )
+            ),
+        })
+    final_formation_summary = hit_summary_from_rows(final_rows, "final_formation_hit")
+    final_box_summary = hit_summary_from_rows(final_rows, "final_box_hit")
 
     now = datetime.now(
         JST
@@ -2759,6 +2794,19 @@ TOP3整合率は、
 </div>
 
 
+</section>
+
+<section class="summary">
+<div class="summary-box">
+  <span>最終予測・3連単フォーメーション</span>
+  <strong>{final_formation_summary["hits"]}/{final_formation_summary["count"]} ・ {percent(final_formation_summary["rate"])}</strong>
+  <span>結果・成績ページと同じ最終予測基準</span>
+</div>
+<div class="summary-box">
+  <span>最終予測・AI上位3艇BOX</span>
+  <strong>{final_box_summary["hits"]}/{final_box_summary["count"]} ・ {percent(final_box_summary["rate"])}</strong>
+  <span>結果・成績ページと同じ6点BOX</span>
+</div>
 </section>
 
 
