@@ -3025,25 +3025,11 @@ def build_page(
 
     body: List[str] = []
 
+    # AI分析ページは「現在のロジック → 安定性/比較 → 朝/直前の診断 →
+    # 実績/予測タイプ → 課題/改善 → 過去履歴」の順で上から読める構成にする。
     current_pdca = current_pdca_html(root)
-    if current_pdca:
-        body.append(current_pdca)
-
     fixed = fixed_20261002_html(root)
-    if fixed:
-        body.append(fixed)
-
-    if pdca:
-
-        body.append(
-
-            pdca_html(
-
-                pdca
-
-            )
-
-        )
+    pdca_section = pdca_html(pdca) if pdca else ""
 
     if latest_data:
 
@@ -3071,29 +3057,23 @@ def build_page(
 
         )
 
-        body.append(
+        intro_section = (
 
             '<section class="section-card intro-card">'
 
-            "<h2>日次のAI分析</h2>"
+            "<h2>AI分析の見方</h2>"
 
             "<p>"
 
-            "予測時点のスコアと実際の着順を照合し、"
-
-            "現在の配点がどこで機能し、"
-
-            "どこで弱いかを確認します。"
+            "現在の予測ロジックを起点に、安定性・比較検証・朝/直前の診断・実績を順番に確認します。"
 
             "</p>"
 
             "<p>"
 
-            "<b>配点は自動変更しません。</b> "
+            "<b>ロジックは自動変更しません。</b> "
 
-            "日次診断と直近PDCAを"
-
-            "蓄積してから判断します。"
+            "日次診断と直近PDCAを蓄積してから改善判断します。"
 
             "</p>"
 
@@ -3155,6 +3135,12 @@ def build_page(
                 "</section>"
             )
 
+        # 1. 現在ロジックの次に、読み方と採用中条件との比較を置く。
+        body.append(intro_section)
+        if current_pdca:
+            body.append(current_pdca)
+
+        # 2. 朝→直前の順で、実際のスコア診断を見る。
         morning = (
 
             stages.get(
@@ -3215,6 +3201,12 @@ def build_page(
 
             )
 
+        # 3. 実績・予測タイプ・累積PDCAを確認し、その後に過去履歴へ進む。
+        if fixed:
+            body.append(fixed)
+        if pdca_section:
+            body.append(pdca_section)
+
         past = (
 
             history_html(
@@ -3234,6 +3226,14 @@ def build_page(
                 past
 
             )
+
+    if not latest_data:
+        if current_pdca:
+            body.append(current_pdca)
+        if fixed:
+            body.append(fixed)
+        if pdca_section:
+            body.append(pdca_section)
 
     if not body:
 
