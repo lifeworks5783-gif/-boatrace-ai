@@ -2828,8 +2828,10 @@ def current_pdca_html(root: Path) -> str:
   parts.append(raw)
  if single:
   stage_rows=[]
-  morning_factors={"course_top2","grade","course_win","course_top3","national_top2","national_win","national_top3","venue_top3","venue_course_top2","venue_course_top3","venue_course_win","venue_win","course_avg_st","national_avg_st","venue_avg_st","motor_top2","motor_top3","boat_top2","boat_top3","boat_d90_top2","boat_d90_top3","boat_d90_win","motor_d90_top2","motor_d90_top3","motor_d90_win","motor_d30_win","motor_d30_top2","motor_d30_top3"}
-  live_factors={"exhibition_time","exhibition_st","exhibition_st_f_penalized","f_flag","tilt","parts_changed"}
+  # PDCA summary stores Japanese display labels, while older analysis files may store internal keys.
+  # Accept both so the stage split remains compatible with accumulated history.
+  morning_factors={"級別","全国2連対率","ボート90日2連対率","ボート90日3連対率","モーター90日1着率","モーター90日3連対率","course_top2","grade","course_win","course_top3","national_top2","national_win","national_top3","venue_top3","venue_course_top2","venue_course_top3","venue_course_win","venue_win","course_avg_st","national_avg_st","venue_avg_st","motor_top2","motor_top3","boat_top2","boat_top3","boat_d90_top2","boat_d90_top3","boat_d90_win","motor_d90_top2","motor_d90_top3","motor_d90_win","motor_d30_win","motor_d30_top2","motor_d30_top3"}
+  live_factors={"展示タイム","展示ST","展示ST・F補正","F持ち","チルト","部品交換","exhibition_time","exhibition_st","exhibition_st_f_penalized","f_flag","tilt","parts_changed"}
   for stage_name,factors in [("朝・基本データ",morning_factors),("直前・展示データ",live_factors)]:
    candidates=[x for x in single.get("results",[]) if str(x.get("factor")) in factors]
    total_n=0; total_hit=0
