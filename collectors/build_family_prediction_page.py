@@ -378,17 +378,32 @@ def main():
         for index, race in enumerate(upcoming_races, start=1)
     )
 
-    if completed_races:
-        cards += '<div class="section-title">終了済みレース</div>'
-        cards += "".join(
-            build_card(race, index, True)
-            for index, race in enumerate(completed_races, start=1)
-        )
+    all_finished = bool(races) and not upcoming_races
+
+    if all_finished:
+        cards = """
+        <div class="empty all-finished">
+          <div class="finished-title">本日の全レースは終了しました。</div>
+          <div class="finished-copy">
+            本日の最終予想は保存されています。翌日の朝、または当日の朝情報を再取得したい場合は下のボタンを押してください。
+          </div>
+          <button
+            id="morningCollectionButton"
+            class="refresh-button morning-collection-button"
+            type="button"
+          >
+            朝のレース情報を取得
+          </button>
+          <div id="morningCollectionStatus" class="refresh-status">
+            朝の番組表・選手・モーター情報を取得して朝予測を更新します。
+          </div>
+        </div>
+        """
 
     if not cards:
         cards = """
         <div class="empty">
-          現在、本日の予測対象レースはありません。
+          現在、締切前の予測対象レースはありません。
         </div>
         """
 
@@ -532,6 +547,21 @@ def main():
       color: var(--muted);
       font-size: 13px;
       line-height: 1.5;
+    }}
+
+    .finished-title {{
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }}
+
+    .finished-copy {{
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }}
+
+    .morning-collection-button {{
+      margin-top: 4px;
     }}
 
     .notice {{
@@ -825,7 +855,7 @@ def main():
         </span>
 
         <span>
-          締切前 {len(upcoming_races)}レース ／ 終了済み {len(completed_races)}レース
+          締切前 {len(upcoming_races)}レース
         </span>
 
       </div>
@@ -847,7 +877,7 @@ def main():
 
     <div class="notice">
 
-      締切前レースを先頭に表示し、終了済みレースは下部へ分けて予測内容を保存しています。
+      最新予想には締切前レースだけを表示します。終了済みレースの予測データはPDCA・結果検証用として保存しています。
 
       「直前」は展示等を反映済み、
       「朝」は朝予測です。
@@ -878,7 +908,30 @@ def main():
       const status = document.getElementById("refreshStatus");
       const endpoint = "https://boatrace-family-trigger.onrender.com/trigger";
 
+      const morningButton = document.getElementById("morningCollectionButton");
+      const morningStatus = document.getElementById("morningCollectionStatus");
+
       if (!button || !status) return;
+
+      if (morningButton && morningStatus) {{
+        morningButton.addEventListener("click", async () => {{
+          if (!window.confirm("朝のレース情報を取得して朝予測を更新します。実行しますか？")) return;
+          morningButton.disabled = true;
+          morningStatus.textContent = "朝情報の取得を受け付けています…";
+          try {{
+            const response = await fetch("https://boatrace-family-trigger.onrender.com/trigger-morning", {{
+              method: "POST",
+              headers: {{ "Content-Type": "application/json" }},
+              body: "{{}}"
+            }});
+            if (response.status !== 202) throw new Error("request_failed");
+            morningStatus.textContent = "朝情報の取得を開始しました。完了後にページへ反映されます。";
+          }} catch (error) {{
+            morningStatus.textContent = "朝情報の取得を開始できませんでした。少し時間をおいて再度お試しください。";
+            morningButton.disabled = false;
+          }}
+        }});
+      }}
 
       button.addEventListener("click", async () => {{
         if (!window.confirm("最新の直前情報を収集して予測を更新します。実行しますか？")) return;
