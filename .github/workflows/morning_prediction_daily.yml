@@ -36,15 +36,39 @@ jobs:
           echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
           echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
           echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
-      - run: |
+      - name: 朝の当日基本データを収集
+        run: |
           mkdir -p data features
+          python -u collectors/today_basic.py
+
+      - name: 収集データを計算前に保存
+        run: |
+          INPUT_DEST="daily_inputs/${YEAR}/${MONTH}/${DAY}/base"
+          mkdir -p "$INPUT_DEST"
+          find data -maxdepth 1 -type f -name "*${TARGET_DATE}*" -exec cp {} "$INPUT_DEST/" \;
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git add "$INPUT_DEST"
+          if ! git diff --cached --quiet; then
+            git commit -m "Save morning source data ${TARGET_DATE}"
+            for attempt in 1 2 3; do
+              if git push origin HEAD:main; then break; fi
+              git fetch origin main
+              git rebase origin/main
+              sleep 3
+            done
+          fi
+
+      - name: 履歴特徴量と朝予測入力を生成
+        run: |
           python -u collectors/build_history_features.py --as-of "$TARGET_DATE"
           test -s features/history_features_manifest.json
-          grep -q '"history_stale_days": 0' features/history_features_manifest.json
-          python -u collectors/today_basic.py
           python -u collectors/build_prediction_input.py --stage morning
           python -u collectors/enrich_prediction_input.py --date "$TARGET_DATE" --stage morning
           grep -q '"status": "PASS"' "data/prediction_input_enriched_validation_morning_${TARGET_DATE}.json"
+
+      - name: 朝スコアを計算
+        run: |
           python -u collectors/build_morning_prediction.py --date "$TARGET_DATE"
           grep -q '"status": "PASS"' "data/morning_predictions_validation_${TARGET_DATE}.json"
       - run: |
