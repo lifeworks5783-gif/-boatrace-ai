@@ -3538,6 +3538,7 @@ h1 {{
 .table-wrap {{
 
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 
   border:
 
@@ -3591,6 +3592,20 @@ tr:last-child td {{
 
   border-bottom: 0;
 
+}}
+
+/* AI分析ページ内の全テーブルは項目列（左端）を固定する */
+.table-wrap th:first-child,
+.table-wrap td:first-child {{
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--card);
+  box-shadow: 1px 0 0 var(--line);
+}}
+
+.table-wrap th:first-child {{
+  z-index: 4;
 }}
 
 .pdca-sticky-table {{
