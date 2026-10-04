@@ -77,7 +77,9 @@ def main():
    bo=I(r.get("boat"));fi=I(r.get("finish"))
    if bo not in range(1,7) or fi not in range(1,7):continue
    rid=nid(r.get("race_id"));v=str(r.get("venue_code","")).zfill(2);reg=r.get("registration_no","");P=pg.get((rid,bo),{});L=lv.get((rid,bo),{})
-   rs=stat(rg[reg]);cs=stat(rc[(reg,bo)]);ms=stat(mg[(v,I(r.get("motor_no")))]) if I(r.get("motor_no")) is not None else {};bs=stat(bg[(v,I(r.get("boat_no")))]) if I(r.get("boat_no")) is not None else {}
+   motor_no=I(r.get("motor_no")) if I(r.get("motor_no")) is not None else I(P.get("motor_no"))
+   boat_no=I(r.get("boat_no")) if I(r.get("boat_no")) is not None else I(P.get("boat_no"))
+   rs=stat(rg[reg]);cs=stat(rc[(reg,bo)]);ms=stat(mg[(v,motor_no)]) if motor_no is not None else {};bs=stat(bg[(v,boat_no)]) if boat_no is not None else {}
    rr[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"nat2":rs.get("top2"),"motor_win":ms.get("win"),"motor_top3":ms.get("top3"),"boat2":bs.get("top2"),"boat3":bs.get("top3"),"etime":F(L.get("exhibition_time"))})
   daily[d]=rr
  def scores(bs,corr=None,w=0):
