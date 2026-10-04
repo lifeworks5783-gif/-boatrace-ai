@@ -273,9 +273,21 @@ def select_races(
 
     existing_raw = (
         load_existing_beforeinfo_times(target_date)
-        if mode == "live"
+        if mode in ("live", "missing")
         else {}
     )
+
+    if mode == "missing":
+        candidates = []
+        for row in races:
+            current_race_id = str(row.get("race_id", "")).strip()
+            if current_race_id and current_race_id not in existing_raw:
+                row_copy = dict(row)
+                row_copy["_selection_reason"] = "missing"
+                candidates.append(row_copy)
+        return candidates
+
+    candidates = []
 
     candidates = []
 
@@ -979,7 +991,7 @@ def main():
 
     parser.add_argument(
         "--mode",
-        choices=["live", "sample", "all"],
+        choices=["live", "sample", "all", "missing"],
         default="live",
     )
 
