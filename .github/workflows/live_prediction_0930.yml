@@ -193,6 +193,25 @@ jobs:
         run: |
           python -u collectors/today_beforeinfo.py
 
+      - name: 直前収集データを計算前に保存
+        if: always()
+        run: |
+          RAW_DEST="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/raw/${RUN_STAMP}"
+          mkdir -p "${RAW_DEST}"
+          find data -maxdepth 1 -type f -name "beforeinfo_*${TARGET_DATE}*" -exec cp {} "${RAW_DEST}/" \; || true
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git add "${BASE_CACHE_DIR}" "${RAW_DEST}"
+          if ! git diff --cached --quiet; then
+            git commit -m "Save live source data ${TARGET_DATE} ${RUN_STAMP}"
+            for attempt in 1 2 3; do
+              if git push origin HEAD:main; then break; fi
+              git fetch origin main
+              git rebase origin/main
+              sleep 3
+            done
+          fi
+
       - name: 直前候補レース数を確認
         run: |
           FILE="data/beforeinfo_races_${TARGET_DATE}.csv"
