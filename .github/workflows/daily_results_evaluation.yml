@@ -1,0 +1,57 @@
+name: Daily Results and Evaluation
+'on':
+  schedule:
+    - cron: '30 15 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: boatrace-main-writer
+  cancel-in-progress: false
+jobs:
+  results_evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install lhafile
+      - name: Set target date
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date -d 'yesterday' +%Y%m%d)
+          echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
+          echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
+          echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
+          echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
+      - name: Collect official results
+        run: python -u collectors/daily_results_fast.py --date "$TARGET_DATE"
+      - name: Validate results
+        run: python -u collectors/validate_daily.py --date "$TARGET_DATE"
+      - name: Archive results
+        run: |
+          DEST="archive/${YEAR}/${MONTH}/${DAY}"
+          mkdir -p "$DEST"
+          cp "data/venues_${TARGET_DATE}.csv" "$DEST/"
+          cp "data/results_${TARGET_DATE}_all.csv" "$DEST/"
+          cp "data/boat_results_${TARGET_DATE}_all.csv" "$DEST/"
+          cp "data/validation_${TARGET_DATE}.json" "$DEST/"
+          cp "data/manifest_${TARGET_DATE}.json" "$DEST/"
+          if [ -f "data/excluded_races_${TARGET_DATE}.csv" ]; then cp "data/excluded_races_${TARGET_DATE}.csv" "$DEST/"; fi
+      - name: Evaluate morning live and betting
+        run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
+      - name: Build evaluation summary
+        run: python -u collectors/build_evaluation_summary.py --date "$TARGET_DATE"
+      - name: Commit results and evaluation
+        run: |
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}"
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Results and evaluation ${TARGET_DATE}"
+          git pull --rebase origin main
+          git push origin main
