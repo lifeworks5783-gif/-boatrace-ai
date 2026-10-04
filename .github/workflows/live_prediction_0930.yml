@@ -9,19 +9,6 @@ on:
     branches: [main]
     paths:
       - config/run_live_now.txt
-  schedule:
-    # 通常取得: 15分間隔
-    - cron: "0,15,30,45 23 * * *"
-    - cron: "0,15,30,45 0-13 * * *"
-
-    # 補完確認: 通常取得の5分後。
-    # 直前情報がまだ取れていないレースだけを再確認するための起動。
-    - cron: "5,20,35,50 23 * * *"
-    - cron: "5,20,35,50 0-13 * * *"
-
-    # 23:00 JST 最終確認
-    - cron: "0 14 * * *"
-
   workflow_dispatch:
 
 concurrency:
