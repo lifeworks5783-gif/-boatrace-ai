@@ -130,3 +130,5 @@ def main():
  (outdir/"summary.json").write_text(json.dumps({"definition":"TOP3 unordered exact set","baseline":"current 40/20/20/5/15; fine neighborhood around 35/20/25/5/15","results":out},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps(sorted(out,key=lambda x:(-x["net_flips"],-x["daily_avg_top3_pct"]))[:20],ensure_ascii=False,indent=2))
 if __name__=="__main__":main()
+
+# PDCA note: racer-course internal 40/20/30/10 vs 30/30/30/10 is evaluated by dedicated internal-mix evaluator.
