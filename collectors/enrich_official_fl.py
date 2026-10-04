@@ -3,7 +3,7 @@ import argparse,csv,html,re,time,urllib.request
 from pathlib import Path
 
 UA="Mozilla/5.0 (compatible; boatrace-ai-data-collector/1.0)"
-ROW=re.compile(r'<tbody[^>]*>(.*?)</tbody>',re.I|re.S)
+TR=re.compile(r'<tr[^>]*>(.*?)</tr>',re.I|re.S)
 TAG=re.compile(r'<[^>]+>')
 REG=re.compile(r'(?<!\d)(\d{4})(?!\d)')
 F=re.compile(r'\bF\s*([0-9]+)\b',re.I)
@@ -15,7 +15,7 @@ def fetch(url):
  with urllib.request.urlopen(req,timeout=30) as r:return r.read().decode("utf-8","replace")
 def parse_page(txt):
  out={}
- for block in ROW.findall(txt):
+ for block in TR.findall(txt):
   t=clean(block); m=REG.search(t)
   if not m: continue
   fm, lm, sm=F.search(t),L.search(t),ST.search(t)
