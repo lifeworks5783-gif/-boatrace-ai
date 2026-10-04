@@ -11,7 +11,7 @@ on:
 
 concurrency:
   group: boatrace-main-writer
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   refresh:
@@ -73,6 +73,8 @@ jobs:
           git add "$BF" "predictions/${YEAR}/${MONTH}/${DAY}/replay"
           if ! git diff --cached --quiet; then
             git commit -m "data: family full refresh replay ${TARGET_DATE}"
+            # 履歴特徴量生成などの検証用変更は今回の保存対象外なので退避
+            git stash push --include-untracked -m "temporary family full refresh artifacts" || true
             git pull --rebase origin main
             git push origin main
           fi
