@@ -1,0 +1,21 @@
+name: Racer course internal mix PDCA
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "collectors/evaluate_racer_course_internal_mix.py"
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: python collectors/evaluate_racer_course_internal_mix.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/racer_course_internal_mix/summary.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data: compare racer-course internal mix"
+          git push
