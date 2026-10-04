@@ -1,0 +1,26 @@
+name: ST hybrid validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - "collectors/evaluate_st_hybrid.py"
+      - ".github/workflows/st_hybrid.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python collectors/evaluate_st_hybrid.py
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/st_hybrid_20260930_20261003/
+          git diff --cached --quiet || git commit -m "Update hybrid ST validation"
+          git push
