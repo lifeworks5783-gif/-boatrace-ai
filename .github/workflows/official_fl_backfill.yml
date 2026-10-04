@@ -1,6 +1,10 @@
 name: Official F L Backfill
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/official_fl_backfill.yml"
 permissions:
   contents: write
 jobs:
