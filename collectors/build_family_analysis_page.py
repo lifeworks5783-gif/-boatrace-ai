@@ -2800,13 +2800,13 @@ def fixed_20261002_html(root: Path) -> str:
     )
 
 def current_pdca_html(root: Path) -> str:
- single=load_json(root/"all_candidate_single_factors"/"summary.json")
  inc=load_json(root/"pdca_incremental_latest"/"summary.json")
+ single=inc if inc else load_json(root/"all_candidate_single_factors"/"summary.json")
  if not single and not inc:return ""
  parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく最高−最低の振れ幅も確認し、単日の上振れ・下振れを区別します。</p>']
  if single:
   rows=[]
-  dates=sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
+  dates=[str(d) for d in single.get("dates",[])] or sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
   date_labels=[f"{int(d[4:6])}/{int(d[6:8])}" for d in dates]
   for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or z.get("daily_avg_top3_pct") or -1))):
    bd=x.get("by_date",{})
@@ -2816,7 +2816,7 @@ def current_pdca_html(root: Path) -> str:
   raw=raw.replace('<div class="table-wrap">','<div class="table-wrap pdca-sticky-table">',1)
   parts.append(raw)
  if inc:
-  inc_dates=sorted({d for x in inc.get("stage2_results",[]) for d in (x.get("by_date") or {}).keys()})
+  inc_dates=[str(d) for d in inc.get("dates",[])] or sorted({d for x in inc.get("stage2_results",[]) for d in (x.get("by_date") or {}).keys()})
   inc_labels=[f"{int(d[4:6])}/{int(d[6:8])}" for d in inc_dates]
   parts.append('<div class="subsection"><h3>AI分析：補正PDCA</h3><p class="section-note">現在の選手基礎B1（コース1着40＋2連対20＋3連対30＋平均ST10）を基準に検証。第1段階では全国2連対率15%を第2段階の基準として、蓄積済み全日で継続検証しています。</p>')
   best={}
