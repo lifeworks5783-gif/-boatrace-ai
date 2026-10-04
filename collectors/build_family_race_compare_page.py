@@ -1858,6 +1858,21 @@ def simulation_html(prediction, trifecta, payout):
 # HTML生成
 # =========================================================
 
+def box_hit(prediction, trifecta):
+    if not prediction:
+        return None
+    picks = [int(x["boat"]) for x in prediction.get("top3", [])[:3] if x.get("boat") is not None]
+    if len(picks) != 3:
+        return None
+    a, b, c = picks
+    combos = [
+        f"{a}-{b}-{c}", f"{a}-{c}-{b}",
+        f"{b}-{a}-{c}", f"{b}-{c}-{a}",
+        f"{c}-{a}-{b}", f"{c}-{b}-{a}",
+    ]
+    return trifecta in combos
+
+
 def hit_summary_from_rows(rows, key):
     values = [row.get(key) for row in rows if row.get(key) is not None]
     if not values:
@@ -1900,20 +1915,7 @@ def render_html(
             **row,
             "final_prediction": final_prediction,
             "final_formation_hit": formation_hit(final_prediction, row.get("trifecta"), "formation"),
-            "final_box_hit": (
-                (lambda picks, trifecta:
-                    trifecta in [
-                        f"{a}-{b}-{c}", f"{a}-{c}-{b}",
-                        f"{b}-{a}-{c}", f"{b}-{c}-{a}",
-                        f"{c}-{a}-{b}", f"{c}-{b}-{a}",
-                    ]
-                    if len(picks) == 3
-                    else None
-                )(
-                    [int(x["boat"]) for x in (final_prediction or {}).get("top3", [])[:3] if x.get("boat") is not None],
-                    row.get("trifecta"),
-                )
-            ),
+            "final_box_hit": box_hit(final_prediction, row.get("trifecta")),
         })
     final_formation_summary = hit_summary_from_rows(final_rows, "final_formation_hit")
     final_box_summary = hit_summary_from_rows(final_rows, "final_box_hit")
