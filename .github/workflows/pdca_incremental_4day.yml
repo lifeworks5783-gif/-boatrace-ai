@@ -9,6 +9,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write
 jobs:
   evaluate:
     runs-on: ubuntu-latest
@@ -25,3 +26,11 @@ jobs:
           git diff --cached --quiet || git commit -m "Save four-day incremental PDCA results"
           git pull --rebase origin main
           git push origin main
+
+      - name: 結果・成績とAI分析ページを更新
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run family_prediction_page.yml --ref main
+          echo "家族共有の結果・成績 / AI分析ページ更新を開始しました。"
