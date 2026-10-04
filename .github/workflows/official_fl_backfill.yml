@@ -11,14 +11,26 @@ permissions:
 jobs:
   backfill:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - run: |
+      - name: Backfill official F L by date
+        run: |
+          set -u
+          failed=0
           for d in 20260930 20261001 20261002 20261003; do
-            python collectors/enrich_official_fl.py --date "$d"
+            echo "===== START $d ====="
+            if timeout 300s python -u collectors/enrich_official_fl.py --date "$d"; then
+              echo "===== OK $d ====="
+            else
+              rc=$?
+              echo "===== FAILED $d rc=$rc ====="
+              failed=1
+            fi
           done
+          exit "$failed"
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
