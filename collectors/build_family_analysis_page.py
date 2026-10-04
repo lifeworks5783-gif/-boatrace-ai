@@ -54,6 +54,35 @@ LIVE_LABELS = {
 
 }
 
+FACTOR_JA = {
+    "course_top2": "コース別2連対率",
+    "grade": "級別",
+    "course_win": "コース別1着率",
+    "course_top3": "コース別3連対率",
+    "national_top2": "全国2連対率",
+    "national_win": "全国1着率",
+    "national_top3": "全国3連対率",
+    "venue_top3": "当地3連対率",
+    "venue_course_top2": "当地コース別2連対率",
+    "venue_course_top3": "当地コース別3連対率",
+    "venue_course_win": "当地コース別1着率",
+    "venue_win": "当地1着率",
+    "parts_changed": "部品交換",
+    "f_flag": "F（フライング）",
+    "tilt": "チルト",
+    "course_avg_st": "コース別平均ST",
+    "national_avg_st": "全国平均ST",
+    "venue_avg_st": "当地平均ST",
+    "motor_top2": "モーター2連対率",
+    "motor_top3": "モーター3連対率",
+    "boat_top2": "ボート2連対率",
+    "boat_top3": "ボート3連対率",
+}
+
+def factor_ja(value: Any) -> str:
+    key = str(value or "—")
+    return FACTOR_JA.get(key, LABELS.get(key, key))
+
 def load_json(path: Path) -> Dict[str, Any]:
 
     if not path.exists():
@@ -2765,7 +2794,7 @@ def current_pdca_html(root: Path) -> str:
   rows=[]
   for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or -1))):
    bd=x.get("by_date",{})
-   rows.append([html.escape(str(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_top3_avg_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt'),2)}pt")])
+   rows.append([html.escape(factor_ja(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_top3_avg_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt'),2)}pt")])
   headers=["要素","9/30","10/1","10/2","10/3","4日平均","振れ幅"]
   raw=table(headers,rows)
   raw=raw.replace('<div class="table-wrap">','<div class="table-wrap pdca-sticky-table">',1)
@@ -2779,7 +2808,7 @@ def current_pdca_html(root: Path) -> str:
   rows=[]
   for x in sorted(best.values(),key=lambda z:z.get("net_flips",-999),reverse=True):
    bd=x.get("by_date",{})
-   rows.append([html.escape(str(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_avg_top3_pct")),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
+   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_avg_top3_pct")),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
   parts.append(table(["第2補正","重み","9/30","10/1","10/2","10/3","4日平均","×→○","○→×","純改善"],rows))
   parts.append('<div class="policy-note"><b>現時点のAI判断：</b> B1＋全国2連対率15%に対して、今回試した第2補正はすべて純改善が0以下でした。したがって第2補正はまだ追加せず、1週間分まで同じ条件で継続検証します。単日成績だけでは配点変更しません。</div></div>')
  parts.append("</section>")
