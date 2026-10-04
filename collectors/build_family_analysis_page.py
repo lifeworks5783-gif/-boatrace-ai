@@ -3069,7 +3069,7 @@ def build_page(
         )
 
     action_panel = """
-    <section class="section-card analysis-action-card">
+    <section class="section-card analysis-action-card" id="analysisActionCard">
       <h2>AI分析を実行</h2>
       <p class="section-note">保存済みの予測・結果データを使って、既存のPDCA分析を実行します。配点は自動変更しません。</p>
       <button id="runAiAnalysisButton" class="analysis-action-button" type="button">AI分析を開始</button>
@@ -3870,7 +3870,7 @@ footer {{
   const status = document.getElementById("runAiAnalysisStatus");
   if (!button || !status) return;
   button.addEventListener("click", async () => {{
-    if (!window.confirm("保存済みデータでAI分析・PDCAを開始しますか？")) return;
+    if (!window.confirm("本日の全レース終了後のPDCA分析を開始します。よろしいですか？")) return;
     button.disabled = true;
     status.textContent = "AI分析を開始しています…";
     try {{
