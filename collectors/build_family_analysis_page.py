@@ -3133,15 +3133,10 @@ def build_page(
 
     )
 
-    latest_text = (
-
-        date_text(
-
-            latest_date
-
-        )
-
-    )
+    inc_latest = load_json(root/"pdca_incremental_latest"/"summary.json")
+    pdca_dates = [str(d) for d in (inc_latest.get("dates",[]) if inc_latest else [])]
+    display_date = pdca_dates[-1] if pdca_dates else latest_date
+    latest_text = date_text(display_date)
 
     return f"""<!doctype html>
 
