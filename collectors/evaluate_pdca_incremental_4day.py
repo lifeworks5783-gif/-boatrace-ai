@@ -3,7 +3,15 @@ import csv,json,glob
 from collections import defaultdict
 from datetime import datetime,timedelta
 from pathlib import Path
-DATES=["20260930","20261001","20261002","20261003"]
+def available_dates():
+ ds=[]
+ for p in Path("archive").glob("*/*/*/boat_results_*_all.csv"):
+  d=p.stem.replace("boat_results_","").replace("_all","")
+  if len(d)==8 and d.isdigit():
+   pred=Path(f"predictions/{d[:4]}/{d[4:6]}/{d[6:8]}/morning_predictions_{d}.json")
+   if pred.exists(): ds.append(d)
+ return sorted(set(ds))
+DATES=available_dates()
 OUT=Path("evaluations/all_candidate_single_factors")
 GRADE={"A1":1.0,"A2":.75,"B1":.45,"B2":.25}
 def F(v):
@@ -123,7 +131,8 @@ def main():
     for x in ["n","base","new","xx","xo","ox","oo"]:tot[x]+=z[x]
    vals=[x["new_pct"] for x in days.values() if x["new_pct"] is not None]
    stage2.append({"factor":label,"weight_pct":int(w*100),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"]})
- OUT=Path("evaluations/pdca_incremental_20260930_20261003");OUT.mkdir(parents=True,exist_ok=True)
+ if not DATES: raise RuntimeError("PDCA対象日がありません")
+ OUT=Path("evaluations/pdca_incremental_latest");OUT.mkdir(parents=True,exist_ok=True)
  (OUT/"summary.json").write_text(json.dumps({"dates":DATES,"baseline":"B1 racer course base = win40+top2 20+top3 30+avgST10","definition":"TOP3 unordered exact set","results":out,"stage2_results":stage2},ensure_ascii=False,indent=2),encoding="utf-8")
  flat=[]
  for x in out:
