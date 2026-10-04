@@ -13,6 +13,6 @@ jobs:
         with: {python-version: "3.12"}
       - run: python -m py_compile collectors/build_morning_prediction.py collectors/build_live_prediction.py
       - run: |
-          grep -q 'provisional_v1_20261005_morning_40_20_20_5_15' collectors/build_morning_prediction.py
-          grep -q 'provisional_v1_20261005_live_entry_time6_st14' collectors/build_live_prediction.py
+          grep -q 'provisional_v1_20261004_morning_40_20_20_5_15' collectors/build_morning_prediction.py
+          grep -q 'provisional_v1_20261004_live_80_6_14' collectors/build_live_prediction.py
           echo "PROVISIONAL_V1_READY"
