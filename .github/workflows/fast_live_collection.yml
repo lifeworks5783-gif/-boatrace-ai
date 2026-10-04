@@ -90,4 +90,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run live_prediction_0930.yml --ref main
+          gh workflow run live_prediction_0930.yml --ref main -f raw_ready=true
