@@ -2806,15 +2806,19 @@ def current_pdca_html(root: Path) -> str:
  parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく最高−最低の振れ幅も確認し、単日の上振れ・下振れを区別します。</p>']
  if single:
   rows=[]
+  dates=sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
+  date_labels=[f"{int(d[4:6])}/{int(d[6:8])}" for d in dates]
   for x in sorted(single.get("results",[]),key=lambda z:(-(z.get("daily_top3_avg_pct") or -1))):
    bd=x.get("by_date",{})
-   rows.append([html.escape(factor_ja(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_top3_avg_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt'),2)}pt")])
-  headers=["要素","9/30","10/1","10/2","10/3","4日平均","振れ幅"]
+   rows.append([html.escape(factor_ja(x.get("factor","—"))),*[fmt_pct((bd.get(d) or {}).get("top3_pct")) for d in dates],fmt_pct(x.get("daily_top3_avg_pct")),html.escape(f"{fmt_num(x.get('top3_spread_pt'),2)}pt")])
+  headers=["要素",*date_labels,f"{len(dates)}日平均","振れ幅"]
   raw=table(headers,rows)
   raw=raw.replace('<div class="table-wrap">','<div class="table-wrap pdca-sticky-table">',1)
   parts.append(raw)
  if inc:
-  parts.append('<div class="subsection"><h3>AI分析：補正PDCA</h3><p class="section-note">現在の選手基礎B1（コース1着40＋2連対20＋3連対30＋平均ST10）を基準に検証。第1段階では全国2連対率15%が4日すべてで改善し、×→○14件・○→×3件、純改善+11件。これを第2段階の新基準にしています。</p>')
+  inc_dates=sorted({d for x in inc.get("stage2_results",[]) for d in (x.get("by_date") or {}).keys()})
+  inc_labels=[f"{int(d[4:6])}/{int(d[6:8])}" for d in inc_dates]
+  parts.append('<div class="subsection"><h3>AI分析：補正PDCA</h3><p class="section-note">現在の選手基礎B1（コース1着40＋2連対20＋3連対30＋平均ST10）を基準に検証。第1段階では全国2連対率15%を第2段階の基準として、蓄積済み全日で継続検証しています。</p>')
   best={}
   for x in inc.get("stage2_results",[]):
    k=x.get("factor")
@@ -2822,8 +2826,8 @@ def current_pdca_html(root: Path) -> str:
   rows=[]
   for x in sorted(best.values(),key=lambda z:z.get("net_flips",-999),reverse=True):
    bd=x.get("by_date",{})
-   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in ["20260930","20261001","20261002","20261003"]],fmt_pct(x.get("daily_avg_top3_pct")),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
-  parts.append(table(["第2補正","重み","9/30","10/1","10/2","10/3","4日平均","×→○","○→×","純改善"],rows))
+   rows.append([html.escape(factor_ja(x.get("factor"))),f"{x.get('weight_pct')}%",*[fmt_pct((bd.get(d) or {}).get("new_pct")) for d in inc_dates],fmt_pct(x.get("daily_avg_top3_pct")),str(x.get("total_x_to_o")),str(x.get("total_o_to_x")),f"{x.get('net_flips'):+d}"])
+  parts.append(table(["第2補正","重み",*inc_labels,f"{len(inc_dates)}日平均","×→○","○→×","純改善"],rows))
   parts.append('<div class="policy-note"><b>現時点のAI判断：</b> B1＋全国2連対率15%に対して、今回試した第2補正はすべて純改善が0以下でした。したがって第2補正はまだ追加せず、1週間分まで同じ条件で継続検証します。単日成績だけでは配点変更しません。</div></div>')
  parts.append("</section>")
  return "".join(parts)
