@@ -1,5 +1,9 @@
 name: Historical Data Resume
 'on':
+  push:
+    branches: [main]
+    paths:
+      - config/run_history_resume.txt
   workflow_dispatch:
   schedule:
     - cron: '10 16 * * *'
