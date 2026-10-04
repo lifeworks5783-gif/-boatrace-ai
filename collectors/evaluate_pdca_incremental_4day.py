@@ -98,7 +98,7 @@ def main():
   return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])
  specs=[("grade","級別"),("nat2","全国2連対率"),("etime","展示タイム"),("boat2","ボート90日2連対率"),("motor_win","モーター90日1着率"),("motor_top3","モーター90日3連対率"),("boat3","ボート90日3連対率")]
  out=[]
- production_weights={"motor_win":.08,"motor_top3":.12,"boat2":.025,"boat3":.025}
+ production_weights={"motor_win":.08,"motor_top3":.12,"boat2":.025,"boat3":.025,"etime":.06}
  for key,label in specs:
   candidate_weights=sorted(set([.02,.05,.10,.15,.20,.30]+([production_weights[key]] if key in production_weights else [])))
   for w in candidate_weights:
