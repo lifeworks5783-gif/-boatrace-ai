@@ -2845,7 +2845,7 @@ def current_pdca_html(root: Path) -> str:
      if n>0 and hit is not None:
       total_n+=n; total_hit+=int(num(hit) or 0)
    pct=(100.0*total_hit/total_n) if total_n else None
-   stage_rows.append([stage_name,fmt_pct(pct),f"{total_hit}/{total_n}R" if total_n else "—",str(len(candidates))])
+   stage_rows.append([stage_name,fmt_pct(pct),f"{total_hit}/{total_n}評価" if total_n else "—",str(len(candidates))])
   parts.append('<div class="subsection"><h3>朝・直前を分離した累積評価</h3><p class="section-note">朝の構造要素と、レース直前にだけ得られる展示要素を別集計。直前要素は朝ベースへの追加補正として評価し、同じ土俵で混ぜません。</p>'+table(["段階","TOP3累積","母数","対象要素数"],stage_rows)+'</div>')
  if inc:
   inc_dates=[str(d) for d in inc.get("dates",[])] or sorted({d for x in inc.get("stage2_results",[]) for d in (x.get("by_date") or {}).keys()})
