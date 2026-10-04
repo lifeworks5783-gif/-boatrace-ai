@@ -87,11 +87,11 @@ def main():
   p=sorted(bs,key=lambda b:(-sc[b["boat"]],b["boat"]));a=sorted(bs,key=lambda b:(b["finish"],b["boat"]))
   return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])
  configs=[]
- for wr in [30,35,40,45,50]:
-  for wg in [10,15,20,25,30]:
-   for wm in [10,15,20,25,30]:
-    for wb in [0,5,10]:
-     for wn in [5,10,15,20,25]:
+ for wr in range(32,39):
+  for wg in range(18,23):
+   for wm in range(22,29):
+    for wb in range(3,8):
+     for wn in range(13,18):
       if wr+wg+wm+wb+wn==100:configs.append((wr,wg,wm,wb,wn))
  out=[]
  for wr,wg,wm,wb,wn in configs:
@@ -108,6 +108,6 @@ def main():
   vv=[x["top3_pct"] for x in days.values() if x["top3_pct"] is not None];out.append({"racer":wr,"grade":wg,"motor":wm,"boat":wb,"national_top2":wn,"by_date":days,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"x_to_o":xo,"o_to_x":ox,"net_flips":xo-ox})
  out.sort(key=lambda x:(-x["daily_avg_top3_pct"],x["spread_pt"],-x["net_flips"]))
  outdir=Path("evaluations/morning_weight_grid_20260930_20261003");outdir.mkdir(parents=True,exist_ok=True)
- (outdir/"summary.json").write_text(json.dumps({"definition":"TOP3 unordered exact set","baseline":"racer/motor/boat/grade/national_top2 weight grid","results":out},ensure_ascii=False,indent=2),encoding="utf-8")
+ (outdir/"summary.json").write_text(json.dumps({"definition":"TOP3 unordered exact set","baseline":"current 40/20/20/5/15; fine neighborhood around 35/20/25/5/15","results":out},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps(sorted(out,key=lambda x:(-x["net_flips"],-x["daily_avg_top3_pct"]))[:20],ensure_ascii=False,indent=2))
 if __name__=="__main__":main()
