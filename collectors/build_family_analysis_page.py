@@ -2801,7 +2801,7 @@ def current_pdca_html(root: Path) -> str:
  inc=load_json(root/"pdca_incremental_latest"/"summary.json")
  single=inc if inc else load_json(root/"all_candidate_single_factors"/"summary.json")
  if not single and not inc:return ""
- parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく最高−最低の振れ幅も確認し、単日の上振れ・下振れを区別します。</p>']
+ parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく累積・母数・振れ幅も確認し、単日の上振れ・下振れを区別します。</p>']
  if single:
   rows=[]
   dates=[str(d) for d in single.get("dates",[])] or sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
@@ -2826,6 +2826,25 @@ def current_pdca_html(root: Path) -> str:
   raw=table(headers,rows)
   raw=raw.replace('<div class="table-wrap">','<div class="table-wrap pdca-sticky-table">',1)
   parts.append(raw)
+ if single:
+  stage_rows=[]
+  morning_factors={"course_top2","grade","course_win","course_top3","national_top2","national_win","national_top3","venue_top3","venue_course_top2","venue_course_top3","venue_course_win","venue_win","course_avg_st","national_avg_st","venue_avg_st","motor_top2","motor_top3","boat_top2","boat_top3","boat_d90_top2","boat_d90_top3","boat_d90_win","motor_d90_top2","motor_d90_top3","motor_d90_win","motor_d30_win","motor_d30_top2","motor_d30_top3"}
+  live_factors={"exhibition_time","exhibition_st","exhibition_st_f_penalized","f_flag","tilt","parts_changed"}
+  for stage_name,factors in [("朝・基本データ",morning_factors),("直前・展示データ",live_factors)]:
+   candidates=[x for x in single.get("results",[]) if str(x.get("factor")) in factors]
+   total_n=0; total_hit=0
+   for x in candidates:
+    bd=x.get("by_date") or {}
+    for d in dates:
+     day=bd.get(d) or {}
+     n=int(num(day.get("n")) or 0)
+     hit=day.get("top3_hits")
+     if hit is None: hit=day.get("new")
+     if n>0 and hit is not None:
+      total_n+=n; total_hit+=int(num(hit) or 0)
+   pct=(100.0*total_hit/total_n) if total_n else None
+   stage_rows.append([stage_name,fmt_pct(pct),f"{total_hit}/{total_n}R" if total_n else "—",str(len(candidates))])
+  parts.append('<div class="subsection"><h3>朝・直前を分離した累積評価</h3><p class="section-note">朝の構造要素と、レース直前にだけ得られる展示要素を別集計。直前要素は朝ベースへの追加補正として評価し、同じ土俵で混ぜません。</p>'+table(["段階","TOP3累積","母数","対象要素数"],stage_rows)+'</div>')
  if inc:
   inc_dates=[str(d) for d in inc.get("dates",[])] or sorted({d for x in inc.get("stage2_results",[]) for d in (x.get("by_date") or {}).keys()})
   inc_labels=[f"{int(d[4:6])}/{int(d[6:8])}" for d in inc_dates]
