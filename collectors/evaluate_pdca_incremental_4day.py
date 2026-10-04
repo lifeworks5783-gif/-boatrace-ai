@@ -149,9 +149,48 @@ def main():
     for x in ["n","base","new","xx","xo","ox","oo","changed","changed_improved","changed_worsened","changed_neutral","base_top1","new_top1","top1_improved","top1_worsened"]:tot[x]+=z[x]
    vals=[x["new_pct"] for x in days.values() if x["new_pct"] is not None]
    stage2.append({"factor":label,"weight_pct":int(w*100),"by_date":days,"daily_avg_top3_pct":round(sum(vals)/len(vals),2) if vals else None,"spread_pt":round(max(vals)-min(vals),2) if vals else None,"total_x_to_o":tot["xo"],"total_o_to_x":tot["ox"],"net_flips":tot["xo"]-tot["ox"],"eligible_races":tot["n"],"changed_races":tot["changed"],"changed_improved":tot["changed_improved"],"changed_worsened":tot["changed_worsened"],"changed_neutral":tot["changed_neutral"],"base_top1":tot["base_top1"],"new_top1":tot["new_top1"],"top1_delta":tot["new_top1"]-tot["base_top1"],"top1_improved":tot["top1_improved"],"top1_worsened":tot["top1_worsened"]})
+ # Production morning logic what-if: change both motor effective contributions
+ # from motor_win 8 / motor_top3 12 to 15 / 15 while leaving every other
+ # production contribution unchanged. This is a ranking comparison only; no
+ # production setting is modified.
+ def production_scores(bs,motor_win_w=.08,motor_top3_w=.12):
+  specs_prod=[("cw",False),("c2",False),("c3",False),("cst",True),("grade",False),("nat2",False),("motor_win",False),("motor_top3",False),("boat2",False),("boat3",False)]
+  maps={}
+  for k,rev in specs_prod:
+   maps[k]=rankmap(bs,k,rev)
+   if maps[k] is None:return None
+  return {b["boat"]:
+    .16*maps["cw"][b["boat"]]+.08*maps["c2"][b["boat"]]+.12*maps["c3"][b["boat"]]+.04*maps["cst"][b["boat"]]+
+    .20*maps["grade"][b["boat"]]+.15*maps["nat2"][b["boat"]]+
+    motor_win_w*maps["motor_win"][b["boat"]]+motor_top3_w*maps["motor_top3"][b["boat"]]+
+    .025*maps["boat2"][b["boat"]]+.025*maps["boat3"][b["boat"]]
+    for b in bs}
+ combined_motor_whatif={}
+ for d in DATES:
+  z={"n":0,"base_top3":0,"new_top3":0,"base_top1":0,"new_top1":0,"changed_order":0,"top3_improved":0,"top3_worsened":0,"top1_improved":0,"top1_worsened":0}
+  for rid,bs in daily[d].items():
+   base=production_scores(bs,.08,.12); new=production_scores(bs,.15,.15)
+   if base is None or new is None:continue
+   actual=sorted(bs,key=lambda b:(b["finish"],b["boat"]))
+   bo=sorted(bs,key=lambda b:(-base[b["boat"]],b["boat"]))
+   no=sorted(bs,key=lambda b:(-new[b["boat"]],b["boat"]))
+   bh=set(x["boat"] for x in bo[:3])==set(x["boat"] for x in actual[:3])
+   nh=set(x["boat"] for x in no[:3])==set(x["boat"] for x in actual[:3])
+   b1=bo[0]["boat"]==actual[0]["boat"]; n1=no[0]["boat"]==actual[0]["boat"]
+   z["n"]+=1;z["base_top3"]+=bh;z["new_top3"]+=nh;z["base_top1"]+=b1;z["new_top1"]+=n1
+   z["changed_order"]+=tuple(x["boat"] for x in bo)!=tuple(x["boat"] for x in no)
+   z["top3_improved"]+=(not bh and nh);z["top3_worsened"]+=(bh and not nh)
+   z["top1_improved"]+=(not b1 and n1);z["top1_worsened"]+=(b1 and not n1)
+  z["base_top3_pct"]=round(100*z["base_top3"]/z["n"],2) if z["n"] else None
+  z["new_top3_pct"]=round(100*z["new_top3"]/z["n"],2) if z["n"] else None
+  z["top3_delta_pt"]=round(z["new_top3_pct"]-z["base_top3_pct"],2) if z["n"] else None
+  z["base_top1_pct"]=round(100*z["base_top1"]/z["n"],2) if z["n"] else None
+  z["new_top1_pct"]=round(100*z["new_top1"]/z["n"],2) if z["n"] else None
+  z["top1_delta_pt"]=round(z["new_top1_pct"]-z["base_top1_pct"],2) if z["n"] else None
+  combined_motor_whatif[d]=z
  if not DATES: raise RuntimeError("PDCA対象日がありません")
  OUT=Path("evaluations/pdca_incremental_latest");OUT.mkdir(parents=True,exist_ok=True)
- (OUT/"summary.json").write_text(json.dumps({"dates":DATES,"baseline":"B1 racer course base = win40+top2 20+top3 30+avgST10","definition":"TOP3 unordered exact set","results":out,"stage2_results":stage2},ensure_ascii=False,indent=2),encoding="utf-8")
+ (OUT/"summary.json").write_text(json.dumps({"dates":DATES,"baseline":"B1 racer course base = win40+top2 20+top3 30+avgST10","definition":"TOP3 unordered exact set","results":out,"stage2_results":stage2,"combined_motor_whatif":{"baseline":{"motor_win_pct":8,"motor_top3_pct":12},"candidate":{"motor_win_pct":15,"motor_top3_pct":15},"by_date":combined_motor_whatif}},ensure_ascii=False,indent=2),encoding="utf-8")
  flat=[]
  for x in out:
   flat.append({"factor":x["factor"],"weight_pct":x["weight_pct"],"daily_avg_top3_pct":x["daily_avg_top3_pct"],"spread_pt":x["spread_pt"],"x_to_o":x["total_x_to_o"],"o_to_x":x["total_o_to_x"],"net_flips":x["net_flips"],"eligible_races":x["eligible_races"],**{d:x["by_date"][d]["new_pct"] for d in DATES}})
