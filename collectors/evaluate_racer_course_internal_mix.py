@@ -59,3 +59,5 @@ for mixname,mix in MIXES.items():
 Path("evaluations/racer_course_internal_mix").mkdir(parents=True,exist_ok=True)
 Path("evaluations/racer_course_internal_mix/summary.json").write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(out,ensure_ascii=False,indent=2))
+
+# trigger run after workflow registration
