@@ -48,9 +48,15 @@ def evaluate(races,key,reverse=False):
   n+=1;t1+=p[0]["boat"]==a[0]["boat"];t3+=set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3]);ex+=[x["boat"] for x in p[:3]]==[x["boat"] for x in a[:3]]
  return {"races":n,"top1_pct":round(100*t1/n,2) if n else None,"top3_pct":round(100*t3/n,2) if n else None,"exact_pct":round(100*ex/n,2) if n else None}
 def rankmap(bs,key,reverse=False):
- if len(bs)!=6 or any(b.get(key) is None for b in bs):return None
- o=sorted(bs,key=lambda b:((b[key] if reverse else -b[key]),b["boat"]))
- return {b["boat"]:1-j/5 for j,b in enumerate(o)}
+ if len(bs)!=6:return None
+ valid=[b for b in bs if b.get(key) is not None]
+ if not valid:return None
+ o=sorted(valid,key=lambda b:((b[key] if reverse else -b[key]),b["boat"]))
+ if len(o)==1:r={o[0]["boat"]:0.5}
+ else:r={b["boat"]:1-j/(len(o)-1) for j,b in enumerate(o)}
+ for b in bs:
+  if b.get(key) is None:r[b["boat"]]=0.5
+ return r
 def main():
  rows=archive();bd=defaultdict(list)
  for r in rows:bd[r.get("date")].append(r)
@@ -69,7 +75,7 @@ def main():
    bo=I(r.get("boat"));fi=I(r.get("finish"))
    if bo not in range(1,7) or fi not in range(1,7):continue
    rid=nid(r.get("race_id"));v=str(r.get("venue_code","")).zfill(2);reg=r.get("registration_no","");P=pg.get((rid,bo),{});L=lv.get((rid,bo),{})
-   rs=stat(rg[reg]);cs=stat(rc[(reg,bo)]);ms=stat(mg[(v,I(r.get("motor_no")))]) if I(r.get("motor_no")) is not None else {};bs=stat(bg[(v,I(r.get("boat_no")))]) if I(r.get("boat_no")) is not None else {}
+   rs=stat(rg[reg]);cs=stat(rc[(reg,bo)]);mno=I(r.get("motor_no")) if I(r.get("motor_no")) is not None else I(P.get("motor_no"));bno=I(r.get("boat_no")) if I(r.get("boat_no")) is not None else I(P.get("boat_no"));ms=stat(mg[(v,mno)]) if mno is not None else {};bs=stat(bg[(v,bno)]) if bno is not None else {}
    rr[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"nat2":rs.get("top2"),"motor_win":ms.get("win"),"motor_top3":ms.get("top3"),"boat2":bs.get("top2"),"boat3":bs.get("top3"),"etime":F(L.get("exhibition_time"))})
   daily[d]=rr
  def scores(bs,corr=None,w=0):
