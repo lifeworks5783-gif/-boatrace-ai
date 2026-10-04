@@ -1,7 +1,8 @@
-name: 家族ボタン・当日全レース補完予測
+name: 家族ボタン・最新予測更新
 
 permissions:
   contents: write
+  actions: write
 
 on:
   workflow_dispatch:
@@ -16,75 +17,16 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: main
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: 必要ライブラリ
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 lhafile
-      - name: 対象日
-        run: |
-          TARGET_DATE="$(TZ=Asia/Tokyo date +%Y%m%d)"
-          echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
-          echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
-          echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
-          echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
-      - name: 当日基本データを復元
-        run: |
-          mkdir -p data
-          BASE="daily_inputs/${YEAR}/${MONTH}/${DAY}/base"
-          test -s "${BASE}/program_races_${TARGET_DATE}.csv"
-          test -s "${BASE}/program_entries_${TARGET_DATE}.csv"
-          cp "${BASE}/program_races_${TARGET_DATE}.csv" data/
-          cp "${BASE}/program_entries_${TARGET_DATE}.csv" data/
-          # 既存データを最優先で再利用。backfill → 最新raw の順に重ねる。
-          BF="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/backfill"
-          [ -s "${BF}/beforeinfo_races_${TARGET_DATE}.csv" ] && cp "${BF}/beforeinfo_races_${TARGET_DATE}.csv" data/ || true
-          [ -s "${BF}/beforeinfo_entries_${TARGET_DATE}.csv" ] && cp "${BF}/beforeinfo_entries_${TARGET_DATE}.csv" data/ || true
-          RAW_ROOT="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/raw"
-          LATEST_RAW=$(find "$RAW_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | tail -n 1 || true)
-          if [ -n "$LATEST_RAW" ]; then
-            find "$LATEST_RAW" -maxdepth 1 -type f -name "beforeinfo_*${TARGET_DATE}*" -exec cp {} data/ \;
-          fi
-      - name: 未取得レースだけ直前情報を補完
-        run: python -u collectors/today_beforeinfo.py --date "${TARGET_DATE}" --mode missing
-      - name: リーク検査用live入力を生成
-        run: |
-          python -u collectors/build_prediction_input.py --date "${TARGET_DATE}" --stage live
-          python -u collectors/build_history_features.py --as-of "${TARGET_DATE}"
-          python -u collectors/enrich_prediction_input.py --date "${TARGET_DATE}" --stage live
-      - name: 終了済みを含む当日再現予測
-        run: |
-          OUT="predictions/${YEAR}/${MONTH}/${DAY}/replay"
-          mkdir -p "$OUT"
-          python -u collectors/build_live_prediction.py \
-            --date "${TARGET_DATE}" \
-            --input "data/prediction_input_enriched_live_${TARGET_DATE}.json" \
-            --now "${TARGET_DATE:0:4}-${TARGET_DATE:4:2}-${TARGET_DATE:6:2}T00:00:00+09:00" \
-            --output-dir "$OUT"
-      - name: 補完データと再現予測を保存
-        run: |
-          BF="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/backfill"
-          mkdir -p "$BF"
-          cp data/beforeinfo_*${TARGET_DATE}* "$BF/" 2>/dev/null || true
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$BF" "predictions/${YEAR}/${MONTH}/${DAY}/replay"
-          if ! git diff --cached --quiet; then
-            git commit -m "data: family full refresh replay ${TARGET_DATE}"
-            # 履歴特徴量生成などの検証用変更は今回の保存対象外なので退避
-            git stash push --include-untracked -m "temporary family full refresh artifacts" || true
-            git pull --rebase origin main
-            git push origin main
-          fi
-      - name: 通常V3を起動
+
+      - name: 既存V3を起動
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run fast_live_collection_v3.yml --ref main
+        run: |
+          gh workflow run fast_live_collection_v3.yml --ref main
+          echo "既存のFast Live Collection V3へ処理を引き渡しました。"
