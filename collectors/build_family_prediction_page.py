@@ -862,7 +862,7 @@ def main():
 
     </header>
 
-    <div class="refresh-panel">
+    <div class="refresh-panel" style="{'display:none;' if all_finished else ''}">
       <button
         id="refreshPredictionButton"
         class="refresh-button"
