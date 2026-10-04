@@ -1,0 +1,16 @@
+name: Schedule Smoke Test
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Confirm scheduled runner
+        run: |
+          echo "schedule smoke test"
+          date -u
