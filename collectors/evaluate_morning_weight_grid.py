@@ -87,11 +87,11 @@ def main():
   p=sorted(bs,key=lambda b:(-sc[b["boat"]],b["boat"]));a=sorted(bs,key=lambda b:(b["finish"],b["boat"]))
   return set(x["boat"] for x in p[:3])==set(x["boat"] for x in a[:3])
  configs=[]
- for wr in [40,50,60,70]:
-  for wg in [0,5,10,15,20]:
-   for wm in [5,10,15,20]:
-    for wb in [5,10,15,20]:
-     for wn in [5,10,15,20]:
+ for wr in [30,35,40,45,50]:
+  for wg in [10,15,20,25,30]:
+   for wm in [10,15,20,25,30]:
+    for wb in [0,5,10]:
+     for wn in [5,10,15,20,25]:
       if wr+wg+wm+wb+wn==100:configs.append((wr,wg,wm,wb,wn))
  out=[]
  for wr,wg,wm,wb,wn in configs:
@@ -102,7 +102,7 @@ def main():
     base=scores(bs);gr=rankmap(bs,"grade");mo1=rankmap(bs,"motor_win");mo3=rankmap(bs,"motor_top3");bo2=rankmap(bs,"boat2");bo3=rankmap(bs,"boat3");nat=rankmap(bs,"nat2")
     if any(x is None for x in [base,gr,mo1,mo3,bo2,bo3,nat]):continue
     motor={b:.4*mo1[b]+.6*mo3[b] for b in base};boat={b:.5*bo2[b]+.5*bo3[b] for b in base}
-    sc={b:wr/100*base[b]+wg/100*gr[b]+wm/100*motor[b]+wb/100*boat[b]+wn/100*nat[b] for b in base};bh=hit(bs,base);nh=hit(bs,sc);n+=1;h+=nh;xo+=(not bh) and nh;ox+=bh and (not nh)
+    current={b:.40*base[b]+.20*gr[b]+.20*motor[b]+.05*boat[b]+.15*nat[b] for b in base}\n    sc={b:wr/100*base[b]+wg/100*gr[b]+wm/100*motor[b]+wb/100*boat[b]+wn/100*nat[b] for b in base};bh=hit(bs,current);nh=hit(bs,sc);n+=1;h+=nh;xo+=(not bh) and nh;ox+=bh and (not nh)
    days[d]={"n":n,"top3_pct":round(100*h/n,2) if n else None}
   vv=[x["top3_pct"] for x in days.values() if x["top3_pct"] is not None];out.append({"racer":wr,"grade":wg,"motor":wm,"boat":wb,"national_top2":wn,"by_date":days,"daily_avg_top3_pct":round(sum(vv)/len(vv),2),"spread_pt":round(max(vv)-min(vv),2),"x_to_o":xo,"o_to_x":ox,"net_flips":xo-ox})
  out.sort(key=lambda x:(-x["daily_avg_top3_pct"],x["spread_pt"],-x["net_flips"]))
