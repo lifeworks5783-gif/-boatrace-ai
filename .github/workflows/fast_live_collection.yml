@@ -5,6 +5,10 @@ permissions:
   actions: write
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - config/run_fast_live_now.txt
   schedule:
     # JST 08:03-22:53: 10分間隔。00/05等の混雑しやすい境界を避ける。
     - cron: "3,13,23,33,43,53 23,0-13 * * *"
