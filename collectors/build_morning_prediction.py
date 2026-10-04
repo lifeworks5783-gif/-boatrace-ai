@@ -57,10 +57,17 @@ def rank_lower_is_better(values):
     return {k:1.0-i/(len(valid)-1) for i,(k,_) in enumerate(valid)}
 
 def _rank6(values,lower=False):
+    # 履歴が無い艇だけ中立0.5で補完。配点自体は変更しない。
     valid=[(k,v) for k,v in values.items() if v is not None]
-    if len(valid)!=6: return {}
+    if not valid: return {}
     valid.sort(key=lambda x:((x[1] if lower else -x[1]),x[0]))
-    return {k:1.0-i/5.0 for i,(k,_) in enumerate(valid)}
+    if len(valid)==1:
+        ranked={valid[0][0]:0.5}
+    else:
+        ranked={k:1.0-i/(len(valid)-1) for i,(k,_) in enumerate(valid)}
+    for k,v in values.items():
+        if v is None: ranked[k]=0.5
+    return ranked
 
 def _feature_rows(path):
     p=Path(path)
