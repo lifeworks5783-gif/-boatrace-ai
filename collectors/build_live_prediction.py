@@ -245,7 +245,11 @@ def score_race(race, public_store):
     if len(structural)!=6: raise RuntimeError(f"暫定V1構造スコア欠損: {race.get('race_id')}")
     time_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_time(x) for x in boats if get_exhibition_time(x) is not None})
     st_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_st(x) for x in boats if get_exhibition_st(x) is not None and not get_exhibition_f(x) and get_exhibition_st(x)>=0})
-    if len(time_ranks)!=6 or len(st_ranks)!=6: raise RuntimeError(f"展示タイム/ST不足: {race.get('race_id')}")
+    # Fは独立補正0%。展示ST順位ではF/欠損を中立0.5としてレース全体を落とさない。
+    for x in boats:
+        lane=to_int(x.get("boat"))
+        if lane not in time_ranks: time_ranks[lane]=0.5
+        if lane not in st_ranks: st_ranks[lane]=0.5
     scored=[]
     for boat in boats:
         lane=to_int(boat.get("boat")); live01=.80*(structural[lane]/100.0)+.06*time_ranks[lane]+.14*st_ranks[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
