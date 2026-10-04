@@ -2801,7 +2801,7 @@ def current_pdca_html(root: Path) -> str:
  inc=load_json(root/"pdca_incremental_latest"/"summary.json")
  single=inc if inc else load_json(root/"all_candidate_single_factors"/"summary.json")
  if not single and not inc:return ""
- parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく累積・母数・振れ幅も確認し、単日の上振れ・下振れを区別します。</p><div class="logic-legend"><span class="legend-green">緑文字</span>＝現在の本番予測で採用中の要素</div>']
+ parts=['<section class="section-card"><h2>最新PDCA：単体要素の日別安定性</h2><p class="section-note">蓄積済みの日付を日別に比較。平均だけでなく累積・母数・振れ幅も確認し、単日の上振れ・下振れを区別します。</p><div class="logic-legend"><span class="legend-green">緑文字</span>＝現在の本番予測で実際に採用中の「要素＋補正率」</div>']
  if single:
   rows=[]
   dates=[str(d) for d in single.get("dates",[])] or sorted({d for x in single.get("results",[]) for d in (x.get("by_date") or {}).keys()})
@@ -2825,19 +2825,37 @@ def current_pdca_html(root: Path) -> str:
    weight_pct = x.get("weight_pct")
    display_name = f"{factor_name}（補正{fmt_int(weight_pct)}%）" if weight_pct is not None else factor_name
    factor_key = str(x.get("factor") or "")
-   morning_adopted_factors = {
-    "級別","全国2連対率",
-    "course_win","course_top2","course_top3","course_avg_st",
-    "コース1着率","コース2連対率","コース3連対率","コース平均ST",
-    "motor_win","motor_top3","motor_d90_win","motor_d90_top3",
-    "モーター90日1着率","モーター90日3連対率",
-    "boat_top2","boat_top3","boat_d90_top2","boat_d90_top3",
-    "ボート90日2連対率","ボート90日3連対率",
+   # PDCA比較表では「要素を使っているか」ではなく、
+   # 本番で実際に採用している補正率と完全一致した候補だけを緑表示する。
+   adopted_factor_weights = {
+    "級別": {20},
+    "grade": {20},
+    "全国2連対率": {15},
+    "national_top2": {15},
+    "モーター90日1着率": {8},
+    "motor_d90_win": {8},
+    "モーター90日3連対率": {12},
+    "motor_d90_top3": {12},
+    "ボート90日2連対率": {2.5},
+    "boat_d90_top2": {2.5},
+    "ボート90日3連対率": {2.5},
+    "boat_d90_top3": {2.5},
+    "コース1着率": {16},
+    "course_win": {16},
+    "コース2連対率": {8},
+    "course_top2": {8},
+    "コース3連対率": {12},
+    "course_top3": {12},
+    "コース平均ST": {4},
+    "course_avg_st": {4},
+    "展示タイム": {6},
+    "exhibition_time": {6},
+    "展示ST": {14},
+    "exhibition_st": {14},
    }
-   live_adopted_factors = {"展示進入","展示コース","exhibition_course","展示タイム","exhibition_time","展示ST","exhibition_st"}
-   if factor_key in morning_adopted_factors:
-    display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span>'
-   elif factor_key in live_adopted_factors:
+   adopted_weights = adopted_factor_weights.get(factor_key, set())
+   adopted = weight_pct is not None and any(abs(float(weight_pct) - float(w)) < 1e-9 for w in adopted_weights)
+   if adopted:
     display_html = f'<span class="adopted-logic">{html.escape(display_name)}</span>'
    else:
     display_html = html.escape(display_name)
