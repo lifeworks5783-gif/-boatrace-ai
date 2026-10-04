@@ -11,7 +11,7 @@ from pathlib import Path
 import build_morning_prediction as morning
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "provisional_v1_20261005_live_entry_time6_st14"
+MODEL_VERSION = "provisional_v1_20261004_live_80_6_14"
 
 
 def parse_args():
