@@ -1,0 +1,24 @@
+name: Grade prior PDCA
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "collectors/evaluate_grade_prior_pdca.py"
+      - "features/racer_features.csv"
+      - "predictions/**/morning_predictions_*.json"
+      - "archive/**/boat_results_*_all.csv"
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: python collectors/evaluate_grade_prior_pdca.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/grade_prior_pdca/summary.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data: update grade prior PDCA"
+          git push
