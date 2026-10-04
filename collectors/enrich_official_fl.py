@@ -1,5 +1,5 @@
 from __future__ import annotations
-import argparse,csv,html,re,time,urllib.request
+import argparse,csv,html,re,time,urllib.request,urllib.error
 from pathlib import Path
 
 UA="Mozilla/5.0 (compatible; boatrace-ai-data-collector/1.0)"
@@ -10,9 +10,17 @@ F=re.compile(r'\bF\s*([0-9]+)\b',re.I)
 L=re.compile(r'\bL\s*([0-9]+)\b',re.I)
 ST=re.compile(r'\b(0\.\d{2})\b')
 def clean(x): return re.sub(r'\s+',' ',html.unescape(TAG.sub(' ',x))).strip()
-def fetch(url):
- req=urllib.request.Request(url,headers={"User-Agent":UA})
- with urllib.request.urlopen(req,timeout=30) as r:return r.read().decode("utf-8","replace")
+def fetch(url,retries=2,timeout=8):
+ last=None
+ for attempt in range(1,retries+1):
+  try:
+   req=urllib.request.Request(url,headers={"User-Agent":UA})
+   with urllib.request.urlopen(req,timeout=timeout) as r:return r.read().decode("utf-8","replace")
+  except Exception as e:
+   last=e
+   print(f"fetch_retry attempt={attempt}/{retries} url={url} error={type(e).__name__}:{e}",flush=True)
+   time.sleep(.5*attempt)
+ raise last
 def parse_page(txt):
  out={}
  for block in TR.findall(txt):
@@ -31,7 +39,14 @@ def main():
  matched=0;missing=[]
  for (jcd,rno),rs in sorted(by_race.items()):
   url=f"https://www.boatrace.jp/owpc/pc/race/racelist?hd={a.date}&jcd={jcd}&rno={rno}"
-  got=parse_page(fetch(url));time.sleep(.05)
+  print(f"fetch date={a.date} venue={jcd} race={rno} rows={len(rs)}",flush=True)
+  try:
+   got=parse_page(fetch(url))
+  except Exception as e:
+   print(f"fetch_failed date={a.date} venue={jcd} race={rno} error={type(e).__name__}:{e}",flush=True)
+   got={}
+  print(f"parsed date={a.date} venue={jcd} race={rno} matched={len(got)}",flush=True)
+  time.sleep(.05)
   for r in rs:
    x=got.get(str(r["registration_no"]))
    if x:r.update(x);matched+=1
