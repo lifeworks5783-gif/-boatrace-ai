@@ -3068,7 +3068,16 @@ def build_page(
 
         )
 
-    content = "".join(
+    action_panel = """
+    <section class="section-card analysis-action-card">
+      <h2>AI分析を実行</h2>
+      <p class="section-note">保存済みの予測・結果データを使って、既存のPDCA分析を実行します。配点は自動変更しません。</p>
+      <button id="runAiAnalysisButton" class="analysis-action-button" type="button">AI分析を開始</button>
+      <div id="runAiAnalysisStatus" class="small-meta">ボタンを押したときだけ分析を開始します。</div>
+    </section>
+    """
+
+    content = action_panel + "".join(
 
         body
 
@@ -3270,6 +3279,23 @@ h1 {{
 
   color: white;
 
+}}
+
+.analysis-action-button {{
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}}
+
+.analysis-action-button:disabled {{
+  opacity: .6;
+  cursor: wait;
 }}
 
 .section-card {{
@@ -3837,6 +3863,31 @@ footer {{
 </footer>
 
 </div>
+
+<script>
+(() => {{
+  const button = document.getElementById("runAiAnalysisButton");
+  const status = document.getElementById("runAiAnalysisStatus");
+  if (!button || !status) return;
+  button.addEventListener("click", async () => {{
+    if (!window.confirm("保存済みデータでAI分析・PDCAを開始しますか？")) return;
+    button.disabled = true;
+    status.textContent = "AI分析を開始しています…";
+    try {{
+      const response = await fetch("https://boatrace-family-trigger.onrender.com/trigger-analysis", {{
+        method: "POST",
+        headers: {{ "Content-Type": "application/json" }},
+        body: "{{}}"
+      }});
+      if (response.status !== 202) throw new Error("request_failed");
+      status.textContent = "AI分析を受け付けました。完了後、このページに結果が反映されます。";
+    }} catch (error) {{
+      status.textContent = "AI分析を開始できませんでした。少し時間をおいて再度お試しください。";
+      button.disabled = false;
+    }}
+  }});
+}})();
+</script>
 
 </body>
 
