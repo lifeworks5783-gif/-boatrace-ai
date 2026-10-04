@@ -29,3 +29,5 @@ def main():
  (outdir/"summary.json").write_text(json.dumps({"purpose":"PDCA diagnostic accumulation only; production national_top2 weight remains 15%.","definition":{"local_minus_national_win":"local_win_rate - national_win_rate","local_minus_national_top2":"local_top2_rate - national_top2_rate"},"dates":summary},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps(summary,ensure_ascii=False))
 if __name__=="__main__":main()
+
+# workflow trigger marker: 20261005
