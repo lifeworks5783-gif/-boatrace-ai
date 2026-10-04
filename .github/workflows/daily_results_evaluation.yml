@@ -1,5 +1,9 @@
 name: Daily Results and Evaluation
 'on':
+  push:
+    branches: [main]
+    paths:
+      - config/run_daily_audit_now.txt
   schedule:
     - cron: '30 15 * * *'
   workflow_dispatch:
