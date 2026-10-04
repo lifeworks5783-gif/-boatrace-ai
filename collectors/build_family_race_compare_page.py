@@ -1520,7 +1520,7 @@ def build_race_rows(
                         actual,
                     ),
 
-                "morning_formation_hit": formation_hit(live, trifecta, "morning_formation"),
+                "morning_formation_hit": formation_hit(morning, trifecta, "formation"),
                 "live_formation_hit": formation_hit(live, trifecta, "formation"),
 
                 "trifecta":
