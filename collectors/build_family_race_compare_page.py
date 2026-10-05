@@ -797,6 +797,7 @@ def load_prediction_file(
             "top3": top3,
             "boats": row.get("boats") or [],
             "raw": row,
+            "ai_score_prediction": row.get("ai_score_prediction") or {},
         }
 
     return output
@@ -1784,6 +1785,53 @@ def evaluation_html(
 
 
 
+def ai_score_result_html(prediction, trifecta, payout):
+    if not prediction:
+        return '<div class="simulation missing">AIスコア予測なし</div>'
+    ai = prediction.get("ai_score_prediction") or (prediction.get("raw") or {}).get("ai_score_prediction") or {}
+    all120 = ai.get("all_120_combinations") or []
+    top12 = all120[:12]
+    if not top12:
+        top12 = ai.get("combinations") or []
+    if not top12:
+        return '<div class="simulation missing">AIスコア予測なし</div>'
+
+    rows = []
+    for i, item in enumerate(top12, 1):
+        combo = str(item.get("combination") or "")
+        score = safe_float(item.get("score"))
+        bought = i <= 8
+        classes = ["ai-result-pick"]
+        if bought:
+            classes.append("ai-bought")
+        if combo == trifecta:
+            classes.append("hit-pick")
+        badge = "購入" if bought else "参考"
+        score_text = f"{score:.3f}" if score is not None else "—"
+        rows.append(
+            f'<div class="{" ".join(classes)}">'
+            f'<b>{i}位 {esc(combo)}</b>'
+            f'<span>AI {score_text} ／ {badge}</span>'
+            '</div>'
+        )
+
+    bought_combos = [str(x.get("combination") or "") for x in top12[:8]]
+    hit = trifecta in bought_combos
+    investment = len(bought_combos) * 100
+    returned = payout if hit and payout is not None else 0
+    profit = returned - investment
+    status = '<span class="hit-status">的中</span>' if hit else '<span class="miss-status">不的中</span>'
+
+    return f"""
+    <div class="simulation-box ai-result-box">
+      <div class="simulation-title">AIスコア予測・上位12点</div>
+      <div class="simulation-meta">表示12点 ／ 収支検証は上位8点・各100円 ／ 投資 {investment:,}円 ／ {status}</div>
+      <div class="ai-result-list">{''.join(rows)}</div>
+      <div class="simulation-money">払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b></div>
+    </div>
+    """
+
+
 def simulation_html(prediction, trifecta, payout):
     """最終予測のフォーメーションと上位3艇BOXを100円/点で照合表示。"""
     if not prediction:
@@ -2089,6 +2137,8 @@ def render_html(
 
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["live"] or row["morning"], row["trifecta"], row["payout"])}
+  <div class="label simulation-label">AIスコア予測・保存済み上位12点</div>
+  {ai_score_result_html(row["live"] or row["morning"], row["trifecta"], row["payout"])}
 
   <div class="money-grid">
 
@@ -2569,6 +2619,30 @@ details.all-scores summary {{
 .miss-status {{
   color:var(--muted);
 }}
+.ai-result-list {{
+  display:grid;
+  gap:6px;
+  margin-top:10px;
+}}
+.ai-result-pick {{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 10px;
+  border-radius:9px;
+  background:var(--chip);
+}}
+.ai-result-pick.ai-bought {{
+  border-left:4px solid var(--blue);
+}}
+.ai-result-pick span {{
+  color:var(--muted);
+  font-size:12px;
+}}
+.ai-result-box {{
+  margin-bottom:12px;
+}}
+
 .money-grid {{
   display:grid;
 
