@@ -78,12 +78,12 @@ def main():
  current_cfg=(.06,.14,1.0,"neutral",0.0)
  current_orders={rid:order(bs,*current_cfg) for rid,bs in data[TARGET].items() if len(bs)==6}
  grid=[]
- for tw in [0,.02,.04,.06,.08,.10,.12,.14]:
-  for sw in [0,.02,.04,.06,.08,.10,.12,.14,.16,.18,.20]:
+ for tw in [0,.04,.06,.08,.12]:
+  for sw in [0,.06,.10,.14,.18,.20]:
    if tw+sw>.30:continue
-   for eb in [0,.25,.5,.75,1.0]:
+   for eb in [0,.5,1.0]:
     for xf in ["neutral","mild","strong"]:
-     for rf in [0,.03,.06,.10,.15]:
+     for rf in [0,.06,.12]:
       cfg=(tw,sw,eb,xf,rf)
       t=metrics(data[TARGET],cfg,current_orders)
       if not t["n"]:continue
