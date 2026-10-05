@@ -1,0 +1,34 @@
+name: Fast live weight search from PDCA
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "collectors/evaluate_live_weights_from_pdca.py"
+      - ".github/workflows/live_weights_from_pdca.yml"
+permissions:
+  contents: write
+concurrency:
+  group: fast-live-weight-search
+  cancel-in-progress: true
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run fast search
+        run: python collectors/evaluate_live_weights_from_pdca.py
+      - name: Save results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/live_weights_from_pdca/
+          git diff --cached --quiet || git commit -m "Save fast live weight search results"
+          git restore .
+          git clean -fd
+          git pull --rebase origin main
+          git push origin main
