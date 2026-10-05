@@ -80,6 +80,15 @@ jobs:
       - name: Evaluate selected date predictions and betting
         run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
 
+      - name: Evaluate AI score prediction
+        run: |
+          # AIスコア予測は結果を見ずに保存済みの予測データから復元し、
+          # その後に公式結果と答え合わせする。毎日のAI分析で必ず実行する。
+          python -u collectors/backfill_ai_score_prediction.py --date "$TARGET_DATE"
+          python -u collectors/evaluate_ai_score_prediction.py --date "$TARGET_DATE"
+          test -s "evaluations/$YEAR/$MONTH/$DAY/ai_score_simulation_${TARGET_DATE}.json"
+          test -s "evaluations/$YEAR/$MONTH/$DAY/ai_score_simulation_${TARGET_DATE}.csv"
+
       - name: Run expanding PDCA
         run: python collectors/evaluate_pdca_incremental_4day.py
       - run: |
