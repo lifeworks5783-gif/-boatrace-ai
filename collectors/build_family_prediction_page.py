@@ -351,7 +351,7 @@ def build_ai_card(race, index):
     combo_rows = "".join(
         '<div class="ai-combo">'
         f'<b>{i}位 {esc(x.get("combination"))}</b>'
-        f'<span>AI {esc(score_label(x.get("score")))}</span>'
+        f'<span>AI評価 {esc(score_label(x.get("score")))}点</span>'
         '</div>'
         for i, x in enumerate(combos, 1)
     )
@@ -365,7 +365,7 @@ def build_ai_card(race, index):
         </div>
         <div class="badge live">AIスコア</div>
       </div>
-      <div class="formation-title">AIスコア予測・上位12点</div>
+      <div class="formation-title">AIスコア予測・上位12点</div>\n      <div class="ai-note">AI独自スコアによる組み合わせ評価</div>
       <div class="ai-candidates">
         <div><b>1着候補</b> {"・".join(esc(x) for x in ai.get("first_candidates") or [])}</div>
         <div><b>2着候補</b> {"・".join(esc(x) for x in ai.get("second_candidates") or [])}</div>
