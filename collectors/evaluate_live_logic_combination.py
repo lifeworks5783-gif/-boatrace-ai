@@ -3,7 +3,7 @@ import csv,json,glob
 from collections import defaultdict
 from datetime import datetime,timedelta
 from pathlib import Path
-DATES=["20260930","20261001","20261002","20261003"]
+DATES=["20260930","20261001","20261002","20261003","20261004","20261005"]
 OUT=Path("evaluations/all_candidate_single_factors")
 GRADE={"A1":1.0,"A2":.75,"B1":.45,"B2":.25}
 def F(v):
