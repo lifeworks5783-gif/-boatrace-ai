@@ -1826,12 +1826,13 @@ def ai_score_result_html(prediction, trifecta, payout):
     <details class="simulation-box ai-result-box">
       <summary class="ai-result-summary">
         <span class="simulation-title">AIスコア予測を見る</span>
-        <span class="ai-result-summary-meta">上位12点 ／ {status}</span>
+        <span class="ai-result-summary-meta">
+          上位12点 ／ {status} ／ 投資 <b>{investment:,}円</b> ／ 払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b>
+        </span>
       </summary>
       <div class="ai-result-body">
-        <div class="simulation-meta">表示12点 ／ 収支検証は上位8点・各100円 ／ 投資 {investment:,}円</div>
+        <div class="simulation-meta">表示12点 ／ 収支検証は上位8点・各100円</div>
         <div class="ai-result-list">{''.join(rows)}</div>
-        <div class="simulation-money">払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b></div>
       </div>
     </details>
     """
