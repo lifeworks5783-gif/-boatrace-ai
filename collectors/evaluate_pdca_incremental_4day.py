@@ -46,7 +46,7 @@ def stat(rs):
  fs=[I(r.get("finish")) for r in rs if I(r.get("finish")) in range(1,7)]
  sts=[F(r.get("st")) for r in rs if F(r.get("st")) is not None]
  if not fs:return {}
- return {"win":sum(x==1 for x in fs)/len(fs),"top2":sum(x<=2 for x in fs)/len(fs),"top3":sum(x<=3 for x in fs)/len(fs),"avg_finish":sum(fs)/len(fs),"avg_st":sum(sts)/len(sts) if sts else None}
+ return {"win":sum(x==1 for x in fs)/len(fs),"top2":sum(x<=2 for x in fs)/len(fs),"top3":sum(x<=3 for x in fs)/len(fs),"avg_finish":sum(fs)/len(fs),"avg_st":sum(sts)/len(sts) if sts else None,"f_count":sum(str(r.get("st","")).strip().upper().startswith("F") for r in rs),"f_rate":sum(str(r.get("st","")).strip().upper().startswith("F") for r in rs)/len(rs) if rs else None}
 def evaluate(races,key,reverse=False):
  n=t1=t3=ex=0
  for bs in races.values():
@@ -79,8 +79,8 @@ def main():
    rid=nid(r.get("race_id"));v=str(r.get("venue_code","")).zfill(2);reg=r.get("registration_no","");P=pg.get((rid,bo),{});L=lv.get((rid,bo),{})
    motor_no=I(r.get("motor_no")) if I(r.get("motor_no")) is not None else I(P.get("motor_no"))
    boat_no=I(r.get("boat_no")) if I(r.get("boat_no")) is not None else I(P.get("boat_no"))
-   rs=stat(rg[reg]);cs=stat(rc[(reg,bo)]);ms=stat(mg[(v,motor_no)]) if motor_no is not None else {};bs=stat(bg[(v,boat_no)]) if boat_no is not None else {}
-   rr[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"nat2":rs.get("top2"),"motor_win":ms.get("win"),"motor_top3":ms.get("top3"),"boat2":bs.get("top2"),"boat3":bs.get("top3"),"etime":F(L.get("exhibition_time")),"est":F(L.get("exhibition_st_seconds")),"exhibition_course":I(L.get("exhibition_course")),"exhibition_st_flag":(L.get("exhibition_st_flag") or "").strip()})
+   rs=stat(rg[reg]);cs=stat(rc[(reg,bo)]);entry=I(L.get("exhibition_course")) or bo;ls=stat(rc[(reg,entry)]);ms=stat(mg[(v,motor_no)]) if motor_no is not None else {};bs=stat(bg[(v,boat_no)]) if boat_no is not None else {}
+   rr[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"nat2":rs.get("top2"),"motor_win":ms.get("win"),"motor_top3":ms.get("top3"),"boat2":bs.get("top2"),"boat3":bs.get("top3"),"lw":ls.get("win"),"l2":ls.get("top2"),"l3":ls.get("top3"),"lst":ls.get("avg_st"),"racer_f90_count":rs.get("f_count"),"racer_f90_rate":rs.get("f_rate"),"etime":F(L.get("exhibition_time")),"est":F(L.get("exhibition_st_seconds")),"exhibition_course":I(L.get("exhibition_course")),"exhibition_st_flag":(L.get("exhibition_st_flag") or "").strip()})
   daily[d]=rr
   # Save one reusable, result-linked comparison dataset per date.
   # Future parameter what-if tests can use this file directly without
