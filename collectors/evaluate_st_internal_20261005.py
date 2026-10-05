@@ -54,7 +54,9 @@ for rw,dw in splits:
      deltav=fv if flag else delta_score(F(r["est"]),F(r["lst"]),scale)
      scores[b]=.80*ls[b]+.06*tr.get(b,.5)+(rw/100)*rankv+(dw/100)*deltav
     pred=sorted(scores,key=lambda b:(-scores[b],b)); ph=set(pred[:3])==aset
-    n+=1;t3+=ph;t1+=pred[0]==winner\n    actual_order=[I(x["boat"]) for x in sorted(rs,key=lambda r:(I(r["finish"]) if I(r["finish"]) else 99,I(r["boat"])))[:3]]\n    exact+=pred[:3]==actual_order
+    n+=1;t3+=ph;t1+=pred[0]==winner
+    actual_order=[I(x["boat"]) for x in sorted(rs,key=lambda r:(I(r["finish"]) if I(r["finish"]) else 99,I(r["boat"])))[:3]]
+    exact+=pred[:3]==actual_order
     if mh and ph:oo+=1
     elif mh:ox+=1
     elif ph:xo+=1
