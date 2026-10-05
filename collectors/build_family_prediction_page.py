@@ -363,7 +363,7 @@ def build_ai_card(race, index):
         </div>
         <div class="badge live">AIスコア</div>
       </div>
-      <div class="formation-title">AIスコア予測・推奨 {points}点</div>
+      <div class="formation-title">AIスコア予測・上位8点</div>
       <div class="ai-candidates">
         <div><b>1着候補</b> {"・".join(esc(x) for x in ai.get("first_candidates") or [])}</div>
         <div><b>2着候補</b> {"・".join(esc(x) for x in ai.get("second_candidates") or [])}</div>
@@ -379,7 +379,7 @@ def build_ai_card(race, index):
           </table>
         </div>
       </details>
-      <div class="ai-note">検証版。現行フォーメーション／BOXとは独立して記録・評価します。</div>
+      <div class="ai-note">検証版。AI順位上位8点を各100円、1レース800円として独立集計します。</div>
     </article>
     """
 
