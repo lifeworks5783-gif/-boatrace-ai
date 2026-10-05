@@ -3214,7 +3214,9 @@ def build_page(
             '</section>'
         )
 
-        body.append(venue_technique_html())\n\n        # 2. 朝→直前の順で、実際のスコア診断を見る。
+        body.append(venue_technique_html())
+
+        # 2. 朝→直前の順で、実際のスコア診断を見る。
         morning = (
 
             stages.get(
