@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths: ["config/run_venue_interaction_sandbox.txt"]
+permissions:
+  contents: write
 jobs:
   test:
     runs-on: ubuntu-latest
