@@ -94,7 +94,7 @@ jobs:
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "daily_inputs/$YEAR/$MONTH/$DAY/live/backfill" "archive/$YEAR/$MONTH/$DAY" "evaluations/$YEAR/$MONTH/$DAY" evaluations/pdca_incremental_latest/ evaluations/pdca_datasets/
+          git add evaluations/pdca_incremental_latest/ evaluations/pdca_datasets/
           git diff --cached --quiet || git commit -m "Save daily results and expanding PDCA $TARGET_DATE"
           git pull --rebase origin main
           git push origin main
