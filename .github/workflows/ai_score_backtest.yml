@@ -1,0 +1,54 @@
+name: AIスコア過去バックテスト
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      dates:
+        description: "対象日 YYYYMMDD。複数はカンマ区切り"
+        required: true
+        default: "20261001,20261002,20261003,20261004"
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 過去保存データだけでAI予測を再計算して結果照合
+        shell: bash
+        run: |
+          IFS=',' read -ra DATES <<< "${{ inputs.dates }}"
+          for DATE in "${DATES[@]}"; do
+            DATE=$(echo "$DATE" | xargs)
+            echo "===== $DATE ====="
+            P="predictions/${DATE:0:4}/${DATE:4:2}/${DATE:6:2}/live/formation_predictions_final_${DATE}.json"
+            R="archive/${DATE:0:4}/${DATE:4:2}/${DATE:6:2}/boat_results_${DATE}_all.csv"
+            if [ ! -s "$P" ] || [ ! -s "$R" ]; then
+              echo "SKIP: prediction/result missing"
+              continue
+            fi
+            python -u collectors/backfill_ai_score_prediction.py --date "$DATE"
+            python -u collectors/evaluate_ai_score_prediction.py --date "$DATE"
+          done
+      - name: 保存
+        run: |
+          git config user.name "boatrace-ai-backtest-bot"
+          git config user.email "boatrace-ai-backtest-bot@users.noreply.github.com"
+          git add predictions evaluations
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Backfill AI score prediction historical results"
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - name: 家族ページ更新
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run family_prediction_page.yml --ref main
