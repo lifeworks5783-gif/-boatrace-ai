@@ -861,7 +861,13 @@ def parse_payload(
         if race is None:
             continue
 
-        compact_text = re.sub(r"\\s+", "", text)\n        for technique_name in ("まくり差し", "逃げ", "差し", "まくり", "抜き", "恵まれ"):\n            if technique_name in compact_text:\n                race["technique"] = technique_name\n                break\n\n        parsed = (
+        compact_text = re.sub(r"\s+", "", text)
+        for technique_name in ("まくり差し", "逃げ", "差し", "まくり", "抜き", "恵まれ"):
+            if technique_name in compact_text:
+                race["technique"] = technique_name
+                break
+
+        parsed = (
             parse_result_row(
                 raw
             )
