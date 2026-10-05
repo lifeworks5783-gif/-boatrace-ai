@@ -17,10 +17,10 @@ def rid(v): return "".join(re.findall(r"\d",text(v)))
 def load(p):
     p=Path(p)
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
-def bucket(): return {"races":0,"hits":0,"points":0,"investment":0,"return":0}
+def bucket(): return {"races":0,"hits":0,"points":0,"investment":0,"return":0,"top3_matches":0,"exact_matches":0}
 def summary(b):
     return {**b,
-      "hit_rate": round(b["hits"]/b["races"],5) if b["races"] else None,
+      "hit_rate": round(b["hits"]/b["races"],5) if b["races"] else None,\n      "top3_alignment_rate": round(b["top3_matches"]/b["races"],5) if b["races"] else None,\n      "exact_alignment_rate": round(b["exact_matches"]/b["races"],5) if b["races"] else None,
       "average_points_per_race": round(b["points"]/b["races"],3) if b["races"] else None,
       "profit":b["return"]-b["investment"],
       "recovery_rate_pct":round(b["return"]/b["investment"]*100,2) if b["investment"] else None}
@@ -66,7 +66,7 @@ def main():
         actual_rank=next((i for i,x in enumerate(all120,1) if text(x.get("combination"))==t["trifecta"]),None)
         details.append({"race_id":race.get("race_id"),"venue_name":race.get("venue_name"),"race":race.get("race"),
           "prediction_type":stage,"points":pts,"actual_trifecta":t["trifecta"],"actual_combo_rank_120":actual_rank,
-          "hit":hit,"investment":pts*BET,"trifecta_payout_100yen":t["pay"],"return":ret,"profit":ret-pts*BET,
+          "hit":hit,"top3_match":top3_match,"exact_match":exact_match,"investment":pts*BET,"trifecta_payout_100yen":t["pay"],"return":ret,"profit":ret-pts*BET,
           "combinations":" / ".join(names)})
     result={"model_version":"ai_finish_order_score_v0_20261005","strategy":"ai_score_prediction","100yen_per_combination":True,
       "overall":summary(total),"by_points":{k:summary(v) for k,v in sorted(by_points.items(),key=lambda x:int(x[0]))},
