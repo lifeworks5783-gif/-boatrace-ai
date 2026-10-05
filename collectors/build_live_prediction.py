@@ -11,7 +11,7 @@ from pathlib import Path
 import build_morning_prediction as morning
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "provisional_v1_20261004_live_80_6_14"
+MODEL_VERSION = "provisional_v2_20261006_live_80_6_personal_st_delta14"
 
 
 def parse_args():
@@ -195,6 +195,42 @@ def validate_no_current_results(payload):
     return morning.validate_current_day_no_results(payload)
 
 
+_RACER_ST90_CACHE = None
+
+def racer_st90_map():
+    global _RACER_ST90_CACHE
+    if _RACER_ST90_CACHE is not None:
+        return _RACER_ST90_CACHE
+    out = {}
+    path = Path(__file__).resolve().parents[1] / "features" / "racer_features.csv"
+    if path.exists():
+        with path.open(encoding="utf-8-sig", newline="") as fh:
+            for row in csv.DictReader(fh):
+                reg = text(row.get("registration_no"))
+                avg = to_float(row.get("d90_avg_st"))
+                samples = to_int(row.get("d90_st_samples")) or 0
+                if reg:
+                    out[reg] = (samples, avg)
+    _RACER_ST90_CACHE = out
+    return out
+
+def personal_st_delta_score(boat):
+    # 暫定採用 2026-10-06:
+    # 展示ST - 本人90日平均ST。±0.06秒で0〜1の最大補正。
+    # 本人90日STが10走未満/欠損は中立0.5。展示Fは0.4。
+    st = get_exhibition_st(boat)
+    is_f = get_exhibition_f(boat) or (st is not None and st < 0)
+    if is_f:
+        return 0.4
+    racer = boat.get("racer") or {}
+    reg = text(racer.get("registration_no"))
+    samples, avg = racer_st90_map().get(reg, (0, None))
+    if st is None or avg is None or samples < 10:
+        return 0.5
+    delta = st - avg
+    return max(0.0, min(1.0, 0.5 - delta / 0.12))
+
+
 def rank_exhibition_st(boats):
     # 9/30+10/1探索時と同じ扱い:
     # F(負値)はランキング対象外、非F艇だけ「小さいSTほど高得点」。
@@ -244,16 +280,16 @@ def score_race(race, public_store):
     structural=morning.provisional_scores(race,public_store,overrides)
     if len(structural)!=6: raise RuntimeError(f"暫定V1構造スコア欠損: {race.get('race_id')}")
     time_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_time(x) for x in boats if get_exhibition_time(x) is not None})
-    st_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_st(x) for x in boats if get_exhibition_st(x) is not None and not get_exhibition_f(x) and get_exhibition_st(x)>=0})
-    # Fは独立補正0%。展示ST順位ではF/欠損を中立0.5としてレース全体を落とさない。
+    st_delta_scores={to_int(x.get("boat")):personal_st_delta_score(x) for x in boats}
+    # 展示ST14%は本人90日平均STとの差で評価。F=0.4、90日ST10走未満/欠損=0.5。
     for x in boats:
         lane=to_int(x.get("boat"))
         if lane not in time_ranks: time_ranks[lane]=0.5
-        if lane not in st_ranks: st_ranks[lane]=0.5
+        if lane not in st_delta_scores: st_delta_scores[lane]=0.5
     scored=[]
     for boat in boats:
-        lane=to_int(boat.get("boat")); live01=.80*(structural[lane]/100.0)+.06*time_ranks[lane]+.14*st_ranks[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
-        scored.append({"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(live01*100,2),"morning_score_reference":round(morning_scores.get(lane,0.0),2),"data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"components":{"structural":{"weight":80.0,"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},"exTime":{"weight":6.0,"raw_score_0_1":round(time_ranks[lane],6),"available":True},"exST":{"weight":14.0,"raw_score_0_1":round(st_ranks[lane],6),"available":True}}})
+        lane=to_int(boat.get("boat")); live01=.80*(structural[lane]/100.0)+.06*time_ranks[lane]+.14*st_delta_scores[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
+        scored.append({"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(live01*100,2),"morning_score_reference":round(morning_scores.get(lane,0.0),2),"data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"components":{"structural":{"weight":80.0,"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},"exTime":{"weight":6.0,"raw_score_0_1":round(time_ranks[lane],6),"available":True},"exST":{"weight":14.0,"raw_score_0_1":round(st_delta_scores[lane],6),"available":True,"method":"personal_d90_st_delta","delta_full_scale_seconds":0.06,"f_score":0.4}}})
     scored.sort(key=lambda x:(-x["score"],x["boat"]))
     for i,x in enumerate(scored,1):x["rank"]=i
     return scored
@@ -506,7 +542,7 @@ def main():
             "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
             "live_policy": {
                 "course": "32点を展示進入コースへ差し替え",
-                "exhibition_st": "3点。Fは0点",
+                "exhibition_st": "本人90日平均STとの差を14%評価。±0.06秒で最大補正、展示F=0.4、90日ST10走未満/欠損=0.5",
                 "exhibition_time": "0点",
             },
             "race_count": len(predicted_races),
