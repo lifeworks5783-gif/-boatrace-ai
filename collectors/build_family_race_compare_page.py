@@ -1807,7 +1807,7 @@ def ai_score_result_html(prediction, trifecta, payout):
         if combo == trifecta:
             classes.append("hit-pick")
         badge = "購入" if bought else "参考"
-        score_text = f"{score:.3f}" if score is not None else "—"
+        score_text = f"{score:.1f}" if score is not None else "—"
         rows.append(
             f'<div class="{" ".join(classes)}">'
             f'<b>{i}位 {esc(combo)}</b>'
