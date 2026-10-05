@@ -113,7 +113,7 @@ def venue_technique_summary(days=90):
    rc=str(row.get("レースコード") or row.get("race_code") or "").strip()
    if len(rc)>=12: latest[rc[:12]]=row
   for rc,row in latest.items():
-   code=rc[8:10]; tech=re.sub(r"\\s+", "", str(row.get("決まり手") or ""))
+   code=rc[8:10]; tech=re.sub(r"\s+", "", str(row.get("決まり手") or ""))
    if code in counts and tech:
     key=("まくり差し" if "まくり差し" in tech else "逃げ" if "逃げ" in tech else "差し" if "差し" in tech else "まくり" if "まくり" in tech else "抜き" if "抜き" in tech else "その他"); counts[code][key]+=1; totals[code]+=1
   cur+=timedelta(days=1)
