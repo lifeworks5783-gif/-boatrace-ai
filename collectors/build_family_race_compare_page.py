@@ -1811,7 +1811,7 @@ def ai_score_result_html(prediction, trifecta, payout):
         rows.append(
             f'<div class="{" ".join(classes)}">'
             f'<b>{i}位 {esc(combo)}</b>'
-            f'<span>AI {score_text} ／ {badge}</span>'
+            f'<span>AI評価 {score_text}点 ／ {badge}</span>'
             '</div>'
         )
 
@@ -2202,7 +2202,7 @@ def render_html(
 
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["live"] or row["morning"], row["trifecta"], row["payout"])}
-  <div class="label simulation-label">AIスコア予測・保存済み上位12点</div>
+  <div class="label simulation-label">AIスコア予測・保存済み上位12点</div>\n  <div class="simulation-meta">AI独自スコアによる組み合わせ評価</div>
   {ai_score_result_html(row["live"] or row["morning"], row["trifecta"], row["payout"])}
 
   <div class="money-grid">
