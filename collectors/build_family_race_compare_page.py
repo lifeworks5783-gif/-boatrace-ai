@@ -1926,6 +1926,64 @@ def box_hit(prediction, trifecta):
     return trifecta in combos
 
 
+def ai_score_eval(prediction, actual):
+    """AI着順別スコアのTOP3整合・完全一致と、上位8点買い目的中を評価。"""
+    if not prediction or not actual or len(actual) < 3:
+        return None
+    ai = prediction.get("ai_score_prediction") or (prediction.get("raw") or {}).get("ai_score_prediction") or {}
+    scores = ai.get("position_scores") or []
+    if not scores:
+        return None
+
+    def best_boat(key, excluded=None):
+        excluded = set(excluded or [])
+        candidates = []
+        for item in scores:
+            boat = normalize_boat(item.get("boat"))
+            score = safe_float(item.get(key))
+            if boat is not None and score is not None and boat not in excluded:
+                candidates.append((score, boat))
+        if not candidates:
+            return None
+        candidates.sort(key=lambda x: (-x[0], x[1]))
+        return candidates[0][1]
+
+    first = best_boat("first_score")
+    second = best_boat("second_score", [first])
+    third = best_boat("third_score", [first, second])
+    predicted = [first, second, third]
+    if any(x is None for x in predicted):
+        return None
+
+    actual3 = [normalize_boat(x) for x in actual[:3]]
+    top3_overlap = set(predicted) == set(actual3)
+    exact = predicted == actual3
+
+    all120 = ai.get("all_120_combinations") or ai.get("combinations") or []
+    top8 = [str(x.get("combination") or "") for x in all120[:8]]
+    trifecta = "-".join(str(x) for x in actual3)
+    bought_hit = trifecta in top8
+    return {"overlap": top3_overlap, "exact": exact, "bought_hit": bought_hit}
+
+
+def ai_score_summary(rows):
+    evals = []
+    for row in rows:
+        prediction = row.get("live") or row.get("morning")
+        result = ai_score_eval(prediction, row.get("actual") or [])
+        if result is not None:
+            evals.append(result)
+    count = len(evals)
+    if not count:
+        return {"count": 0, "overlap": None, "exact": None, "bought_hit": None}
+    return {
+        "count": count,
+        "overlap": sum(1 for x in evals if x["overlap"]) / count * 100.0,
+        "exact": sum(1 for x in evals if x["exact"]) / count * 100.0,
+        "bought_hit": sum(1 for x in evals if x["bought_hit"]) / count * 100.0,
+    }
+
+
 def hit_summary_from_rows(rows, key):
     values = [row.get(key) for row in rows if row.get(key) is not None]
     if not values:
@@ -1958,6 +2016,7 @@ def render_html(
 
     morning_hit_summary = hit_summary("morning_formation_hit")
     live_hit_summary = hit_summary("live_formation_hit")
+    ai_summary = ai_score_summary(race_rows)
 
     # 結果・成績ページと同じ「最終予測」定義:
     # 直前予測が保存されているレースは直前、未保存は朝予測を採用する。
@@ -2901,6 +2960,27 @@ TOP3整合率は、
 
   <span>
     {live_summary["count"]}R
+  </span>
+
+</div>
+
+
+<div class="summary-box">
+
+  <span>
+    AIスコア TOP3整合 / 完全一致 / 上位8点的中
+  </span>
+
+  <strong>
+    {percent(ai_summary["overlap"])}
+    /
+    {percent(ai_summary["exact"])}
+    /
+    {percent(ai_summary["bought_hit"])}
+  </strong>
+
+  <span>
+    {ai_summary["count"]}R
   </span>
 
 </div>
