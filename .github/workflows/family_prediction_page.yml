@@ -97,15 +97,24 @@ jobs:
 
       - name: レース照合ページを生成
         run: |
-          # レース照合は「結果・評価が完成している最新日」を使う。
-          # 日付が0時を跨いでも当日の0Rへ切り替えない。
-          TARGET_DATE=$(find evaluations -mindepth 3 -maxdepth 3 -type d 2>/dev/null \
-            | sed -n 's#^evaluations/\([0-9]\{4\}\)/\([0-9]\{2\}\)/\([0-9]\{2\}\)$#\1\2\3#p' \
-            | while read d; do
-                test -s "evaluations/${d:0:4}/${d:4:2}/${d:6:2}/prediction_evaluation_${d}.json" && echo "$d"
-              done \
-            | sort \
-            | tail -1)
+          # 当日の朝予測が取得済みなら、その時点でレース照合を当日へ切り替える。
+          # まだ結果が0Rでも前日の照合結果は残さない。
+          TODAY_JST=$(TZ=Asia/Tokyo date +%Y%m%d)
+          TODAY_PATH="predictions/${TODAY_JST:0:4}/${TODAY_JST:4:2}/${TODAY_JST:6:2}/morning_predictions_${TODAY_JST}.json"
+
+          if test -s "${TODAY_PATH}"; then
+            TARGET_DATE="${TODAY_JST}"
+            echo "当日朝予測取得済み: ${TODAY_PATH}"
+          else
+            # 朝予測取得前だけ、結果・評価が完成している最新日を表示する。
+            TARGET_DATE=$(find evaluations -mindepth 3 -maxdepth 3 -type d 2>/dev/null \
+              | sed -n 's#^evaluations/\([0-9]\{4\}\)/\([0-9]\{2\}\)/\([0-9]\{2\}\)$#\1\2\3#p' \
+              | while read d; do
+                  test -s "evaluations/${d:0:4}/${d:4:2}/${d:6:2}/prediction_evaluation_${d}.json" && echo "$d"
+                done \
+              | sort \
+              | tail -1)
+          fi
 
           test -n "${TARGET_DATE}"
 
