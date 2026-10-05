@@ -80,7 +80,7 @@ def main():
    motor_no=I(r.get("motor_no")) if I(r.get("motor_no")) is not None else I(P.get("motor_no"))
    boat_no=I(r.get("boat_no")) if I(r.get("boat_no")) is not None else I(P.get("boat_no"))
    rs=stat(rg[reg]);cs=stat(rc[(reg,bo)]);ms=stat(mg[(v,motor_no)]) if motor_no is not None else {};bs=stat(bg[(v,boat_no)]) if boat_no is not None else {}
-   rr[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"nat2":rs.get("top2"),"motor_win":ms.get("win"),"motor_top3":ms.get("top3"),"boat2":bs.get("top2"),"boat3":bs.get("top3"),"etime":F(L.get("exhibition_time"))})
+   rr[rid].append({"boat":bo,"finish":fi,"cw":cs.get("win"),"c2":cs.get("top2"),"c3":cs.get("top3"),"cst":cs.get("avg_st"),"grade":GRADE.get(P.get("grade","")),"nat2":rs.get("top2"),"motor_win":ms.get("win"),"motor_top3":ms.get("top3"),"boat2":bs.get("top2"),"boat3":bs.get("top3"),"etime":F(L.get("exhibition_time")),"est":F(L.get("exhibition_st_seconds")),"exhibition_course":I(L.get("exhibition_course")),"exhibition_st_flag":(L.get("exhibition_st_flag") or "").strip()})
   daily[d]=rr
   # Save one reusable, result-linked comparison dataset per date.
   # Future parameter what-if tests can use this file directly without
