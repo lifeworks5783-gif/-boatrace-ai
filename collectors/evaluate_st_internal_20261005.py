@@ -65,3 +65,5 @@ json.dump({"definition":"80 structural + 6 exhibition time fixed; only 14-point 
 with (O/"candidates.csv").open("w",newline="") as f:
  w=csv.DictWriter(f,fieldnames=out[0].keys());w.writeheader();w.writerows(out)
 print(json.dumps(out[:20],ensure_ascii=False,indent=2))
+
+# workflow trigger
