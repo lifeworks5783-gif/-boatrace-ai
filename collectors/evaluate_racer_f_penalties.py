@@ -38,3 +38,5 @@ for pen in PENS:
  out[str(pen)]={"top3_pct":round(100*total["t3"]/total["n"],2),"top1_pct":round(100*total["t1"]/total["n"],2),"exact_pct":round(100*total["exact"]/total["n"],2),"daily":daily}
 os.makedirs("evaluations/racer_f_penalties",exist_ok=True);json.dump({"definition":"Sensitivity only: subtract fixed score points from F1+ racer; exhibition F separate. Uses reusable baseline for cross-date comparison.","results":out},open("evaluations/racer_f_penalties/summary.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 print(json.dumps(out,ensure_ascii=False,indent=2))
+
+# trigger
