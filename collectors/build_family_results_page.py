@@ -303,6 +303,7 @@ def find_dates(root: Path) -> list[str]:
     for pattern, prefix in (
         ("*/*/*/formation_simulation_*.json", "formation_simulation_"),
         ("*/*/*/top3_box_simulation_*.json", "top3_box_simulation_"),
+        ("*/*/*/ai_score_simulation_*.json", "ai_score_simulation_"),
     ):
         for path in root.glob(pattern):
             date = path.stem.replace(prefix, "")
@@ -317,6 +318,7 @@ def load_day(root: Path, date: str) -> Dict[str, Dict[str, Any]]:
     return {
         "formation": load_json(folder / f"formation_simulation_{date}.json"),
         "box": load_json(folder / f"top3_box_simulation_{date}.json"),
+        "ai": load_json(folder / f"ai_score_simulation_{date}.json"),
     }
 
 
@@ -397,9 +399,11 @@ def build_page(evaluation_root: Path) -> str:
 
         formation = day["formation"]
         box = day["box"]
+        ai = day["ai"]
 
         formation_overall = overall_metrics(formation)
         box_overall = overall_metrics(box)
+        ai_overall = overall_metrics(ai)
 
         body_parts = [
             strategy_html(
@@ -412,11 +416,28 @@ def build_page(evaluation_root: Path) -> str:
                 "AI順位1〜3位の3艇を6通りの3連単BOXで購入。1レース600円固定。",
                 box_overall,
             ),
+            strategy_html(
+                "AIスコア予測",
+                "1着・2着・3着を別採点し、120通りから6・8・12点を自動選択する検証方式。",
+                ai_overall,
+            ),
         ]
 
         formation_types = find_dict(formation, TYPE_KEYS)
         if formation_types:
             section = type_cards_html("フォーメーション方式別成績", formation_types)
+            if section:
+                body_parts.append(section)
+
+        ai_points = find_dict(ai, ["by_points"])
+        if ai_points:
+            section = type_cards_html("AIスコア予測・点数別成績", ai_points)
+            if section:
+                body_parts.append(section)
+
+        ai_prediction_types = find_dict(ai, PREDICTION_TYPE_KEYS)
+        if ai_prediction_types:
+            section = type_cards_html("AIスコア予測・朝／直前別成績", ai_prediction_types)
             if section:
                 body_parts.append(section)
 
@@ -547,7 +568,7 @@ footer {{ margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1
 {body}
 <footer>
 このページは自動更新されます。<br>
-フォーメーションと3艇BOXは別戦略として個別に集計しています。<br>
+フォーメーション・3艇BOX・AIスコア予測は別戦略として個別に集計しています。<br>
 予測・検証結果は将来の結果を保証するものではありません。
 </footer>
 </div>
