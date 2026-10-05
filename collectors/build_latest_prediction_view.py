@@ -576,6 +576,104 @@ def build_formation(
     }
 
 
+
+AI_SCORE_MODEL = "ai_finish_order_score_v0_20261005"
+
+def _component01(row, key, default=0.5):
+    comps = row.get("components") or {}
+    comp = comps.get(key) or {}
+    value = to_float(comp.get("raw_score_0_1"))
+    return default if value is None else max(0.0, min(1.0, value))
+
+def build_ai_score_prediction(boats):
+    """Experimental independent finish-position scorer; keeps existing formation untouched."""
+    if len(boats) != 6:
+        return None
+
+    scored = []
+    for row in boats:
+        boat = boat_number(row)
+        overall = max(0.0, min(1.0, score_for_calculation(row) / 100.0))
+
+        # Morning components when present. Live rows expose structural/exTime/exST,
+        # so overall already carries the production 80/6/14 live adjustment.
+        course = _component01(row, "racer_course", overall)
+        grade = _component01(row, "grade", overall)
+        motor = _component01(row, "motor", overall)
+        machine = _component01(row, "boat", overall)
+        national = _component01(row, "national_top2", overall)
+        structural = _component01(row, "structural", overall)
+        ex_time = _component01(row, "exTime", overall)
+        ex_st = _component01(row, "exST", overall)
+
+        if "structural" in (row.get("components") or {}):
+            # Live: 1着はST/展示を強め、2着は構造との均衡、3着は裾を広める。
+            first = .48*structural + .10*ex_time + .22*ex_st + .20*overall
+            second = .58*structural + .08*ex_time + .14*ex_st + .20*overall
+            third = .66*structural + .07*ex_time + .07*ex_st + .20*overall
+        else:
+            # Morning: 1着はコース勝ち切り力、2着は級別/安定性、
+            # 3着はモーター・ボート・全国成績をやや厚くする初期仮説。
+            first = .35*course + .18*grade + .14*motor + .05*machine + .10*national + .18*overall
+            second = .25*course + .20*grade + .17*motor + .06*machine + .14*national + .18*overall
+            third = .18*course + .16*grade + .22*motor + .10*machine + .16*national + .18*overall
+
+        scored.append({
+            "boat": boat,
+            "first_score": round(first*100, 2),
+            "second_score": round(second*100, 2),
+            "third_score": round(third*100, 2),
+        })
+
+    by_boat = {x["boat"]: x for x in scored}
+    combos = []
+    for first, second, third in itertools.permutations(sorted(by_boat), 3):
+        a, b, d = by_boat[first], by_boat[second], by_boat[third]
+        # Geometric-style joint score penalizes a weak leg more than a simple sum.
+        joint = ((max(a["first_score"], .01)/100.0) *
+                 (max(b["second_score"], .01)/100.0) *
+                 (max(d["third_score"], .01)/100.0)) ** (1.0/3.0)
+        combos.append({
+            "combination": f"{first}-{second}-{third}",
+            "score": round(joint*100, 3),
+        })
+    combos.sort(key=lambda x: (-x["score"], x["combination"]))
+
+    # Adaptive ticket count: stop at a clear boundary among 6/8/12.
+    # Prefer fewer tickets when the leading combinations separate clearly.
+    def boundary_gap(n):
+        if len(combos) <= n:
+            return 0.0
+        return combos[n-1]["score"] - combos[n]["score"]
+
+    gaps = {6: boundary_gap(6), 8: boundary_gap(8), 12: boundary_gap(12)}
+    best_boundary = max(gaps, key=lambda n: (gaps[n], -n))
+    top_gap = combos[0]["score"] - combos[5]["score"] if len(combos) >= 6 else 0.0
+    if top_gap >= 8.0 and gaps[6] >= 0.8:
+        points = 6
+    elif gaps[8] >= 0.6:
+        points = 8
+    elif gaps[12] >= 0.5:
+        points = 12
+    else:
+        points = best_boundary
+
+    selected = combos[:points]
+    return {
+        "model_version": AI_SCORE_MODEL,
+        "status": "experimental",
+        "points": points,
+        "investment_100yen": points * 100,
+        "position_scores": sorted(scored, key=lambda x: x["boat"]),
+        "first_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["first_score"], x["boat"]))[:3]],
+        "second_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["second_score"], x["boat"]))[:4]],
+        "third_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["third_score"], x["boat"]))[:5]],
+        "boundary_gaps": {str(k): round(v, 3) for k, v in gaps.items()},
+        "combinations": selected,
+        "all_120_combinations": combos,
+        "note": "検証版。現行フォーメーション/BOXには影響せず、着順別スコアから120通りを独立採点。",
+    }
+
 def score_label(value):
     score = to_float(
         value
@@ -1056,6 +1154,9 @@ def main():
             ),
             "morning_formation": (
                 morning_formation
+            ),
+            "ai_score_prediction": (
+                build_ai_score_prediction(boats)
             ),
         }
 
