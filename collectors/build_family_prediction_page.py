@@ -335,7 +335,9 @@ def build_ai_card(race, index):
     deadline = time_label(race.get("deadline"))
     ai = race.get("ai_score_prediction") or {}
     position = ai.get("position_scores") or []
-    combos = ai.get("combinations") or []
+    combos = (ai.get("all_120_combinations") or [])[:12]
+    if not combos:
+        combos = ai.get("combinations") or []
     points = int(ai.get("points") or 0)
     score_rows = "".join(
         '<tr>'
@@ -363,7 +365,7 @@ def build_ai_card(race, index):
         </div>
         <div class="badge live">AIスコア</div>
       </div>
-      <div class="formation-title">AIスコア予測・上位8点</div>
+      <div class="formation-title">AIスコア予測・上位12点</div>
       <div class="ai-candidates">
         <div><b>1着候補</b> {"・".join(esc(x) for x in ai.get("first_candidates") or [])}</div>
         <div><b>2着候補</b> {"・".join(esc(x) for x in ai.get("second_candidates") or [])}</div>
@@ -379,7 +381,7 @@ def build_ai_card(race, index):
           </table>
         </div>
       </details>
-      <div class="ai-note">検証版。AI順位上位8点を各100円、1レース800円として独立集計します。</div>
+      <div class="ai-note">予想はAI順位上位12点まで表示。収支検証は上位8点を各100円、1レース800円として集計します。</div>
     </article>
     """
 
