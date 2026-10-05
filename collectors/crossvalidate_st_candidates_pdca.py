@@ -63,3 +63,5 @@ for name,*_ in CANDS:
 os.makedirs("evaluations/st_candidate_crossvalidation",exist_ok=True)
 json.dump({"definition":"Cross-date validation from reusable PDCA daily datasets; 80 structural + 6 exTime fixed, only ST14 internal allocation varies","dates":allout,"summary":summary},open("evaluations/st_candidate_crossvalidation/summary.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 print(json.dumps(summary,ensure_ascii=False,indent=2))
+
+# trigger
