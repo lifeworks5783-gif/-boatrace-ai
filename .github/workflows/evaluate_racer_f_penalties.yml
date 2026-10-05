@@ -1,0 +1,20 @@
+name: Racer F penalty sensitivity
+on:
+  push:
+    paths:
+      - 'collectors/evaluate_racer_f_penalties.py'
+permissions:
+  contents: write
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python collectors/evaluate_racer_f_penalties.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/racer_f_penalties/
+          git diff --cached --quiet || git commit -m "Save racer F penalty sensitivity"
+          git pull --rebase origin main
+          git push origin main
