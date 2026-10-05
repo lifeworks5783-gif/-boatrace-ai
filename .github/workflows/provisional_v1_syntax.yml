@@ -14,5 +14,5 @@ jobs:
       - run: python -m py_compile collectors/build_morning_prediction.py collectors/build_live_prediction.py
       - run: |
           grep -q 'provisional_v1_20261004_morning_40_20_20_5_15' collectors/build_morning_prediction.py
-          grep -q 'provisional_v1_20261004_live_80_6_14' collectors/build_live_prediction.py
-          echo "PROVISIONAL_V1_READY"
+          grep -q 'provisional_v2_20261006_live_80_6_personal_st_delta14' collectors/build_live_prediction.py
+          echo "PROVISIONAL_LIVE_READY"
