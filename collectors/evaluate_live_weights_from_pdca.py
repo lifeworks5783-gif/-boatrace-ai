@@ -87,21 +87,25 @@ def main():
       cfg=(tw,sw,eb,xf,rf)
       t=metrics(data[TARGET],cfg,current_orders)
       if not t["n"]:continue
-      vals=[]
-      for d in DATES[:-1]:
-       q=metrics(data[d],cfg)
-       if q["n"]:vals.append(q["top3_pct"])
-      avg=round(sum(vals)/len(vals),2) if vals else None
-      spread=round(max(vals)-min(vals),2) if vals else None
-      grid.append({"time_pct":int(tw*100),"st_pct":int(sw*100),"entry_blend":eb,"exhibition_f":xf,"racer_f_penalty":rf,"target":t,"prior5_avg_top3_pct":avg,"prior5_spread_pt":spread})
- grid.sort(key=lambda x:(-x["target"]["oo"],x["target"]["ox"],-x["target"]["top3"],-x["target"]["top1"],-(x["prior5_avg_top3_pct"] or 0),x["prior5_spread_pt"] or 999))
- # consolidate exact metric duplicates and keep meaningful Pareto-like representatives
- seen=set();cand=[]
+      grid.append({"time_pct":int(tw*100),"st_pct":int(sw*100),"entry_blend":eb,"exhibition_f":xf,"racer_f_penalty":rf,"target":t})
+ # Stage 1 uses only 10/5. Validate only the strongest unique 10/5 patterns on prior 5 days.
+ grid.sort(key=lambda x:(-x["target"]["oo"],x["target"]["ox"],-x["target"]["top3"],-x["target"]["top1"],-x["target"]["net_vs_current"]))
+ seen=set();short=[]
  for x in grid:
-  sig=(x["target"]["oo"],x["target"]["ox"],x["target"]["xo"],x["target"]["top3"],x["target"]["top1"],x["target"]["current_rescued"],x["target"]["current_broken"],x["prior5_avg_top3_pct"])
+  t=x["target"];sig=(t["oo"],t["ox"],t["xo"],t["top3"],t["top1"],t["current_rescued"],t["current_broken"])
   if sig in seen:continue
-  seen.add(sig);cand.append(x)
-  if len(cand)>=40:break
+  seen.add(sig);short.append(x)
+  if len(short)>=80:break
+ for x in short:
+  cfg=(x["time_pct"]/100,x["st_pct"]/100,x["entry_blend"],x["exhibition_f"],x["racer_f_penalty"])
+  vals=[]
+  for d in DATES[:-1]:
+   q=metrics(data[d],cfg)
+   if q["n"]:vals.append(q["top3_pct"])
+  x["prior5_avg_top3_pct"]=round(sum(vals)/len(vals),2) if vals else None
+  x["prior5_spread_pt"]=round(max(vals)-min(vals),2) if vals else None
+ short.sort(key=lambda x:(-x["target"]["oo"],x["target"]["ox"],-x["target"]["top3"],-x["target"]["top1"],-(x["prior5_avg_top3_pct"] or 0),x["prior5_spread_pt"] or 999))
+ cand=short[:40]
  current=metrics(data[TARGET],current_cfg,current_orders)
  out={"definition":{"top3":"unordered exact top3 set","exact":"ordered 1-2-3","current":"structural80 + exhibition_time6 + exhibition_st14; exhibition F neutral; racer F no separate penalty"},"current_20261005":current,"tested_patterns":len(grid),"candidates":cand}
  OUT.mkdir(parents=True,exist_ok=True)
