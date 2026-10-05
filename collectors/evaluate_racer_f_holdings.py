@@ -56,3 +56,5 @@ def conv(z):return {str(k):{"races":v["races"],"hit_pct":round(100*v["hits"]/v["
 out={"definition":"Racer-owned F in prior 90d; separate from today's exhibition F. F2+ is sparse and reference only.","boat_performance":summary,"transitions":dict(trans),"predicted_top3_fholder_count":conv(predF),"actual_top3_fholder_count":conv(actualF),"dates":days}
 os.makedirs("evaluations/racer_f_holdings",exist_ok=True);json.dump(out,open("evaluations/racer_f_holdings/summary.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 print(json.dumps(out,ensure_ascii=False,indent=2))
+
+# trigger
