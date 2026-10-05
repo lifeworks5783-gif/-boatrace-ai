@@ -9,7 +9,9 @@ def F(x):
 def I(x):
  try:return int(float(x))
  except:return None
-def V(x,default=.5):\n v=F(x); return default if v is None else v\ndef rank(vals,reverse=False):
+def V(x,default=.5):
+ v=F(x); return default if v is None else v
+def rank(vals,reverse=False):
  a=sorted(vals.items(),key=lambda z:(z[1],z[0]),reverse=reverse); n=len(a)
  return {k:(1-i/(n-1) if n>1 else .5) for i,(k,v) in enumerate(a)}
 races={}
