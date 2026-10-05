@@ -329,6 +329,60 @@ def build_card(race, index, is_completed=False):
     """
 
 
+
+def build_ai_card(race, index):
+    venue = text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
+    deadline = time_label(race.get("deadline"))
+    ai = race.get("ai_score_prediction") or {}
+    position = ai.get("position_scores") or []
+    combos = ai.get("combinations") or []
+    points = int(ai.get("points") or 0)
+    score_rows = "".join(
+        '<tr>'
+        f'<td>{esc(x.get("boat"))}号艇</td>'
+        f'<td>{esc(score_label(x.get("first_score")))}</td>'
+        f'<td>{esc(score_label(x.get("second_score")))}</td>'
+        f'<td>{esc(score_label(x.get("third_score")))}</td>'
+        '</tr>'
+        for x in position
+    )
+    combo_rows = "".join(
+        '<div class="ai-combo">'
+        f'<b>{i}位 {esc(x.get("combination"))}</b>'
+        f'<span>AI {esc(score_label(x.get("score")))}</span>'
+        '</div>'
+        for i, x in enumerate(combos, 1)
+    )
+    return f"""
+    <article class="race-card">
+      <div class="race-head">
+        <div class="race-order">{index}</div>
+        <div class="race-main">
+          <div class="deadline">{esc(deadline)}</div>
+          <div class="race-name">{esc(venue)} {esc(race.get("race"))}R</div>
+        </div>
+        <div class="badge live">AIスコア</div>
+      </div>
+      <div class="formation-title">AIスコア予測・推奨 {points}点</div>
+      <div class="ai-candidates">
+        <div><b>1着候補</b> {"・".join(esc(x) for x in ai.get("first_candidates") or [])}</div>
+        <div><b>2着候補</b> {"・".join(esc(x) for x in ai.get("second_candidates") or [])}</div>
+        <div><b>3着候補</b> {"・".join(esc(x) for x in ai.get("third_candidates") or [])}</div>
+      </div>
+      <div class="ai-combos">{combo_rows or "AI予測はまだ生成されていません。"}</div>
+      <details>
+        <summary>着順別AIスコアを見る</summary>
+        <div class="ai-table-wrap">
+          <table class="ai-table">
+            <thead><tr><th>艇</th><th>1着</th><th>2着</th><th>3着</th></tr></thead>
+            <tbody>{score_rows}</tbody>
+          </table>
+        </div>
+      </details>
+      <div class="ai-note">検証版。現行フォーメーション／BOXとは独立して記録・評価します。</div>
+    </article>
+    """
+
 def main():
     args = parse_args()
 
@@ -375,6 +429,10 @@ def main():
 
     cards = "".join(
         build_card(race, index, False)
+        for index, race in enumerate(upcoming_races, start=1)
+    )
+    ai_cards = "".join(
+        build_ai_card(race, index)
         for index, race in enumerate(upcoming_races, start=1)
     )
 
@@ -563,6 +621,49 @@ def main():
     .morning-collection-button {{
       margin-top: 4px;
     }}
+
+    .prediction-tabs {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }}
+    .prediction-tab {{
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--card);
+      color: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+    }}
+    .prediction-tab.active {{
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }}
+    .prediction-panel {{ display: none; }}
+    .prediction-panel.active {{ display: block; }}
+    .ai-candidates {{
+      display: grid;
+      gap: 5px;
+      margin: 8px 0 12px;
+      font-size: 14px;
+    }}
+    .ai-combos {{ display: grid; gap: 6px; }}
+    .ai-combo {{
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 9px;
+      background: var(--chip);
+    }}
+    .ai-table-wrap {{ overflow-x: auto; margin-top: 8px; }}
+    .ai-table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+    .ai-table th, .ai-table td {{ padding: 7px; border-bottom: 1px solid var(--line); text-align: right; }}
+    .ai-table th:first-child, .ai-table td:first-child {{ text-align: left; }}
+    .ai-note {{ margin-top: 10px; color: var(--muted); font-size: 12px; }}
 
     .notice {{
       padding: 10px 12px;
@@ -875,6 +976,11 @@ def main():
       </div>
     </div>
 
+    <div class="prediction-tabs">
+      <button class="prediction-tab active" data-tab="normal" type="button">通常予測</button>
+      <button class="prediction-tab" data-tab="ai" type="button">AIスコア予測</button>
+    </div>
+
     <div class="notice">
 
       最新予想には締切前レースだけを表示します。終了済みレースの予測データはPDCA・結果検証用として保存しています。
@@ -890,7 +996,12 @@ def main():
 
     </div>
 
-    {cards}
+    <div id="normalPredictionPanel" class="prediction-panel active">
+      {cards}
+    </div>
+    <div id="aiPredictionPanel" class="prediction-panel">
+      {ai_cards}
+    </div>
 
     <footer>
 
@@ -904,6 +1015,16 @@ def main():
 
   <script>
     (() => {{
+      const tabs = document.querySelectorAll(".prediction-tab");
+      const normalPanel = document.getElementById("normalPredictionPanel");
+      const aiPanel = document.getElementById("aiPredictionPanel");
+      tabs.forEach(tab => tab.addEventListener("click", () => {{
+        const ai = tab.dataset.tab === "ai";
+        tabs.forEach(x => x.classList.toggle("active", x === tab));
+        if (normalPanel) normalPanel.classList.toggle("active", !ai);
+        if (aiPanel) aiPanel.classList.toggle("active", ai);
+      }}));
+
       const button = document.getElementById("refreshPredictionButton");
       const status = document.getElementById("refreshStatus");
       const endpoint = "https://boatrace-family-trigger.onrender.com/trigger";
