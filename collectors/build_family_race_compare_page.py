@@ -2968,7 +2968,7 @@ TOP3整合率は、
 <div class="summary-box">
 
   <span>
-    AIスコア TOP3整合 / 完全一致 / 上位8点的中
+    AI着順別3艇一致 / AI着順完全一致 / 上位8点的中
   </span>
 
   <strong>
