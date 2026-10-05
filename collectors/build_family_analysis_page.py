@@ -9,6 +9,11 @@ import html
 import json
 
 import re
+import csv
+import io
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
+from datetime import date, timedelta
 
 from pathlib import Path
 
@@ -92,6 +97,33 @@ FACTOR_JA = {
     "motor_d30_top2": "モーター直近30日2連対率",
     "motor_d30_top3": "モーター直近30日3連対率",
 }
+
+
+VENUE_NAMES={"01":"桐生","02":"戸田","03":"江戸川","04":"平和島","05":"多摩川","06":"浜名湖","07":"蒲郡","08":"常滑","09":"津","10":"三国","11":"びわこ","12":"住之江","13":"尼崎","14":"鳴門","15":"丸亀","16":"児島","17":"宮島","18":"徳山","19":"下関","20":"若松","21":"芦屋","22":"福岡","23":"唐津","24":"大村"}
+PUBLIC_RESULTS_BASE="https://raw.githubusercontent.com/BoatraceCSV/boatracecsv.github.io/main/data/results/realtime"
+TECHNIQUES=("逃げ","差し","まくり","まくり差し","抜き","その他")
+def venue_technique_summary(days=90):
+ counts={x:{k:0 for k in TECHNIQUES} for x in VENUE_NAMES}; totals={x:0 for x in VENUE_NAMES}; end=date.today()-timedelta(days=1); cur=end-timedelta(days=days-1)
+ while cur<=end:
+  try:
+   req=Request(f"{PUBLIC_RESULTS_BASE}/{cur:%Y/%m/%d}.csv",headers={"User-Agent":"boatrace-ai-family-view/1.0"}); text=urlopen(req,timeout=12).read().decode("utf-8-sig"); rows=list(csv.DictReader(io.StringIO(text)))
+  except Exception: cur+=timedelta(days=1); continue
+  latest={}
+  for row in rows:
+   rc=str(row.get("レースコード") or row.get("race_code") or "").strip()
+   if len(rc)>=12: latest[rc[:12]]=row
+  for rc,row in latest.items():
+   code=rc[8:10]; tech=str(row.get("決まり手") or "").strip()
+   if code in counts and tech:
+    key=tech if tech in TECHNIQUES[:-1] else "その他"; counts[code][key]+=1; totals[code]+=1
+  cur+=timedelta(days=1)
+ return counts,totals
+
+def venue_technique_html():
+ counts,totals=venue_technique_summary(); rows=[]
+ for code,name in VENUE_NAMES.items():
+  n=totals[code]; v=counts[code]; pct=lambda k: "—" if not n else f"{100*v[k]/n:.1f}%"; rows.append([html.escape(name),fmt_int(n),pct("逃げ"),pct("差し"),pct("まくり"),pct("まくり差し"),pct("抜き"),pct("その他")])
+ return '<section class="section-card"><div class="title-row"><div><h2>24場・決まり手特性</h2><p class="section-note">直近90日分の取得可能な結果から、会場ごとの決まり手構成比を自動集計します。R数が少ない会場は参考値です。</p></div>'+badge("自動集計","good")+'</div>'+table(["会場","R数","逃げ","差し","まくり","まくり差し","抜き","その他"],rows)+'</section>'
 
 def factor_ja(value: Any) -> str:
     key = str(value or "—")
@@ -3182,7 +3214,7 @@ def build_page(
             '</section>'
         )
 
-        # 2. 朝→直前の順で、実際のスコア診断を見る。
+        body.append(venue_technique_html())\n\n        # 2. 朝→直前の順で、実際のスコア診断を見る。
         morning = (
 
             stages.get(
