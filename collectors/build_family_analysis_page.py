@@ -3166,6 +3166,22 @@ def build_page(
         if current_pdca:
             body.append(current_pdca)
 
+        body.append(
+            '<section class="section-card">'
+            '<div class="title-row"><div><h2>選手戦法 × 会場適性</h2>'
+            '<p class="section-note">選手の得意な決まり手と、会場・進入コースで出やすい決まり手が一致したときの成績を継続分析します。</p></div>'
+            + badge("継続収集中", "warn")
+            + '</div>'
+            '<div class="logic-grid">'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>逃げ適性</span><b>収集中</b></div><div class="logic-chip-detail">選手の逃げ実績 × 会場の逃げ発生率 × 進入コース</div></div>'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>差し適性</span><b>収集中</b></div><div class="logic-chip-detail">選手の差し実績 × 会場の差し発生率 × 進入コース</div></div>'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>まくり適性</span><b>収集中</b></div><div class="logic-chip-detail">選手のまくり実績 × 会場のまくり発生率 × 進入コース</div></div>'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>まくり差し適性</span><b>収集中</b></div><div class="logic-chip-detail">選手のまくり差し実績 × 会場のまくり差し発生率 × 進入コース</div></div>'
+            '</div>'
+            '<div class="policy-note"><b>重要検証項目：</b>現時点では本番スコアへ加点・減点しません。母数を蓄積し、戦法と会場特性が一致した場合の1着率・TOP3率が安定して高いかを確認後、適性一致補正を検討します。</div>'
+            '</section>'
+        )
+
         # 2. 朝→直前の順で、実際のスコア診断を見る。
         morning = (
 
