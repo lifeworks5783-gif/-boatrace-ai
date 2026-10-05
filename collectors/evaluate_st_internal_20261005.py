@@ -12,7 +12,7 @@ def I(x):
 def V(x,default=.5):
  v=F(x); return default if v is None else v
 def rank(vals,reverse=False):
- a=sorted(vals.items(),key=lambda z:(z[1],z[0]),reverse=reverse); n=len(a)
+ a=sorted(vals.items(),key=lambda z:((z[1] if reverse else -z[1]),z[0])); n=len(a)
  return {k:(1-i/(n-1) if n>1 else .5) for i,(k,v) in enumerate(a)}
 races={}
 for r in rows:races.setdefault(r["race_id"],[]).append(r)
