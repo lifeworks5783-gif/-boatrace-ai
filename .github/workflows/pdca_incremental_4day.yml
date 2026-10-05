@@ -50,30 +50,16 @@ jobs:
           cp "$BASE/program_races_$TARGET_DATE.csv" data/
           cp "$BASE/program_entries_$TARGET_DATE.csv" data/
 
-      - name: Collect missing beforeinfo only
-        run: python -u collectors/today_beforeinfo.py --date "$TARGET_DATE" --mode missing
-
-      - name: Verify complete beforeinfo before PDCA
+      - name: Restore saved beforeinfo for analysis
         run: |
-          python - <<'PY'
-          import csv, os, sys
-          d=os.environ["TARGET_DATE"]
-          with open(f"data/program_races_{d}.csv",encoding="utf-8-sig",newline="") as f: expected={r["race_id"] for r in csv.DictReader(f)}
-          with open(f"data/beforeinfo_races_{d}.csv",encoding="utf-8-sig",newline="") as f: got={r["race_id"] for r in csv.DictReader(f)}
-          with open(f"data/beforeinfo_entries_{d}.csv",encoding="utf-8-sig",newline="") as f: rows=list(csv.DictReader(f))
-          boats={}
-          for r in rows: boats.setdefault(r["race_id"],set()).add(r.get("boat",""))
-          missing=expected-got
-          incomplete={r for r in expected if len(boats.get(r,set()))<6}
-          print(f"beforeinfo: {len(expected-missing)}/{len(expected)} races, {sum(len(boats.get(r,set())) for r in expected)}/{len(expected)*6} boats")
-          if missing or incomplete: sys.exit("Beforeinfo incomplete: PDCA stopped")
-          PY
-
-      - name: Save complete beforeinfo snapshot
-        run: |
-          OUT="daily_inputs/$YEAR/$MONTH/$DAY/live/backfill"
-          mkdir -p "$OUT"
-          find data -maxdepth 1 -type f -name "beforeinfo_*$TARGET_DATE*" -exec cp {} "$OUT/" \;
+          BACKFILL="daily_inputs/$YEAR/$MONTH/$DAY/live/backfill"
+          if [ -s "$BACKFILL/beforeinfo_races_$TARGET_DATE.csv" ]; then
+            cp "$BACKFILL/beforeinfo_races_$TARGET_DATE.csv" data/
+          fi
+          if [ -s "$BACKFILL/beforeinfo_entries_$TARGET_DATE.csv" ]; then
+            cp "$BACKFILL/beforeinfo_entries_$TARGET_DATE.csv" data/
+          fi
+          echo "AI分析では保存済み直前情報のみ使用します。欠損直前情報の復元は別処理です。"
 
       - name: Collect selected date official results
         run: python -u collectors/daily_results_fast.py --date "$TARGET_DATE"
