@@ -4041,7 +4041,7 @@ tr:last-child td {{
 
 }}
 
-.pdca-minutes pre {
+.pdca-minutes pre {{
   margin: 0;
   padding: 12px 14px;
   border-radius: 10px;
@@ -4052,7 +4052,7 @@ tr:last-child td {{
   font-family: inherit;
   font-size: 13px;
   line-height: 1.7;
-}
+}}
 
 .empty {{
 
