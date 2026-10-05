@@ -577,7 +577,43 @@ def build_formation(
 
 
 
-AI_SCORE_MODEL = "ai_finish_order_score_v0_20261005"
+AI_SCORE_CONFIG_DIR = Path("config/ai_score")
+
+DEFAULT_AI_SCORE_CONFIG = {
+    "schema_version": 1,
+    "model_version": "ai_finish_order_score_v0_20261005",
+    "effective_date": "20261005",
+    "status": "experimental",
+    "purchase_points": 8,
+    "display_points": 12,
+    "joint_method": "geometric_mean",
+    "morning": {
+        "first": {"racer_course": .35, "grade": .18, "motor": .14, "boat": .05, "national_top2": .10, "overall": .18},
+        "second": {"racer_course": .25, "grade": .20, "motor": .17, "boat": .06, "national_top2": .14, "overall": .18},
+        "third": {"racer_course": .18, "grade": .16, "motor": .22, "boat": .10, "national_top2": .16, "overall": .18},
+    },
+    "live": {
+        "first": {"structural": .48, "exTime": .10, "exST": .22, "overall": .20},
+        "second": {"structural": .58, "exTime": .08, "exST": .14, "overall": .20},
+        "third": {"structural": .66, "exTime": .07, "exST": .07, "overall": .20},
+    },
+}
+
+
+def load_ai_score_config(target_date):
+    """Load the frozen daily AI-score logic. Never infer weights from race results."""
+    path = AI_SCORE_CONFIG_DIR / f"{target_date}.json"
+    if path.is_file():
+        config = json.loads(path.read_text(encoding="utf-8"))
+        source = str(path)
+    else:
+        config = json.loads(json.dumps(DEFAULT_AI_SCORE_CONFIG))
+        config["effective_date"] = target_date
+        config["model_version"] = f"ai_finish_order_score_fallback_{target_date}"
+        source = "built_in_fallback"
+    config["_source"] = source
+    return config
+
 
 def _component01(row, key, default=0.5):
     comps = row.get("components") or {}
@@ -585,8 +621,16 @@ def _component01(row, key, default=0.5):
     value = to_float(comp.get("raw_score_0_1"))
     return default if value is None else max(0.0, min(1.0, value))
 
-def build_ai_score_prediction(boats):
-    """Experimental independent finish-position scorer; keeps existing formation untouched."""
+
+def _weighted_position_score(values, weights):
+    total = 0.0
+    for key, weight in weights.items():
+        total += float(weight) * values.get(key, 0.5)
+    return total
+
+
+def build_ai_score_prediction(boats, ai_config):
+    """Independent finish-position scorer driven only by the frozen daily config."""
     if len(boats) != 6:
         return None
 
@@ -594,69 +638,50 @@ def build_ai_score_prediction(boats):
     for row in boats:
         boat = boat_number(row)
         overall = max(0.0, min(1.0, score_for_calculation(row) / 100.0))
-
-        # Morning components when present. Live rows expose structural/exTime/exST,
-        # so overall already carries the production 80/6/14 live adjustment.
-        course = _component01(row, "racer_course", overall)
-        grade = _component01(row, "grade", overall)
-        motor = _component01(row, "motor", overall)
-        machine = _component01(row, "boat", overall)
-        national = _component01(row, "national_top2", overall)
-        structural = _component01(row, "structural", overall)
-        ex_time = _component01(row, "exTime", overall)
-        ex_st = _component01(row, "exST", overall)
-
-        if "structural" in (row.get("components") or {}):
-            # Live: 1着はST/展示を強め、2着は構造との均衡、3着は裾を広める。
-            first = .48*structural + .10*ex_time + .22*ex_st + .20*overall
-            second = .58*structural + .08*ex_time + .14*ex_st + .20*overall
-            third = .66*structural + .07*ex_time + .07*ex_st + .20*overall
-        else:
-            # Morning: 1着はコース勝ち切り力、2着は級別/安定性、
-            # 3着はモーター・ボート・全国成績をやや厚くする初期仮説。
-            first = .35*course + .18*grade + .14*motor + .05*machine + .10*national + .18*overall
-            second = .25*course + .20*grade + .17*motor + .06*machine + .14*national + .18*overall
-            third = .18*course + .16*grade + .22*motor + .10*machine + .16*national + .18*overall
-
-        scored.append({
-            "boat": boat,
-            "first_score": round(first*100, 2),
-            "second_score": round(second*100, 2),
-            "third_score": round(third*100, 2),
-        })
+        values = {
+            "racer_course": _component01(row, "racer_course", overall),
+            "grade": _component01(row, "grade", overall),
+            "motor": _component01(row, "motor", overall),
+            "boat": _component01(row, "boat", overall),
+            "national_top2": _component01(row, "national_top2", overall),
+            "structural": _component01(row, "structural", overall),
+            "exTime": _component01(row, "exTime", overall),
+            "exST": _component01(row, "exST", overall),
+            "overall": overall,
+        }
+        stage = "live" if "structural" in (row.get("components") or {}) else "morning"
+        weights = ai_config[stage]
+        first = _weighted_position_score(values, weights["first"])
+        second = _weighted_position_score(values, weights["second"])
+        third = _weighted_position_score(values, weights["third"])
+        scored.append({"boat": boat, "first_score": round(first*100,2), "second_score": round(second*100,2), "third_score": round(third*100,2)})
 
     by_boat = {x["boat"]: x for x in scored}
     combos = []
     for first, second, third in itertools.permutations(sorted(by_boat), 3):
-        a, b, d = by_boat[first], by_boat[second], by_boat[third]
-        # Geometric-style joint score penalizes a weak leg more than a simple sum.
-        joint = ((max(a["first_score"], .01)/100.0) *
-                 (max(b["second_score"], .01)/100.0) *
-                 (max(d["third_score"], .01)/100.0)) ** (1.0/3.0)
-        combos.append({
-            "combination": f"{first}-{second}-{third}",
-            "score": round(joint*100, 3),
-        })
-    combos.sort(key=lambda x: (-x["score"], x["combination"]))
-
-    # AIスコア予測は検証条件を固定するため、常に上位8点を採用する。
-    # 1点100円・1レース800円で収支を継続比較する。
-    points = 8
-
-    selected = combos[:points]
+        a,b,d = by_boat[first],by_boat[second],by_boat[third]
+        joint=((max(a["first_score"],.01)/100)*(max(b["second_score"],.01)/100)*(max(d["third_score"],.01)/100))**(1/3)
+        combos.append({"combination":f"{first}-{second}-{third}","score":round(joint*100,3)})
+    combos.sort(key=lambda x:(-x["score"],x["combination"]))
+    points=int(ai_config.get("purchase_points",8))
+    selected=combos[:points]
+    frozen={k:v for k,v in ai_config.items() if not k.startswith("_")}
     return {
-        "model_version": AI_SCORE_MODEL,
-        "status": "experimental",
+        "model_version": ai_config["model_version"],
+        "logic_effective_date": ai_config.get("effective_date"),
+        "logic_config_source": ai_config.get("_source"),
+        "logic_snapshot": frozen,
+        "status": ai_config.get("status","experimental"),
         "points": points,
-        "investment_100yen": points * 100,
-        "position_scores": sorted(scored, key=lambda x: x["boat"]),
-        "first_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["first_score"], x["boat"]))[:3]],
-        "second_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["second_score"], x["boat"]))[:4]],
-        "third_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["third_score"], x["boat"]))[:5]],
+        "investment_100yen": points*100,
+        "position_scores": sorted(scored,key=lambda x:x["boat"]),
+        "first_candidates":[x["boat"] for x in sorted(scored,key=lambda x:(-x["first_score"],x["boat"]))[:3]],
+        "second_candidates":[x["boat"] for x in sorted(scored,key=lambda x:(-x["second_score"],x["boat"]))[:4]],
+        "third_candidates":[x["boat"] for x in sorted(scored,key=lambda x:(-x["third_score"],x["boat"]))[:5]],
         "boundary_gaps": {},
         "combinations": selected,
         "all_120_combinations": combos,
-        "note": "検証版。現行フォーメーション/BOXには影響せず、着順別スコアから120通りを独立採点し上位8点を採用。",
+        "note":"通常予測/BOXから独立した日別固定ロジック。使用係数はlogic_snapshotへ凍結保存。",
     }
 
 def score_label(value):
@@ -930,6 +955,9 @@ def main():
         args.now
     )
 
+    ai_score_config = load_ai_score_config(target_date)
+    print("AIスコア日別ロジック:", ai_score_config.get("model_version"), ai_score_config.get("_source"))
+
     datetime.strptime(
         target_date,
         "%Y%m%d",
@@ -1141,7 +1169,7 @@ def main():
                 morning_formation
             ),
             "ai_score_prediction": (
-                build_ai_score_prediction(boats)
+                build_ai_score_prediction(boats, ai_score_config)
             ),
         }
 
