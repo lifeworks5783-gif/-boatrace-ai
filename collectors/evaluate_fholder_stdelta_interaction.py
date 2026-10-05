@@ -63,3 +63,5 @@ desc={g:{**v,"win_pct":round(100*v["wins"]/v["n"],2),"top3_pct":round(100*v["top
 out={"definition":"Current provisional V2 baseline reconstructed as 80 structural + 6 exTime + 14 personal ST delta (using daily course avg ST proxy available in PDCA dataset); extra penalty only when racer F90>=1 and exhibition ST is slower than own average by threshold.","baseline":base,"interaction_groups":desc,"candidates":res}
 os.makedirs("evaluations/fholder_stdelta_interaction",exist_ok=True);json.dump(out,open("evaluations/fholder_stdelta_interaction/summary.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 print(json.dumps({"baseline":base,"groups":desc,"top15":res[:15]},ensure_ascii=False,indent=2))
+
+# trigger
