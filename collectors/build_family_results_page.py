@@ -222,6 +222,42 @@ def strategy_html(title: str, subtitle: str, metrics: Dict[str, Any]) -> str:
     )
 
 
+def ai_alignment_html(payload: Dict[str, Any]) -> str:
+    if not payload:
+        return ""
+
+    overall = find_dict(payload, FORMATION_KEYS) or payload
+    races = get_value(overall, ["races", "race_count", "total_races"])
+    top3_matches = get_value(overall, ["top3_matches"])
+    exact_matches = get_value(overall, ["exact_matches"])
+    top3_rate = get_value(overall, ["top3_alignment_rate"])
+    exact_rate = get_value(overall, ["exact_alignment_rate"])
+
+    if top3_rate is None:
+        top3_rate = calc_rate(top3_matches, races)
+    if exact_rate is None:
+        exact_rate = calc_rate(exact_matches, races)
+
+    cards = [
+        metric_card("対象レース", fmt_count(races)),
+        metric_card("TOP3整合率", fmt_percent(top3_rate), f"{fmt_count(top3_matches)} / {fmt_count(races)}"),
+        metric_card("完全一致率", fmt_percent(exact_rate), f"{fmt_count(exact_matches)} / {fmt_count(races)}"),
+    ]
+
+    return (
+        '<section class="section-card">'
+        "<h2>AIスコア予測・結果成績</h2>"
+        '<div class="section-note">'
+        "TOP3整合率＝AIスコア最上位予測の3艇と実着1〜3着が順不同で一致。"
+        "完全一致率＝1〜3着の順番まで一致。買い目的中率・回収率とは別指標です。"
+        "</div>"
+        '<div class="metric-grid">'
+        + "".join(cards)
+        + "</div>"
+        "</section>"
+    )
+
+
 def comparison_html(
     formation_metrics: Dict[str, Any],
     box_metrics: Dict[str, Any],
@@ -422,6 +458,10 @@ def build_page(evaluation_root: Path) -> str:
                 ai_overall,
             ),
         ]
+
+        ai_alignment = ai_alignment_html(ai)
+        if ai_alignment:
+            body_parts.append(ai_alignment)
 
         formation_types = find_dict(formation, TYPE_KEYS)
         if formation_types:
