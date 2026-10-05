@@ -35,8 +35,10 @@ def delta_score(est,avg,scale):
 base={}
 for rid,rs in races.items():
  if len(rs)!=6:continue
- actual=sorted(rs,key=lambda r:(I(r["finish"]) if I(r["finish"]) else 99,I(r["boat"])))
- aset={I(x["boat"]) for x in actual[:3]}
+ valid=[r for r in rs if I(r["finish"]) in (1,2,3)]
+ if len(valid)!=3:continue
+ actual=sorted(valid,key=lambda r:(I(r["finish"]),I(r["boat"])))
+ aset={I(x["boat"]) for x in actual}
  ms=structural(rs,False); ls=structural(rs,True)
  morning=sorted(ms,key=lambda b:(-ms[b],b))
  tr=rank({I(r["boat"]):F(r["etime"]) for r in rs if F(r["etime"]) is not None})
