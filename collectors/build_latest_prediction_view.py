@@ -653,7 +653,7 @@ def build_ai_score_prediction(boats):
         "first_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["first_score"], x["boat"]))[:3]],
         "second_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["second_score"], x["boat"]))[:4]],
         "third_candidates": [x["boat"] for x in sorted(scored, key=lambda x: (-x["third_score"], x["boat"]))[:5]],
-        "boundary_gaps": {str(k): round(v, 3) for k, v in gaps.items()},
+        "boundary_gaps": {},
         "combinations": selected,
         "all_120_combinations": combos,
         "note": "検証版。現行フォーメーション/BOXには影響せず、着順別スコアから120通りを独立採点し上位8点を採用。",
