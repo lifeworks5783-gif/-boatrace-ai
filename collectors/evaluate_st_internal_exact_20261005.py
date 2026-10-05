@@ -59,3 +59,5 @@ json.dump({"definition":"10/5 saved production live score; remove only current 1
 with open("evaluations/st_internal_exact_20261005/candidates.csv","w",encoding="utf-8",newline="") as f:
  w=csv.DictWriter(f,fieldnames=out[0].keys());w.writeheader();w.writerows(out)
 print(json.dumps(out[:25],ensure_ascii=False,indent=2))
+
+# trigger
