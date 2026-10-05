@@ -212,6 +212,17 @@ jobs:
           python -u collectors/evaluate_predictions.py \
             --date "${TARGET_DATE}"
 
+      - name: AIスコア予測を答え合わせ
+        run: |
+          echo "========================================"
+          echo "AIスコア予測・着順別120通りの答え合わせ"
+          echo "========================================"
+          python -u collectors/evaluate_ai_score_prediction.py \
+            --date "${TARGET_DATE}"
+          test -s "${EVAL_DIR}/ai_score_simulation_${TARGET_DATE}.json"
+          test -s "${EVAL_DIR}/ai_score_simulation_${TARGET_DATE}.csv"
+          echo "AIスコア予測評価: PASS"
+
       - name: スコア構成要素を答え合わせ
         run: |
           echo "========================================"
@@ -269,6 +280,7 @@ jobs:
             "${EVAL_DIR}/prediction_evaluation_${TARGET_DATE}.json"
             "${EVAL_DIR}/formation_simulation_${TARGET_DATE}.json"
             "${EVAL_DIR}/top3_box_simulation_${TARGET_DATE}.json"
+            "${EVAL_DIR}/ai_score_simulation_${TARGET_DATE}.json"
             "${EVAL_DIR}/score_component_analysis_${TARGET_DATE}.json"
             "${EVAL_DIR}/live_factor_analysis_${TARGET_DATE}.json"
             "evaluations/latest_pdca.json"
@@ -411,6 +423,7 @@ jobs:
           echo "予測総合評価: PASS"
           echo "フォーメーション評価: PASS"
           echo "上位3艇BOX評価: PASS"
+          echo "AIスコア予測評価: PASS"
           echo "スコア構成要素分析: PASS"
           echo "直前要素分析: PASS"
           echo "直近7日PDCA: PASS"
