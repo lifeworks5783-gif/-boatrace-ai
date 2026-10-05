@@ -20,12 +20,15 @@ def load(p):
 def bucket(): return {"races":0,"hits":0,"points":0,"investment":0,"return":0,"top3_matches":0,"exact_matches":0}
 def summary(b):
     return {**b,
-      "hit_rate": round(b["hits"]/b["races"],5) if b["races"] else None,\n      "top3_alignment_rate": round(b["top3_matches"]/b["races"],5) if b["races"] else None,\n      "exact_alignment_rate": round(b["exact_matches"]/b["races"],5) if b["races"] else None,
+      "hit_rate": round(b["hits"]/b["races"],5) if b["races"] else None,
+      "top3_alignment_rate": round(b["top3_matches"]/b["races"],5) if b["races"] else None,
+      "exact_alignment_rate": round(b["exact_matches"]/b["races"],5) if b["races"] else None,
       "average_points_per_race": round(b["points"]/b["races"],3) if b["races"] else None,
       "profit":b["return"]-b["investment"],
       "recovery_rate_pct":round(b["return"]/b["investment"]*100,2) if b["investment"] else None}
-def add(b,hit,pts,ret):
+def add(b,hit,pts,ret,top3_match=0,exact_match=0):
     b["races"]+=1;b["hits"]+=hit;b["points"]+=pts;b["investment"]+=pts*BET;b["return"]+=ret
+    b["top3_matches"]+=top3_match;b["exact_matches"]+=exact_match
 
 def actual(date):
     base=Path("archive")/date[:4]/date[4:6]/date[6:8]
@@ -61,7 +64,11 @@ def main():
         names=[text(x.get("combination")) if isinstance(x,dict) else text(x) for x in combos]
         pts=len(names); hit=int(t["trifecta"] in names); ret=t["pay"] if hit else 0
         stage=text(race.get("prediction_type")) or "不明"
-        add(total,hit,pts,ret);add(by_points[str(pts)],hit,pts,ret);add(by_stage[stage],hit,pts,ret)
+        predicted_order=names[0].split("-") if names else []
+        actual_order=t["trifecta"].split("-")
+        top3_match=int(len(predicted_order)==3 and set(predicted_order)==set(actual_order))
+        exact_match=int(predicted_order==actual_order)
+        add(total,hit,pts,ret,top3_match,exact_match);add(by_points[str(pts)],hit,pts,ret,top3_match,exact_match);add(by_stage[stage],hit,pts,ret,top3_match,exact_match)
         all120=ai.get("all_120_combinations") or []
         actual_rank=next((i for i,x in enumerate(all120,1) if text(x.get("combination"))==t["trifecta"]),None)
         details.append({"race_id":race.get("race_id"),"venue_name":race.get("venue_name"),"race":race.get("race"),
