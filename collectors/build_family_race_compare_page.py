@@ -1823,12 +1823,17 @@ def ai_score_result_html(prediction, trifecta, payout):
     status = '<span class="hit-status">的中</span>' if hit else '<span class="miss-status">不的中</span>'
 
     return f"""
-    <div class="simulation-box ai-result-box">
-      <div class="simulation-title">AIスコア予測・上位12点</div>
-      <div class="simulation-meta">表示12点 ／ 収支検証は上位8点・各100円 ／ 投資 {investment:,}円 ／ {status}</div>
-      <div class="ai-result-list">{''.join(rows)}</div>
-      <div class="simulation-money">払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b></div>
-    </div>
+    <details class="simulation-box ai-result-box">
+      <summary class="ai-result-summary">
+        <span class="simulation-title">AIスコア予測を見る</span>
+        <span class="ai-result-summary-meta">上位12点 ／ {status}</span>
+      </summary>
+      <div class="ai-result-body">
+        <div class="simulation-meta">表示12点 ／ 収支検証は上位8点・各100円 ／ 投資 {investment:,}円</div>
+        <div class="ai-result-list">{''.join(rows)}</div>
+        <div class="simulation-money">払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b></div>
+      </div>
+    </details>
     """
 
 
@@ -2641,6 +2646,37 @@ details.all-scores summary {{
 }}
 .ai-result-box {{
   margin-bottom:12px;
+}}
+.ai-result-summary {{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  list-style:none;
+  user-select:none;
+}}
+.ai-result-summary::-webkit-details-marker {{
+  display:none;
+}}
+.ai-result-summary::after {{
+  content:"＋";
+  flex:0 0 auto;
+  font-size:18px;
+  font-weight:900;
+  color:var(--blue);
+}}
+.ai-result-box[open] .ai-result-summary::after {{
+  content:"－";
+}}
+.ai-result-summary-meta {{
+  margin-left:auto;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+}}
+.ai-result-body {{
+  padding-top:6px;
 }}
 
 .money-grid {{
