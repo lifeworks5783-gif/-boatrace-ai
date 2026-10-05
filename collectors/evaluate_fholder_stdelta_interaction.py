@@ -46,7 +46,7 @@ def evalone(th,pen):
   pred=sorted(sc,key=lambda b:(-sc[b],b));n+=1;t3+=set(pred[:3])==aset;t1+=pred[0]==winner;exact+=pred[:3]==aorder
   days[d][0]+=1;days[d][1]+=set(pred[:3])==aset;days[d][2]+=pred[0]==winner
  return {"threshold":th,"penalty":pen,"n":n,"triggered_boats":triggered,"top3_pct":round(100*t3/n,2),"top1_pct":round(100*t1/n,2),"exact_pct":round(100*exact/n,2),"daily":{d:{"top3_pct":round(100*v[1]/v[0],2),"top1_pct":round(100*v[2]/v[0],2)} for d,v in days.items()}}
-base=evalone(999,0)
+baseline_result=evalone(999,0)
 res=[evalone(t,p) for t in TH for p in PEN]
 res.sort(key=lambda x:(-x["top3_pct"],-x["top1_pct"],-x["exact_pct"]))
 # descriptive interaction groups, no penalty
@@ -60,7 +60,7 @@ for d,aset,winner,aorder,boats in prepared:
   else:g="F1_near_avg"
   groups[g]["n"]+=1;groups[g]["wins"]+=b==winner;groups[g]["top3"]+=b in aset
 desc={g:{**v,"win_pct":round(100*v["wins"]/v["n"],2),"top3_pct":round(100*v["top3"]/v["n"],2)} for g,v in groups.items()}
-out={"definition":"Current provisional V2 baseline reconstructed as 80 structural + 6 exTime + 14 personal ST delta (using daily course avg ST proxy available in PDCA dataset); extra penalty only when racer F90>=1 and exhibition ST is slower than own average by threshold.","baseline":base,"interaction_groups":desc,"candidates":res}
+out={"definition":"Current provisional V2 baseline reconstructed as 80 structural + 6 exTime + 14 personal ST delta (using daily course avg ST proxy available in PDCA dataset); extra penalty only when racer F90>=1 and exhibition ST is slower than own average by threshold.","baseline":baseline_result,"interaction_groups":desc,"candidates":res}
 os.makedirs("evaluations/fholder_stdelta_interaction",exist_ok=True);json.dump(out,open("evaluations/fholder_stdelta_interaction/summary.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 print(json.dumps({"baseline":base,"groups":desc,"top15":res[:15]},ensure_ascii=False,indent=2))
 
