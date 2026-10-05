@@ -17,12 +17,16 @@ def rank(vals,reverse=False):
 races={}
 for r in rows:races.setdefault(r["race_id"],[]).append(r)
 def structural(rs,live):
- vals={}
- for r in rs:
-  b=I(r["boat"])
-  course=.16*V(r["lw" if live else "cw"])+.08*V(r["l2" if live else "c2"])+.12*V(r["l3" if live else "c3"])+.04*(1-V(r["lst" if live else "cst"],.15)/.3)
-  vals[b]=course+.20*V(r["grade"])+.15*V(r["nat2"])+.08*V(r["motor_win"])+.12*V(r["motor_top3"])+.025*V(r["boat2"])+.025*V(r["boat3"])
- return vals
+ keys=[("lw" if live else "cw",False),("l2" if live else "c2",False),("l3" if live else "c3",False),("lst" if live else "cst",True),("grade",False),("nat2",False),("motor_win",False),("motor_top3",False),("boat2",False),("boat3",False)]
+ maps={}
+ for k,rev in keys:
+  vals={I(r["boat"]):F(r[k]) for r in rs if F(r[k]) is not None}
+  maps[k]=rank(vals,rev)
+ def rv(k,b): return maps[k].get(b,.5)
+ return {I(r["boat"]):
+  .16*rv(keys[0][0],I(r["boat"]))+.08*rv(keys[1][0],I(r["boat"]))+.12*rv(keys[2][0],I(r["boat"]))+.04*rv(keys[3][0],I(r["boat"]))+
+  .20*rv("grade",I(r["boat"]))+.15*rv("nat2",I(r["boat"]))+.08*rv("motor_win",I(r["boat"]))+.12*rv("motor_top3",I(r["boat"]))+
+  .025*rv("boat2",I(r["boat"]))+.025*rv("boat3",I(r["boat"])) for r in rs}
 def delta_score(est,avg,scale):
  if est is None or avg is None:return .5
  d=est-avg
