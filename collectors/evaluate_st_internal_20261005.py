@@ -18,8 +18,8 @@ def structural(rs,live):
  vals={}
  for r in rs:
   b=I(r["boat"])
-  course=.16*F(r["lw" if live else "cw"])+.08*F(r["l2" if live else "c2"])+.12*F(r["l3" if live else "c3"])+.04*(1-F(r["lst" if live else "cst"])/.3 if F(r["lst" if live else "cst"]) is not None else .5)
-  vals[b]=course+.20*F(r["grade"])+.15*F(r["nat2"])+.08*F(r["motor_win"])+.12*F(r["motor_top3"])+.025*F(r["boat2"])+.025*F(r["boat3"])
+  course=.16*V(r["lw" if live else "cw"])+.08*V(r["l2" if live else "c2"])+.12*V(r["l3" if live else "c3"])+.04*(1-V(r["lst" if live else "cst"],.15)/.3)
+  vals[b]=course+.20*V(r["grade"])+.15*V(r["nat2"])+.08*V(r["motor_win"])+.12*V(r["motor_top3"])+.025*V(r["boat2"])+.025*V(r["boat3"])
  return vals
 def delta_score(est,avg,scale):
  if est is None or avg is None:return .5
