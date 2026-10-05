@@ -623,6 +623,30 @@ def strategy_html(
 
     )
 
+    ai_score = (
+
+        (
+
+            strategy.get(
+
+                "ai_score"
+
+            )
+
+            or {}
+
+        )
+
+        .get(
+
+            "overall"
+
+        )
+
+        or {}
+
+    )
+
     rows = [
 
         [
@@ -818,6 +842,8 @@ def strategy_html(
             "フォーメーション",
 
             "上位3艇BOX",
+
+            "AIスコア予測",
 
         ],
 
