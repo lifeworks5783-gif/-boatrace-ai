@@ -61,7 +61,7 @@ for rw,dw in splits:
      scores[b]=.80*ls[b]+.06*tr.get(b,.5)+(rw/100)*rankv+(dw/100)*deltav
     pred=sorted(scores,key=lambda b:(-scores[b],b)); ph=set(pred[:3])==aset
     n+=1;t3+=ph;t1+=pred[0]==winner
-    actual_order=[I(x["boat"]) for x in sorted(rs,key=lambda r:(I(r["finish"]) if I(r["finish"]) else 99,I(r["boat"])))[:3]]
+    actual_order=[I(x["boat"]) for x in sorted([z for z in rs if I(z["finish"]) in (1,2,3)],key=lambda r:(I(r["finish"]),I(r["boat"])))]
     exact+=pred[:3]==actual_order
     if mh and ph:oo+=1
     elif mh:ox+=1
