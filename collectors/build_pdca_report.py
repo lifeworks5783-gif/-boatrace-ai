@@ -3180,6 +3180,14 @@ def main() -> int:
 
     )
 
+    ai_score = aggregate_strategy(
+
+        dates,
+
+        "ai_score_simulation",
+
+    )
+
     quality = (
 
         aggregate_prediction_quality(
@@ -3402,6 +3410,8 @@ def main() -> int:
 
             "top3_box": top3_box,
 
+            "ai_score": ai_score,
+
         },
 
         (
@@ -3560,7 +3570,7 @@ def main() -> int:
 
         "",
 
-        "## 1. 買い方2戦略の累計",
+        "## 1. 買い方3戦略の累計",
 
         "",
 
@@ -3586,6 +3596,16 @@ def main() -> int:
 
     )
 
+    ai_total = (
+
+        ai_score[
+
+            "overall"
+
+        ]
+
+    )
+
     lines += markdown_table(
 
         [
@@ -3595,6 +3615,8 @@ def main() -> int:
             "フォーメーション",
 
             "上位3艇BOX",
+
+            "AIスコア予測",
 
         ],
 
@@ -3616,6 +3638,7 @@ def main() -> int:
 
                 ],
 
+                ai_total["races"],
             ],
 
             [
@@ -3634,6 +3657,7 @@ def main() -> int:
 
                 ],
 
+                ai_total["hits"],
             ],
 
             [
@@ -3672,6 +3696,7 @@ def main() -> int:
 
                 ),
 
+                (f"{ai_total['hit_rate_pct']}%" if ai_total["hit_rate_pct"] is not None else "—"),
             ],
 
             [
@@ -3764,6 +3789,7 @@ def main() -> int:
 
                 ),
 
+                (f"{ai_total['recovery_rate_pct']}%" if ai_total["recovery_rate_pct"] is not None else "—"),
             ],
 
         ],
@@ -4432,7 +4458,7 @@ def main() -> int:
 
             "フォーメーションと"
 
-            "3艇BOXを別会計で集計。"
+            "3艇BOX・AIスコア予測を別会計で集計。"
 
         ),
 
