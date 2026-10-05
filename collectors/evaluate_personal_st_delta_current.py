@@ -13,7 +13,7 @@ for r in readcsv("features/racer_features.csv"):
 
 out={"definition":"delta = exhibition_st - racer d90_avg_st; negative=faster than personal baseline","dates":{},"groups":{}}
 groups=defaultdict(list)
-for d in ["20261001","20261002","20261003","20261004"]:
+for d in ["20261001","20261002","20261003","20261004","20261005"]:
  lp=f"predictions/{d[:4]}/{d[4:6]}/{d[6:8]}/live/live_predictions_final_{d}.json"
  mp=f"predictions/{d[:4]}/{d[4:6]}/{d[6:8]}/morning_predictions_{d}.json"
  rp=f"archive/{d[:4]}/{d[4:6]}/{d[6:8]}/boat_results_{d}_all.csv"
