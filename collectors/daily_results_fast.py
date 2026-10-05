@@ -44,6 +44,7 @@ RESULT_FIELDS = [
     "trifecta_pay",
     "exacta",
     "exacta_pay",
+    "technique",
 ]
 
 BOAT_FIELDS = [
@@ -841,6 +842,8 @@ def parse_payload(
                 "exacta": "",
 
                 "exacta_pay": "",
+
+                "technique": "",
             }
 
             continue
@@ -858,7 +861,7 @@ def parse_payload(
         if race is None:
             continue
 
-        parsed = (
+        compact_text = re.sub(r"\\s+", "", text)\n        for technique_name in ("まくり差し", "逃げ", "差し", "まくり", "抜き", "恵まれ"):\n            if technique_name in compact_text:\n                race["technique"] = technique_name\n                break\n\n        parsed = (
             parse_result_row(
                 raw
             )
