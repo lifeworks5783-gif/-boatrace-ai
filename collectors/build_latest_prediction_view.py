@@ -639,24 +639,9 @@ def build_ai_score_prediction(boats):
         })
     combos.sort(key=lambda x: (-x["score"], x["combination"]))
 
-    # Adaptive ticket count: stop at a clear boundary among 6/8/12.
-    # Prefer fewer tickets when the leading combinations separate clearly.
-    def boundary_gap(n):
-        if len(combos) <= n:
-            return 0.0
-        return combos[n-1]["score"] - combos[n]["score"]
-
-    gaps = {6: boundary_gap(6), 8: boundary_gap(8), 12: boundary_gap(12)}
-    best_boundary = max(gaps, key=lambda n: (gaps[n], -n))
-    top_gap = combos[0]["score"] - combos[5]["score"] if len(combos) >= 6 else 0.0
-    if top_gap >= 8.0 and gaps[6] >= 0.8:
-        points = 6
-    elif gaps[8] >= 0.6:
-        points = 8
-    elif gaps[12] >= 0.5:
-        points = 12
-    else:
-        points = best_boundary
+    # AIスコア予測は検証条件を固定するため、常に上位8点を採用する。
+    # 1点100円・1レース800円で収支を継続比較する。
+    points = 8
 
     selected = combos[:points]
     return {
@@ -671,7 +656,7 @@ def build_ai_score_prediction(boats):
         "boundary_gaps": {str(k): round(v, 3) for k, v in gaps.items()},
         "combinations": selected,
         "all_120_combinations": combos,
-        "note": "検証版。現行フォーメーション/BOXには影響せず、着順別スコアから120通りを独立採点。",
+        "note": "検証版。現行フォーメーション/BOXには影響せず、着順別スコアから120通りを独立採点し上位8点を採用。",
     }
 
 def score_label(value):
