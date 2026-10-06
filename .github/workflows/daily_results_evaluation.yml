@@ -37,6 +37,80 @@ jobs:
         run: |
           if [ -n "${AUDIT_TARGET_DATE:-}" ]; then
             TARGET_DATE="${AUDIT_TARGET_DATE}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            CHANGED=$(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}" | grep -E '^config/run_daily_audit_[0-9]{8}\.txt
+          echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
+          echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
+          echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
+          echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
+      - name: Collect official results
+        run: python -u collectors/daily_results_fast.py --date "$TARGET_DATE"
+      - name: Validate results
+        run: python -u collectors/validate_daily.py --date "$TARGET_DATE"
+      - name: Archive results
+        run: |
+          DEST="archive/${YEAR}/${MONTH}/${DAY}"
+          mkdir -p "$DEST"
+          cp "data/venues_${TARGET_DATE}.csv" "$DEST/"
+          cp "data/results_${TARGET_DATE}_all.csv" "$DEST/"
+          cp "data/boat_results_${TARGET_DATE}_all.csv" "$DEST/"
+          cp "data/validation_${TARGET_DATE}.json" "$DEST/"
+          cp "data/manifest_${TARGET_DATE}.json" "$DEST/"
+          if [ -f "data/excluded_races_${TARGET_DATE}.csv" ]; then cp "data/excluded_races_${TARGET_DATE}.csv" "$DEST/"; fi
+      - name: Audit data completeness
+        run: python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+
+      - name: Retry missing beforeinfo without using results for prediction
+        run: |
+          REPORT="evaluations/${YEAR}/${MONTH}/${DAY}/data_quality/completeness_${TARGET_DATE}.json"
+          if grep -q '"needs_recollection": true' "$REPORT"; then
+            BASE="daily_inputs/${YEAR}/${MONTH}/${DAY}/base"
+            if [ -s "${BASE}/program_races_${TARGET_DATE}.csv" ] && [ -s "${BASE}/program_entries_${TARGET_DATE}.csv" ]; then
+              mkdir -p data
+              cp "${BASE}/program_races_${TARGET_DATE}.csv" data/
+              cp "${BASE}/program_entries_${TARGET_DATE}.csv" data/
+              python -u collectors/today_beforeinfo.py --date "${TARGET_DATE}" --mode all || true
+              RETRY="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results"
+              mkdir -p "$RETRY"
+              find data -maxdepth 1 -type f -name "beforeinfo_*${TARGET_DATE}*" -exec cp {} "$RETRY/" \;
+            fi
+          fi
+
+      - name: Re-audit after retry
+        run: python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+
+      - name: Gate evaluation on data quality
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          d=os.environ["TARGET_DATE"]
+          p=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+          report=json.loads(p.read_text(encoding="utf-8"))
+          print({k:report.get(k) for k in ("status","audited_races","complete_races","incomplete_races","needs_recollection")})
+          if report.get("status")!="PASS":
+              raise SystemExit("データ完全性がPASSではないため成績評価を停止します")
+          PY
+
+      - name: Evaluate morning live and betting
+        run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
+      - name: Build evaluation summary
+        run: python -u collectors/build_evaluation_summary.py --date "$TARGET_DATE"
+      - name: Commit results and evaluation
+        run: |
+          git config user.name "boatrace-data-bot"
+          git config user.email "boatrace-data-bot@users.noreply.github.com"
+          git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}" "daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results" 2>/dev/null || true
+          git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}"
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Results and evaluation ${TARGET_DATE}"
+          git pull --rebase origin main
+          git push origin main
+ | head -1 || true)
+            if [ -n "$CHANGED" ]; then
+              TARGET_DATE=$(basename "$CHANGED" | sed -E 's/run_daily_audit_([0-9]{8})\.txt/\1/')
+            else
+              TARGET_DATE=$(TZ=Asia/Tokyo date -d 'yesterday' +%Y%m%d)
+            fi
           else
             TARGET_DATE=$(TZ=Asia/Tokyo date -d 'yesterday' +%Y%m%d)
           fi
