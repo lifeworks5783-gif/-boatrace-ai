@@ -20,7 +20,12 @@ def main():
     program=rows(base/"base"/f"program_races_{d}.csv")
     entries=rows(base/"base"/f"program_entries_{d}.csv")
     if not program: program=rows(Path("data")/f"program_races_{d}.csv")
+    if not entries: entries=rows(Path("data")/f"program_entries_{d}.csv")
     expected={norm(r.get("race_id")) for r in program if norm(r.get("race_id"))}
+    entry_count={}
+    for r in entries:
+        rid=norm(r.get("race_id"))
+        if rid: entry_count[rid]=entry_count.get(rid,0)+1
     result=rows(arc/f"results_{d}_all.csv")
     boats=rows(arc/f"boat_results_{d}_all.csv")
     actual={norm(r.get("race_id")) for r in result}
@@ -67,6 +72,7 @@ def main():
     for rid in race_ids:
         miss=[]
         if rid not in expected: miss.append("morning_program")
+        if entry_count.get(rid,0)!=6: miss.append(f"morning_entries:{entry_count.get(rid,0)}/6")
         if rid not in actual: miss.append("result")
         br=bmap.get(rid,[])
         if len(br)!=6: miss.append(f"boat_result:{len(br)}/6")
