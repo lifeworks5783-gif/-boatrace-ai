@@ -63,6 +63,9 @@ def main():
    if c:vc[(v,c)].append(r)
    if m is not None:mg[(v,m)].append(r)
    if bn is not None:bg[(v,bn)].append(r)
+  for r in prior30:
+   v=str(r.get("venue_code","")).zfill(2);m=I(r.get("motor_no"))
+   if m is not None:mg30[(v,m)].append(r)
   rr=defaultdict(list)
   for r in bd[d]:
    bo=I(r.get("boat"));fi=I(r.get("finish"))
