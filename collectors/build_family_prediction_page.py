@@ -343,16 +343,22 @@ def main():
     :root {{
       color-scheme: light dark;
 
-      --bg: #f4f6f8;
+      --bg: #f3f6f8;
       --card: #ffffff;
-      --text: #111827;
-      --muted: #667085;
-      --line: #e5e7eb;
-      --live-bg: #dcfce7;
-      --live-text: #166534;
-      --morning-bg: #e0e7ff;
-      --morning-text: #3730a3;
-      --chip: #f3f4f6;
+      --text: #172033;
+      --muted: #64748b;
+      --line: #dbe3ea;
+      --primary: #1e4f78;
+      --primary-strong: #163b5c;
+      --primary-soft: #eaf2f8;
+      --live-bg: #e2f3ef;
+      --live-text: #11675b;
+      --live-accent: #168477;
+      --morning-bg: #e9f0fb;
+      --morning-text: #285a91;
+      --morning-accent: #3976b8;
+      --chip: #f1f5f8;
+      --warning: #b54747;
     }}
 
     * {{
@@ -489,7 +495,7 @@ def main():
       color: #fff;
       border-color: #2563eb;
     }}
-    .prediction-panel {{ display: none; }}\n    .race-view-tabs {{ display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px; }}\n    .race-view-tab {{ min-height:38px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text);font-weight:800;cursor:pointer; }}\n    .race-view-tab.active {{ background:#0f766e;color:#fff;border-color:#0f766e; }}\n    .race-prediction-view.hidden {{ display:none; }}
+    .prediction-panel {{ display: none; }}\n    .race-view-tabs {{ display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px; }}\n    .race-view-tab {{ min-height:38px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text);font-weight:800;cursor:pointer; }}\n    .race-view-tab[data-race-view="朝"].active {{ background:var(--morning-accent);color:#fff;border-color:var(--morning-accent); }}\n    .race-view-tab[data-race-view="直前"].active {{ background:var(--live-accent);color:#fff;border-color:var(--live-accent); }}\n    .race-prediction-view.hidden {{ display:none; }}
     .prediction-panel.active {{ display: block; }}
     .ai-candidates {{
       display: grid;
@@ -766,18 +772,22 @@ def main():
     @media (prefers-color-scheme: dark) {{
 
       :root {{
-        --bg: #0f1115;
-        --card: #171a21;
-        --text: #f3f4f6;
-        --muted: #a8b0bd;
-        --line: #2a3039;
-        --chip: #222833;
-
-        --live-bg: #153b25;
-        --live-text: #86efac;
-
-        --morning-bg: #22285a;
-        --morning-text: #c7d2fe;
+        --bg: #0d1520;
+        --card: #141f2c;
+        --text: #eef4f8;
+        --muted: #9eafbf;
+        --line: #293949;
+        --primary: #4f91c7;
+        --primary-strong: #75add8;
+        --primary-soft: #172c3f;
+        --chip: #1b2a38;
+        --live-bg: #153b38;
+        --live-text: #83d7c9;
+        --live-accent: #278f83;
+        --morning-bg: #1d3551;
+        --morning-text: #a9cbed;
+        --morning-accent: #477fb5;
+        --warning: #e58a8a;
       }}
 
     }}
