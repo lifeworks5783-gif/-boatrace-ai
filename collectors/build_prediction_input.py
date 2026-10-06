@@ -602,6 +602,11 @@ def build_race(
             "deadline",
             "",
         ),
+        "beforeinfo_collected_at": (
+            live_race.get("collected_at", "")
+            if live_race
+            else ""
+        ),
         "series_day": inum(
             race.get(
                 "series_day"
