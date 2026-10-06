@@ -691,7 +691,11 @@ def build_ai_score_prediction(boats, ai_config):
             if rise >= 10.0:
                 signals[boat] = {"rise": rise, "rank": live_rank}
 
-    base_combos = list(combos)
+    base_combos = [dict(x) for x in combos]
+    base_rank_by_combo = {
+        item["combination"]: rank
+        for rank, item in enumerate(base_combos, start=1)
+    }
     if signals:
         reranked = []
         position_weights = (0.0, 0.6, 0.4)
@@ -709,12 +713,18 @@ def build_ai_score_prediction(boats, ai_config):
             reranked.append({
                 **item,
                 "base_score": item["score"],
+                "base_rank": original_index + 1,
                 "signal_bonus": round(bonus, 3),
                 "score": round(item["score"] + bonus, 3),
                 "_original_index": original_index,
             })
         reranked.sort(key=lambda x:(-x["score"],x["_original_index"]))
-        combos = [{k:v for k,v in x.items() if k != "_original_index"} for x in reranked]
+        combos = []
+        for reranked_rank, x in enumerate(reranked, start=1):
+            item = {k:v for k,v in x.items() if k != "_original_index"}
+            item["reranked_rank"] = reranked_rank
+            item["rank_change"] = item["base_rank"] - reranked_rank
+            combos.append(item)
         points = 12
     else:
         points=int(ai_config.get("purchase_points",8))
@@ -738,8 +748,23 @@ def build_ai_score_prediction(boats, ai_config):
         "third_candidates":[x["boat"] for x in sorted(scored,key=lambda x:(-x["third_score"],x["boat"]))[:5]],
         "boundary_gaps": {},
         "combinations": selected,
+        "base_120_combinations": base_combos,
         "all_120_combinations": combos,
-        "note":"通常時は既存AI上位8点。⚡時のみ艇スコアを変えず、暫定シグナル配分で120通りを再順位付けして上位12点。使用係数はlogic_snapshotへ凍結保存。",
+        "rerank_verified": (
+            len(combos) == 120
+            and len({x["combination"] for x in combos}) == 120
+            and (
+                not signals
+                or all(
+                    abs(
+                        x["score"]
+                        - (x["base_score"] + x["signal_bonus"])
+                    ) < 0.002
+                    for x in combos
+                )
+            )
+        ),
+        "note":"通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。",
     }
 
 def score_label(value):
