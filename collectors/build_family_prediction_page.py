@@ -1028,3 +1028,5 @@ if __name__ == "__main__":
 # score-delta-publish-v2
 
 # score-delta-publish-v3
+
+# all-six-score-delta-publish-v1
