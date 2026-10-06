@@ -27,7 +27,10 @@ def main():
     except:b=0
     x=pg.get((nid(r.get("race_id")),b))
     if x:
-     for k in ["motor_no","motor_top2_rate","boat_no","boat_top2_rate"]:r[k]=x.get(k,"")
+     # Kファイルのmotor_no/boat_no自体は正しい。番組Bファイルから率だけ補完する。
+     # 番組側の装備番号がK結果と一致するときだけ率を採用し、番号は上書きしない。
+     if nid(str(r.get("motor_no",""))) == nid(str(x.get("motor_no",""))): r["motor_top2_rate"]=x.get("motor_top2_rate","")
+     if nid(str(r.get("boat_no",""))) == nid(str(x.get("boat_no",""))): r["boat_top2_rate"]=x.get("boat_top2_rate","")
      if x.get("motor_no"):hit+=1
    with rp.open("w",encoding="utf-8-sig",newline="") as h:w=csv.DictWriter(h,fieldnames=fields);w.writeheader();w.writerows(rows)
    report.append({"date":ds,"file":str(rp),"rows":len(rows),"motor_joined":hit,"status":"ok"})
