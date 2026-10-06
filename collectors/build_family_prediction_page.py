@@ -172,7 +172,8 @@ def build_card(race, index, is_completed=False):
     boats=race.get("boats") or []; formation=race.get("formation") or {}
     morning_boats=race.get("morning_boats") or []; morning_formation=race.get("morning_formation") or {}
     has_switch=prediction_type=="直前" and len(morning_boats)==6
-    morning_score_map = {text(x.get("boat")): x.get("score") for x in morning_boats}\n    current=_prediction_body(boats,formation,prediction_type,morning_score_map if has_switch else None)
+    morning_score_map = {text(x.get("boat")): x.get("score") for x in morning_boats}
+    current=_prediction_body(boats,formation,prediction_type,morning_score_map if has_switch else None)
     switch=""
     morning=""
     if has_switch:
