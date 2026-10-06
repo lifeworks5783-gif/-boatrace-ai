@@ -68,6 +68,18 @@ jobs:
       - name: Re-audit after retry
         run: python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
 
+      - name: Gate evaluation on data quality
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          d=os.environ["TARGET_DATE"]
+          p=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+          report=json.loads(p.read_text(encoding="utf-8"))
+          print({k:report.get(k) for k in ("status","audited_races","complete_races","incomplete_races","needs_recollection")})
+          if report.get("status")!="PASS":
+              raise SystemExit("データ完全性がPASSではないため成績評価を停止します")
+          PY
+
       - name: Evaluate morning live and betting
         run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
       - name: Build evaluation summary
