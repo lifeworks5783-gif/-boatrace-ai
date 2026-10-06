@@ -113,14 +113,13 @@ def _raw_race_features(race,course_overrides=None):
         cr=rc.get((reg,str(course)),{}); rr=rf.get(reg,{})
         # 新人・該当コース未走などで90日コース履歴が無い場合は、
         # 同選手90日全体実績を実データfallbackとして使う。STも全体90日平均を使用。
-        if not cr.get("d90_win_rate") and rr:
+        if rr and (not cr.get("d90_win_rate") or cr.get("d90_avg_st") in (None, "")):
             cr=dict(cr)
-            cr.update({
-                "d90_win_rate": rr.get("d90_win_rate"),
-                "d90_top2_rate": rr.get("d90_top2_rate"),
-                "d90_top3_rate": rr.get("d90_top3_rate"),
-                "d90_avg_st": rr.get("d90_avg_st"),
-            })
+            # コース履歴の各項目を個別に、同選手90日全体の実績で補完する。
+            # 一部だけ存在するコース履歴でもST欠損を放置しない。
+            for ck, rk in (("d90_win_rate","d90_win_rate"),("d90_top2_rate","d90_top2_rate"),("d90_top3_rate","d90_top3_rate"),("d90_avg_st","d90_avg_st")):
+                if cr.get(ck) in (None, ""):
+                    cr[ck]=rr.get(rk)
         if reg=="4889" and str(course)=="6":
             cr=dict(cr); cr["d90_avg_st"]=cr.get("d90_avg_st") or "0.17"
         mm=mf.get((venue,_keynum(motor.get("motor_no"))),{})
