@@ -409,8 +409,14 @@ jobs:
               exit 1
             fi
             echo "main更新競合。最新mainを取得して再試行"
+            # 収集処理が生成した未追跡/未ステージファイルも一時退避し、
+            # rebase後に戻す。並行Workflowによるmain更新で停止しないようにする。
+            git stash push -u -m "live-retry-${RUN_STAMP}" || true
             git fetch origin main
             git rebase origin/main
+            if git stash list | grep -q "live-retry-${RUN_STAMP}"; then
+              git stash pop || true
+            fi
             sleep 3
           done
 
