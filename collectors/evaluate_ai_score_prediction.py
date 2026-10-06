@@ -62,7 +62,18 @@ def main():
         combos=ai.get("combinations") or []
         if not t or not combos: continue
         names=[text(x.get("combination")) if isinstance(x,dict) else text(x) for x in combos]
-        pts=len(names); hit=int(t["trifecta"] in names); ret=t["pay"] if hit else 0
+        pts=len(names)
+        expected_pts=cint(ai.get("points"))
+        if expected_pts is not None and pts != expected_pts:
+            raise RuntimeError(f"{race.get('race_id')}: AI購入点数不一致 saved={expected_pts} combinations={pts}")
+        expected_investment=cint(ai.get("investment_100yen"))
+        if expected_investment is not None and expected_investment != pts*BET:
+            raise RuntimeError(f"{race.get('race_id')}: AI投資額不一致 saved={expected_investment} calculated={pts*BET}")
+        if ai.get("signal_mode") and pts != 12:
+            raise RuntimeError(f"{race.get('race_id')}: ⚡AIは12点でなければなりません")
+        if not ai.get("signal_mode") and pts != 8:
+            raise RuntimeError(f"{race.get('race_id')}: 通常AIは8点でなければなりません")
+        hit=int(t["trifecta"] in names); ret=t["pay"] if hit else 0
         stage=text(race.get("prediction_type")) or "不明"
         predicted_order=names[0].split("-") if names else []
         actual_order=t["trifecta"].split("-")
