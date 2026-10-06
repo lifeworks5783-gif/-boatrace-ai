@@ -797,6 +797,7 @@ def load_prediction_file(
             "top3": top3,
             "boats": row.get("boats") or [],
             "raw": row,
+            "stage": str(row.get("stage") or row.get("prediction_stage") or row.get("source_stage") or "").strip(),
             "ai_score_prediction": row.get("ai_score_prediction") or {},
         }
 
@@ -1414,6 +1415,11 @@ def build_race_rows(
                 race_code
             )
         )
+
+        if live:
+            live_stage = str(live.get("stage") or (live.get("raw") or {}).get("stage") or (live.get("raw") or {}).get("prediction_stage") or "").strip().lower()
+            if live_stage in {"morning", "\u671d"}:
+                live = None
 
         payout_row = (
             payouts.get(
