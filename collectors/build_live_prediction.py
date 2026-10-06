@@ -490,6 +490,7 @@ def main():
                 "generated_at": now.isoformat(),
                 "live_data_counts": {
                     "exhibition_course": course_count,
+                    "exhibition_time": time_count,
                     "exhibition_st": st_count,
                 },
                 "weather_water": race_context(race),
@@ -536,7 +537,7 @@ def main():
             "model_version": MODEL_VERSION,
             "target_date": target_date,
             "generated_at": now.isoformat(),
-            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
+            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": "included_in_exST", "environment": 0.0},
             "input_race_count": len(races),
             "prediction_race_count": len(predicted_races),
             "prediction_boat_count": len(csv_rows),
@@ -564,7 +565,7 @@ def main():
             "live_policy": {
                 "course": "32点を展示進入コースへ差し替え",
                 "exhibition_st": "本人90日平均STとの差を14%評価。±0.06秒で最大補正、展示F=0.4、90日ST10走未満/欠損=0.5",
-                "exhibition_time": "0点",
+                "exhibition_time": "6%。レース内展示タイム順位で評価",
             },
             "race_count": len(predicted_races),
             "boat_count": len(csv_rows),
