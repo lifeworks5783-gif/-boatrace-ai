@@ -181,6 +181,22 @@ def signal_marker(race):
     return ""
 
 
+
+def live_data_marker(race):
+    """Private-facing compact marker: ● complete / ▲ incomplete."""
+    if text(race.get("prediction_type")) != "直前":
+        return ""
+    boats = race.get("boats") or []
+    required = ("exhibition_course", "exhibition_time", "exhibition_st")
+    complete = len(boats) == 6
+    for boat in boats:
+        if any(boat.get(k) in (None, "") for k in required):
+            complete = False
+        comps = boat.get("components") or {}
+        if any(k not in comps for k in ("racer_course", "grade", "motor", "boat", "national_top2", "structural", "exhibition_time", "exhibition_st")):
+            complete = False
+    return '<span class="data-ok" title="直前必須データ取得・計算確認済み">●</span>' if complete else '<span class="data-ng" title="直前必須データに不足あり">▲</span>'
+
 def build_card(race, index, is_completed=False):
     venue=text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
     prediction_type=text(race.get("prediction_type")) or "不明"
@@ -202,7 +218,7 @@ def build_card(race, index, is_completed=False):
         <div class="race-order">{index}</div>
         <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}</div></div>
         {status_html}
-        <div class="badge {badge_class}">{esc(prediction_type)}</div>
+        <div class="badge-wrap">{live_data_marker(race)}<div class="badge {badge_class}">{esc(prediction_type)}</div></div>
       </div>
       {switch}
       {morning}
@@ -666,7 +682,9 @@ def main():
     .badge.live {{
       background: var(--live-bg);
       color: var(--live-text);
-    }}
+    }
+.badge-wrap{display:flex;align-items:center;gap:5px}.data-ok{font-size:13px;color:#2e7d32}.data-ng{font-size:14px;color:#b26a00;font-weight:800}
+}
 
     .badge.morning {{
       background: var(--morning-bg);
