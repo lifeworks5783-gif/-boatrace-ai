@@ -19,7 +19,7 @@ def load_pdca(d):
 def rank(bs,k,lower=False):
  good=[b for b in bs if b.get(k) is not None]
  if len(good)<2:return {b["boat"]:.5 for b in bs}
- o=sorted(good,key=lambda b:((b[k] if lower else -b[k]),b["boat"]));return {b["boat"]:1-i/max(1,len(o)-1) for i,b in enumerate(o)}
+ o=sorted(good,key=lambda b:((b[k] if lower else -b[k]),b["boat"]));m={b["boat"]:1-i/max(1,len(o)-1) for i,b in enumerate(o)}\n for b in bs:m.setdefault(b["boat"],.5)\n return m
 def signal(bs):
  R={k:rank(bs,k,lo) for k,lo in [("cw",0),("c3",0),("grade",0),("nat2",0),("motor_top3",0),("etime",1),("est",1)]}
  # live evidence momentum proxy, deliberately not added to boat score.
