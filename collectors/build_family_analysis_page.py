@@ -3422,7 +3422,7 @@ def build_page(
 
   --chip: #f3f4f6;
 
-  --primary: #2563eb;
+  --primary: #174f7a;
 
   --good-bg: #ecfdf3;
 
