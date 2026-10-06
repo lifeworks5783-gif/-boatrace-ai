@@ -129,205 +129,50 @@ def boat_line(boat, mark=""):
     )
 
 
-def build_card(race, index, is_completed=False):
-    venue = (
-        text(race.get("venue_name"))
-        or text(race.get("venue_code"))
-        or "会場不明"
-    )
-
-    race_no = race.get("race")
-
-    deadline = time_label(
-        race.get("deadline")
-    )
-
-    prediction_type = (
-        text(
-            race.get("prediction_type")
-        )
-        or "不明"
-    )
-
-    badge_class = (
-        "live"
-        if prediction_type == "直前"
-        else "morning"
-    )
-
-    status_html = (
-        '<div class="race-status completed">終了済み</div>'
-        if is_completed
-        else '<div class="race-status upcoming">締切前</div>'
-    )
-
-    boats = (
-        race.get("boats")
-        or []
-    )
-
-    formation = (
-        race.get("formation")
-        or {}
-    )
-
-    top_html = ""
-
-    marks = [
-        "◎",
-        "○",
-        "▲",
-    ]
-
-    for i, boat in enumerate(
-        boats[:3]
-    ):
-        top_html += boat_line(
-            boat,
-            marks[i],
-        )
-
-    score_chips = []
-
-    for boat in boats:
-        score_chips.append(
-            '<span class="chip">'
-            f'{esc(boat.get("boat"))}号艇 '
-            f'{esc(score_label(boat.get("score")))}'
-            "</span>"
-        )
-
-    points = int(
-        formation.get("points")
-        or 0
-    )
-
-    investment = int(
-        formation.get(
-            "investment_100yen"
-        )
-        or 0
-    )
-
-    formation_type = esc(
-        formation.get(
-            "formation_type"
-        )
-        or "不明"
-    )
-
-    if points > 0:
-
-        first = "・".join(
-            esc(value)
-            for value
-            in formation.get(
-                "first_candidates"
-            )
-            or []
-        )
-
-        second = "・".join(
-            esc(value)
-            for value
-            in formation.get(
-                "second_candidates"
-            )
-            or []
-        )
-
-        third = "・".join(
-            esc(value)
-            for value
-            in formation.get(
-                "third_candidates"
-            )
-            or []
-        )
-
-        combinations = " / ".join(
-            esc(value)
-            for value
-            in formation.get(
-                "combinations"
-            )
-            or []
-        )
-
-        formation_html = f"""
-        <div class="formation">
-          <div class="formation-title">
-            3連単 {formation_type}・{points}点・{investment:,}円
-          </div>
-
-          <div class="formation-grid">
-            <div><b>1着</b> {first or "なし"}</div>
-            <div><b>2着</b> {second or "なし"}</div>
-            <div><b>3着</b> {third or "なし"}</div>
-          </div>
-
-          <div class="combos">
-            {combinations}
-          </div>
-        </div>
-        """
-
+def _prediction_body(boats, formation, label):
+    top_html = "".join(boat_line(boat, ["◎","○","▲"][i]) for i, boat in enumerate(boats[:3]))
+    chips = "".join('<span class="chip">'+esc(boat.get("boat"))+'号艇 '+esc(score_label(boat.get("score")))+'</span>' for boat in boats)
+    points = int(formation.get("points") or 0)
+    if points:
+        ftype=esc(formation.get("formation_type") or "不明")
+        first="・".join(esc(v) for v in formation.get("first_candidates") or [])
+        second="・".join(esc(v) for v in formation.get("second_candidates") or [])
+        third="・".join(esc(v) for v in formation.get("third_candidates") or [])
+        combos=" / ".join(esc(v) for v in formation.get("combinations") or [])
+        inv=int(formation.get("investment_100yen") or 0)
+        form=f'<div class="formation"><div class="formation-title">3連単 {ftype}・{points}点・{inv:,}円</div><div class="formation-grid"><div><b>1着</b> {first or "なし"}</div><div><b>2着</b> {second or "なし"}</div><div><b>3着</b> {third or "なし"}</div></div><div class="combos">{combos}</div></div>'
     else:
+        form='<div class="formation unavailable">フォーメーションはスコア不足のため生成なし</div>'
+    return f'<div class="race-prediction-view" data-view="{esc(label)}"><div class="top-picks">{top_html}</div><details><summary>6艇すべてのスコア</summary><div class="scores">{chips}</div></details>{form}</div>'
 
-        formation_html = """
-        <div class="formation unavailable">
-          フォーメーションはスコア不足のため生成なし
-        </div>
-        """
 
+def build_card(race, index, is_completed=False):
+    venue=text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
+    prediction_type=text(race.get("prediction_type")) or "不明"
+    badge_class="live" if prediction_type=="直前" else "morning"
+    status_html='<div class="race-status completed">終了済み</div>' if is_completed else '<div class="race-status upcoming">締切前</div>'
+    boats=race.get("boats") or []; formation=race.get("formation") or {}
+    morning_boats=race.get("morning_boats") or []; morning_formation=race.get("morning_formation") or {}
+    has_switch=prediction_type=="直前" and len(morning_boats)==6
+    current=_prediction_body(boats,formation,prediction_type)
+    switch=""
+    morning=""
+    if has_switch:
+        switch='<div class="race-view-tabs"><button type="button" class="race-view-tab" data-race-view="朝">朝予想</button><button type="button" class="race-view-tab active" data-race-view="直前">直前予想</button></div>'
+        morning=_prediction_body(morning_boats,morning_formation,"朝").replace('class="race-prediction-view"','class="race-prediction-view hidden"')
     return f"""
     <article class="race-card">
-
       <div class="race-head">
-
-        <div class="race-order">
-          {index}
-        </div>
-
-        <div class="race-main">
-
-          <div class="deadline">
-            {esc(deadline)}
-          </div>
-
-          <div class="race-name">
-            {esc(venue)} {esc(race_no)}R
-          </div>
-
-        </div>
-
+        <div class="race-order">{index}</div>
+        <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R</div></div>
         {status_html}
-
-        <div class="badge {badge_class}">
-          {esc(prediction_type)}
-        </div>
-
+        <div class="badge {badge_class}">{esc(prediction_type)}</div>
       </div>
-
-      <div class="top-picks">
-        {top_html}
-      </div>
-
-      <details>
-        <summary>
-          6艇すべてのスコア
-        </summary>
-
-        <div class="scores">
-          {"".join(score_chips)}
-        </div>
-      </details>
-
-      {formation_html}
-
+      {switch}
+      {morning}
+      {current}
     </article>
     """
-
 
 
 def build_ai_card(race, index):
@@ -644,7 +489,7 @@ def main():
       color: #fff;
       border-color: #2563eb;
     }}
-    .prediction-panel {{ display: none; }}
+    .prediction-panel {{ display: none; }}\n    .race-view-tabs {{ display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px; }}\n    .race-view-tab {{ min-height:38px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text);font-weight:800;cursor:pointer; }}\n    .race-view-tab.active {{ background:#0f766e;color:#fff;border-color:#0f766e; }}\n    .race-prediction-view.hidden {{ display:none; }}
     .prediction-panel.active {{ display: block; }}
     .ai-candidates {{
       display: grid;
@@ -1026,6 +871,21 @@ def main():
         if (normalPanel) normalPanel.classList.toggle("active", !ai);
         if (aiPanel) aiPanel.classList.toggle("active", ai);
       }}));
+
+      document.querySelectorAll(".race-card").forEach(card => {
+        const viewTabs = card.querySelectorAll(".race-view-tab");
+        viewTabs.forEach(viewTab => viewTab.addEventListener("click", () => {
+          const wanted = viewTab.dataset.raceView;
+          viewTabs.forEach(x => x.classList.toggle("active", x === viewTab));
+          card.querySelectorAll(".race-prediction-view").forEach(panel => panel.classList.toggle("hidden", panel.dataset.view !== wanted));
+          const badge = card.querySelector(".badge");
+          if (badge) {
+            badge.textContent = wanted;
+            badge.classList.toggle("live", wanted === "直前");
+            badge.classList.toggle("morning", wanted === "朝");
+          }
+        }));
+      });
 
       const button = document.getElementById("refreshPredictionButton");
       const status = document.getElementById("refreshStatus");
