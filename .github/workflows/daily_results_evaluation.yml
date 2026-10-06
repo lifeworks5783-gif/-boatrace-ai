@@ -91,10 +91,14 @@ jobs:
           p=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
           report=json.loads(p.read_text(encoding="utf-8"))
           print({k:report.get(k) for k in ("status","audited_races","complete_races","incomplete_races","needs_recollection")})
-          if report.get("status")!="PASS":
-              raise SystemExit("データ完全性がPASSではないため成績評価を停止します")
+          ok = report.get("status")=="PASS"
+          with open(os.environ["GITHUB_ENV"],"a",encoding="utf-8") as f:
+              f.write(f"DATA_COMPLETE={str(ok).lower()}\\n")
+          if not ok:
+              print("監査結果はINCOMPLETE。監査記録を保存し、成績評価だけ保留します。")
           PY
       - name: Rebuild candidate factor evidence
+        if: env.DATA_COMPLETE == 'true'
         run: |
           python -u collectors/evaluate_all_candidate_single_factors.py
           python -u collectors/evaluate_live_extra_factors.py
@@ -111,8 +115,10 @@ jobs:
           print("candidate factor evidence: PASS")
           PY
       - name: Evaluate morning live and betting
+        if: env.DATA_COMPLETE == 'true'
         run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
       - name: Build evaluation summary
+        if: env.DATA_COMPLETE == 'true'
         run: python -u collectors/build_evaluation_summary.py --date "$TARGET_DATE"
       - name: Commit results and evaluation
         run: |
