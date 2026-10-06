@@ -273,14 +273,23 @@ def component_exst(lane, boat, ranks):
     }
 
 
+def is_miss_boat(boat):
+    v = boat_beforeinfo(boat).get("is_miss", False)
+    return v is True or text(v).lower() in {"true","1","yes"}
+
+
 def score_race(race, public_store, feature_manifest=None):
-    boats=race.get("boats")
-    if not isinstance(boats,list) or len(boats)!=6: raise RuntimeError(f"6艇ではないレース: {race.get('race_id')}")
+    all_boats=race.get("boats")
+    missed=[x for x in all_boats if is_miss_boat(x)] if isinstance(all_boats,list) else []
+    boats=[x for x in all_boats if not is_miss_boat(x)] if isinstance(all_boats,list) else all_boats
+    if not isinstance(all_boats,list) or len(all_boats)!=6: raise RuntimeError(f"6艇ではないレース: {race.get('race_id')}")
+    if len(boats)<3: raise RuntimeError(f"有効艇不足: {race.get('race_id')}")
     overrides={to_int(x.get("boat")):(get_exhibition_course(x) or to_int(x.get("boat"))) for x in boats}
-    morning_scores=morning.provisional_scores(race,public_store)
-    structural=morning.provisional_scores(race,public_store,overrides)
-    structural_details, structural_missing = morning.provisional_details(race, public_store, overrides)
-    if len(structural)!=6 or structural_missing: raise RuntimeError(f"直前構造スコア欠損: {race.get('race_id')} {structural_missing}")
+    work_race=dict(race); work_race["boats"]=boats
+    morning_scores=morning.provisional_scores(work_race,public_store)
+    structural=morning.provisional_scores(work_race,public_store,overrides)
+    structural_details, structural_missing = morning.provisional_details(work_race, public_store, overrides)
+    if len(structural)!=len(boats) or structural_missing: raise RuntimeError(f"直前構造スコア欠損: {race.get('race_id')} {structural_missing}")
     time_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_time(x) for x in boats if get_exhibition_time(x) is not None})
     st_delta_scores={to_int(x.get("boat")):personal_st_delta_score(x) for x in boats}
     # 展示ST14%は本人90日平均STとの差で評価。F=0.4、90日ST10走未満/欠損=0.5。
@@ -489,18 +498,21 @@ def main():
                     skipped_after_deadline.append(race_id)
                     continue
 
+            active_boats = [boat for boat in boats if not is_miss_boat(boat)]
+            miss_count = len(boats) - len(active_boats)
             course_count = sum(
-                get_exhibition_course(boat) is not None for boat in boats
+                get_exhibition_course(boat) is not None for boat in active_boats
             )
             st_count = sum(
-                get_exhibition_st(boat) is not None for boat in boats
+                get_exhibition_st(boat) is not None for boat in active_boats
             )
             time_count = sum(
-                get_exhibition_time(boat) is not None for boat in boats
+                get_exhibition_time(boat) is not None for boat in active_boats
             )
 
             # 暫定Ver.1: 展示進入・展示タイム・展示STが6艇分揃ってから更新。
-            if course_count < 6 or time_count < 6 or st_count < 6:
+            required_count = len(active_boats)
+            if required_count < 3 or course_count < required_count or time_count < required_count or st_count < required_count:
                 skipped_no_live_data.append(race_id)
                 continue
 
@@ -519,6 +531,8 @@ def main():
                     "exhibition_course": course_count,
                     "exhibition_time": time_count,
                     "exhibition_st": st_count,
+                    "miss": miss_count,
+                    "active_boats": required_count,
                 },
                 "weather_water": race_context(race),
                 "live_order": [x["boat"] for x in scored],
