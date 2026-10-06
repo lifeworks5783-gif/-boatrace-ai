@@ -149,7 +149,11 @@ def boat_line(boat, mark="", morning_score_map=None):
 
 def _prediction_body(boats, formation, label, morning_score_map=None):
     top_html = "".join(boat_line(boat, ["◎","○","▲"][i], morning_score_map) for i, boat in enumerate(boats[:3]))
-    chips = "".join('<span class="chip">'+esc(boat.get("boat"))+'号艇 '+esc(score_label(boat.get("score")))+'</span>' for boat in boats)
+    chips = "".join(
+        '<span class="chip">'+esc(boat.get("boat"))+'号艇 '+esc(score_label(boat.get("score"))) +
+        score_delta_html(boat, morning_score_map) + '</span>'
+        for boat in boats
+    )
     points = int(formation.get("points") or 0)
     if points:
         ftype=esc(formation.get("formation_type") or "不明")
