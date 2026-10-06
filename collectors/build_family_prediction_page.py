@@ -343,11 +343,11 @@ def main():
     :root {{
       color-scheme: light dark;
 
-      --bg: #e8eef4;
+      --bg: #dbe7f0;\n      --action: #167c68;\n      --action-strong: #116353;
       --card: #ffffff;
       --text: #172033;
       --muted: #64748b;
-      --line: #cbd8e3;
+      --line: #c4d4e0;
       --primary: #174f7a;
       --primary-strong: #163b5c;
       --primary-soft: #dceaf5;
@@ -357,7 +357,7 @@ def main():
       --morning-bg: #dceafb;
       --morning-text: #285a91;
       --morning-accent: #3976b8;
-      --chip: #edf3f7;
+      --chip: #e8f0f5;
       --warning: #b54747;
     }}
 
@@ -443,7 +443,7 @@ def main():
       font-size: 16px;
       font-weight: 800;
       cursor: pointer;
-      background: var(--primary);
+      background: var(--action);
       color: #ffffff;
     }}
 
