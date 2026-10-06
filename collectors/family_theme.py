@@ -20,7 +20,7 @@ THEME_CSS = r"""
   --primary-soft: #d2e3ef;
   --action: #167c68;
   --action-strong: #116353;
-  --analysis-action: #704286;
+  --analysis-action: #d92f63;
   --live-bg: #cceae3;
   --live-text: #0e6659;
   --live-accent: #168477;
@@ -33,7 +33,7 @@ THEME_CSS = r"""
   --warn-text: #8a5317;
   --warning: #a94646;
 }
-body { background: var(--bg) !important; color: var(--text) !important; }
+body { background: var(--bg) !important; color: var(--text) !important; }\n.refresh-button, .analysis-action-button { background: var(--action) !important; color:#fff !important; }\n.refresh-button:hover, .analysis-action-button:hover { background: var(--action-strong) !important; }
 .family-nav, .nav { background: var(--surface) !important; border-color: var(--line) !important; }
 .family-nav a.active, .family-nav a.active:link, .family-nav a.active:visited,
 .nav a.active, .nav a.active:link, .nav a.active:visited {
