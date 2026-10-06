@@ -33,8 +33,9 @@ def live_entries(d):
    if k[0] and k[1] in range(1,7):best[k]=r
  return best
 def live_races(d):
- ps=list(Path(f"daily_inputs/{d[:4]}/{d[4:6]}/{d[6:8]}/live/backfill").glob(f"beforeinfo_races_{d}.csv"))
+ ps=list(Path(f"daily_inputs/{d[:4]}/{d[4:6]}/{d[6:8]}/live/raw").glob(f"*/beforeinfo_races_{d}.csv"))
  if not ps:ps=list(Path(f"daily_inputs/{d[:4]}/{d[4:6]}/{d[6:8]}/live/snapshots").glob(f"*/beforeinfo_races_{d}.csv"))
+ if not ps:ps=list(Path(f"daily_inputs/{d[:4]}/{d[4:6]}/{d[6:8]}/live/backfill").glob(f"beforeinfo_races_{d}.csv"))
  best={}
  for p in ps:
   for r in read(p):
