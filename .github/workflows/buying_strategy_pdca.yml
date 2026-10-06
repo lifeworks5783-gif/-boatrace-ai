@@ -1,0 +1,38 @@
+name: Buying strategy PDCA 1-2-3
+
+on:
+  workflow_run:
+    workflows: ["Four day incremental PDCA"]
+    types: [completed]
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - collectors/evaluate_buying_strategy_pdca.py
+      - .github/workflows/buying_strategy_pdca.yml
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Evaluate buying strategy PDCA
+        run: python collectors/evaluate_buying_strategy_pdca.py
+      - name: Save outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/pdca_buying_strategy/latest/
+          git diff --cached --quiet || git commit -m "Update buying strategy PDCA comparison"
+          git pull --rebase origin main
+          git push origin main
