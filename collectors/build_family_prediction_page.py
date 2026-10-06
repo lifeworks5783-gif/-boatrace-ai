@@ -168,6 +168,19 @@ def _prediction_body(boats, formation, label, morning_score_map=None):
     return f'<div class="race-prediction-view" data-view="{esc(label)}"><div class="top-picks">{top_html}</div><details><summary>6艇すべてのスコア</summary><div class="scores">{chips}</div></details>{form}</div>'
 
 
+def signal_marker(race):
+    boats = race.get("boats") or []
+    morning = {text(x.get("boat")): to_float(x.get("score")) for x in (race.get("morning_boats") or [])}
+    if len(boats) != 6 or not morning:
+        return ""
+    for rank, boat in enumerate(boats, 1):
+        live = to_float(boat.get("score"))
+        base = morning.get(text(boat.get("boat")))
+        if rank > 3 and live is not None and base is not None and live - base >= 10.0:
+            return " ⚡"
+    return ""
+
+
 def build_card(race, index, is_completed=False):
     venue=text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
     prediction_type=text(race.get("prediction_type")) or "不明"
@@ -187,7 +200,7 @@ def build_card(race, index, is_completed=False):
     <article class="race-card">
       <div class="race-head">
         <div class="race-order">{index}</div>
-        <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R</div></div>
+        <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}</div></div>
         {status_html}
         <div class="badge {badge_class}">{esc(prediction_type)}</div>
       </div>
@@ -229,7 +242,7 @@ def build_ai_card(race, index):
         <div class="race-order">{index}</div>
         <div class="race-main">
           <div class="deadline">{esc(deadline)}</div>
-          <div class="race-name">{esc(venue)} {esc(race.get("race"))}R</div>
+          <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}</div>
         </div>
         <div class="badge live">AIスコア</div>
       </div>
