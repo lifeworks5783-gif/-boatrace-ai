@@ -27,7 +27,7 @@ def comp(r,key,default):
     return default if x is None else max(0,min(1,x))
 
 def ai(boats):
-    if len(boats)!=6:return None
+    if len(boats)<3:return None
     out=[]
     for r in boats:
         b=boatno(r); overall=max(0,min(1,score(r)/100))
@@ -45,12 +45,13 @@ def ai(boats):
         out.append({"boat":b,"first_score":round(a*100,2),"second_score":round(s*100,2),"third_score":round(t*100,2)})
     if any(x["boat"] is None for x in out):return None
     m={x["boat"]:x for x in out}; combos=[]
+    if len(m)!=len(boats) or len(m)<3:return None
     for a,b,c in itertools.permutations(sorted(m),3):
         joint=((max(m[a]["first_score"],.01)/100)*(max(m[b]["second_score"],.01)/100)*(max(m[c]["third_score"],.01)/100))**(1/3)
         combos.append({"combination":f"{a}-{b}-{c}","score":round(joint*100,3)})
     combos.sort(key=lambda x:(-x["score"],x["combination"]))
     return {"model_version":MODEL,"status":"historical_backfill","points":8,"investment_100yen":800,
-      "position_scores":sorted(out,key=lambda x:x["boat"]),"combinations":combos[:8],"all_120_combinations":combos,
+      "position_scores":sorted(out,key=lambda x:x["boat"]),"combinations":combos[:8],"all_120_combinations":combos,"valid_combination_count":len(combos),
       "note":"過去保存予測のみで再計算。結果データは計算に未使用。表示上位12点、収支上位8点。"}
 
 def main():
