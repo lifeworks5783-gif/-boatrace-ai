@@ -2286,12 +2286,12 @@ def render_html(
 <style>
 
 :root {{
-  --bg:#f4f6f8;
+  --bg:#dbe7f0;
   --card:#ffffff;
   --text:#111827;
   --muted:#667085;
-  --line:#e5e7eb;
-  --chip:#f3f4f6;
+  --line:#c4d4e0;
+  --chip:#e8f0f5;
   --blue:#174f7a;
 }}
 
@@ -2833,7 +2833,7 @@ details.all-scores summary {{
   :root {{
     --bg:#0f1115;
     --card:#171a21;
-    --text:#f3f4f6;
+    --text:#e8f0f5;
     --muted:#a8b0bd;
     --line:#2a3039;
     --chip:#222833;
