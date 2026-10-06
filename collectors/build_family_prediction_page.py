@@ -1017,3 +1017,5 @@ if __name__ == "__main__":
 # inverted-theme-refresh-v1
 
 # softer-execution-rose-refresh-v1
+
+# score-delta-publish-v1
