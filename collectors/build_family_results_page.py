@@ -505,12 +505,12 @@ def build_page(evaluation_root: Path) -> str:
 <style>
 :root {{
   color-scheme: light dark;
-  --bg: #f4f6f8;
+  --bg: #dbe7f0;
   --card: #ffffff;
   --text: #111827;
   --muted: #667085;
-  --line: #e5e7eb;
-  --chip: #f3f4f6;
+  --line: #c4d4e0;
+  --chip: #e8f0f5;
   --primary: #174f7a;
 }}
 * {{ box-sizing: border-box; }}
@@ -585,7 +585,7 @@ footer {{ margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1
   :root {{
     --bg: #0f1115;
     --card: #171a21;
-    --text: #f3f4f6;
+    --text: #e8f0f5;
     --muted: #a8b0bd;
     --line: #2a3039;
     --chip: #222833;
