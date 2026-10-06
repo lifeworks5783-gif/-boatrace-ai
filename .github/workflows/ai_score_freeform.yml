@@ -20,10 +20,12 @@ jobs:
       - run: python collectors/evaluate_ai_score_freeform_v2.py
       - run: python -m py_compile collectors/evaluate_ai_score_freeform_v3.py
       - run: python collectors/evaluate_ai_score_freeform_v3.py
+      - run: python -m py_compile collectors/evaluate_ai_score_freeform_v4.py
+      - run: python collectors/evaluate_ai_score_freeform_v4.py
       - run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
-          git add evaluations/ai_score_freeform_v1 evaluations/ai_score_freeform_v2 evaluations/ai_score_freeform_v3
+          git add evaluations/ai_score_freeform_v1 evaluations/ai_score_freeform_v2 evaluations/ai_score_freeform_v3 evaluations/ai_score_freeform_v4
           git diff --cached --quiet && exit 0
           git commit -m "Update freeform AI sandbox results"
           git pull --rebase origin main
