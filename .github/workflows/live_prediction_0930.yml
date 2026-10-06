@@ -289,6 +289,10 @@ jobs:
               race_rows=[x for x in race_rows if str(x.get("race_id","")).strip() in keep]
               with open(rp,"w",encoding="utf-8",newline="") as f:
                   w=csv.DictWriter(f,fieldnames=race_rows[0].keys());w.writeheader();w.writerows(race_rows)
+          # Calculation uses the filtered working copy only. The immutable raw
+          # snapshot was saved in the previous step before this filtering.
+          if len(rows)%6:
+              raise SystemExit("完全レース抽出後の艇数が6の倍数ではありません")
           PY
 
       - name: live prediction_inputを生成
