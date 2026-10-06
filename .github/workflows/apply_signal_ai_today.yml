@@ -1,0 +1,47 @@
+name: Apply signal AI prediction today
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/run_signal_ai_today.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Rebuild today's saved predictions with signal-only AI reranking
+        run: |
+          D=$(TZ=Asia/Tokyo date +%Y%m%d)
+          python -u collectors/build_latest_prediction_view.py --date "$D"
+          python - <<'PY'
+          import json,datetime,pathlib
+          d=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y%m%d")
+          p=pathlib.Path("predictions")/d[:4]/d[4:6]/d[6:8]/"live"/f"formation_predictions_final_{d}.json"
+          x=json.loads(p.read_text())
+          races=x.get("races",[]); sig=[r for r in races if (r.get("ai_score_prediction") or {}).get("signal_mode")]
+          bad=[r.get("race_id") for r in sig if (r.get("ai_score_prediction") or {}).get("points")!=12]
+          normal_bad=[r.get("race_id") for r in races if not (r.get("ai_score_prediction") or {}).get("signal_mode") and (r.get("ai_score_prediction") or {}).get("points")!=8]
+          print("races",len(races),"signal",len(sig),"signal_bad",bad,"normal_bad",normal_bad)
+          assert not bad and not normal_bad
+          PY
+      - name: Commit rebuilt outputs
+        run: |
+          git config user.name "boatrace-ai-bot"
+          git config user.email "boatrace-ai-bot@users.noreply.github.com"
+          git add predictions/
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -m "Apply signal-only AI 12-point rule to today's races"
+          git pull --rebase origin main
+          git push origin HEAD:main
