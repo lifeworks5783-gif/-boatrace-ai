@@ -23,6 +23,7 @@ def parse_args():
     parser.add_argument("--output-dir", default="data")
     parser.add_argument("--now", default=None, help="検証用現在時刻 ISO8601")
     parser.add_argument("--public-source-dir", default=None)
+    parser.add_argument("--historical-backfill", action="store_true", help="保存済み公式beforeinfoから過去日の直前予測を再構成")
     return parser.parse_args()
 
 
@@ -480,7 +481,7 @@ def main():
             # 直前情報の有効性は「計算した時刻」ではなく
             # 「その直前情報を締切前に取得したか」で判定する。
             # 締切後に計算が遅延しても、締切前取得データなら予測対象にする。
-            if deadline is not None:
+            if deadline is not None and not args.historical_backfill:
                 if collected_at is not None and collected_at >= deadline:
                     skipped_after_deadline.append(race_id)
                     continue
