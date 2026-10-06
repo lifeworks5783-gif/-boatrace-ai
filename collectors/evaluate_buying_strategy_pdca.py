@@ -101,10 +101,11 @@ def agg_rank(records,method,points,signal_only=False):
     bydate=defaultdict(lambda:{"races":0,"hits":0,"return":0})
     for r in records:
         base=[x["combination"] for x in r["base"]]
-        if method=="base":ranking=base;signals={}
-        elif method=="v1":ranking=legacy_v1_rank(r);signals=v2_rank(r)[1]
-        else:ranking,signals=v2_rank(r)
-        if signal_only and not signals:continue
+        current_signals=v2_rank(r)[1]
+        if method=="base":ranking=base
+        elif method=="v1":ranking=legacy_v1_rank(r)
+        else:ranking=v2_rank(r)[0]
+        if signal_only and not current_signals:continue
         n+=1;bydate[r["date"]]["races"]+=1
         hit=r["actual"] in ranking[:points]
         if hit:
