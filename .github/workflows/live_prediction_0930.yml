@@ -329,6 +329,31 @@ jobs:
             --date "${TARGET_DATE}" \
             --now "${NOW_ISO}"
 
+      - name: 直前計算の実値を検証
+        if: env.HAS_CANDIDATES == 'true'
+        run: |
+          python - <<'PY'
+          import json, os
+          d=os.environ['TARGET_DATE']
+          p=f'data/live_predictions_current_{d}.json'
+          data=json.load(open(p,encoding='utf-8'))
+          races=data.get('races') or data.get('predictions') or []
+          if not races: raise SystemExit('ERROR: live prediction race is empty')
+          for race in races:
+              rid=race.get('race_id')
+              boats=race.get('boats') or []
+              if len(boats)!=6: raise SystemExit(f'ERROR {rid}: live boats != 6')
+              for b in boats:
+                  missing=[k for k in ('exhibition_course','exhibition_time','exhibition_st') if b.get(k) is None or b.get(k)=='']
+                  if missing: raise SystemExit(f"ERROR {rid} boat{b.get('boat')}: missing {missing}")
+                  comps=b.get('components') or {}
+                  for k in ('racer_course','grade','motor','boat','national_top2','structural','exhibition_time','exhibition_st'):
+                      if k not in comps: raise SystemExit(f"ERROR {rid} boat{b.get('boat')}: component {k} missing")
+              deltas=[abs(float(b['score'])-float(b['morning_score_reference'])) for b in boats]
+              if max(deltas)<0.05: raise SystemExit(f'ERROR {rid}: all live scores equal morning scores')
+          print(f'live calculation audit PASS: {len(races)} races')
+          PY
+
       - name: 直前予測状態を確認
         if: env.HAS_CANDIDATES == 'true'
         run: |
