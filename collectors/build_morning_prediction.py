@@ -115,6 +115,13 @@ def _raw_race_features(race,course_overrides=None):
             cr=dict(cr); cr.update({"d90_win_rate":"0.0","d90_top2_rate":"0.143","d90_top3_rate":"0.286","d90_avg_st":"0.17"})
         mm=mf.get((venue,_keynum(motor.get("motor_no"))),{})
         bb=bf.get((venue,_keynum(bm.get("boat_no"))),{})
+        # 90日履歴が無い新規/交換モーターは、当日公式番組のモーター2連対率を
+        # 同一モーターの実データfallbackとして使用する（0点捏造はしない）。
+        official_motor_top2=_rate(motor.get("motor_top2_rate"))
+        motor_win=_rate(mm.get("d90_win_rate"))
+        motor_top3=_rate(mm.get("d90_top3_rate"))
+        if motor_win is None and official_motor_top2 is not None: motor_win=official_motor_top2
+        if motor_top3 is None and official_motor_top2 is not None: motor_top3=official_motor_top2
         raw[lane]={
             "course_win":_rate(cr.get("d90_win_rate")),
             "course_top2":_rate(cr.get("d90_top2_rate")),
@@ -122,8 +129,8 @@ def _raw_race_features(race,course_overrides=None):
             "course_avg_st":to_float(cr.get("d90_avg_st")),
             "grade":GRADE_PRIOR.get(text(racer.get("grade")).upper()),
             "national_top2":_rate(rr.get("d90_top2_rate")),
-            "motor_win":_rate(mm.get("d90_win_rate")),
-            "motor_top3":_rate(mm.get("d90_top3_rate")),
+            "motor_win":motor_win,
+            "motor_top3":motor_top3,
             "boat_top2":_rate(bb.get("d90_top2_rate")),
             "boat_top3":_rate(bb.get("d90_top3_rate")),
         }
