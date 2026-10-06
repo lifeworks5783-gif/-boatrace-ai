@@ -1020,3 +1020,5 @@ if __name__ == "__main__":
 # softer-execution-rose-refresh-v1
 
 # score-delta-publish-v1
+
+# score-delta-publish-v2
