@@ -697,9 +697,10 @@ def main():
     .badge.live {{
       background: var(--live-bg);
       color: var(--live-text);
-    }
-.badge-wrap{display:flex;align-items:center;gap:5px}.data-ok{font-size:13px;color:#2e7d32}.data-ng{font-size:14px;color:#b26a00;font-weight:800}
-}
+    }}
+    .badge-wrap {{display:flex;align-items:center;gap:5px}}
+    .data-ok {{font-size:13px;color:#2e7d32}}
+    .data-ng {{font-size:14px;color:#b26a00;font-weight:800}}
 
     .badge.morning {{
       background: var(--morning-bg);
