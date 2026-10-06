@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from family_theme import THEME_CSS
 
 
 SITE_DIR = Path("_family_site")
@@ -142,7 +143,7 @@ header .meta {
   }
 
 }
-"""
+""" + THEME_CSS
 
 
 def nav_html(
