@@ -1539,7 +1539,7 @@ def build_race_rows(
                     formation_prediction,
 
                 "ai_evaluation":
-                    ai_details.get(race_code),
+                    ai_details.get(race_code) or ai_details.get("".join(ch for ch in race_code if ch.isdigit())[:12]),
 
                 "signal":
                     has_signal(morning, live),
@@ -2019,6 +2019,9 @@ def load_ai_details(target_date):
         rid = str(item.get("race_id") or "").strip()
         if rid:
             out[rid] = item
+            digits = "".join(ch for ch in rid if ch.isdigit())
+            if len(digits) >= 12:
+                out[digits[:12]] = item
     return out
 
 
