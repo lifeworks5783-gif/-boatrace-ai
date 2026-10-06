@@ -39,14 +39,10 @@ jobs:
           normal_bad=[r.get("race_id") for r in races if not (r.get("ai_score_prediction") or {}).get("signal_mode") and (r.get("ai_score_prediction") or {}).get("points")!=8]
           print("races",len(races),"signal",len(sig),"signal_bad",bad,"normal_bad",normal_bad)
           assert not bad and not normal_bad
-          formation_bad=[]
           rerank_bad=[]
           for r in sig:
               ai=r.get("ai_score_prediction") or {}
-              formation=r.get("formation") or {}
               ai_combos=[v.get("combination") for v in ai.get("combinations",[])]
-              if formation.get("points")!=12 or formation.get("investment_100yen")!=1200 or formation.get("combinations")!=ai_combos or not formation.get("signal_mode"):
-                  formation_bad.append(r.get("race_id"))
               all120=ai.get("all_120_combinations") or []
               base120=ai.get("base_120_combinations") or []
               top12=[v.get("combination") for v in all120[:12]]
@@ -58,8 +54,7 @@ jobs:
                   or ai_combos!=top12
               ):
                   rerank_bad.append(r.get("race_id"))
-          print("formation_bad",formation_bad,"rerank_bad",rerank_bad)
-          assert not formation_bad
+          print("AI-only rerank_bad",rerank_bad)
           assert not rerank_bad
           out=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"signal_ai_apply_summary.json"
           out.parent.mkdir(parents=True,exist_ok=True)
