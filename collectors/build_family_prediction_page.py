@@ -343,8 +343,8 @@ def main():
     :root {{
       color-scheme: light dark;
 
-      --bg: #dbe7f0;\n      --action: #167c68;\n      --action-strong: #116353;
-      --card: #ffffff;
+      --bg: #cddce8;\n      --action: #167c68;\n      --action-strong: #116353;
+      --card: #f4f8fb;\n      --panel: #e8f1f6;\n      --score-row: #dce8f0;
       --text: #172033;
       --muted: #64748b;
       --line: #c4d4e0;
@@ -357,7 +357,7 @@ def main():
       --morning-bg: #dceafb;
       --morning-text: #285a91;
       --morning-accent: #3976b8;
-      --chip: #e8f0f5;
+      --chip: #dfeaf1;
       --warning: #b54747;
     }}
 
@@ -444,7 +444,7 @@ def main():
       font-weight: 800;
       cursor: pointer;
       background: var(--action);
-      color: #ffffff;
+      color: #f4f8fb;
     }}
 
     .refresh-button:disabled {{
@@ -510,7 +510,7 @@ def main():
       gap: 10px;
       padding: 8px 10px;
       border-radius: 9px;
-      background: var(--chip);
+      background: var(--score-row);
     }}
     .ai-table-wrap {{ overflow-x: auto; margin-top: 8px; }}
     .ai-table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
@@ -566,7 +566,7 @@ def main():
 
       border-radius: 50%;
 
-      background: var(--chip);
+      background: var(--score-row);
 
       font-weight: 700;
 
@@ -658,7 +658,7 @@ def main():
 
       border-radius: 10px;
 
-      background: var(--chip);
+      background: var(--score-row);
     }}
 
     .mark {{
@@ -704,7 +704,7 @@ def main():
 
       border-radius: 999px;
 
-      background: var(--chip);
+      background: var(--score-row);
 
       font-size: 13px;
 
