@@ -4,6 +4,7 @@ name: Daily Results and Evaluation
     branches: [main]
     paths:
       - config/run_daily_audit_now.txt
+      - "config/run_daily_audit_*.txt"
   schedule:
     - cron: '30 15 * * *'
   workflow_dispatch:
@@ -27,7 +28,11 @@ jobs:
       - run: pip install lhafile requests beautifulsoup4
       - name: Set target date
         run: |
-          TARGET_DATE=$(TZ=Asia/Tokyo date -d 'yesterday' +%Y%m%d)
+          if [ -n "${AUDIT_TARGET_DATE:-}" ]; then
+            TARGET_DATE="${AUDIT_TARGET_DATE}"
+          else
+            TARGET_DATE=$(TZ=Asia/Tokyo date -d 'yesterday' +%Y%m%d)
+          fi
           echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
           echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
           echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
