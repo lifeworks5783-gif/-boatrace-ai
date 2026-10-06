@@ -26,6 +26,9 @@ jobs:
         run: |
           D=$(TZ=Asia/Tokyo date +%Y%m%d)
           python -u collectors/build_latest_prediction_view.py --date "$D"
+          test -s predictions/latest.json
+          test -s predictions/latest_by_deadline.json
+          test -s "predictions/${D:0:4}/${D:4:2}/${D:6:2}/live/formation_predictions_final_${D}.json"
           python - <<'PY'
           import json,datetime,pathlib
           d=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y%m%d")
@@ -36,6 +39,15 @@ jobs:
           normal_bad=[r.get("race_id") for r in races if not (r.get("ai_score_prediction") or {}).get("signal_mode") and (r.get("ai_score_prediction") or {}).get("points")!=8]
           print("races",len(races),"signal",len(sig),"signal_bad",bad,"normal_bad",normal_bad)
           assert not bad and not normal_bad
+          formation_bad=[]
+          for r in sig:
+              ai=r.get("ai_score_prediction") or {}
+              formation=r.get("formation") or {}
+              ai_combos=[v.get("combination") for v in ai.get("combinations",[])]
+              if formation.get("points")!=12 or formation.get("investment_100yen")!=1200 or formation.get("combinations")!=ai_combos or not formation.get("signal_mode"):
+                  formation_bad.append(r.get("race_id"))
+          print("formation_bad",formation_bad)
+          assert not formation_bad
           out=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"signal_ai_apply_summary.json"
           out.parent.mkdir(parents=True,exist_ok=True)
           out.write_text(json.dumps({"date":d,"race_count":len(races),"signal_count":len(sig),"signals":[{"race_id":r.get("race_id"),"points":r["ai_score_prediction"]["points"],"signal_boats":r["ai_score_prediction"].get("signal_boats"),"combinations":[c.get("combination") for c in r["ai_score_prediction"].get("combinations",[])]} for r in sig],"normal_bad":normal_bad},ensure_ascii=False,indent=2))
