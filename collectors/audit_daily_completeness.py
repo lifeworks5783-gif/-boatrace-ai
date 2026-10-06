@@ -98,7 +98,18 @@ def main():
         if miss:issues.append({"race_id":rid,"missing":sorted(set(miss))})
         else:complete+=1
     status="PASS" if not issues else "INCOMPLETE"
-    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"incomplete_races":len(issues),"needs_recollection":bool(issues),"issues":issues,"recovered_after_result":recovered,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
+    original_complete=0
+    recovered_complete=0
+    for rid in race_ids:
+        if any(x["race_id"]==rid for x in issues): continue
+        used_retry=False
+        for boat in map(str,range(1,7)):
+            src=provenance.get((rid,boat),{})
+            if any(src.get(f)=="post_result_retry" for f in ("exhibition_course","exhibition_time","exhibition_st_raw")):
+                used_retry=True
+        if used_retry: recovered_complete+=1
+        else: original_complete+=1
+    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":bool(issues),"issues":issues,"recovered_after_result":recovered,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
     (out/f"completeness_{d}.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     with (out/f"missing_{d}.csv").open("w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=["race_id","missing"]);w.writeheader()
