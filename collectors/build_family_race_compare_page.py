@@ -2785,6 +2785,20 @@ details.all-scores summary {{
       1fr;
   }}
 
+  .score-chips {{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows:repeat(3,auto);
+    grid-auto-flow:column;
+    align-items:start;
+  }}
+
+  .score-chip {{
+    width:fit-content;
+    max-width:100%;
+    box-sizing:border-box;
+  }}
+
   .simulation-grid {{
     grid-template-columns:1fr;
   }}
