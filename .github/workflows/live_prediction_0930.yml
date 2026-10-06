@@ -243,6 +243,32 @@ jobs:
             echo "直前候補: ${COUNT}R"
           fi
 
+      - name: 公式F/L保有情報を直前計算前に取得
+        if: env.HAS_CANDIDATES == 'true'
+        run: |
+          python -u collectors/enrich_official_fl.py --date "${TARGET_DATE}"
+          test -s "data/program_entries_fl_${TARGET_DATE}.csv"
+          cp "data/program_entries_fl_${TARGET_DATE}.csv" "${BASE_CACHE_DIR}/"
+          echo "公式F/L保有情報: PASS"
+
+      - name: 直前収集データの完全性を確認
+        if: env.HAS_CANDIDATES == 'true'
+        run: |
+          python - <<'PY'
+          import csv, os
+          d=os.environ["TARGET_DATE"]
+          p=f"data/beforeinfo_entries_{d}.csv"
+          rows=list(csv.DictReader(open(p,encoding="utf-8-sig",newline="")))
+          required=("exhibition_course","exhibition_time","exhibition_st_raw")
+          bad=[]
+          for row in rows:
+              miss=[k for k in required if not str(row.get(k,"")).strip()]
+              if miss: bad.append((row.get("race_id"),row.get("boat"),miss))
+          print({"rows":len(rows),"missing_required":len(bad),"sample":bad[:20]})
+          if not rows: raise SystemExit("直前艇データが0件")
+          if "change_parts" not in rows[0]: raise SystemExit("change_parts列欠損")
+          PY
+
       - name: live prediction_inputを生成
         if: env.HAS_CANDIDATES == 'true'
         run: |
