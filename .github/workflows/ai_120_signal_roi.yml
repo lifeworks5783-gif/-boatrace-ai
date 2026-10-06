@@ -1,0 +1,34 @@
+name: AI 120 signal ROI backtest
+on:
+  push:
+    paths:
+      - 'collectors/evaluate_ai_120_signal_roi_v1.py'
+      - 'config/run_ai_120_signal_roi.txt'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run backtest
+        run: python collectors/evaluate_ai_120_signal_roi_v1.py
+      - name: Save results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/ai_120_signal_roi_v1/summary.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Save AI 120 signal ROI backtest"
+          for i in 1 2 3; do
+            git push && exit 0
+            git fetch origin main
+            git rebase origin/main
+          done
+          exit 1
