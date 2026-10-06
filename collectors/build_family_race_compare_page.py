@@ -968,6 +968,12 @@ def locate_live_file(
     return None
 
 
+def locate_formation_file(root, target_date):
+    yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
+    path = Path(root) / yyyy / mm / dd / "live" / f"formation_predictions_final_{target_date}.json"
+    return path if path.is_file() else None
+
+
 def load_predictions(
     predictions_root,
     target_date,
@@ -1031,9 +1037,14 @@ def load_predictions(
         "R",
     )
 
+    formation_file = locate_formation_file(root, target_date)
+    formations = load_prediction_file(formation_file, target_date) if formation_file else {}
+    print("通常買い目読込:", len(formations), "R")
+
     return (
         morning,
         live,
+        formations,
     )
 
 
@@ -1256,6 +1267,7 @@ def build_race_rows(
     target_date,
     morning_predictions,
     live_predictions,
+    formation_predictions=None,
 ):
 
     yyyy = target_date[:4]
@@ -1407,6 +1419,7 @@ def build_race_rows(
                 race_code
             )
         )
+        formation_prediction = (formation_predictions or {}).get(race_code)
 
         if live:
             live_stage = str(live.get("stage") or (live.get("raw") or {}).get("stage") or (live.get("raw") or {}).get("prediction_stage") or "").strip().lower()
@@ -1520,6 +1533,9 @@ def build_race_rows(
 
                 "live":
                     live,
+
+                "formation_prediction":
+                    formation_prediction,
 
                 "signal":
                     has_signal(morning, live),
@@ -2205,7 +2221,7 @@ def render_html(
 
 
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
-  {simulation_html(row["live"] or row["morning"], row["trifecta"], row["payout"])}
+  {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
   <div class="label simulation-label">AIスコア予測・保存済み上位12点</div>\n  <div class="simulation-meta">AI独自スコアによる組み合わせ評価</div>
   {ai_score_result_html(row["live"] or row["morning"], row["trifecta"], row["payout"])}
 
