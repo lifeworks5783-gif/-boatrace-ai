@@ -40,14 +40,27 @@ jobs:
           print("races",len(races),"signal",len(sig),"signal_bad",bad,"normal_bad",normal_bad)
           assert not bad and not normal_bad
           formation_bad=[]
+          rerank_bad=[]
           for r in sig:
               ai=r.get("ai_score_prediction") or {}
               formation=r.get("formation") or {}
               ai_combos=[v.get("combination") for v in ai.get("combinations",[])]
               if formation.get("points")!=12 or formation.get("investment_100yen")!=1200 or formation.get("combinations")!=ai_combos or not formation.get("signal_mode"):
                   formation_bad.append(r.get("race_id"))
-          print("formation_bad",formation_bad)
+              all120=ai.get("all_120_combinations") or []
+              base120=ai.get("base_120_combinations") or []
+              top12=[v.get("combination") for v in all120[:12]]
+              if (
+                  len(all120)!=120
+                  or len(base120)!=120
+                  or len({v.get("combination") for v in all120})!=120
+                  or not ai.get("rerank_verified")
+                  or ai_combos!=top12
+              ):
+                  rerank_bad.append(r.get("race_id"))
+          print("formation_bad",formation_bad,"rerank_bad",rerank_bad)
           assert not formation_bad
+          assert not rerank_bad
           out=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"signal_ai_apply_summary.json"
           out.parent.mkdir(parents=True,exist_ok=True)
           out.write_text(json.dumps({"date":d,"race_count":len(races),"signal_count":len(sig),"signals":[{"race_id":r.get("race_id"),"points":r["ai_score_prediction"]["points"],"signal_boats":r["ai_score_prediction"].get("signal_boats"),"combinations":[c.get("combination") for c in r["ai_score_prediction"].get("combinations",[])]} for r in sig],"normal_bad":normal_bad},ensure_ascii=False,indent=2))
