@@ -21,8 +21,6 @@ concurrency:
 jobs:
   results_evaluation:
     runs-on: ubuntu-latest
-    env:
-      AUDIT_TARGET_DATE: ${{ inputs.target_date || vars.AUDIT_TARGET_DATE }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -35,8 +33,9 @@ jobs:
       - run: pip install lhafile requests beautifulsoup4
       - name: Set target date
         run: |
-          if [ -n "${AUDIT_TARGET_DATE:-}" ]; then
-            TARGET_DATE="${AUDIT_TARGET_DATE}"
+          INPUT_DATE="${{ github.event.inputs.target_date }}"
+          if [ -n "$INPUT_DATE" ]; then
+            TARGET_DATE="$INPUT_DATE"
           elif [ "${{ github.event_name }}" = "push" ]; then
             CHANGED=$(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}" | grep -E '^config/run_daily_audit_[0-9]{8}\.txt$' | head -1 || true)
             if [ -n "$CHANGED" ]; then
