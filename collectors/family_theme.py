@@ -5,16 +5,16 @@ Edit THEME_CSS here to change the color atmosphere of all public pages.
 THEME_CSS = r"""
 :root {
   color-scheme: light dark;
-  --bg: #bfd2e1;
-  --surface: #e8f1f6;
-  --card: #eaf2f7;
-  --card-strong: #f3f7fa;
-  --panel: #d8e6ef;
-  --score-row: #cfdfeb;
-  --chip: #d8e6ef;
+  --bg: #eef4f8;
+  --surface: #d4e2ec;
+  --card: #dce8f0;
+  --card-strong: #e7f0f5;
+  --panel: #d1e0ea;
+  --score-row: #c8dbe8;
+  --chip: #d1e0ea;
   --text: #172033;
   --muted: #60758a;
-  --line: #aec4d4;
+  --line: #b7cad8;
   --primary: #174f7a;
   --primary-strong: #123d60;
   --primary-soft: #d2e3ef;
