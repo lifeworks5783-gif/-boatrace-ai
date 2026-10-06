@@ -443,7 +443,7 @@ def main():
       font-size: 16px;
       font-weight: 800;
       cursor: pointer;
-      background: #2563eb;
+      background: var(--primary);
       color: #ffffff;
     }}
 
@@ -491,9 +491,9 @@ def main():
       cursor: pointer;
     }}
     .prediction-tab.active {{
-      background: #2563eb;
+      background: var(--primary);
       color: #fff;
-      border-color: #2563eb;
+      border-color: var(--primary);
     }}
     .prediction-panel {{ display: none; }}\n    .race-view-tabs {{ display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px; }}\n    .race-view-tab {{ min-height:38px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text);font-weight:800;cursor:pointer; }}\n    .race-view-tab[data-race-view="朝"].active {{ background:var(--morning-accent);color:#fff;border-color:var(--morning-accent); }}\n    .race-view-tab[data-race-view="直前"].active {{ background:var(--live-accent);color:#fff;border-color:var(--live-accent); }}\n    .race-prediction-view.hidden {{ display:none; }}
     .prediction-panel.active {{ display: block; }}
