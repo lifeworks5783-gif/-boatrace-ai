@@ -212,6 +212,16 @@ def racer_st90_map():
                 samples = to_int(row.get("d90_st_samples")) or 0
                 if reg:
                     out[reg] = (samples, avg)
+    # 90日STが欠損/標本不足の選手は、保存済み長期コース履歴の実測STを補完候補にする。
+    # 直前の展示進入コースごとに選べるよう、(選手,コース)も保持する。
+    fallback_path = Path(__file__).resolve().parents[1] / "config" / "racer_course_history_fallback.csv"
+    if fallback_path.exists():
+        with fallback_path.open(encoding="utf-8-sig", newline="") as fh:
+            for row in csv.DictReader(fh):
+                reg=text(row.get("registration_no")); course=text(row.get("course"))
+                avg=to_float(row.get("avg_st")); samples=to_int(row.get("sample_count")) or 0
+                if reg and course and avg is not None:
+                    out[(reg,course)] = (samples,avg)
     _RACER_ST90_CACHE = out
     return out
 
@@ -225,8 +235,16 @@ def personal_st_delta_score(boat):
         return 0.4
     racer = boat.get("racer") or {}
     reg = text(racer.get("registration_no"))
-    samples, avg = racer_st90_map().get(reg, (0, None))
-    if st is None or avg is None or samples < 10:
+    st_map=racer_st90_map()
+    samples, avg = st_map.get(reg, (0, None))
+    # 90日STが使えない場合は、展示進入コースに対応する保存済み長期実績を参照する。
+    # 長期履歴は標本10走未満でも「実データ」として使い、欠損時の中立0.5より優先する。
+    if avg is None or samples < 10:
+        course=text(get_exhibition_course(boat) or boat.get("boat"))
+        fs, favg=st_map.get((reg,course),(0,None))
+        if favg is not None:
+            samples,avg=fs,favg
+    if st is None or avg is None:
         return 0.5
     delta = st - avg
     return max(0.0, min(1.0, 0.5 - delta / 0.12))
