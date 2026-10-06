@@ -997,3 +997,5 @@ if __name__ == "__main__":
 # execution-pink-theme-refresh-v2
 
 # inverted-theme-refresh-v1
+
+# softer-execution-rose-refresh-v1
