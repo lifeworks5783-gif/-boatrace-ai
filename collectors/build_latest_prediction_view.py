@@ -1235,31 +1235,8 @@ def main():
             ai_score_config,
         )
 
-        # ⚡シグナル時はAIスコア予測の12点を最終買い目の正本として扱う。
-        # 通常時は従来formationを維持し、本番通常ロジック自体は変更しない。
-        if (
-            ai_score_prediction
-            and ai_score_prediction.get("signal_mode")
-        ):
-            signal_combinations = [
-                item.get("combination")
-                for item in ai_score_prediction.get("combinations", [])
-                if item.get("combination")
-            ]
-            if signal_combinations:
-                formation = {
-                    **formation,
-                    "formation_type": "⚡AIシグナル12点",
-                    "first_candidates": ai_score_prediction.get("first_candidates", []),
-                    "second_candidates": ai_score_prediction.get("second_candidates", []),
-                    "third_candidates": ai_score_prediction.get("third_candidates", []),
-                    "combinations": signal_combinations,
-                    "points": len(signal_combinations),
-                    "investment_100yen": len(signal_combinations) * 100,
-                    "signal_mode": True,
-                    "signal_boats": ai_score_prediction.get("signal_boats", {}),
-                    "source": "ai_score_prediction_signal",
-                }
+        # 通常3連単フォーメーションとAIスコア予測は独立させる。
+        # ⚡シグナルが出ても通常formationは上書きしない。
 
         row = {
             "target_date": (
