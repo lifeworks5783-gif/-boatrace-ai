@@ -1,0 +1,26 @@
+name: Plus10 formation multiday backtest
+on:
+  push:
+    paths:
+      - 'collectors/evaluate_plus10_formation_multiday_v1.py'
+      - 'config/run_plus10_formation_multiday.txt'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python collectors/evaluate_plus10_formation_multiday_v1.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/plus10_formation_multiday_v1/summary.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Save plus10 formation backtest"
+          for i in 1 2 3; do git push && exit 0; git fetch origin main; git rebase origin/main; done
+          exit 1
