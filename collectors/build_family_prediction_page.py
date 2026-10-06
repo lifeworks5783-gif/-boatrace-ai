@@ -100,7 +100,24 @@ def updated_label(value):
         return raw
 
 
-def boat_line(boat, mark=""):
+def score_delta_html(boat, morning_score_map):
+    if not morning_score_map:
+        return ""
+    key = text(boat.get("boat"))
+    try:
+        live = float(boat.get("score"))
+        morning = float(morning_score_map.get(key))
+    except (TypeError, ValueError):
+        return ""
+    delta = live - morning
+    if abs(delta) < 0.05:
+        return '<span class="score-delta flat">→ ±0.0</span>'
+    if delta > 0:
+        return f'<span class="score-delta up">▲ +{delta:.1f}</span>'
+    return f'<span class="score-delta down">▼ {delta:.1f}</span>'
+
+
+def boat_line(boat, mark="", morning_score_map=None):
     boat_no = esc(
         boat.get("boat")
     )
@@ -125,6 +142,7 @@ def boat_line(boat, mark=""):
         f'<span class="mark">{esc(mark)}</span>'
         f'<span class="pick-name">{name}</span>'
         f'<span class="score">{score}</span>'
+        f'{score_delta_html(boat, morning_score_map)}'
         "</div>"
     )
 
@@ -154,7 +172,7 @@ def build_card(race, index, is_completed=False):
     boats=race.get("boats") or []; formation=race.get("formation") or {}
     morning_boats=race.get("morning_boats") or []; morning_formation=race.get("morning_formation") or {}
     has_switch=prediction_type=="直前" and len(morning_boats)==6
-    current=_prediction_body(boats,formation,prediction_type)
+    morning_score_map = {text(x.get("boat")): x.get("score") for x in morning_boats}\n    current=_prediction_body(boats,formation,prediction_type,morning_score_map if has_switch else None)
     switch=""
     morning=""
     if has_switch:
@@ -495,7 +513,7 @@ def main():
       color: #fff;
       border-color: var(--primary);
     }}
-    .prediction-panel {{ display: none; }}\n    .race-view-tabs {{ display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px; }}\n    .race-view-tab {{ min-height:38px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text);font-weight:800;cursor:pointer; }}\n    .race-view-tab[data-race-view="朝"].active {{ background:var(--morning-accent);color:#fff;border-color:var(--morning-accent); }}\n    .race-view-tab[data-race-view="直前"].active {{ background:var(--live-accent);color:#fff;border-color:var(--live-accent); }}\n    .race-prediction-view.hidden {{ display:none; }}
+    .prediction-panel {{ display: none; }}\n    .race-view-tabs {{ display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px; }}\n    .race-view-tab {{ min-height:38px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text);font-weight:800;cursor:pointer; }}\n    .race-view-tab[data-race-view="朝"].active {{ background:var(--morning-accent);color:#fff;border-color:var(--morning-accent); }}\n    .race-view-tab[data-race-view="直前"].active {{ background:var(--live-accent);color:#fff;border-color:var(--live-accent); }}\n    .race-prediction-view.hidden {{ display:none; }}\n    .score-delta {{ margin-left:8px;font-size:13px;font-weight:900;white-space:nowrap; }}\n    .score-delta.up {{ color:#a33f58; }}\n    .score-delta.down {{ color:#2f6690; }}\n    .score-delta.flat {{ color:var(--muted); }}
     .prediction-panel.active {{ display: block; }}
     .ai-candidates {{
       display: grid;
