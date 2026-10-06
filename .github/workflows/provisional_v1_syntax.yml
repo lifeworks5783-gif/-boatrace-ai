@@ -13,6 +13,7 @@ jobs:
         with: {python-version: "3.12"}
       - run: python -m py_compile collectors/build_morning_prediction.py collectors/build_live_prediction.py
       - run: |
-          grep -q 'provisional_v1_20261004_morning_40_20_20_5_15' collectors/build_morning_prediction.py
-          grep -q 'provisional_v2_20261006_live_80_6_personal_st_delta14' collectors/build_live_prediction.py
+          grep -q 'MODEL_VERSION = "provisional_v4_20261006_morning_traceable_inputs"' collectors/build_morning_prediction.py
+          grep -q 'MODEL_VERSION = "provisional_v4_20261006_live_traceable_inputs"' collectors/build_live_prediction.py
+          python -m py_compile collectors/build_prediction_input.py collectors/enrich_prediction_input.py
           echo "PROVISIONAL_LIVE_READY"
