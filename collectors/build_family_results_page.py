@@ -454,7 +454,7 @@ def build_page(evaluation_root: Path) -> str:
             ),
             strategy_html(
                 "AIスコア予測",
-                "1着・2着・3着を別採点し、120通りのAI順位上位8点を各100円で購入した想定。1レース800円固定。",
+                "1着・2着・3着を別採点。通常は120通りの上位8点、⚡時は補正後120通りの上位12点を各100円で購入した実績で集計。",
                 ai_overall,
             ),
         ]
@@ -471,7 +471,7 @@ def build_page(evaluation_root: Path) -> str:
 
         ai_points = find_dict(ai, ["by_points"])
         if ai_points:
-            section = type_cards_html("AI上位8点・収支シミュレーション", ai_points)
+            section = type_cards_html("AI購入点数別・収支シミュレーション", ai_points)
             if section:
                 body_parts.append(section)
 
