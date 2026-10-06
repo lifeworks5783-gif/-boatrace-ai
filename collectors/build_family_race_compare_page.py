@@ -1241,6 +1241,20 @@ def odds_minutes_before(
         return None
 
 
+def has_signal(morning, live):
+    if not morning or not live:
+        return False
+    morning_scores = {normalize_boat(x.get("boat")): safe_float(x.get("score")) for x in (morning.get("boats") or [])}
+    live_boats = live.get("boats") or []
+    for rank, boat in enumerate(live_boats, 1):
+        boat_no = normalize_boat(boat.get("boat"))
+        live_score = safe_float(boat.get("score"))
+        base = morning_scores.get(boat_no)
+        if rank > 3 and live_score is not None and base is not None and live_score - base >= 10.0:
+            return True
+    return False
+
+
 # =========================================================
 # レースデータ統合
 # =========================================================
@@ -1508,6 +1522,9 @@ def build_race_rows(
 
                 "live":
                     live,
+
+                "signal":
+                    has_signal(morning, live),
 
                 "morning_eval":
                     evaluate_top3(
@@ -2099,7 +2116,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R
+        {row["race"]}R{" ⚡" if row.get("signal") else ""}
       </div>
 
       <div class="sub">
