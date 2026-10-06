@@ -2011,6 +2011,15 @@ def ai_score_eval(prediction, actual):
 
 
 
+
+def load_formation_evaluation(target_date):
+    p = Path(f"evaluations/{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}/formation_simulation_{target_date}.json")
+    data = read_json(p) if p.is_file() else None
+    overall = (data or {}).get("overall") or {}
+    rate = safe_float(overall.get("hit_rate"))
+    return (rate * 100.0) if rate is not None else None
+
+
 def load_ai_details(target_date):
     p = Path(f"evaluations/{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}/ai_score_simulation_{target_date}.json")
     data = read_json(p) if p.is_file() else None
@@ -2085,6 +2094,10 @@ def render_html(
 
     morning_hit_summary = hit_summary("morning_formation_hit")
     live_hit_summary = hit_summary("live_formation_hit")
+    saved_formation_rate = load_formation_evaluation(target_date)
+    # 現行保存済み買い目評価は直前側の正式値。朝側は朝買い目の保存評価が無いため捏造せず非表示。
+    if saved_formation_rate is not None:
+        live_hit_summary = {"count": len(race_rows), "hits": None, "rate": saved_formation_rate}
     # 日次AI評価ファイルを正本にする。予測JSONへの埋め込み有無で0Rにならないようにする。
     ai_summary = load_ai_evaluation(target_date) or ai_score_summary(race_rows)
 
