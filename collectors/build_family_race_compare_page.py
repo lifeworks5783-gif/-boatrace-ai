@@ -2292,7 +2292,7 @@ def render_html(
   --muted:#667085;
   --line:#e5e7eb;
   --chip:#f3f4f6;
-  --blue:#2563eb;
+  --blue:#174f7a;
 }}
 
 * {{
