@@ -139,6 +139,20 @@ def _raw_race_features(race,course_overrides=None):
                     cr[ck]=lf.get(fk)
         mm=mf.get((venue,_keynum(motor.get("motor_no"))),{})
         bb=bf.get((venue,_keynum(bm.get("boat_no"))),{})
+        history=boat.get("history") or {}
+        # 90日特徴量が欠けた場合は、入力に保存済みの30日/90日実績から項目単位で補完する。
+        # 実データが無い項目は作らず、既存の値も上書きしない。
+        mm=dict(mm); bb=dict(bb); rr=dict(rr)
+        for dst, sources in ((rr,(history.get("racer_90d") or {},history.get("racer_30d") or {})),
+                             (mm,(history.get("motor_90d") or {},history.get("motor_30d") or {})),
+                             (bb,(history.get("boat_90d") or {},history.get("boat_30d") or {}))):
+            for key in ("d90_win_rate","d90_top2_rate","d90_top3_rate","d90_avg_st"):
+                if dst.get(key) in (None, ""):
+                    for src in sources:
+                        for sk in (key, key.replace("d90_","")):
+                            if src.get(sk) not in (None, ""):
+                                dst[key]=src.get(sk); break
+                        if dst.get(key) not in (None, ""): break
         # 90日履歴が無い新規/交換モーターは、当日公式番組のモーター2連対率を
         # 同一モーターの実データfallbackとして使用する（0点捏造はしない）。
         official_motor_top2=_rate(motor.get("official_top2_rate") if motor.get("official_top2_rate") is not None else motor.get("motor_top2_rate"))
