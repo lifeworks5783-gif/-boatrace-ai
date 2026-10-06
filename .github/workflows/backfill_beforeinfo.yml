@@ -41,7 +41,7 @@ jobs:
 
       - name: 対象日を設定
         run: |
-          TARGET_DATE="${{ inputs.target_date || '20261004' }}"
+          TARGET_DATE="${{ inputs.target_date || '20261006' }}"
           echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
           echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
           echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
