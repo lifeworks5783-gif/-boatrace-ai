@@ -76,17 +76,27 @@ jobs:
           python -u collectors/enrich_prediction_input.py --date "$TARGET_DATE" --stage morning
           grep -q '"status": "PASS"' "data/prediction_input_enriched_validation_morning_${TARGET_DATE}.json"
 
-      - name: 朝スコアを計算
+      - name: 朝スコアを計算（当日1回だけ固定）
         run: |
-          python -u collectors/build_morning_prediction.py --date "$TARGET_DATE"
-          grep -q '"status": "PASS"' "data/morning_predictions_validation_${TARGET_DATE}.json"
+          PREDICTION_DEST="predictions/${YEAR}/${MONTH}/${DAY}"
+          if [ -s "${PREDICTION_DEST}/morning_predictions_${TARGET_DATE}.json" ]; then
+            echo "保存済み朝予測を保護して再計算しません"
+            cp "${PREDICTION_DEST}/morning_predictions_${TARGET_DATE}.json" "data/morning_predictions_${TARGET_DATE}.json"
+            cp "${PREDICTION_DEST}/morning_predictions_${TARGET_DATE}.csv" "data/morning_predictions_${TARGET_DATE}.csv" 2>/dev/null || true
+            cp "${PREDICTION_DEST}/morning_predictions_validation_${TARGET_DATE}.json" "data/morning_predictions_validation_${TARGET_DATE}.json" 2>/dev/null || true
+          else
+            python -u collectors/build_morning_prediction.py --date "$TARGET_DATE"
+            grep -q '"status": "PASS"' "data/morning_predictions_validation_${TARGET_DATE}.json"
+          fi
       - run: |
           PREDICTION_DEST="predictions/${YEAR}/${MONTH}/${DAY}"
           INPUT_DEST="daily_inputs/${YEAR}/${MONTH}/${DAY}"
           mkdir -p "$PREDICTION_DEST" "$INPUT_DEST"
-          cp "data/morning_predictions_${TARGET_DATE}.json" "$PREDICTION_DEST/"
-          cp "data/morning_predictions_${TARGET_DATE}.csv" "$PREDICTION_DEST/"
-          cp "data/morning_predictions_validation_${TARGET_DATE}.json" "$PREDICTION_DEST/"
+          if [ ! -s "$PREDICTION_DEST/morning_predictions_${TARGET_DATE}.json" ]; then
+            cp "data/morning_predictions_${TARGET_DATE}.json" "$PREDICTION_DEST/"
+            cp "data/morning_predictions_${TARGET_DATE}.csv" "$PREDICTION_DEST/"
+            cp "data/morning_predictions_validation_${TARGET_DATE}.json" "$PREDICTION_DEST/"
+          fi
           find data -maxdepth 1 -type f -name "*${TARGET_DATE}*" -exec cp {} "$INPUT_DEST/" \;
           python -u collectors/build_latest_prediction_view.py --date "$TARGET_DATE" --now "$NOW_ISO"
           python -u collectors/build_deadline_prediction_view.py --date "$TARGET_DATE"
