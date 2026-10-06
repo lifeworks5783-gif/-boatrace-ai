@@ -6,6 +6,11 @@ on:
     paths:
       - "config/run_signal_ai_today.txt"
   workflow_dispatch:
+    inputs:
+      target_date:
+        description: "対象日 YYYYMMDD（空欄なら当日）"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -24,14 +29,17 @@ jobs:
           python-version: "3.12"
       - name: Rebuild today's saved predictions with signal-only AI reranking
         run: |
-          D=$(TZ=Asia/Tokyo date +%Y%m%d)
+          D="${{ inputs.target_date }}"
+          [ -n "$D" ] || D=$(TZ=Asia/Tokyo date +%Y%m%d)
+          export TARGET_DATE="$D"
           python -u collectors/build_latest_prediction_view.py --date "$D"
           test -s predictions/latest.json
           test -s predictions/latest_by_deadline.json
           test -s "predictions/${D:0:4}/${D:4:2}/${D:6:2}/live/formation_predictions_final_${D}.json"
           python - <<'PY'
           import json,datetime,pathlib
-          d=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y%m%d")
+          import os
+          d=os.environ["TARGET_DATE"]
           p=pathlib.Path("predictions")/d[:4]/d[4:6]/d[6:8]/"live"/f"formation_predictions_final_{d}.json"
           x=json.loads(p.read_text())
           races=x.get("races",[]); sig=[r for r in races if (r.get("ai_score_prediction") or {}).get("signal_mode")]
