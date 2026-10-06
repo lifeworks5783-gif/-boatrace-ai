@@ -615,11 +615,17 @@ def load_ai_score_config(target_date):
     return config
 
 
-def _component01(row, key, default=0.5):
+def _component01(row, key, default=None):
     comps = row.get("components") or {}
     comp = comps.get(key) or {}
     value = to_float(comp.get("raw_score_0_1"))
-    return default if value is None else max(0.0, min(1.0, value))
+    if value is None:
+        if default is None:
+            raise RuntimeError(
+                f"AIスコア必須要素欠損: {boat_number(row)}号艇 {key}"
+            )
+        value = default
+    return max(0.0, min(1.0, value))
 
 
 def _weighted_position_score(values, weights):
@@ -638,18 +644,23 @@ def build_ai_score_prediction(boats, ai_config):
     for row in boats:
         boat = boat_number(row)
         overall = max(0.0, min(1.0, score_for_calculation(row) / 100.0))
-        values = {
-            "racer_course": _component01(row, "racer_course", overall),
-            "grade": _component01(row, "grade", overall),
-            "motor": _component01(row, "motor", overall),
-            "boat": _component01(row, "boat", overall),
-            "national_top2": _component01(row, "national_top2", overall),
-            "structural": _component01(row, "structural", overall),
-            "exTime": _component01(row, "exTime", overall),
-            "exST": _component01(row, "exST", overall),
-            "overall": overall,
-        }
         stage = "live" if "structural" in (row.get("components") or {}) else "morning"
+        if stage == "live":
+            values = {
+                "structural": _component01(row, "structural"),
+                "exTime": _component01(row, "exTime"),
+                "exST": _component01(row, "exST"),
+                "overall": overall,
+            }
+        else:
+            values = {
+                "racer_course": _component01(row, "racer_course"),
+                "grade": _component01(row, "grade"),
+                "motor": _component01(row, "motor"),
+                "boat": _component01(row, "boat"),
+                "national_top2": _component01(row, "national_top2"),
+                "overall": overall,
+            }
         weights = ai_config[stage]
         first = _weighted_position_score(values, weights["first"])
         second = _weighted_position_score(values, weights["second"])
@@ -657,12 +668,16 @@ def build_ai_score_prediction(boats, ai_config):
         scored.append({"boat": boat, "first_score": round(first*100,2), "second_score": round(second*100,2), "third_score": round(third*100,2)})
 
     by_boat = {x["boat"]: x for x in scored}
+    if set(by_boat) != {1,2,3,4,5,6}:
+        raise RuntimeError("AIスコア計算対象の艇番1〜6が不完全です")
     combos = []
     for first, second, third in itertools.permutations(sorted(by_boat), 3):
         a,b,d = by_boat[first],by_boat[second],by_boat[third]
         joint=((max(a["first_score"],.01)/100)*(max(b["second_score"],.01)/100)*(max(d["third_score"],.01)/100))**(1/3)
         combos.append({"combination":f"{first}-{second}-{third}","score":round(joint*100,3)})
     combos.sort(key=lambda x:(-x["score"],x["combination"]))
+    if len(combos) != 120 or len({x["combination"] for x in combos}) != 120:
+        raise RuntimeError("AIスコア3連単120通りの生成に失敗しました")
 
     # ⚡ signal mode: keep boat/base AI scores unchanged and re-rank only the 120 trifecta combinations.
     # Provisional rule selected by the 2026-10-05 general-rule search (15/34 signal races, no lost baseline hits).
