@@ -1,5 +1,6 @@
 from __future__ import annotations
 import argparse,csv,html,re,time,urllib.request,urllib.error
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 UA="Mozilla/5.0 (compatible; boatrace-ai-data-collector/1.0)"
@@ -37,20 +38,20 @@ def main():
  by_race={}
  for r in rows:by_race.setdefault((r["venue_code"],int(r["race"])),[]).append(r)
  matched=0;missing=[]
- for (jcd,rno),rs in sorted(by_race.items()):
+ def load(item):
+  (jcd,rno),rs=item
   url=f"https://www.boatrace.jp/owpc/pc/race/racelist?hd={a.date}&jcd={jcd}&rno={rno}"
-  print(f"fetch date={a.date} venue={jcd} race={rno} rows={len(rs)}",flush=True)
-  try:
-   got=parse_page(fetch(url))
-  except Exception as e:
-   print(f"fetch_failed date={a.date} venue={jcd} race={rno} error={type(e).__name__}:{e}",flush=True)
-   got={}
-  print(f"parsed date={a.date} venue={jcd} race={rno} matched={len(got)}",flush=True)
-  time.sleep(.05)
-  for r in rs:
-   x=got.get(str(r["registration_no"]))
-   if x:r.update(x);matched+=1
-   else:r.update({"f_count":"","l_count":"","official_avg_st":""});missing.append((r["race_id"],r["boat"],r["registration_no"]))
+  try:return (jcd,rno),rs,parse_page(fetch(url,retries=1,timeout=5)),None
+  except Exception as e:return (jcd,rno),rs,{},e
+ with ThreadPoolExecutor(max_workers=12) as ex:
+  futures=[ex.submit(load,item) for item in sorted(by_race.items())]
+  for fut in as_completed(futures):
+   (jcd,rno),rs,got,err=fut.result()
+   if err:print(f"fetch_failed date={a.date} venue={jcd} race={rno} error={type(err).__name__}:{err}",flush=True)
+   for r in rs:
+    x=got.get(str(r["registration_no"]))
+    if x:r.update(x);matched+=1
+    else:r.update({"f_count":"","l_count":"","official_avg_st":""});missing.append((r["race_id"],r["boat"],r["registration_no"]))
  for k in ["f_count","l_count","official_avg_st"]:
   if k not in fields:fields.append(k)
  outp.parent.mkdir(parents=True,exist_ok=True)
