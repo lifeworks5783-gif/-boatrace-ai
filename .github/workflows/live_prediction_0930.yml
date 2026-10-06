@@ -242,18 +242,15 @@ jobs:
             echo "直前候補: ${COUNT}R"
           fi
 
-      - name: 公式F/L保有情報を直前計算前に準備
+      - name: 公式F/L保有情報はキャッシュがあれば利用
         if: env.HAS_CANDIDATES == 'true'
         run: |
           FL_CACHE="${BASE_CACHE_DIR}/program_entries_fl_${TARGET_DATE}.csv"
           if [ -s "${FL_CACHE}" ]; then
             cp "${FL_CACHE}" "data/program_entries_fl_${TARGET_DATE}.csv"
-            echo "公式F/L保有情報: キャッシュ再利用"
+            echo "公式F/L保有情報: キャッシュ利用"
           else
-            python -u collectors/enrich_official_fl.py --date "${TARGET_DATE}"
-            test -s "data/program_entries_fl_${TARGET_DATE}.csv"
-            cp "data/program_entries_fl_${TARGET_DATE}.csv" "${BASE_CACHE_DIR}/"
-            echo "公式F/L保有情報: 新規取得"
+            echo "公式F/L保有情報: 未取得。予測を止めずF/L補正なしで続行"
           fi
 
       - name: 直前収集データの完全性を確認
