@@ -2159,8 +2159,8 @@ def render_html(
     </div>
 
     <div>
-      {prediction_html(row["live"])}
-      {all_scores_html(row["live"], "直前予測")}
+      {prediction_html(row["live"], score_map(row["morning"]))}
+      {all_scores_html(row["live"], "直前予測", score_map(row["morning"]))}
     </div>
 
     <div class="metrics">
