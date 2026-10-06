@@ -56,7 +56,7 @@ def main():
      if parts[2] in sigs:bonus += mult*0.80*sigs[parts[2]]
      sc.append((ff(x["score"])+bonus,idx,x["combination"]))
     sc.sort(key=lambda z:(-z[0],z[1]));chosen=[z[2] for z in sc[:12]]
-   bh=a in base;h=a in chosen;hit+=h;resc+=int(sigs and h and not bh);lost+=int(sigs and bh and not h)
+   bh=a in base;h=a in chosen;hit+=h;resc+=int(bool(sigs) and h and not bh);lost+=int(bool(sigs) and bh and not h)
    q=len(chosen);pts+=q*BET
    if h:ret+=p;manshu+=int(p>=10000)
    if sigs:details.append({"race_id":k,"signals":sigs,"base8_hit":bh,"new12_hit":h,"actual":a,"pay":p,"chosen":chosen})
