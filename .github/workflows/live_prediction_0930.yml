@@ -266,6 +266,7 @@ jobs:
               if miss: bad.append((row.get("race_id"),row.get("boat"),miss))
           print({"rows":len(rows),"missing_required":len(bad),"sample":bad[:20]})
           if not rows: raise SystemExit("直前艇データが0件")
+          if bad: raise SystemExit(f"直前必須データ欠損: {len(bad)}艇")
           if "change_parts" not in rows[0]: raise SystemExit("change_parts列欠損")
           PY
 
