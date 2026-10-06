@@ -81,6 +81,14 @@ def _rate(v):
     if n is None: return None
     return clamp(n/100.0 if n>1 else n)
 
+def _long_history_fallbacks():
+    """保存済み長期実績を読む。90日特徴量が欠けた時だけ使用する。"""
+    out={}
+    for r in _feature_rows("config/racer_course_history_fallback.csv"):
+        reg=_keynum(r.get("registration_no")); course=_keynum(r.get("course"))
+        if reg and course: out[(reg,course)]=r
+    return out
+
 _FEATURE_CACHE=None
 def _feature_maps():
     global _FEATURE_CACHE
@@ -99,6 +107,7 @@ def _feature_maps():
 
 def _raw_race_features(race,course_overrides=None):
     rc,rf,mf,bf=_feature_maps()
+    long_fallbacks=_long_history_fallbacks()
     boats=race.get("boats") or []
     venue=str(race.get("venue_code") or race.get("stadium_code") or "").zfill(2)
     raw={}
@@ -120,10 +129,14 @@ def _raw_race_features(race,course_overrides=None):
             for ck, rk in (("d90_win_rate","d90_win_rate"),("d90_top2_rate","d90_top2_rate"),("d90_top3_rate","d90_top3_rate"),("d90_avg_st","d90_avg_st")):
                 if cr.get(ck) in (None, ""):
                     cr[ck]=rr.get(rk)
-        if reg=="4889" and cr.get("d90_avg_st") in (None, ""):
-            # 保存済み6か月コース履歴の実測平均ST。直近90日にST標本が無い期間の補完。
-            # config/racer_course_history_fallback.csv の4889/6と同じ保存済み実データを使用する。
-            cr=dict(cr); cr["d90_avg_st"]="0.17"
+        # 90日データがなお欠ける場合だけ、保存済み長期コース実績を参照する。
+        # 選手個別の固定値は持たず、台帳CSVに実データがある場合のみ補完する。
+        lf=long_fallbacks.get((reg,str(course)),{})
+        if lf:
+            cr=dict(cr)
+            for ck, fk in (("d90_win_rate","win_rate"),("d90_top2_rate","top2_rate"),("d90_top3_rate","top3_rate"),("d90_avg_st","avg_st")):
+                if cr.get(ck) in (None, "") and lf.get(fk) not in (None, ""):
+                    cr[ck]=lf.get(fk)
         mm=mf.get((venue,_keynum(motor.get("motor_no"))),{})
         bb=bf.get((venue,_keynum(bm.get("boat_no"))),{})
         # 90日履歴が無い新規/交換モーターは、当日公式番組のモーター2連対率を
