@@ -187,7 +187,7 @@ def live_data_marker(race):
     if text(race.get("prediction_type")) != "直前":
         return ""
     boats = race.get("boats") or []
-    active_required = ("racer_course", "grade", "motor", "boat", "national_top2", "structural", "exhibition_time", "exhibition_st")
+    active_required = ("racer_course", "grade", "motor", "boat", "national_top2", "structural", "exTime", "exST")
     complete = len(boats) == 6
     for boat in boats:
         if any(boat.get(k) in (None, "") for k in ("exhibition_course", "exhibition_time", "exhibition_st")):
