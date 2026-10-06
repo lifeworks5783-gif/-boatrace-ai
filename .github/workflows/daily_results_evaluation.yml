@@ -94,6 +94,22 @@ jobs:
           if report.get("status")!="PASS":
               raise SystemExit("データ完全性がPASSではないため成績評価を停止します")
           PY
+      - name: Rebuild candidate factor evidence
+        run: |
+          python -u collectors/evaluate_all_candidate_single_factors.py
+          python -u collectors/evaluate_live_extra_factors.py
+          python -u collectors/evaluate_environment_course_interactions.py
+          python -u collectors/evaluate_f_hold_inventory.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("evaluations/all_candidate_single_factors/summary.json").read_text(encoding="utf-8"))
+          rows={x["factor"]:x for x in d.get("results",[])}
+          for key in ("motor_d30_win","motor_d30_top2","motor_d30_top3"):
+              if not rows.get(key,{}).get("pooled",{}).get("races"):
+                  raise SystemExit(f"{key} evaluation has zero races")
+          print("candidate factor evidence: PASS")
+          PY
       - name: Evaluate morning live and betting
         run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
       - name: Build evaluation summary
@@ -102,7 +118,7 @@ jobs:
         run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
-          git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}" "daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results" 2>/dev/null || true
+          git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}" "daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results" evaluations/all_candidate_single_factors evaluations/live_extra_factors_20260930_20261003 evaluations/environment_course_interactions_20260930_20261003 evaluations/f_hold_inventory_20260930_20261003 2>/dev/null || true
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Results and evaluation ${TARGET_DATE}"
           git pull --rebase origin main
