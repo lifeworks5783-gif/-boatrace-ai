@@ -722,6 +722,21 @@ def main():
       margin-top: 8px;
     }}
 
+    @media (max-width: 600px) {{
+      .scores {{
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: repeat(3, auto);
+        grid-auto-flow: column;
+        align-items: start;
+      }}
+      .scores .chip {{
+        width: fit-content;
+        max-width: 100%;
+        box-sizing: border-box;
+      }}
+    }}
+
     .chip {{
       padding: 6px 9px;
 
