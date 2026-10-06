@@ -1,0 +1,22 @@
+name: AI signal combo revalue backtest
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'config/run_ai_signal_combo_revalue.txt'
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python collectors/evaluate_ai_signal_combo_revalue_v1.py
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add evaluations/2026/10/05/ai_signal_combo_revalue_v1.json
+          git diff --cached --quiet || git commit -m "Save signal combo revalue result"
+          git push
