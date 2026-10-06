@@ -183,19 +183,34 @@ def signal_marker(race):
 
 
 def live_data_marker(race):
-    """Private-facing compact marker: ● complete / ▲ incomplete."""
+    """● only when required live inputs are present AND active in scoring."""
     if text(race.get("prediction_type")) != "直前":
         return ""
     boats = race.get("boats") or []
-    required = ("exhibition_course", "exhibition_time", "exhibition_st")
+    active_required = ("racer_course", "grade", "motor", "boat", "national_top2", "structural", "exhibition_time", "exhibition_st")
     complete = len(boats) == 6
     for boat in boats:
-        if any(boat.get(k) in (None, "") for k in required):
+        if any(boat.get(k) in (None, "") for k in ("exhibition_course", "exhibition_time", "exhibition_st")):
             complete = False
+            continue
         comps = boat.get("components") or {}
-        if any(k not in comps for k in ("racer_course", "grade", "motor", "boat", "national_top2", "structural", "exhibition_time", "exhibition_st")):
+        for key in active_required:
+            comp = comps.get(key)
+            if not isinstance(comp, dict):
+                complete = False
+                continue
+            weight = to_float(comp.get("weight"))
+            available = comp.get("available")
+            # An item counts as incorporated only if it is available and has
+            # an explicit positive scoring weight.
+            if available is not True or weight is None or weight <= 0:
+                complete = False
+        # Candidate-only fields must never be used to earn the green mark.
+        trace = boat.get("input_trace") or {}
+        candidates = trace.get("candidate_components") or {}
+        if any((v or {}).get("active_in_score") is True and not (v or {}).get("available") for v in candidates.values() if isinstance(v, dict)):
             complete = False
-    return '<span class="data-ok" title="直前必須データ取得・計算確認済み">●</span>' if complete else '<span class="data-ng" title="直前必須データに不足あり">▲</span>'
+    return '<span class="data-ok" title="必須データ取得済み・全採用要素が計算ロジックへ反映済み">●</span>' if complete else '<span class="data-ng" title="取得不足または計算ロジック未反映の要素あり">▲</span>'
 
 def build_card(race, index, is_completed=False):
     venue=text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
