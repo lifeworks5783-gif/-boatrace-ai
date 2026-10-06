@@ -1134,9 +1134,10 @@ def main():
             race
         )
 
+        # 成立レースは欠場艇を除いた有効3艇以上なら生成対象にする。
         if len(
             boats
-        ) != 6:
+        ) < 3:
             continue
 
         formation = build_formation(
