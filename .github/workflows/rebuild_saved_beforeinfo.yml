@@ -35,7 +35,7 @@ jobs:
         run: |
           D=20261006
           python -u collectors/build_prediction_input.py --stage live
-          # 過去結果Kファイルは motor_no/boat_no が入れ替わるため、公式番組Bファイルを正本にして装備番号を補正する。
+          # 過去結果Kファイルの装備番号を保持し、公式番組Bファイルは一致確認できた率の補完にのみ使う。
           python -u collectors/backfill_motor_history.py --start 20260708 --end 20261005
           python -u collectors/build_history_features.py --as-of "$D"
           python -u collectors/enrich_prediction_input.py --date "$D" --stage live
