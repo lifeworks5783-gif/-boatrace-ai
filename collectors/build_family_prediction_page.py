@@ -872,9 +872,9 @@ def main():
         if (aiPanel) aiPanel.classList.toggle("active", ai);
       }}));
 
-      document.querySelectorAll(".race-card").forEach(card => {
+      document.querySelectorAll(".race-card").forEach(card => {{
         const viewTabs = card.querySelectorAll(".race-view-tab");
-        viewTabs.forEach(viewTab => viewTab.addEventListener("click", () => {
+        viewTabs.forEach(viewTab => viewTab.addEventListener("click", () => {{
           const wanted = viewTab.dataset.raceView;
           viewTabs.forEach(x => x.classList.toggle("active", x === viewTab));
           card.querySelectorAll(".race-prediction-view").forEach(panel => panel.classList.toggle("hidden", panel.dataset.view !== wanted));
