@@ -1639,78 +1639,49 @@ def percent(
 # HTML部品
 # =========================================================
 
-def prediction_html(
-    prediction,
-):
-
+def score_map(prediction):
     if not prediction:
+        return {}
+    boats = prediction.get("boats") or (prediction.get("raw") or {}).get("boats") or []
+    out = {}
+    for boat in boats:
+        b = normalize_boat(boat.get("boat"))
+        score = safe_float(boat.get("score"))
+        if b is not None and score is not None:
+            out[b] = score
+    return out
 
-        return (
-            '<span class="missing">'
-            "予測なし"
-            "</span>"
-        )
 
-    picks = prediction.get(
-        "top3",
-        [],
-    )
+def score_delta_html(boat, score, morning_scores):
+    if not morning_scores or boat not in morning_scores:
+        return ""
+    delta = score - morning_scores[boat]
+    if abs(delta) < 0.05:
+        return '<span class="score-delta flat">→ ±0.0</span>'
+    if delta > 0:
+        return f'<span class="score-delta up">▲ +{delta:.1f}</span>'
+    return f'<span class="score-delta down">▼ {delta:.1f}</span>'
 
+
+def prediction_html(prediction, morning_scores=None):
+    if not prediction:
+        return '<span class="missing">予測なし</span>'
+    picks = prediction.get("top3", [])
     if len(picks) < 3:
-
-        return (
-            '<span class="missing">'
-            "予測なし"
-            "</span>"
-        )
-
+        return '<span class="missing">予測なし</span>'
     output = []
-
     for pick in picks[:3]:
-
-        boat = pick.get(
-            "boat"
-        )
-
-        name = esc(
-            pick.get(
-                "name",
-                "",
-            )
-        )
-
-        score = pick.get(
-            "score"
-        )
-
+        boat = normalize_boat(pick.get("boat"))
+        name = esc(pick.get("name", ""))
+        score = safe_float(pick.get("score"))
         score_html = ""
-
         if score is not None:
-
-            score_html = (
-                f'<small>'
-                f'{score:.1f}'
-                f'</small>'
-            )
-
-        output.append(
-            f'<span class="boat">'
-            f'<b>{boat}</b>号艇 '
-            f'{name}'
-            f'{score_html}'
-            f'</span>'
-        )
-
-    return (
-        '<span class="arrow">'
-        " → "
-        "</span>"
-    ).join(
-        output
-    )
+            score_html = f'<small>{score:.1f}</small>{score_delta_html(boat, score, morning_scores)}'
+        output.append(f'<span class="boat"><b>{boat}</b>号艇 {name}{score_html}</span>')
+    return '<span class="arrow"> → </span>'.join(output)
 
 
-def all_scores_html(prediction, label):
+def all_scores_html(prediction, label, morning_scores=None):
     if not prediction:
         return ""
     boats = prediction.get("boats") or (prediction.get("raw") or {}).get("boats") or []
@@ -1724,11 +1695,10 @@ def all_scores_html(prediction, label):
         return ""
     scored.sort(key=lambda x: (-x[1], x[0]))
     chips = " ".join(
-        f'<span class="score-chip">{b}号艇 {score:.1f}</span>'
+        f'<span class="score-chip">{b}号艇 {score:.1f}{score_delta_html(b, score, morning_scores)}</span>'
         for b, score in scored
     )
     return f'<details class="all-scores"><summary>{esc(label)}・6艇すべてのスコア</summary><div class="score-chips">{chips}</div></details>'
-
 
 def formation_hit(prediction, trifecta, formation_key="formation"):
     if not prediction:
@@ -2484,7 +2454,11 @@ details.all-scores summary {{
   gap:6px;
   margin-top:7px;
 }}
-.score-chip {{
+.score-delta {{ margin-left:5px; font-weight:900; white-space:nowrap; }}
+.score-delta.up {{ color:#a33f58; }}
+.score-delta.down {{ color:#2f6690; }}
+.score-delta.flat {{ color:var(--muted); }}
+\n.score-chip {{
   padding:5px 8px;
   border-radius:999px;
   background:var(--chip);
