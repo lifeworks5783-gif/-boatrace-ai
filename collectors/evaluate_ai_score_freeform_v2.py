@@ -90,7 +90,7 @@ def combos(bs,p1,p2,p3):
 
 def fetch_odds(d):
  try:
-  y,m,day=d[:4],d[4:6],d[6:8]; url=f"{ODDS_BASE}/{y}/{m}/odds3t-{y}{m}{day}.csv"
+  y,m,day=d[:4],d[4:6],d[6:8]; url=f"{ODDS_BASE}/{y}/{m}/{day}.csv"
   req=Request(url,headers={"User-Agent":"boatrace-ai-freeform-v2/1.0"})
   txt=urlopen(req,timeout=30).read().decode("utf-8-sig")
   rows=list(csv.DictReader(io.StringIO(txt))); out={}
