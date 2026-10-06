@@ -77,6 +77,9 @@ jobs:
           cp "data/manifest_${TARGET_DATE}.json" "archive/$YEAR/$MONTH/$DAY/"
           if [ -f "data/excluded_races_${TARGET_DATE}.csv" ]; then cp "data/excluded_races_${TARGET_DATE}.csv" "archive/$YEAR/$MONTH/$DAY/"; fi
 
+      - name: Rebuild saved formation and AI predictions before evaluation
+        run: python -u collectors/build_latest_prediction_view.py --date "$TARGET_DATE"
+
       - name: Evaluate selected date predictions and betting
         run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
 
@@ -108,3 +111,4 @@ jobs:
         run: |
           gh workflow run family_prediction_page.yml --ref main
           echo "家族共有の結果・成績 / AI分析ページ更新を開始しました。"
+

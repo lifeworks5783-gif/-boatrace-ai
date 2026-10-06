@@ -475,7 +475,7 @@ def build_formation(
 
     gap12 = scores[0] - scores[1]
     gap23 = scores[1] - scores[2]
-    gap34 = scores[2] - scores[3]
+    gap34 = scores[2] - scores[3] if len(scores) >= 4 else None
 
     # 流しルール:
     # 1) 1・2位が接近し、3位以下と明確な差 -> 1・2着折返し＋3着流し
@@ -566,7 +566,7 @@ def build_formation(
         "formation_type": formation_type,
         "gap_1_2": round(gap12, 2),
         "gap_2_3": round(gap23, 2),
-        "gap_3_4": round(gap34, 2),
+        "gap_3_4": round(gap34, 2) if gap34 is not None else None,
         "first_candidates": first_candidates,
         "second_candidates": second_candidates,
         "third_candidates": third_candidates,
@@ -639,7 +639,7 @@ def _weighted_position_score(values, weights):
 
 def build_ai_score_prediction(boats, ai_config):
     """Independent finish-position scorer driven only by the frozen daily config."""
-    if len(boats) != 6:
+    if len(boats) < 3:
         return None
 
     scored = []
@@ -732,6 +732,7 @@ def build_ai_score_prediction(boats, ai_config):
     else:
         points=int(ai_config.get("purchase_points",8))
 
+    points = min(points, len(combos))
     selected=combos[:points]
     frozen={k:v for k,v in ai_config.items() if not k.startswith("_")}
     return {
@@ -755,8 +756,8 @@ def build_ai_score_prediction(boats, ai_config):
         "all_120_combinations": combos,
         "valid_combination_count": expected_combos,
         "rerank_verified": (
-            len(combos) == 120
-            and len({x["combination"] for x in combos}) == 120
+            len(combos) == expected_combos
+            and len({x["combination"] for x in combos}) == expected_combos
             and (
                 not signals
                 or all(
@@ -1010,9 +1011,7 @@ def write_formation_csv(
             for index in range(
                 6
             ):
-                boat = boats[
-                    index
-                ]
+                boat = boats[index] if index < len(boats) else {}
 
                 row[
                     f"rank{index + 1}_boat"
