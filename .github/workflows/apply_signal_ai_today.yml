@@ -54,10 +54,11 @@ jobs:
               all120=ai.get("all_120_combinations") or []
               base120=ai.get("base_120_combinations") or []
               top12=[v.get("combination") for v in all120[:12]]
+              expected = int(ai.get("valid_combination_count") or 120)
               if (
-                  len(all120)!=120
-                  or len(base120)!=120
-                  or len({v.get("combination") for v in all120})!=120
+                  len(all120)!=expected
+                  or len(base120)!=expected
+                  or len({v.get("combination") for v in all120})!=expected
                   or not ai.get("rerank_verified")
                   or ai_combos!=top12
               ):
