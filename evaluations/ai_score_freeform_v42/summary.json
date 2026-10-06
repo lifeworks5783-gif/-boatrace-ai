@@ -1,0 +1,327 @@
+{
+  "model": "ai_score_freeform_v42_walk_forward_upset_strategy",
+  "production_changed": false,
+  "policy": "normal8 fixed; upset4 strategy chosen for each day only from prior-day performance",
+  "strategies": [
+    "pure_evidence",
+    "light_value",
+    "mid_value",
+    "rank_then_value",
+    "contrarian_head"
+  ],
+  "strategy_log": {
+    "20260930": {
+      "chosen": "pure_evidence",
+      "train": {}
+    },
+    "20261001": {
+      "chosen": "pure_evidence",
+      "train": {
+        "pure_evidence": {
+          "hit": 19,
+          "invest": 57600,
+          "return": 52650.0,
+          "roi": 0.9140625
+        },
+        "light_value": {
+          "hit": 15,
+          "invest": 57600,
+          "return": 46960.0,
+          "roi": 0.8152777777777778
+        },
+        "mid_value": {
+          "hit": 11,
+          "invest": 57600,
+          "return": 41200.0,
+          "roi": 0.7152777777777778
+        },
+        "rank_then_value": {
+          "hit": 11,
+          "invest": 57600,
+          "return": 41200.0,
+          "roi": 0.7152777777777778
+        },
+        "contrarian_head": {
+          "hit": 16,
+          "invest": 57600,
+          "return": 42020.0,
+          "roi": 0.7295138888888889
+        }
+      }
+    },
+    "20261002": {
+      "chosen": "pure_evidence",
+      "train": {
+        "pure_evidence": {
+          "hit": 40,
+          "invest": 124800,
+          "return": 128230.0,
+          "roi": 1.0274839743589743
+        },
+        "light_value": {
+          "hit": 34,
+          "invest": 124800,
+          "return": 121060.0,
+          "roi": 0.9700320512820513
+        },
+        "mid_value": {
+          "hit": 27,
+          "invest": 124800,
+          "return": 111050.0,
+          "roi": 0.889823717948718
+        },
+        "rank_then_value": {
+          "hit": 29,
+          "invest": 124800,
+          "return": 114830.0,
+          "roi": 0.9201121794871795
+        },
+        "contrarian_head": {
+          "hit": 37,
+          "invest": 124800,
+          "return": 116620.0,
+          "roi": 0.9344551282051282
+        }
+      }
+    },
+    "20261003": {
+      "chosen": "rank_then_value",
+      "train": {
+        "pure_evidence": {
+          "hit": 50,
+          "invest": 192000,
+          "return": 146330.0,
+          "roi": 0.7621354166666666
+        },
+        "light_value": {
+          "hit": 42,
+          "invest": 192000,
+          "return": 138350.0,
+          "roi": 0.7205729166666667
+        },
+        "mid_value": {
+          "hit": 34,
+          "invest": 192000,
+          "return": 143680.0,
+          "roi": 0.7483333333333333
+        },
+        "rank_then_value": {
+          "hit": 36,
+          "invest": 192000,
+          "return": 155230.0,
+          "roi": 0.8084895833333333
+        },
+        "contrarian_head": {
+          "hit": 45,
+          "invest": 192000,
+          "return": 129500.0,
+          "roi": 0.6744791666666666
+        }
+      }
+    },
+    "20261004": {
+      "chosen": "rank_then_value",
+      "train": {
+        "pure_evidence": {
+          "hit": 64,
+          "invest": 254400,
+          "return": 180260.0,
+          "roi": 0.7085691823899372
+        },
+        "light_value": {
+          "hit": 54,
+          "invest": 254400,
+          "return": 169650.0,
+          "roi": 0.6668632075471698
+        },
+        "mid_value": {
+          "hit": 45,
+          "invest": 254400,
+          "return": 173590.0,
+          "roi": 0.6823506289308177
+        },
+        "rank_then_value": {
+          "hit": 47,
+          "invest": 254400,
+          "return": 185140.0,
+          "roi": 0.727751572327044
+        },
+        "contrarian_head": {
+          "hit": 57,
+          "invest": 254400,
+          "return": 155510.0,
+          "roi": 0.6112814465408805
+        }
+      }
+    },
+    "20261005": {
+      "chosen": "rank_then_value",
+      "train": {
+        "pure_evidence": {
+          "hit": 76,
+          "invest": 316800,
+          "return": 226030.0,
+          "roi": 0.7134785353535353
+        },
+        "light_value": {
+          "hit": 67,
+          "invest": 316800,
+          "return": 227160.0,
+          "roi": 0.7170454545454545
+        },
+        "mid_value": {
+          "hit": 56,
+          "invest": 316800,
+          "return": 228200.0,
+          "roi": 0.7203282828282829
+        },
+        "rank_then_value": {
+          "hit": 59,
+          "invest": 316800,
+          "return": 241120.0,
+          "roi": 0.7611111111111111
+        },
+        "contrarian_head": {
+          "hit": 69,
+          "invest": 316800,
+          "return": 201280.0,
+          "roi": 0.6353535353535353
+        }
+      }
+    }
+  },
+  "daily": {
+    "20260930": {
+      "races": 144,
+      "normal_hits": 45,
+      "upset_hits": 19,
+      "combined_hits": 64,
+      "normal_invest": 115200,
+      "normal_return": 59310.0,
+      "upset_invest": 57600,
+      "upset_return": 52650.0,
+      "combined_invest": 172800,
+      "combined_return": 111960.0,
+      "normal_hit_pct": 31.25,
+      "normal_roi_pct": 51.48,
+      "upset_hit_pct": 13.19,
+      "upset_roi_pct": 91.41,
+      "combined_hit_pct": 44.44,
+      "combined_roi_pct": 64.79
+    },
+    "20261001": {
+      "races": 168,
+      "normal_hits": 70,
+      "upset_hits": 21,
+      "combined_hits": 91,
+      "normal_invest": 134400,
+      "normal_return": 119600.0,
+      "upset_invest": 67200,
+      "upset_return": 75580.0,
+      "combined_invest": 201600,
+      "combined_return": 195180.0,
+      "normal_hit_pct": 41.67,
+      "normal_roi_pct": 88.99,
+      "upset_hit_pct": 12.5,
+      "upset_roi_pct": 112.47,
+      "combined_hit_pct": 54.17,
+      "combined_roi_pct": 96.82
+    },
+    "20261002": {
+      "races": 168,
+      "normal_hits": 65,
+      "upset_hits": 10,
+      "combined_hits": 75,
+      "normal_invest": 134400,
+      "normal_return": 104060.0,
+      "upset_invest": 67200,
+      "upset_return": 18100.0,
+      "combined_invest": 201600,
+      "combined_return": 122160.0,
+      "normal_hit_pct": 38.69,
+      "normal_roi_pct": 77.43,
+      "upset_hit_pct": 5.95,
+      "upset_roi_pct": 26.93,
+      "combined_hit_pct": 44.64,
+      "combined_roi_pct": 60.6
+    },
+    "20261003": {
+      "races": 156,
+      "normal_hits": 53,
+      "upset_hits": 11,
+      "combined_hits": 64,
+      "normal_invest": 124800,
+      "normal_return": 88870.0,
+      "upset_invest": 62400,
+      "upset_return": 29910.0,
+      "combined_invest": 187200,
+      "combined_return": 118780.0,
+      "normal_hit_pct": 33.97,
+      "normal_roi_pct": 71.21,
+      "upset_hit_pct": 7.05,
+      "upset_roi_pct": 47.93,
+      "combined_hit_pct": 41.03,
+      "combined_roi_pct": 63.45
+    },
+    "20261004": {
+      "races": 156,
+      "normal_hits": 70,
+      "upset_hits": 12,
+      "combined_hits": 82,
+      "normal_invest": 124800,
+      "normal_return": 98930.0,
+      "upset_invest": 62400,
+      "upset_return": 55980.0,
+      "combined_invest": 187200,
+      "combined_return": 154910.0,
+      "normal_hit_pct": 44.87,
+      "normal_roi_pct": 79.27,
+      "upset_hit_pct": 7.69,
+      "upset_roi_pct": 89.71,
+      "combined_hit_pct": 52.56,
+      "combined_roi_pct": 82.75
+    },
+    "20261005": {
+      "races": 130,
+      "normal_hits": 50,
+      "upset_hits": 17,
+      "combined_hits": 67,
+      "normal_invest": 104000,
+      "normal_return": 66320.0,
+      "upset_invest": 52000,
+      "upset_return": 64940.0,
+      "combined_invest": 156000,
+      "combined_return": 131260.0,
+      "normal_hit_pct": 38.46,
+      "normal_roi_pct": 63.77,
+      "upset_hit_pct": 13.08,
+      "upset_roi_pct": 124.88,
+      "combined_hit_pct": 51.54,
+      "combined_roi_pct": 84.14
+    }
+  },
+  "pooled": {
+    "races": 922,
+    "normal_hits": 353,
+    "upset_hits": 90,
+    "combined_hits": 443,
+    "normal_invest": 737600,
+    "normal_return": 537090.0,
+    "upset_invest": 368800,
+    "upset_return": 297160.0,
+    "combined_invest": 1106400,
+    "combined_return": 834250.0,
+    "normal_hit_pct": 38.29,
+    "normal_roi_pct": 72.82,
+    "normal_max_single_return": 12790.0,
+    "normal_roi_excluding_max_pct": 71.08,
+    "upset_hit_pct": 9.76,
+    "upset_roi_pct": 80.57,
+    "upset_max_single_return": 16290.0,
+    "upset_roi_excluding_max_pct": 76.16,
+    "combined_hit_pct": 48.05,
+    "combined_roi_pct": 75.4,
+    "combined_max_single_return": 16290.0,
+    "combined_roi_excluding_max_pct": 73.93
+  }
+}
