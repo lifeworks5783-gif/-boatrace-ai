@@ -20,7 +20,13 @@ jobs:
         run: |
           set -u
           failed=0
-          for d in 20260930 20261001 20261002 20261003; do
+          dates="20260930 20261001 20261002 20261003"
+          today="$(TZ=Asia/Tokyo date +%Y%m%d)"
+          case " $dates " in
+            *" $today "*) ;;
+            *) dates="$dates $today" ;;
+          esac
+          for d in $dates; do
             echo "===== START $d ====="
             if timeout 300s python -u collectors/enrich_official_fl.py --date "$d"; then
               echo "===== OK $d ====="
@@ -34,6 +40,6 @@ jobs:
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/program_entries_fl_20260930.csv data/program_entries_fl_20261001.csv data/program_entries_fl_20261002.csv data/program_entries_fl_20261003.csv
+          git add data/program_entries_fl_*.csv
           git diff --cached --quiet || git commit -m "Backfill official F L average ST"
           git push
