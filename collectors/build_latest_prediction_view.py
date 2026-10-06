@@ -1175,6 +1175,37 @@ def main():
             if len(morning_boats) == 6:
                 morning_formation = build_formation(morning_boats)
 
+        ai_score_prediction = build_ai_score_prediction(
+            boats,
+            ai_score_config,
+        )
+
+        # ⚡シグナル時はAIスコア予測の12点を最終買い目の正本として扱う。
+        # 通常時は従来formationを維持し、本番通常ロジック自体は変更しない。
+        if (
+            ai_score_prediction
+            and ai_score_prediction.get("signal_mode")
+        ):
+            signal_combinations = [
+                item.get("combination")
+                for item in ai_score_prediction.get("combinations", [])
+                if item.get("combination")
+            ]
+            if signal_combinations:
+                formation = {
+                    **formation,
+                    "formation_type": "⚡AIシグナル12点",
+                    "first_candidates": ai_score_prediction.get("first_candidates", []),
+                    "second_candidates": ai_score_prediction.get("second_candidates", []),
+                    "third_candidates": ai_score_prediction.get("third_candidates", []),
+                    "combinations": signal_combinations,
+                    "points": len(signal_combinations),
+                    "investment_100yen": len(signal_combinations) * 100,
+                    "signal_mode": True,
+                    "signal_boats": ai_score_prediction.get("signal_boats", {}),
+                    "source": "ai_score_prediction_signal",
+                }
+
         row = {
             "target_date": (
                 target_date
@@ -1237,7 +1268,7 @@ def main():
                 morning_ai_score_prediction
             ),
             "ai_score_prediction": (
-                build_ai_score_prediction(boats, ai_score_config)
+                ai_score_prediction
             ),
         }
 
