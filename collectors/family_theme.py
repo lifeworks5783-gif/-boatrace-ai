@@ -18,9 +18,9 @@ THEME_CSS = r"""
   --primary: #174f7a;
   --primary-strong: #123d60;
   --primary-soft: #d2e3ef;
-  --action: #d92f63;
-  --action-strong: #b91f50;
-  --analysis-action: #d92f63;
+  --action: #b94f6b;
+  --action-strong: #9e3f59;
+  --analysis-action: #b94f6b;
   --live-bg: #cceae3;
   --live-text: #0e6659;
   --live-accent: #168477;
