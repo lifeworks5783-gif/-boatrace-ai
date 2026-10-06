@@ -1353,6 +1353,7 @@ def build_race_rows(
         "R",
     )
 
+    ai_details = load_ai_details(target_date)
     race_rows = []
 
     for (
@@ -1536,6 +1537,9 @@ def build_race_rows(
 
                 "formation_prediction":
                     formation_prediction,
+
+                "ai_evaluation":
+                    ai_details.get(race_code),
 
                 "signal":
                     has_signal(morning, live),
@@ -1857,6 +1861,25 @@ def ai_score_result_html(prediction, trifecta, payout):
     """
 
 
+
+def ai_eval_detail_html(detail):
+    if not detail:
+        return '<div class="simulation missing">AIスコア予測なし</div>'
+    combos = [x.strip() for x in str(detail.get("combinations") or "").split("/") if x.strip()]
+    points = safe_int(detail.get("points")) or len(combos)
+    hit = bool(safe_int(detail.get("hit")) or 0)
+    actual = esc(detail.get("actual_trifecta") or "—")
+    combo_html = " / ".join(esc(x) for x in combos) if combos else "—"
+    status = "的中" if hit else "不的中"
+    return (
+        '<details class="simulation-box ai-result-box">'
+        '<summary><span class="simulation-title">AIスコア予測を見る</span></summary>'
+        f'<div class="simulation-meta">AI独自スコア ／ 保存済み上位{points}点 ／ {status} ／ 実結果 {actual}</div>'
+        f'<div class="simulation-combos">{combo_html}</div>'
+        '</details>'
+    )
+
+
 def simulation_html(prediction, trifecta, payout):
     """最終予測のフォーメーションと上位3艇BOXを100円/点で照合表示。"""
     if not prediction:
@@ -1985,6 +2008,18 @@ def ai_score_eval(prediction, actual):
     trifecta = "-".join(str(x) for x in actual3)
     bought_hit = trifecta in bought
     return {"overlap": top3_overlap, "exact": exact, "bought_hit": bought_hit}
+
+
+
+def load_ai_details(target_date):
+    p = Path(f"evaluations/{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}/ai_score_simulation_{target_date}.json")
+    data = read_json(p) if p.is_file() else None
+    out = {}
+    for item in (data or {}).get("details") or []:
+        rid = str(item.get("race_id") or "").strip()
+        if rid:
+            out[rid] = item
+    return out
 
 
 def load_ai_evaluation(target_date):
@@ -2234,7 +2269,7 @@ def render_html(
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
   <div class="label simulation-label">AIスコア予測・保存済み上位12点</div>\n  <div class="simulation-meta">AI独自スコアによる組み合わせ評価</div>
-  {ai_score_result_html(row["live"] or row["morning"], row["trifecta"], row["payout"])}
+  {ai_score_result_html(row["live"] or row["morning"], row["trifecta"], row["payout"]) if ((row["live"] or row["morning"] or {}).get("ai_score_prediction")) else ai_eval_detail_html(row.get("ai_evaluation"))}
 
   <div class="money-grid">
 
