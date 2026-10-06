@@ -19,7 +19,7 @@ on:
 
 concurrency:
   group: boatrace-live-writer
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   live_prediction:
@@ -48,8 +48,7 @@ jobs:
 
       - name: 必要ライブラリを準備
         run: |
-          python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 lhafile
+          pip install -q requests beautifulsoup4 lhafile
 
       - name: 日本時間を設定
         run: |
@@ -243,13 +242,19 @@ jobs:
             echo "直前候補: ${COUNT}R"
           fi
 
-      - name: 公式F/L保有情報を直前計算前に取得
+      - name: 公式F/L保有情報を直前計算前に準備
         if: env.HAS_CANDIDATES == 'true'
         run: |
-          python -u collectors/enrich_official_fl.py --date "${TARGET_DATE}"
-          test -s "data/program_entries_fl_${TARGET_DATE}.csv"
-          cp "data/program_entries_fl_${TARGET_DATE}.csv" "${BASE_CACHE_DIR}/"
-          echo "公式F/L保有情報: PASS"
+          FL_CACHE="${BASE_CACHE_DIR}/program_entries_fl_${TARGET_DATE}.csv"
+          if [ -s "${FL_CACHE}" ]; then
+            cp "${FL_CACHE}" "data/program_entries_fl_${TARGET_DATE}.csv"
+            echo "公式F/L保有情報: キャッシュ再利用"
+          else
+            python -u collectors/enrich_official_fl.py --date "${TARGET_DATE}"
+            test -s "data/program_entries_fl_${TARGET_DATE}.csv"
+            cp "data/program_entries_fl_${TARGET_DATE}.csv" "${BASE_CACHE_DIR}/"
+            echo "公式F/L保有情報: 新規取得"
+          fi
 
       - name: 直前収集データの完全性を確認
         if: env.HAS_CANDIDATES == 'true'
