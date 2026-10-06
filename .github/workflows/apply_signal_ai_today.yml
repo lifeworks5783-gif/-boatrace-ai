@@ -35,12 +35,15 @@ jobs:
           normal_bad=[r.get("race_id") for r in races if not (r.get("ai_score_prediction") or {}).get("signal_mode") and (r.get("ai_score_prediction") or {}).get("points")!=8]
           print("races",len(races),"signal",len(sig),"signal_bad",bad,"normal_bad",normal_bad)
           assert not bad and not normal_bad
+          out=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"signal_ai_apply_summary.json"
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps({"date":d,"race_count":len(races),"signal_count":len(sig),"signals":[{"race_id":r.get("race_id"),"points":r["ai_score_prediction"]["points"],"signal_boats":r["ai_score_prediction"].get("signal_boats"),"combinations":[c.get("combination") for c in r["ai_score_prediction"].get("combinations",[])]} for r in sig],"normal_bad":normal_bad},ensure_ascii=False,indent=2))
           PY
       - name: Commit rebuilt outputs
         run: |
           git config user.name "boatrace-ai-bot"
           git config user.email "boatrace-ai-bot@users.noreply.github.com"
-          git add predictions/
+          git add predictions/ evaluations/
           if git diff --cached --quiet; then echo "No changes"; exit 0; fi
           git commit -m "Apply signal-only AI 12-point rule to today's races"
           git pull --rebase origin main
