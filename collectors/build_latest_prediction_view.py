@@ -1145,6 +1145,16 @@ def main():
                             boat
                         )
                     ),
+                    "morning_score_reference": boat.get("morning_score_reference"),
+                    "grade": boat.get("grade"),
+                    "registration_no": boat.get("registration_no"),
+                    "motor_no": boat.get("motor_no"),
+                    "boat_no": boat.get("boat_no"),
+                    "exhibition_course": boat.get("exhibition_course"),
+                    "exhibition_time": boat.get("exhibition_time"),
+                    "exhibition_st": boat.get("exhibition_st"),
+                    "exhibition_f": boat.get("exhibition_f"),
+                    "components": boat.get("components") or {},
                 }
             )
 
@@ -1161,6 +1171,11 @@ def main():
                         "boat": boat_number(morning_boat),
                         "racer_name": text(morning_boat.get("racer_name")),
                         "score": boat_score(morning_boat),
+                        "grade": morning_boat.get("grade"),
+                        "registration_no": morning_boat.get("registration_no"),
+                        "motor_no": morning_boat.get("motor_no"),
+                        "boat_no": morning_boat.get("boat_no"),
+                        "components": morning_boat.get("components") or {},
                     })
                 morning_ai_score_prediction = build_ai_score_prediction(
                     morning_ranked,
