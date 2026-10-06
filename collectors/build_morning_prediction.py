@@ -102,6 +102,9 @@ def _raw_race_features(race,course_overrides=None):
     boats=race.get("boats") or []
     venue=str(race.get("venue_code") or race.get("stadium_code") or "").zfill(2)
     raw={}
+    # 朝は枠番=想定コース、直前は展示進入コースを使う。
+    # enriched入力に履歴が入っていても、計算元は同一feature snapshotに固定して
+    # 朝/直前で参照日がずれないようにする。
     for boat in boats:
         lane=to_int(boat.get("boat"))
         racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
@@ -130,6 +133,12 @@ def provisional_details(race,public_store=None,course_overrides=None):
     ranks={k:_rank6({b:v[k] for b,v in raw.items()},lower=(k=="course_avg_st")) for k in keys}
     missing=[k for k,v in ranks.items() if len(v)!=6]
     if missing: return {},missing
+    # 6艇すべてについて基礎5要素の計算材料が揃った場合だけ予測を生成する。
+    # 欠損を0点扱いして順位を歪めることは禁止。
+    for b, values in raw.items():
+        required = ("course_win","course_top2","course_top3","course_avg_st","grade","national_top2","motor_win","motor_top3","boat_top2","boat_top3")
+        if any(values.get(k) is None for k in required):
+            return {}, [f"{b}号艇:{k}" for k in required if values.get(k) is None]
     out={}
     for b in raw:
         racer_course=(.40*ranks["course_win"][b]+.20*ranks["course_top2"][b]+.30*ranks["course_top3"][b]+.10*ranks["course_avg_st"][b])
