@@ -19,7 +19,7 @@ def parse(s):
  return z
 def met():return {"races":0,"trigger_races":0,"hits":0,"points":0,"invest":0,"return":0,"manshu":0}
 def add(m,cs,a,p,tr):
- m["races"]+=1;m["trigger_races"]+=int(tr);m["points"]+=len(cs);m["invest"]+=100*len(cs)
+ m["races"]+=1;m["trigger_races"]+=int(bool(tr));m["points"]+=len(cs);m["invest"]+=100*len(cs)
  if a in cs:m["hits"]+=1;m["return"]+=p or 0;m["manshu"]+=int((p or 0)>=10000)
 def fin(m):
  return {**m,"avg_points":round(m["points"]/m["races"],2) if m["races"] else 0,"hit_rate_pct":round(100*m["hits"]/m["races"],2) if m["races"] else 0,"roi_pct":round(100*m["return"]/m["invest"],2) if m["invest"] else 0}
