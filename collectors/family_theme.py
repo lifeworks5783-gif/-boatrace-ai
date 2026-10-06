@@ -39,11 +39,17 @@ body { background: var(--bg) !important; color: var(--text) !important; }
 .nav a.active, .nav a.active:link, .nav a.active:visited {
   background: var(--primary) !important; color:#fff !important;
 }
-.notice, .race-card, .card, .metric-card, .summary-card, .panel, .section, .analysis-section {
+.notice, .note, .race-card, .card, .metric-card, .summary-card, .summary-box, .panel, .section, .analysis-section {
   background: var(--card) !important;
   border-color: var(--line) !important;
 }
-.pick, .chip, .result-box, .bet-box, .metric, .stat, .score-row {
+.pick, .chip, .result-box, .bet-box, .metric, .stat, .score-row, .actual, .tag, .score-chip, .simulation-box, .money-box, .ai-result-pick {
   background: var(--score-row) !important;
 }
 """
+
+/* Race comparison and legacy page aliases: keep all surfaces on the shared theme. */
+.summary-box, .race-card, .empty { background: var(--card) !important; border-color: var(--line) !important; }
+.actual, .tag, .score-chip, .simulation-box, .money-box, .ai-result-pick {
+  background: var(--score-row) !important;
+}
