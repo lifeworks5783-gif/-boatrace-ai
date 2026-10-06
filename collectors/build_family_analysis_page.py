@@ -3410,9 +3410,9 @@ def build_page(
 
   color-scheme: light dark;
 
-  --bg: #dbe7f0;
+  --bg: #cddce8;
 
-  --card: #ffffff;
+  --card: #f4f8fb;
 
   --text: #111827;
 
@@ -3420,7 +3420,7 @@ def build_page(
 
   --line: #c4d4e0;
 
-  --chip: #e8f0f5;
+  --chip: #dfeaf1;
 
   --primary: #174f7a;\n  --action: #7a3f8f;
 
@@ -3560,7 +3560,7 @@ h1 {{
   border: 0;
   border-radius: 10px;
   background: var(--primary);
-  color: #ffffff;
+  color: #f4f8fb;
   font-size: 16px;
   font-weight: 900;
   cursor: pointer;
@@ -4211,7 +4211,7 @@ footer {{
 
     --card: #171a21;
 
-    --text: #e8f0f5;
+    --text: #dfeaf1;
 
     --muted: #a8b0bd;
 
