@@ -16,6 +16,8 @@ concurrency:
 jobs:
   results_evaluation:
     runs-on: ubuntu-latest
+    env:
+      AUDIT_TARGET_DATE: ${{ vars.AUDIT_TARGET_DATE }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
