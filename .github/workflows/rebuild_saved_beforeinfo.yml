@@ -68,5 +68,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run apply_signal_ai_today.yml --ref main
+          gh workflow run apply_signal_ai_today.yml --ref main -f target_date=20261006
           gh workflow run pdca_incremental_4day.yml --ref main
