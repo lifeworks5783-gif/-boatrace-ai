@@ -3110,3 +3110,5 @@ if __name__ == "__main__":
 # shared-theme-race-compare-refresh-v3
 
 # race-compare-score-delta-publish-v1
+
+# race-compare-score-delta-publish-v2
