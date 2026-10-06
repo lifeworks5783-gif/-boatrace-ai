@@ -990,3 +990,4 @@ if __name__ == "__main__":
     raise SystemExit(
         main()
     )
+# shared-theme-publish-trigger-v1
