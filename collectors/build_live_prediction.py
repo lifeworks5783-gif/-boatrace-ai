@@ -11,7 +11,7 @@ from pathlib import Path
 import build_morning_prediction as morning
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "provisional_v3_20261006_live_full_components"
+MODEL_VERSION = "provisional_v4_20261006_live_traceable_inputs"
 
 
 def parse_args():
@@ -278,7 +278,8 @@ def score_race(race, public_store):
     overrides={to_int(x.get("boat")):(get_exhibition_course(x) or to_int(x.get("boat"))) for x in boats}
     morning_scores=morning.provisional_scores(race,public_store)
     structural=morning.provisional_scores(race,public_store,overrides)
-    if len(structural)!=6: raise RuntimeError(f"暫定V1構造スコア欠損: {race.get('race_id')}")
+    structural_details, structural_missing = morning.provisional_details(race, public_store, overrides)
+    if len(structural)!=6 or structural_missing: raise RuntimeError(f"直前構造スコア欠損: {race.get('race_id')} {structural_missing}")
     time_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_time(x) for x in boats if get_exhibition_time(x) is not None})
     st_delta_scores={to_int(x.get("boat")):personal_st_delta_score(x) for x in boats}
     # 展示ST14%は本人90日平均STとの差で評価。F=0.4、90日ST10走未満/欠損=0.5。
@@ -289,16 +290,19 @@ def score_race(race, public_store):
     scored=[]
     for boat in boats:
         lane=to_int(boat.get("boat")); live01=.80*(structural[lane]/100.0)+.06*time_ranks[lane]+.14*st_delta_scores[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
-        sd_details, sd_missing = morning.provisional_details(race, public_store, overrides)
-        if sd_missing or lane not in sd_details:
+        if lane not in structural_details:
             raise RuntimeError(f"直前基礎要素欠損: {race.get('race_id')} {lane}号艇")
-        sd = sd_details[lane]
+        sd = structural_details[lane]
+        history=boat.get("history") or {}
+        before=boat_beforeinfo(boat)
         scored.append({
             "boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),
             "grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),
             "score":round(live01*100,2),"morning_score_reference":round(morning_scores.get(lane,0.0),2),
             "data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),
             "exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),
+            "change_parts":before.get("change_parts",""),
+            "input_trace":{"history_feature_manifest":race.get("history_feature_manifest"),"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"racer_course":history.get("racer_course"),"beforeinfo":{"exhibition_course":get_exhibition_course(boat),"exhibition_time":get_exhibition_time(boat),"exhibition_st_raw":raw_exhibition_st_value(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"change_parts":before.get("change_parts","")},"weather":race.get("weather")},
             "components":{
                 "racer_course":{"weight":40.0,"raw_score_0_1":round(sd["racer_course"],6),"available":True},
                 "grade":{"weight":20.0,"raw_score_0_1":round(sd["grade"],6),"available":True},
@@ -320,11 +324,18 @@ def race_context(race):
         "weather",
         "weather_code",
         "air_temperature",
+        "air_temperature_c",
         "temperature",
         "water_temperature",
+        "water_temperature_c",
         "wind_speed",
+        "wind_speed_mps",
         "wind_direction",
+        "wind_direction_code",
         "wave_height",
+        "wave_height_cm",
+        "stabilizer",
+        "fixed_course",
     )
     result = {}
     for key in keys:
