@@ -83,6 +83,10 @@ def main():
             for field in ("air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"):
                 if not nonempty(rr.get(field)): miss.append(f"race:{field}")
         recovered_fields=[]
+        if rr:
+            for field in ("air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"):
+                if nonempty(rr.get(field)) and race_provenance.get(rid,{}).get(field)=="post_result_retry":
+                    recovered_fields.append(f"race:{field}")
         for boat in map(str,range(1,7)):
             lr=live.get((rid,boat))
             if not lr:
@@ -107,6 +111,9 @@ def main():
             src=provenance.get((rid,boat),{})
             if any(src.get(f)=="post_result_retry" for f in ("exhibition_course","exhibition_time","exhibition_st_raw")):
                 used_retry=True
+        rsrc=race_provenance.get(rid,{})
+        if any(rsrc.get(f)=="post_result_retry" for f in ("air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm")):
+            used_retry=True
         if used_retry: recovered_complete+=1
         else: original_complete+=1
     report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":bool(issues),"issues":issues,"recovered_after_result":recovered,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
