@@ -347,7 +347,7 @@ jobs:
                   missing=[k for k in ('exhibition_course','exhibition_time','exhibition_st') if b.get(k) is None or b.get(k)=='']
                   if missing: raise SystemExit(f"ERROR {rid} boat{b.get('boat')}: missing {missing}")
                   comps=b.get('components') or {}
-                  for k in ('racer_course','grade','motor','boat','national_top2','structural','exhibition_time','exhibition_st'):
+                  for k in ('racer_course','grade','motor','boat','national_top2','structural','exTime','exST'):
                       if k not in comps: raise SystemExit(f"ERROR {rid} boat{b.get('boat')}: component {k} missing")
               deltas=[abs(float(b['score'])-float(b['morning_score_reference'])) for b in boats]
               if max(deltas)<0.05: raise SystemExit(f'ERROR {rid}: all live scores equal morning scores')
