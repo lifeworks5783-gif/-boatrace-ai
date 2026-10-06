@@ -38,7 +38,7 @@ def load(d):
  with p.open(encoding="utf-8-sig",newline="") as h:
   for r in csv.DictReader(h):
    z={k:(r[k] if k=="exhibition_st_flag" else F(r[k])) for k in r if k!="race_id"}
-   z["boat"]=I(r["boat"]); z["finish"]=I(r["finish"]); rr[r["race_id"]].append(z)
+   z["boat"]=I(r["boat"]); z["finish"]=I(r["finish"]); rr[canon_rid(r["race_id"])].append(z)
  return rr
 
 def rank(bs,k):
@@ -96,7 +96,7 @@ def fetch_odds(d):
   rows=list(csv.DictReader(io.StringIO(txt))); out={}
   for r in rows:
    digits="".join(ch for ch in str(r.get("race_code") or r.get("レースコード") or "") if ch.isdigit())
-   if len(digits)>=12: rid=digits[:8]+"_"+digits[8:10]+"_"+str(int(digits[10:12])).zfill(2)
+   if len(digits)>=12: rid=canon_rid(digits[:12])
    else: continue
    vals={}
    for k,v in r.items():
@@ -115,7 +115,7 @@ def load_payouts(d):
    rid=r.get("race_id") or r.get("レースID")
    tri=r.get("trifecta") or r.get("3連単") or r.get("result_3t")
    pay=F(r.get("trifecta_payout") or r.get("3連単払戻") or r.get("payout_3t"))
-   if rid and tri:out[rid]=(str(tri).replace("→","-"),pay)
+   if rid and tri:out[canon_rid(rid)]=(str(tri).replace("→","-"),pay)
  return out
 
 def select8(top12,odds):
