@@ -11,7 +11,7 @@ from pathlib import Path
 import build_morning_prediction as morning
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "provisional_v2_20261006_live_80_6_personal_st_delta14"
+MODEL_VERSION = "provisional_v3_20261006_live_full_components"
 
 
 def parse_args():
@@ -289,7 +289,28 @@ def score_race(race, public_store):
     scored=[]
     for boat in boats:
         lane=to_int(boat.get("boat")); live01=.80*(structural[lane]/100.0)+.06*time_ranks[lane]+.14*st_delta_scores[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
-        scored.append({"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(live01*100,2),"morning_score_reference":round(morning_scores.get(lane,0.0),2),"data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"components":{"structural":{"weight":80.0,"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},"exTime":{"weight":6.0,"raw_score_0_1":round(time_ranks[lane],6),"available":True},"exST":{"weight":14.0,"raw_score_0_1":round(st_delta_scores[lane],6),"available":True,"method":"personal_d90_st_delta","delta_full_scale_seconds":0.06,"f_score":0.4}}})
+        sd_details, sd_missing = morning.provisional_details(race, public_store, overrides)
+        if sd_missing or lane not in sd_details:
+            raise RuntimeError(f"直前基礎要素欠損: {race.get('race_id')} {lane}号艇")
+        sd = sd_details[lane]
+        scored.append({
+            "boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),
+            "grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),
+            "score":round(live01*100,2),"morning_score_reference":round(morning_scores.get(lane,0.0),2),
+            "data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),
+            "exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),
+            "components":{
+                "racer_course":{"weight":40.0,"raw_score_0_1":round(sd["racer_course"],6),"available":True},
+                "grade":{"weight":20.0,"raw_score_0_1":round(sd["grade"],6),"available":True},
+                "motor":{"weight":20.0,"raw_score_0_1":round(sd["motor"],6),"available":True},
+                "boat":{"weight":5.0,"raw_score_0_1":round(sd["boat"],6),"available":True},
+                "national_top2":{"weight":15.0,"raw_score_0_1":round(sd["national_top2"],6),"available":True},
+                "structural":{"weight":80.0,"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},
+                "exTime":{"weight":6.0,"raw_score_0_1":round(time_ranks[lane],6),"available":True},
+                "exST":{"weight":14.0,"raw_score_0_1":round(st_delta_scores[lane],6),"available":True,
+                        "method":"personal_d90_st_delta","delta_full_scale_seconds":0.06,"f_score":0.4}
+            }
+        })
     scored.sort(key=lambda x:(-x["score"],x["boat"]))
     for i,x in enumerate(scored,1):x["rank"]=i
     return scored
