@@ -1787,7 +1787,8 @@ def ai_score_result_html(prediction, trifecta, payout):
     for i, item in enumerate(top12, 1):
         combo = str(item.get("combination") or "")
         score = safe_float(item.get("score"))
-        bought = i <= 8
+        purchase_points = safe_int(ai.get("points")) or 8
+        bought = i <= purchase_points
         classes = ["ai-result-pick"]
         if bought:
             classes.append("ai-bought")
@@ -1802,9 +1803,12 @@ def ai_score_result_html(prediction, trifecta, payout):
             '</div>'
         )
 
-    bought_combos = [str(x.get("combination") or "") for x in top12[:8]]
+    purchase_points = safe_int(ai.get("points")) or 8
+    bought_combos = [str(x.get("combination") or "") for x in top12[:purchase_points]]
     hit = trifecta in bought_combos
-    investment = len(bought_combos) * 100
+    investment = safe_int(ai.get("investment_100yen"))
+    if investment is None:
+        investment = len(bought_combos) * 100
     returned = payout if hit and payout is not None else 0
     profit = returned - investment
     status = '<span class="hit-status">的中</span>' if hit else '<span class="miss-status">不的中</span>'
@@ -1818,7 +1822,7 @@ def ai_score_result_html(prediction, trifecta, payout):
         </span>
       </summary>
       <div class="ai-result-body">
-        <div class="simulation-meta">表示12点 ／ 収支検証は上位8点・各100円</div>
+        <div class="simulation-meta">表示12点 ／ 購入・収支検証は上位{purchase_points}点・各100円</div>
         <div class="ai-result-list">{''.join(rows)}</div>
       </div>
     </details>
@@ -1915,7 +1919,7 @@ def box_hit(prediction, trifecta):
 
 
 def ai_score_eval(prediction, actual):
-    """AI着順別スコアのTOP3整合・完全一致と、上位8点買い目的中を評価。"""
+    """AI着順別スコアのTOP3整合・完全一致と、保存済み購入点数で買い目的中を評価。"""
     if not prediction or not actual or len(actual) < 3:
         return None
     ai = prediction.get("ai_score_prediction") or (prediction.get("raw") or {}).get("ai_score_prediction") or {}
@@ -1948,9 +1952,10 @@ def ai_score_eval(prediction, actual):
     exact = predicted == actual3
 
     all120 = ai.get("all_120_combinations") or ai.get("combinations") or []
-    top8 = [str(x.get("combination") or "") for x in all120[:8]]
+    points = safe_int(ai.get("points")) or 8
+    bought = [str(x.get("combination") or "") for x in all120[:points]]
     trifecta = "-".join(str(x) for x in actual3)
-    bought_hit = trifecta in top8
+    bought_hit = trifecta in bought
     return {"overlap": top3_overlap, "exact": exact, "bought_hit": bought_hit}
 
 
