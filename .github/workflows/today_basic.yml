@@ -82,18 +82,13 @@ jobs:
 
       - name: 朝版データをGitHubへ長期保存
         run: |
-          VALIDATION_FILE=$(find data -maxdepth 1 \
-            -type f \
-            -name "program_validation_*.json" \
-            | head -n 1)
+          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+          VALIDATION_FILE="data/program_validation_${TARGET_DATE}.json"
 
-          if [ -z "${VALIDATION_FILE}" ]; then
+          if [ ! -s "${VALIDATION_FILE}" ]; then
             echo "program_validationファイルがありません"
             exit 1
           fi
-
-          TARGET_DATE=$(basename "${VALIDATION_FILE}" \
-            | sed -E 's/program_validation_([0-9]{8})\.json/\1/')
 
           YEAR=${TARGET_DATE:0:4}
           MONTH=${TARGET_DATE:4:2}
