@@ -780,6 +780,36 @@ def enrich_boat(
             else None
         ),
 
+        "boat_30d_available": (
+            has_starts(
+                boat_payload,
+                "d30",
+            )
+        ),
+
+        "boat_90d_available": (
+            has_starts(
+                boat_payload,
+                "d90",
+            )
+        ),
+
+        "boat_30d": (
+            boat_payload.get(
+                "d30"
+            )
+            if boat_payload
+            else None
+        ),
+
+        "boat_90d": (
+            boat_payload.get(
+                "d90"
+            )
+            if boat_payload
+            else None
+        ),
+
         "racer_overall": {
             "available": (
                 racer_payload
@@ -922,17 +952,15 @@ def enrich_boat(
         ),
 
         "boat_30d": (
-            has_starts(
-                boat_payload,
-                "d30",
-            )
+            history[
+                "boat_30d_available"
+            ]
         ),
 
         "boat_90d": (
-            has_starts(
-                boat_payload,
-                "d90",
-            )
+            history[
+                "boat_90d_available"
+            ]
         ),
     }
 
@@ -1147,17 +1175,16 @@ def main():
 
         payload[
             "schema_version"
-        ] = "1.3"
+        ] = "1.4"
 
         payload[
             "history_note"
         ] = (
-            "30日・90日履歴特徴量を接続済み。"
+            "選手・モーター・ボートの30日/90日履歴特徴量を接続済み。"
             "予測基準日当日以降の結果は不使用。"
-            "朝予測では現在コース未確定のため"
-            "選手×コース特徴量は使用せず、"
-            "直前情報取得後のみ"
-            "exhibition_courseで接続。"
+            "朝は枠番を想定コースとして本番計算側で選手×コースを参照し、"
+            "直前はexhibition_courseで上書きする。"
+            "beforeinfoの展示ST/展示タイム/部品交換とrace.weatherの環境情報も保持する。"
         )
 
         payload[
