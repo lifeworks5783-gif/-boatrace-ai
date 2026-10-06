@@ -90,7 +90,7 @@ jobs:
           test -s "evaluations/$YEAR/$MONTH/$DAY/ai_score_simulation_${TARGET_DATE}.csv"
 
       - name: Run expanding PDCA
-        run: python collectors/evaluate_pdca_incremental_4day.py
+        run: python -u collectors/evaluate_pdca_incremental_4day.py
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
