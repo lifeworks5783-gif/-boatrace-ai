@@ -879,13 +879,13 @@ def main():
           viewTabs.forEach(x => x.classList.toggle("active", x === viewTab));
           card.querySelectorAll(".race-prediction-view").forEach(panel => panel.classList.toggle("hidden", panel.dataset.view !== wanted));
           const badge = card.querySelector(".badge");
-          if (badge) {
+          if (badge) {{
             badge.textContent = wanted;
             badge.classList.toggle("live", wanted === "直前");
             badge.classList.toggle("morning", wanted === "朝");
-          }
-        }));
-      });
+          }}
+        }}));
+      }});
 
       const button = document.getElementById("refreshPredictionButton");
       const status = document.getElementById("refreshStatus");
