@@ -3214,6 +3214,23 @@ def build_page(
             '</section>'
         )
 
+        body.append(
+            '<section class="section-card">'
+            '<div class="title-row"><div><h2>⚡ シグナル着順分析・暫定基準</h2>'
+            '<p class="section-note">シグナル発生レースだけを対象に、通常の艇スコアを変更せず、120通りの予想生成段階で着順別に再評価します。</p></div>'
+            + badge("本日から継続検証", "warn") + '</div>'
+            '<div class="logic-grid">'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>現行シグナル</span><b>+10以上</b></div><div class="logic-chip-detail">直前スコア－朝スコアが+10以上、かつ直前TOP3外</div></div>'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>1着補正</span><b>0</b></div><div class="logic-chip-detail">現時点では通常シグナルを1着へ強制昇格しない</div></div>'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>2着補正</span><b>0.6</b></div><div class="logic-chip-detail">シグナル上昇量×0.6×倍率1.5</div></div>'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>3着補正</span><b>0.4</b></div><div class="logic-chip-detail">シグナル上昇量×0.4×倍率1.5</div></div>'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>直前5位</span><b>×0.7</b></div><div class="logic-chip-detail">候補評価を減衰</div></div>'
+            '<div class="logic-chip"><div class="logic-chip-head"><span>直前6位</span><b>×1.0</b></div><div class="logic-chip-detail">現行探索の最良値を暫定採用</div></div>'
+            '</div>'
+            '<div class="policy-note"><b>10/5検証：</b>シグナル34R中15R的中＝44.12%。従来AI8点で的中していたシグナルレースの損失0。これは艇スコアの本番ロジック変更ではなく、シグナル発生時の買い目・予想生成研究です。今後は1着型・2着型・3着型・着外型をシグナルレース限定で蓄積します。</div>'
+            '</section>'
+        )
+
         body.append(venue_technique_html())
 
         # 2. 朝→直前の順で、実際のスコア診断を見る。
