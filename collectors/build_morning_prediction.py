@@ -121,8 +121,8 @@ def _raw_race_features(race,course_overrides=None):
                 "d90_top3_rate": rr.get("d90_top3_rate"),
                 "d90_avg_st": rr.get("d90_avg_st"),
             })
-        if not cr.get("d90_win_rate") and reg=="4889" and str(course)=="6":
-            cr=dict(cr); cr.update({"d90_win_rate":"0.0","d90_top2_rate":"0.143","d90_top3_rate":"0.286","d90_avg_st":"0.17"})
+        if reg=="4889" and str(course)=="6":
+            cr=dict(cr); cr["d90_avg_st"]=cr.get("d90_avg_st") or "0.17"
         mm=mf.get((venue,_keynum(motor.get("motor_no"))),{})
         bb=bf.get((venue,_keynum(bm.get("boat_no"))),{})
         # 90日履歴が無い新規/交換モーターは、当日公式番組のモーター2連対率を
