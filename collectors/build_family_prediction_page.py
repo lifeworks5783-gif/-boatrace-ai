@@ -343,21 +343,21 @@ def main():
     :root {{
       color-scheme: light dark;
 
-      --bg: #f3f6f8;
+      --bg: #e8eef4;
       --card: #ffffff;
       --text: #172033;
       --muted: #64748b;
-      --line: #dbe3ea;
-      --primary: #1e4f78;
+      --line: #cbd8e3;
+      --primary: #174f7a;
       --primary-strong: #163b5c;
-      --primary-soft: #eaf2f8;
-      --live-bg: #e2f3ef;
+      --primary-soft: #dceaf5;
+      --live-bg: #d5f0e9;
       --live-text: #11675b;
       --live-accent: #168477;
-      --morning-bg: #e9f0fb;
+      --morning-bg: #dceafb;
       --morning-text: #285a91;
       --morning-accent: #3976b8;
-      --chip: #f1f5f8;
+      --chip: #edf3f7;
       --warning: #b54747;
     }}
 
