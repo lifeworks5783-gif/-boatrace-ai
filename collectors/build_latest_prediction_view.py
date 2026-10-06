@@ -663,7 +663,47 @@ def build_ai_score_prediction(boats, ai_config):
         joint=((max(a["first_score"],.01)/100)*(max(b["second_score"],.01)/100)*(max(d["third_score"],.01)/100))**(1/3)
         combos.append({"combination":f"{first}-{second}-{third}","score":round(joint*100,3)})
     combos.sort(key=lambda x:(-x["score"],x["combination"]))
-    points=int(ai_config.get("purchase_points",8))
+
+    # ⚡ signal mode: keep boat/base AI scores unchanged and re-rank only the 120 trifecta combinations.
+    # Provisional rule selected by the 2026-10-05 general-rule search (15/34 signal races, no lost baseline hits).
+    signals = {}
+    for live_rank, row in enumerate(boats, start=1):
+        live_score = to_float(row.get("score"))
+        morning_score = to_float(row.get("morning_score_reference"))
+        boat = boat_number(row)
+        if live_rank > 3 and boat is not None and live_score is not None and morning_score is not None:
+            rise = live_score - morning_score
+            if rise >= 10.0:
+                signals[boat] = {"rise": rise, "rank": live_rank}
+
+    base_combos = list(combos)
+    if signals:
+        reranked = []
+        position_weights = (0.0, 0.6, 0.4)
+        multiplier = 1.5
+        for original_index, item in enumerate(base_combos):
+            parts = tuple(int(x) for x in item["combination"].split("-"))
+            bonus = 0.0
+            for position, boat in enumerate(parts):
+                signal = signals.get(boat)
+                if not signal:
+                    continue
+                rank = signal["rank"]
+                attenuation = 1.0 if rank <= 4 else 0.7 if rank == 5 else 1.0
+                bonus += multiplier * signal["rise"] * position_weights[position] * attenuation
+            reranked.append({
+                **item,
+                "base_score": item["score"],
+                "signal_bonus": round(bonus, 3),
+                "score": round(item["score"] + bonus, 3),
+                "_original_index": original_index,
+            })
+        reranked.sort(key=lambda x:(-x["score"],x["_original_index"]))
+        combos = [{k:v for k,v in x.items() if k != "_original_index"} for x in reranked]
+        points = 12
+    else:
+        points=int(ai_config.get("purchase_points",8))
+
     selected=combos[:points]
     frozen={k:v for k,v in ai_config.items() if not k.startswith("_")}
     return {
@@ -672,6 +712,9 @@ def build_ai_score_prediction(boats, ai_config):
         "logic_config_source": ai_config.get("_source"),
         "logic_snapshot": frozen,
         "status": ai_config.get("status","experimental"),
+        "signal_mode": bool(signals),
+        "signal_boats": {str(k): {"rise": round(v["rise"], 2), "rank": v["rank"]} for k,v in signals.items()},
+        "signal_rule": {"threshold":10.0,"outside_live_top3":True,"w1":0.0,"w2":0.6,"w3":0.4,"multiplier":1.5,"rank5":0.7,"rank6":1.0} if signals else None,
         "points": points,
         "investment_100yen": points*100,
         "position_scores": sorted(scored,key=lambda x:x["boat"]),
@@ -681,7 +724,7 @@ def build_ai_score_prediction(boats, ai_config):
         "boundary_gaps": {},
         "combinations": selected,
         "all_120_combinations": combos,
-        "note":"通常予測/BOXから独立した日別固定ロジック。使用係数はlogic_snapshotへ凍結保存。",
+        "note":"通常時は既存AI上位8点。⚡時のみ艇スコアを変えず、暫定シグナル配分で120通りを再順位付けして上位12点。使用係数はlogic_snapshotへ凍結保存。",
     }
 
 def score_label(value):
