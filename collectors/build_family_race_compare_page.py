@@ -1669,6 +1669,20 @@ def score_map(prediction):
     return out
 
 
+def morning_reference_map(morning_prediction, live_prediction=None):
+    out = {}
+    if live_prediction:
+        boats = live_prediction.get("boats") or (live_prediction.get("raw") or {}).get("boats") or []
+        for row in boats:
+            b = normalize_boat(row.get("boat"))
+            ref = safe_float(row.get("morning_score_reference"))
+            if b is not None and ref is not None:
+                out[b] = ref
+    for b, score in score_map(morning_prediction).items():
+        out.setdefault(b, score)
+    return out
+
+
 def score_delta_html(boat, score, morning_scores):
     if not morning_scores or boat not in morning_scores:
         return ""
@@ -2181,8 +2195,8 @@ def render_html(
     </div>
 
     <div>
-      {prediction_html(row["live"], score_map(row["morning"]))}
-      {all_scores_html(row["live"], "直前予測", score_map(row["morning"]))}
+      {prediction_html(row["live"], morning_reference_map(row["morning"], row["live"]))}
+      {all_scores_html(row["live"], "直前予測", morning_reference_map(row["morning"], row["live"]))}
     </div>
 
     <div class="metrics">
