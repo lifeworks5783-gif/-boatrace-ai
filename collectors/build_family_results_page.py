@@ -511,7 +511,7 @@ def build_page(evaluation_root: Path) -> str:
   --muted: #667085;
   --line: #e5e7eb;
   --chip: #f3f4f6;
-  --primary: #2563eb;
+  --primary: #174f7a;
 }}
 * {{ box-sizing: border-box; }}
 body {{
