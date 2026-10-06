@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "provisional_v1_20261004_morning_40_20_20_5_15"
+MODEL_VERSION = "provisional_v4_20261006_morning_traceable_inputs"
 
 # 暫定ロジックVer.1（2026-10-04固定）
 MORNING_WEIGHTS = {
@@ -221,14 +221,15 @@ def main():
             scored=[]
             for boat in boats:
                 lane=to_int(boat.get("boat")); d=details[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
-                row={"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(d["score"],2),"base_score":round(d["score"],2),"trend_adjustment_points":0.0,"f_l_penalty_points":0.0,"data_coverage_pct":100.0,"components":{"racer_course":{"weight":40.0,"raw_score_0_1":round(d["racer_course"],6)},"grade":{"weight":20.0,"raw_score_0_1":round(d["grade"],6)},"motor":{"weight":20.0,"raw_score_0_1":round(d["motor"],6)},"boat":{"weight":5.0,"raw_score_0_1":round(d["boat"],6)},"national_top2":{"weight":15.0,"raw_score_0_1":round(d["national_top2"],6)}}}
+                history=boat.get("history") or {}
+                row={"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(d["score"],2),"base_score":round(d["score"],2),"trend_adjustment_points":0.0,"f_l_penalty_points":0.0,"data_coverage_pct":100.0,"components":{"racer_course":{"weight":40.0,"raw_score_0_1":round(d["racer_course"],6)},"grade":{"weight":20.0,"raw_score_0_1":round(d["grade"],6)},"motor":{"weight":20.0,"raw_score_0_1":round(d["motor"],6)},"boat":{"weight":5.0,"raw_score_0_1":round(d["boat"],6)},"national_top2":{"weight":15.0,"raw_score_0_1":round(d["national_top2"],6)}},"input_trace":{"history_feature_manifest":payload.get("history_feature_manifest"),"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"course_used":d.get("course")}}
                 scored.append(row)
             scored.sort(key=lambda x:(-x["score"],x["boat"]))
             for rank,row in enumerate(scored,1):
                 row["rank"]=rank; scores.append(row["score"])
                 rows.append({"target_date":target_date,"venue_code":race.get("venue_code"),"venue_name":race.get("venue_name"),"race":race.get("race"),"race_id":race.get("race_id"),"rank":rank,**{k:row[k] for k in ["boat","registration_no","racer_name","grade","motor_no","boat_no","score","base_score","trend_adjustment_points","f_l_penalty_points","data_coverage_pct"]}})
             prediction_races.append({"race_id":race.get("race_id"),"date":race.get("date"),"venue_code":race.get("venue_code"),"venue_name":race.get("venue_name"),"race":race.get("race"),"race_name":race.get("race_name"),"deadline":race.get("deadline"),"morning_order":[x["boat"] for x in scored],"top3_boats":[x["boat"] for x in scored[:3]],"strength":prediction_strength(scored),"boats":scored})
-        result={"schema_version":"1.0","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","generated_at":datetime.now(JST).isoformat(),"score_note":"暫定ロジックVer.1固定。外部PublicStore/公開CSV非依存。対象日結果は不使用。","weights":MORNING_WEIGHTS,"race_count":len(prediction_races),"boat_count":len(rows),"races":prediction_races}
+        result={"schema_version":"1.0","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","generated_at":datetime.now(JST).isoformat(),"score_note":"現行本番配点は維持。入力追跡情報として30/90日履歴・場適性等を保存し、未検証要素は勝手に加点しない。対象日結果は不使用。","weights":MORNING_WEIGHTS,"race_count":len(prediction_races),"boat_count":len(rows),"races":prediction_races}
         oj.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8"); write_csv(oc,rows)
         if len(prediction_races)!=len(races) or len(rows)!=len(races)*6: raise RuntimeError("予測件数不一致")
         validation={"status":"PASS","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","race_count":len(prediction_races),"boat_count":len(rows),"score_min":round(min(scores),2),"score_max":round(max(scores),2),"score_average":round(sum(scores)/len(scores),2),"average_data_coverage_pct":100.0,"current_day_result_leakage":0,"course_used":False,"exhibition_used":False,"weights":MORNING_WEIGHTS,"external_public_csv_used":False}
