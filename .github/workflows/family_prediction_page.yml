@@ -129,6 +129,10 @@ jobs:
 
           test -s _family_site/race_compare.html
 
+          # ⚡時の表示・収支が12点/1,200円へ切り替わる実装であることを確認。
+          grep -q 'purchase_points = safe_int(ai.get("points")) or 8' collectors/build_family_race_compare_page.py
+          grep -q 'investment = safe_int(ai.get("investment_100yen"))' collectors/build_family_race_compare_page.py
+
           echo "レース照合ページ生成: PASS"
 
       - name: 4ページ共通メニューを設定
