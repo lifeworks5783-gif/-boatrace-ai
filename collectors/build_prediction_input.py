@@ -271,6 +271,25 @@ def build_race(
                         "grade",
                         "",
                     ),
+                    "official_f_count": inum(
+                        base.get(
+                            "f_count"
+                        )
+                    ),
+                    "official_l_count": inum(
+                        base.get(
+                            "l_count"
+                        )
+                    ),
+                    "official_avg_st": fnum(
+                        base.get(
+                            "official_avg_st"
+                        )
+                    ),
+                    "official_fl_available": (
+                        base.get("f_count") not in (None, "")
+                        and base.get("l_count") not in (None, "")
+                    ),
                 },
 
                 "official_stats": {
@@ -819,8 +838,17 @@ def main():
         )
     )
 
+    fl_entries_path = find_file(
+        target_date,
+        f"program_entries_fl_{target_date}.csv",
+        "pre_race/base",
+        False,
+    )
+
     base_entries = read_csv(
-        find_file(
+        fl_entries_path
+        if fl_entries_path
+        else find_file(
             target_date,
             f"program_entries_{target_date}.csv",
             "pre_race/base",
@@ -920,7 +948,7 @@ def main():
     )
 
     package = {
-        "schema_version": "1.2",
+        "schema_version": "1.3",
         "target_date": target_date,
         "prediction_stage": stage,
         "generated_at": generated_at,
@@ -929,7 +957,8 @@ def main():
             "着順・実ST・払戻等の結果情報は含めない。"
         ),
         "history_note": (
-            "30日・90日履歴集計は未接続。"
+            "この段階では履歴結合前。enrich_prediction_input.pyで30日・90日履歴を接続する。"
+            "公式F/Lファイルが存在する場合はF/L保有数・公式平均STを接続済み。"
             "未取得値は0ではなくavailable=false/nullで管理。"
         ),
         "race_count": len(
@@ -968,7 +997,7 @@ def main():
             individual_dir
             / f"{race['race_id']}.json",
             {
-                "schema_version": "1.2",
+                "schema_version": "1.3",
                 "target_date": target_date,
                 "prediction_stage": stage,
                 "generated_at": generated_at,
