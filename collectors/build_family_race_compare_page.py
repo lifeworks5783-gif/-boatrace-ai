@@ -1987,6 +1987,16 @@ def ai_score_eval(prediction, actual):
     return {"overlap": top3_overlap, "exact": exact, "bought_hit": bought_hit}
 
 
+def load_ai_evaluation(target_date):
+    p = Path(f"evaluations/{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}/ai_score_simulation_{target_date}.json")
+    data = read_json(p) if p.is_file() else None
+    overall = (data or {}).get("overall") or {}
+    n = safe_int(overall.get("races")) or 0
+    if not n:
+        return None
+    return {"count": n, "overlap": safe_float(overall.get("top3_alignment_rate")) * 100.0 if safe_float(overall.get("top3_alignment_rate")) is not None else None, "exact": safe_float(overall.get("exact_alignment_rate")) * 100.0 if safe_float(overall.get("exact_alignment_rate")) is not None else None, "bought_hit": safe_float(overall.get("hit_rate")) * 100.0 if safe_float(overall.get("hit_rate")) is not None else None}
+
+
 def ai_score_summary(rows):
     evals = []
     for row in rows:
@@ -2037,7 +2047,8 @@ def render_html(
 
     morning_hit_summary = hit_summary("morning_formation_hit")
     live_hit_summary = hit_summary("live_formation_hit")
-    ai_summary = ai_score_summary(race_rows)
+    # 日次AI評価ファイルを正本にする。予測JSONへの埋め込み有無で0Rにならないようにする。
+    ai_summary = load_ai_evaluation(target_date) or ai_score_summary(race_rows)
 
     # 結果・成績ページと同じ「最終予測」定義:
     # 直前予測が保存されているレースは直前、未保存は朝予測を採用する。
@@ -3007,7 +3018,7 @@ TOP3整合率は、
 <div class="summary-box">
 
   <span>
-    AI着順別3艇一致 / AI着順完全一致 / 上位8点的中
+    AI着順別3艇一致 / AI着順完全一致 / AI買い目的中
   </span>
 
   <strong>
