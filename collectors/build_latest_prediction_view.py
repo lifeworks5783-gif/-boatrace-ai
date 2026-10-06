@@ -1105,6 +1105,25 @@ def main():
                 }
             )
 
+        # 最新画面で直前予測生成後も朝予測の順位・スコアを参照できるよう、
+        # 朝時点の6艇スナップショットを別保存する。
+        morning_boats_snapshot = []
+        morning_ai_score_prediction = None
+        if race_id in morning:
+            morning_ranked = ranked_boats(morning[race_id])
+            if len(morning_ranked) == 6:
+                for morning_index, morning_boat in enumerate(morning_ranked, start=1):
+                    morning_boats_snapshot.append({
+                        "rank": morning_index,
+                        "boat": boat_number(morning_boat),
+                        "racer_name": text(morning_boat.get("racer_name")),
+                        "score": boat_score(morning_boat),
+                    })
+                morning_ai_score_prediction = build_ai_score_prediction(
+                    morning_ranked,
+                    ai_score_config,
+                )
+
         # 朝予測の買い目も別途固定保存する。
         # 直前予測へ切り替わった後も、朝時点のフォーメーションを失わない。
         morning_formation = None
@@ -1167,6 +1186,12 @@ def main():
             ),
             "morning_formation": (
                 morning_formation
+            ),
+            "morning_boats": (
+                morning_boats_snapshot
+            ),
+            "morning_ai_score_prediction": (
+                morning_ai_score_prediction
             ),
             "ai_score_prediction": (
                 build_ai_score_prediction(boats, ai_score_config)
