@@ -59,7 +59,7 @@ NAV_CSS = """
 .family-nav a.active,
 .family-nav a.active:link,
 .family-nav a.active:visited {
-  background: #2563eb !important;
+  background: #174f7a !important;
   color: #ffffff !important;
   text-decoration: none !important;
 }
