@@ -94,8 +94,8 @@ jobs:
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add evaluations/pdca_incremental_latest/ evaluations/pdca_datasets/
-          git diff --cached --quiet || git commit -m "Save expanding PDCA datasets $TARGET_DATE"
+          git add evaluations/ archive/ predictions/
+          git diff --cached --quiet || git commit -m "Save complete evaluation outputs $TARGET_DATE"
           git restore .
           git clean -fd
           git pull --rebase origin main
