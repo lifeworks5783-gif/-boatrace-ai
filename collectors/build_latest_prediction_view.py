@@ -442,7 +442,9 @@ def valid_combinations(
 def build_formation(
     boats,
 ):
-    if len(boats) != 6:
+    # 成立レースの欠場艇は候補から除外し、残った3艇以上でAI評価する。
+    # 6艇なら120通り、5艇なら60通り。欠場艇の値は捏造しない。
+    if len(boats) < 3:
         return None
 
     order = [boat_number(row) for row in boats]
@@ -668,16 +670,17 @@ def build_ai_score_prediction(boats, ai_config):
         scored.append({"boat": boat, "first_score": round(first*100,2), "second_score": round(second*100,2), "third_score": round(third*100,2)})
 
     by_boat = {x["boat"]: x for x in scored}
-    if set(by_boat) != {1,2,3,4,5,6}:
-        raise RuntimeError("AIスコア計算対象の艇番1〜6が不完全です")
+    if len(by_boat) != len(boats) or len(by_boat) < 3:
+        raise RuntimeError("AIスコア計算対象の有効艇が不完全です")
     combos = []
     for first, second, third in itertools.permutations(sorted(by_boat), 3):
         a,b,d = by_boat[first],by_boat[second],by_boat[third]
         joint=((max(a["first_score"],.01)/100)*(max(b["second_score"],.01)/100)*(max(d["third_score"],.01)/100))**(1/3)
         combos.append({"combination":f"{first}-{second}-{third}","score":round(joint*100,3)})
     combos.sort(key=lambda x:(-x["score"],x["combination"]))
-    if len(combos) != 120 or len({x["combination"] for x in combos}) != 120:
-        raise RuntimeError("AIスコア3連単120通りの生成に失敗しました")
+    expected_combos = len(by_boat) * (len(by_boat)-1) * (len(by_boat)-2)
+    if len(combos) != expected_combos or len({x["combination"] for x in combos}) != expected_combos:
+        raise RuntimeError(f"AIスコア3連単{expected_combos}通りの生成に失敗しました")
 
     # ⚡ signal mode: keep boat/base AI scores unchanged and re-rank only the 120 trifecta combinations.
     # Provisional rule selected by the 2026-10-05 general-rule search (15/34 signal races, no lost baseline hits).
@@ -750,6 +753,7 @@ def build_ai_score_prediction(boats, ai_config):
         "combinations": selected,
         "base_120_combinations": base_combos,
         "all_120_combinations": combos,
+        "valid_combination_count": expected_combos,
         "rerank_verified": (
             len(combos) == 120
             and len({x["combination"] for x in combos}) == 120
