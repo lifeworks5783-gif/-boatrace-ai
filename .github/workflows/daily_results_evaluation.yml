@@ -8,6 +8,11 @@ name: Daily Results and Evaluation
   schedule:
     - cron: '30 15 * * *'
   workflow_dispatch:
+    inputs:
+      target_date:
+        description: "監査対象日 YYYYMMDD（空欄は昨日）"
+        required: false
+        type: string
 permissions:
   contents: write
 concurrency:
@@ -17,7 +22,7 @@ jobs:
   results_evaluation:
     runs-on: ubuntu-latest
     env:
-      AUDIT_TARGET_DATE: ${{ vars.AUDIT_TARGET_DATE }}
+      AUDIT_TARGET_DATE: ${{ inputs.target_date || vars.AUDIT_TARGET_DATE }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
