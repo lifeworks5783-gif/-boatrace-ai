@@ -469,9 +469,24 @@ def main():
                 continue
 
             deadline = parse_deadline(target_date, race)
-            if deadline is not None and now >= deadline:
-                skipped_after_deadline.append(race_id)
-                continue
+            collected_at = None
+            collected_raw = text(race.get("beforeinfo_collected_at"))
+            if collected_raw:
+                try:
+                    collected_at = parse_now(collected_raw)
+                except (ValueError, TypeError):
+                    collected_at = None
+
+            # 直前情報の有効性は「計算した時刻」ではなく
+            # 「その直前情報を締切前に取得したか」で判定する。
+            # 締切後に計算が遅延しても、締切前取得データなら予測対象にする。
+            if deadline is not None:
+                if collected_at is not None and collected_at >= deadline:
+                    skipped_after_deadline.append(race_id)
+                    continue
+                if collected_at is None and now >= deadline:
+                    skipped_after_deadline.append(race_id)
+                    continue
 
             course_count = sum(
                 get_exhibition_course(boat) is not None for boat in boats
