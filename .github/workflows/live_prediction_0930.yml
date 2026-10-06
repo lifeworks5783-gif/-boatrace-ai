@@ -260,14 +260,35 @@ jobs:
           p=f"data/beforeinfo_entries_{d}.csv"
           rows=list(csv.DictReader(open(p,encoding="utf-8-sig",newline="")))
           required=("exhibition_course","exhibition_time","exhibition_st_raw")
-          bad=[]
+          by_race={}
           for row in rows:
-              miss=[k for k in required if not str(row.get(k,"")).strip()]
-              if miss: bad.append((row.get("race_id"),row.get("boat"),miss))
-          print({"rows":len(rows),"missing_required":len(bad),"sample":bad[:20]})
+              by_race.setdefault(str(row.get("race_id","")).strip(),[]).append(row)
+          good=[]; bad=[]
+          for rid, rr in by_race.items():
+              problems=[]
+              if len(rr)!=6: problems.append(f"boats:{len(rr)}/6")
+              boats={str(x.get("boat","")).strip() for x in rr}
+              if boats!={"1","2","3","4","5","6"}: problems.append("boat_numbers")
+              for row in rr:
+                  miss=[k for k in required if not str(row.get(k,"")).strip()]
+                  if miss: problems.append(f"boat{row.get('boat')}:{','.join(miss)}")
+              if rr and "change_parts" not in rr[0]: problems.append("change_parts_column")
+              if problems: bad.append((rid,problems))
+              else: good.append(rid)
+          print({"races":len(by_race),"complete_races":len(good),"incomplete_races":len(bad),"sample":bad[:20]})
           if not rows: raise SystemExit("直前艇データが0件")
-          if bad: raise SystemExit(f"直前必須データ欠損: {len(bad)}艇")
-          if "change_parts" not in rows[0]: raise SystemExit("change_parts列欠損")
+          if not good: raise SystemExit("計算可能な完全6艇レースが0件")
+          if bad:
+              print("未確定レースは予測対象から除外し、次回収集で再取得します")
+              keep=set(good)
+              rows=[x for x in rows if str(x.get("race_id","")).strip() in keep]
+              with open(p,"w",encoding="utf-8",newline="") as f:
+                  w=csv.DictWriter(f,fieldnames=rows[0].keys());w.writeheader();w.writerows(rows)
+              rp=f"data/beforeinfo_races_{d}.csv"
+              race_rows=list(csv.DictReader(open(rp,encoding="utf-8-sig",newline="")))
+              race_rows=[x for x in race_rows if str(x.get("race_id","")).strip() in keep]
+              with open(rp,"w",encoding="utf-8",newline="") as f:
+                  w=csv.DictWriter(f,fieldnames=race_rows[0].keys());w.writeheader();w.writerows(race_rows)
           PY
 
       - name: live prediction_inputを生成
