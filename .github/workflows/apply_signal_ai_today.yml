@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   apply:
@@ -48,3 +49,12 @@ jobs:
           git commit -m "Apply signal-only AI 12-point rule to today's races"
           git pull --rebase origin main
           git push origin HEAD:main
+
+
+      - name: Publish family pages after rebuilt outputs are pushed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "⚡再計算・保存完了後に家族共有ページを更新します。"
+          gh workflow run family_prediction_page.yml --ref main
+          echo "家族共有ページ更新を起動: PASS"
