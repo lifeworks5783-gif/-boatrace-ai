@@ -117,7 +117,7 @@ def _raw_race_features(race,course_overrides=None):
         bb=bf.get((venue,_keynum(bm.get("boat_no"))),{})
         # 90日履歴が無い新規/交換モーターは、当日公式番組のモーター2連対率を
         # 同一モーターの実データfallbackとして使用する（0点捏造はしない）。
-        official_motor_top2=_rate(motor.get("motor_top2_rate"))
+        official_motor_top2=_rate(motor.get("official_top2_rate") if motor.get("official_top2_rate") is not None else motor.get("motor_top2_rate"))
         motor_win=_rate(mm.get("d90_win_rate"))
         motor_top3=_rate(mm.get("d90_top3_rate"))
         if motor_win is None and official_motor_top2 is not None: motor_win=official_motor_top2
