@@ -1,0 +1,26 @@
+name: Rising boat top3 feature analysis
+on:
+  push:
+    paths:
+      - 'collectors/analyze_rising_boat_top3_features_v1.py'
+      - 'config/run_rising_boat_top3_features.txt'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python collectors/analyze_rising_boat_top3_features_v1.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/rising_boat_top3_features_v1/
+          git diff --cached --quiet && exit 0
+          git commit -m "Save rising boat top3 feature analysis"
+          for i in 1 2 3; do git push && exit 0; git fetch origin main; git rebase origin/main; done
+          exit 1
