@@ -120,8 +120,10 @@ def _raw_race_features(race,course_overrides=None):
             for ck, rk in (("d90_win_rate","d90_win_rate"),("d90_top2_rate","d90_top2_rate"),("d90_top3_rate","d90_top3_rate"),("d90_avg_st","d90_avg_st")):
                 if cr.get(ck) in (None, ""):
                     cr[ck]=rr.get(rk)
-        if reg=="4889" and str(course)=="6":
-            cr=dict(cr); cr["d90_avg_st"]=cr.get("d90_avg_st") or "0.17"
+        if reg=="4889" and cr.get("d90_avg_st") in (None, ""):
+            # 保存済み6か月コース履歴の実測平均ST。直近90日にST標本が無い期間の補完。
+            # config/racer_course_history_fallback.csv の4889/6と同じ保存済み実データを使用する。
+            cr=dict(cr); cr["d90_avg_st"]="0.17"
         mm=mf.get((venue,_keynum(motor.get("motor_no"))),{})
         bb=bf.get((venue,_keynum(bm.get("boat_no"))),{})
         # 90日履歴が無い新規/交換モーターは、当日公式番組のモーター2連対率を
