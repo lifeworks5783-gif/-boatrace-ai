@@ -272,7 +272,7 @@ def component_exst(lane, boat, ranks):
     }
 
 
-def score_race(race, public_store):
+def score_race(race, public_store, feature_manifest=None):
     boats=race.get("boats")
     if not isinstance(boats,list) or len(boats)!=6: raise RuntimeError(f"6艇ではないレース: {race.get('race_id')}")
     overrides={to_int(x.get("boat")):(get_exhibition_course(x) or to_int(x.get("boat"))) for x in boats}
@@ -302,7 +302,7 @@ def score_race(race, public_store):
             "data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),
             "exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),
             "change_parts":before.get("change_parts",""),
-            "input_trace":{"history_feature_manifest":race.get("history_feature_manifest"),"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"racer_course":history.get("racer_course"),"beforeinfo":{"exhibition_course":get_exhibition_course(boat),"exhibition_time":get_exhibition_time(boat),"exhibition_st_raw":raw_exhibition_st_value(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"change_parts":before.get("change_parts","")},"weather":race.get("weather")},
+            "input_trace":{"history_feature_manifest":feature_manifest,"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"racer_course":history.get("racer_course"),"beforeinfo":{"exhibition_course":get_exhibition_course(boat),"exhibition_time":get_exhibition_time(boat),"exhibition_st_raw":raw_exhibition_st_value(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"change_parts":before.get("change_parts","")},"weather":race.get("weather")},
             "components":{
                 "racer_course":{"weight":40.0,"raw_score_0_1":round(sd["racer_course"],6),"available":True},
                 "grade":{"weight":20.0,"raw_score_0_1":round(sd["grade"],6),"available":True},
@@ -488,7 +488,7 @@ def main():
                 skipped_no_live_data.append(race_id)
                 continue
 
-            scored = score_race(race, public_store)
+            scored = score_race(race, public_store, payload.get("history_feature_manifest"))
 
             pred = {
                 "race_id": race_id,
