@@ -1,0 +1,69 @@
+name: Rebuild saved beforeinfo historical prediction
+on:
+  push:
+    branches: [main]
+    paths:
+      - config/run_saved_beforeinfo_rebuild.txt
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q requests beautifulsoup4 lhafile
+      - name: Restore saved 20261006 inputs
+        run: |
+          D=20261006; BASE=daily_inputs/2026/10/06/base; BF=daily_inputs/2026/10/06/live/backfill
+          mkdir -p data
+          cp "$BASE"/program_races_$D.csv data/
+          cp "$BASE"/program_entries_$D.csv data/
+          cp "$BF"/beforeinfo_races_$D.csv data/
+          cp "$BF"/beforeinfo_entries_$D.csv data/
+          cp "$BF"/beforeinfo_validation_$D.json data/
+          test $(($(wc -l < data/beforeinfo_races_$D.csv)-1)) -eq 156
+          test $(($(wc -l < data/beforeinfo_entries_$D.csv)-1)) -eq 936
+      - name: Build full live prediction only from saved inputs
+        run: |
+          D=20261006
+          python -u collectors/build_prediction_input.py --stage live
+          python -u collectors/build_history_features.py --as-of "$D"
+          python -u collectors/enrich_prediction_input.py --date "$D" --stage live
+          python -u collectors/build_live_prediction.py --date "$D" --historical-backfill
+          python - <<'PY'
+          import json
+          p=json.load(open('data/live_predictions_current_20261006.json',encoding='utf-8'))
+          r=p.get('races') or p.get('predictions') or []
+          assert len(r)==156, len(r)
+          assert any(x.get('race_id')=='20261006-20-09' for x in r)
+          print('historical live rebuild PASS',len(r),'若松9R PASS')
+          PY
+      - name: Save reconstructed live predictions
+        run: |
+          D=20261006; DEST=predictions/2026/10/06/live; IN=daily_inputs/2026/10/06/live/reconstructed
+          mkdir -p "$DEST" "$IN"
+          cp data/live_predictions_final_$D.json "$DEST/"
+          cp data/live_predictions_final_$D.csv "$DEST/"
+          cp data/prediction_input_enriched_live_$D.json "$IN/"
+          cp data/prediction_input_validation_live_$D.json "$IN/" || true
+          cp data/prediction_input_enriched_validation_live_$D.json "$IN/" || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST" "$IN"
+          git diff --cached --quiet || git commit -m "Reconstruct 20261006 live predictions from saved official beforeinfo"
+          git pull --rebase origin main
+          git push origin main
+      - name: Run signal AI and evaluation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run apply_signal_ai_today.yml --ref main
+          gh workflow run pdca_incremental_4day.yml --ref main
