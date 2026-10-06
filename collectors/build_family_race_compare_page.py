@@ -3094,6 +3094,7 @@ def main():
     (
         morning_predictions,
         live_predictions,
+        formation_predictions,
     ) = load_predictions(
         args.predictions_root,
         target_date,
@@ -3107,6 +3108,7 @@ def main():
         target_date,
         morning_predictions,
         live_predictions,
+        formation_predictions,
     )
 
     print(
