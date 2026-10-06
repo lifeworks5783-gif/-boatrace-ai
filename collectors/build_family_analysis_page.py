@@ -3410,7 +3410,7 @@ def build_page(
 
   color-scheme: light dark;
 
-  --bg: #f4f6f8;
+  --bg: #dbe7f0;
 
   --card: #ffffff;
 
@@ -3418,11 +3418,11 @@ def build_page(
 
   --muted: #667085;
 
-  --line: #e5e7eb;
+  --line: #c4d4e0;
 
-  --chip: #f3f4f6;
+  --chip: #e8f0f5;
 
-  --primary: #174f7a;
+  --primary: #174f7a;\n  --action: #7a3f8f;
 
   --good-bg: #ecfdf3;
 
@@ -4211,7 +4211,7 @@ footer {{
 
     --card: #171a21;
 
-    --text: #f3f4f6;
+    --text: #e8f0f5;
 
     --muted: #a8b0bd;
 
