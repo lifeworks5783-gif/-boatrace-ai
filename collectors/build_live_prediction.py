@@ -654,6 +654,16 @@ def main():
                     **fallback_info,
                 })
 
+            prediction_quality = {
+                "status": "fallback" if fallback_info else "normal",
+                "mark": "⚠" if fallback_info else "",
+                "label": "補完あり" if fallback_info else "正常",
+                "recovery_needed": bool(fallback_info),
+                "reason": (fallback_info or {}).get("reason") if fallback_info else [],
+                "fallback_source": (fallback_info or {}).get("source") if fallback_info else None,
+                "recorded_at": now.isoformat(),
+            }
+
             pred = {
                 "race_id": race_id,
                 "date": race.get("date"),
@@ -663,6 +673,7 @@ def main():
                 "race_name": race.get("race_name"),
                 "deadline": race.get("deadline"),
                 "generated_at": now.isoformat(),
+                "prediction_quality": prediction_quality,
                 "live_data_counts": {
                     "exhibition_course": course_count,
                     "exhibition_time": time_count,
