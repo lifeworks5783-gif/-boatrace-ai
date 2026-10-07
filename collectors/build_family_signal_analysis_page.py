@@ -202,6 +202,7 @@ def build_page(root: Path) -> str:
     backtest = load_json(root / "fujin_raijin/latest/backtest_summary.json")
     buff = load_json(root / "fujin_raijin/buff_debuff/latest.json")
     points = load_json(root / "fujin_raijin/strength_points/latest.json")
+    signal_ai = load_json(root / "signal_ai/latest/summary.json")
 
     total = backtest.get("total") or {}
     presence = total.get("presence") or {}
@@ -247,21 +248,28 @@ def build_page(root: Path) -> str:
 </style>
 </head>
 <body><div class="wrap">
-<header><h1>風神雷神 AI分析</h1><div class="meta">第一段階：シグナル発動レース限定・全120通り順位付け</div></header>
+<header><h1>風神雷神 AI分析</h1><div class="meta">現行シグナルAI補正・買い/見送り判定・6〜24点最適化を累積検証</div></header>
 <nav><a href="index.html">最新予想</a><a href="results.html">結果・成績</a><a href="analysis.html" class="active">AI分析</a><a href="race_compare.html">レース照合</a></nav>
 
 <section class="card hero">
 <h2>第一段階の固定ルール</h2>
 <div class="rule">
 <div>風神0・雷神0<b>買わない（0点）</b><span class="note">通常予想が良くてもAI分析側では見送り</span></div>
-<div>どちらか発動<b>購入対象</b><span class="note">風神のみ・雷神のみ・同時発動を分けて検証</span></div>
+<div>どちらか発動<b>AI評価対象</b><span class="note">現時点は全シグナルで24候補を保存。買い/見送りは蓄積後に判定</span></div>
 <div>計算対象<b>3連単120通り</b><span class="note">補正後の艇スコアから全順列を順位付け</span></div>
-<div>購入点数<b>6〜24点</b><span class="note">合算強度に応じて上位N点を採用</span></div>
+<div>現在の保存点数<b>上位24点</b><span class="note">今後6/8/10/12/18/24点へ最適化</span></div>
 </div>
 <p class="note" style="margin-bottom:0">6点は「120通りの上位6点」です。同一3艇の6順列が上位を占めた場合は結果として3艇BOXと同じ形になります。</p>
 </section>
 
 <section class="card"><h2>現在の検証母数</h2><div class="metrics">{metrics}</div></section>
+
+<section class="card">
+<h2>採用中・シグナルAI補正 Ver.1</h2>
+<p class="note">通常の朝・直前スコアは変更せず、各F×Rに対応する採用中のバフ/デバフで6艇を再評価した実成績です。ROIは現時点では該当シグナルをすべて24点購入した場合の比較値で、買い/見送りルール確定前の学習指標です。</p>
+<div class="metrics">{current_signal_ai_metrics(signal_ai)}</div>
+{current_signal_ai_table(signal_ai)}
+</section>
 
 <section class="card">
 <h2>風神 × 雷神 組み合わせ別</h2>
@@ -270,14 +278,14 @@ def build_page(root: Path) -> str:
 </section>
 
 <section class="card">
-<h2>バフ・デバフ候補</h2>
-<p class="note">本番通常予測は変更せず、風神デバフ・雷神バフを仮適用して「救えた的中」と「壊した的中」を比較します。</p>
+<h2>次回補正候補の探索</h2>
+<p class="note">上の採用中補正とは別枠です。保存データを使い、次の補正値候補として風神デバフ・雷神バフを探索し、「救えた的中」と「壊した的中」を比較します。</p>
 {best_buff(buff)}
 </section>
 
 <section class="card">
-<h2>合算強度 × 6〜24点</h2>
-<p class="note">合算強度＝風神Lv＋雷神Lv。強度0は0点で見送り。強度1〜6だけ6/8/10/12/14/16/18/20/22/24点を探索します。</p>
+<h2>買い/見送り・6〜24点候補</h2>
+<p class="note">現行補正で24候補を保存しながら、シグナル別に「買う/見送る」と購入点数6〜24点を探索します。最終的には買い判定レースだけの的中率・回収率・万舟捕捉率を本指標にします。</p>
 <p class="note">{html.escape(search_text)}</p>
 {point_policy(points)}
 </section>
