@@ -76,6 +76,16 @@ jobs:
 
       - name: 最新予想ページを生成
         run: |
+          TODAY_JST=$(TZ=Asia/Tokyo date +%Y%m%d)
+          FORMATION_PATH="predictions/${TODAY_JST:0:4}/${TODAY_JST:4:2}/${TODAY_JST:6:2}/live/formation_predictions_final_${TODAY_JST}.json"
+
+          # 最新情報は保存済みformationを正本に、毎回締切順JSONを再生成する。
+          # これにより up_signal/down_signal を含む最新フィールドが表示側へ必ず同期される。
+          if test -s "$FORMATION_PATH"; then
+            python -u collectors/build_deadline_prediction_view.py \
+              --date "$TODAY_JST"
+          fi
+
           test -s predictions/latest_by_deadline.json
 
           python -u collectors/build_family_prediction_page.py \
@@ -138,7 +148,7 @@ jobs:
 
           test -s _family_site/race_compare.html
 
-          # ⚡時の表示・収支が12点/1,200円へ切り替わる実装であることを確認。
+          # AI予測は風神雷神シグナル非依存。表示側の購入点数・投資額参照が生きていることを確認。
           grep -q 'purchase_points = safe_int(ai.get("points")) or 8' collectors/build_family_race_compare_page.py
           grep -q 'investment = safe_int(ai.get("investment_100yen"))' collectors/build_family_race_compare_page.py
 
