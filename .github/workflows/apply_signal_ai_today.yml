@@ -1,4 +1,4 @@
-name: Rebuild Fujin Raijin signal display today
+name: Rebuild Fujin Raijin signal AI today
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
           python-version: "3.12"
       - name: Install prediction dependencies
         run: pip install requests beautifulsoup4
-      - name: Rebuild today's saved predictions with display-only Fujin Raijin signals
+      - name: Rebuild today's saved predictions with Fujin Raijin signal AI
         run: |
           D="${{ inputs.target_date }}"
           [ -n "$D" ] || D=$(TZ=Asia/Tokyo date +%Y%m%d)
@@ -45,7 +45,9 @@ jobs:
           x=json.loads(p.read_text())
           races=x.get("races",[])
           bad_points=[]
-          bad_signal_effect=[]
+          bad_normal_signal_effect=[]
+          bad_signal_ai=[]
+          signal_ai=[]
           raijin=[]
           fujin=[]
           for r in races:
@@ -53,23 +55,36 @@ jobs:
               if ai.get("points") != 8:
                   bad_points.append(r.get("race_id"))
               if ai.get("signal_mode") or (ai.get("signal_boats") or {}):
-                  bad_signal_effect.append(r.get("race_id"))
+                  bad_normal_signal_effect.append(r.get("race_id"))
               up=r.get("up_signal") or {}
               down=r.get("down_signal") or {}
+              active=int(up.get("level") or 0)>0 or int(down.get("level") or 0)>0
+              sai=r.get("signal_ai_prediction")
+              if active:
+                  if not isinstance(sai,dict) or int(sai.get("points") or 0)!=24 or len(sai.get("combinations") or [])!=24:
+                      bad_signal_ai.append(r.get("race_id"))
+                  else:
+                      signal_ai.append({"race_id":r.get("race_id"),"signal_key":sai.get("signal_key"),"points":sai.get("points")})
+              elif sai:
+                  bad_signal_ai.append(r.get("race_id"))
               if int(up.get("level") or 0)>0:
                   raijin.append({"race_id":r.get("race_id"),"level":up.get("level"),"max_rise":up.get("max_rise")})
               if int(down.get("level") or 0)>0:
                   fujin.append({"race_id":r.get("race_id"),"level":down.get("level")})
-          print("races",len(races),"raijin",len(raijin),"fujin",len(fujin),"bad_points",bad_points,"bad_signal_effect",bad_signal_effect)
+          print("races",len(races),"raijin",len(raijin),"fujin",len(fujin),"signal_ai",len(signal_ai),"bad_points",bad_points,"bad_normal_signal_effect",bad_normal_signal_effect,"bad_signal_ai",bad_signal_ai)
           assert not bad_points
-          assert not bad_signal_effect
+          assert not bad_normal_signal_effect
+          assert not bad_signal_ai
           out=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"fujin_raijin_rebuild_summary.json"
           out.parent.mkdir(parents=True,exist_ok=True)
           out.write_text(json.dumps({
               "date":d,
               "system_name":"風神雷神シグナル",
-              "prediction_effect":False,
+              "normal_prediction_effect":False,
+              "signal_ai_effect":True,
+              "signal_ai_model":"signal_ai_revalue_v1_20261008",
               "race_count":len(races),
+              "signal_ai":signal_ai,
               "raijin":raijin,
               "fujin":fujin,
           },ensure_ascii=False,indent=2))
@@ -80,7 +95,7 @@ jobs:
           git config user.email "boatrace-ai-bot@users.noreply.github.com"
           git add predictions/ evaluations/
           if git diff --cached --quiet; then echo "No changes"; exit 0; fi
-          git commit -m "Rebuild display-only Fujin Raijin signals"
+          git commit -m "Rebuild Fujin Raijin signal AI outputs"
           git pull --rebase origin main
           git push origin HEAD:main
 
@@ -89,6 +104,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "風神雷神シグナル再生成・保存完了後に家族共有ページを更新します。"
+          echo "風神雷神シグナルAI再生成・保存完了後に家族共有ページを更新します。"
           gh workflow run family_prediction_page.yml --ref main
           echo "家族共有ページ更新を起動: PASS"
