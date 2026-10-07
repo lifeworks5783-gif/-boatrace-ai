@@ -129,6 +129,12 @@ jobs:
           test -s "evaluations/fujin_raijin/strength_points/latest.json"
           test -s "evaluations/fujin_raijin/strength_points/validation_top50.csv"
 
+      - name: Evaluate current signal AI corrections
+        run: |
+          python -u collectors/evaluate_signal_ai_performance.py
+          test -s evaluations/signal_ai/latest/summary.json
+          test -s evaluations/signal_ai/latest/details.csv
+
       - name: Run expanding PDCA
         run: python -u collectors/evaluate_pdca_incremental_4day.py
       - run: |
