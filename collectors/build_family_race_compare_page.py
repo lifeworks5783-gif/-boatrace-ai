@@ -1533,6 +1533,31 @@ def fujin_raijin_marker(raijin, fujin):
         + "</span>"
     )
 
+def signal_payout_badge(payout, raijin, fujin):
+    payout_value = safe_int(payout)
+    if payout_value is None or payout_value < 5000:
+        return ""
+
+    raijin_level = safe_int((raijin or {}).get("level")) or 0
+    fujin_level = safe_int((fujin or {}).get("level")) or 0
+    active = raijin_level > 0 or fujin_level > 0
+
+    if active:
+        return (
+            '<span class="signal-payout-hit" '
+            'title="風神または雷神が発動し、3連単払戻が5,000円以上">'
+            '5千円以上捕捉'
+            '</span>'
+        )
+
+    return (
+        '<span class="signal-payout-miss" '
+        'title="3連単払戻が5,000円以上だが風神・雷神は未発動">'
+        '5千円以上・未発動'
+        '</span>'
+    )
+
+
 def parse_trifecta_result(value):
     text = str(value or "").strip()
     if not text:
@@ -2622,7 +2647,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"))} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
@@ -3175,6 +3200,29 @@ details.all-scores summary {{
 }}
 .signal-row.empty-signal {{
   visibility:hidden;
+}}
+
+.signal-payout-hit {{
+  display:inline-block;
+  margin-left:5px;
+  padding:2px 6px;
+  border-radius:999px;
+  background:#ecfdf3;
+  color:#067647;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+}}
+.signal-payout-miss {{
+  display:inline-block;
+  margin-left:5px;
+  padding:2px 6px;
+  border-radius:999px;
+  background:#fffaeb;
+  color:#b54708;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
 }}
 
 .result-flash {{
