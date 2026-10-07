@@ -85,6 +85,18 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
+            python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+            python - <<'PY'
+            import json, os
+            from pathlib import Path
+            d=os.environ["TARGET_DATE"]
+            p=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+            q=json.loads(p.read_text(encoding="utf-8"))
+            if q.get("status") != "PASS":
+                raise SystemExit(f"data quality is not PASS: {q.get('incomplete_races')} incomplete races")
+            print({"status":q.get("status"),"audited_races":q.get("audited_races"),"complete_races":q.get("complete_races")})
+            PY
+
             python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
             python -u collectors/evaluate_down_signal.py --date "$TARGET_DATE"
             python -u collectors/build_evaluation_summary.py --date "$TARGET_DATE"
