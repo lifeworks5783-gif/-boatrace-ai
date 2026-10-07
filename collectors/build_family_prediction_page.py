@@ -181,6 +181,18 @@ def signal_marker(race):
     return ""
 
 
+def quality_warning_marker(race):
+    quality = race.get("prediction_quality") or {}
+    if quality.get("recovery_needed") or text(quality.get("status")) == "fallback":
+        reasons = quality.get("reason") or []
+        reason_text = " / ".join(text(x) for x in reasons if text(x))
+        title = "補完値を使って生成した予測。締切前の正式データで再計算できる場合は復元対象"
+        if reason_text:
+            title += f"：{reason_text}"
+        return f' <span class="quality-warning" title="{esc(title)}">⚠補完あり</span>'
+    return ""
+
+
 
 def live_data_marker(race):
     """● only when required live inputs are present AND active in scoring."""
@@ -231,7 +243,7 @@ def build_card(race, index, is_completed=False):
     <article class="race-card">
       <div class="race-head">
         <div class="race-order">{index}</div>
-        <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}</div></div>
+        <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div></div>
         {status_html}
         <div class="badge-wrap">{live_data_marker(race)}<div class="badge {badge_class}">{esc(prediction_type)}</div></div>
       </div>
@@ -273,7 +285,7 @@ def build_ai_card(race, index):
         <div class="race-order">{index}</div>
         <div class="race-main">
           <div class="deadline">{esc(deadline)}</div>
-          <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}</div>
+          <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>
         </div>
         <div class="badge live">AIスコア</div>
       </div>
@@ -701,6 +713,7 @@ def main():
     .badge-wrap {{display:flex;align-items:center;gap:5px}}
     .data-ok {{font-size:13px;color:#2e7d32}}
     .data-ng {{font-size:14px;color:#b26a00;font-weight:800}}
+    .quality-warning {{font-size:12px;color:#9a5b00;font-weight:900;white-space:nowrap}}
 
     .badge.morning {{
       background: var(--morning-bg);
