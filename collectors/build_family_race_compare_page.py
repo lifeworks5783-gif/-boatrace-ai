@@ -848,7 +848,7 @@ def locate_morning_file(
 
     for path in candidates:
 
-        if path.is_file():
+        if path.is_file() and path.stat().st_size > 0:
             return path
 
     # ファイル名が違う場合の探索
@@ -957,6 +957,7 @@ def locate_live_file(
             if (
                 "final"
                 in name
+                and path.stat().st_size > 0
             ):
                 preferred.append(
                     path
@@ -1246,14 +1247,72 @@ def odds_minutes_before(
         return None
 
 
-def has_signal(morning, live):
-    if not morning or not live:
+def _signal_source(morning, live, formation_prediction=None):
+    """Return pre-result live data for signal display only.
+
+    Primary source is saved live prediction. If it is unavailable/empty, use
+    the saved formation raw snapshot only when it was generated as a normal
+    pre-race live prediction. This fallback never creates a live evaluation.
+    """
+    if live:
+        raw = live.get("raw") or {}
+        boats = live.get("boats") or raw.get("boats") or []
+        quality = live.get("prediction_quality") or raw.get("prediction_quality") or {}
+        if boats:
+            return boats, quality, morning
+
+    formation = formation_prediction or {}
+    raw = formation.get("raw") or {}
+    prediction_type = str(
+        raw.get("prediction_type")
+        or formation.get("prediction_type")
+        or ""
+    ).strip()
+    quality = (
+        formation.get("prediction_quality")
+        or raw.get("prediction_quality")
+        or {}
+    )
+    boats = formation.get("boats") or raw.get("boats") or []
+    if (
+        prediction_type == "直前"
+        and boats
+        and not quality.get("recovery_needed")
+        and str(quality.get("status") or "").strip() != "fallback"
+    ):
+        morning_boats = raw.get("morning_boats") or []
+        if morning_boats:
+            morning = {
+                "boats": morning_boats,
+                "raw": {"boats": morning_boats},
+            }
+        return boats, quality, morning
+
+    return [], quality, morning
+
+
+def has_signal(morning, live, formation_prediction=None):
+    live_boats, quality, morning_source = _signal_source(
+        morning,
+        live,
+        formation_prediction,
+    )
+    if (
+        not morning_source
+        or not live_boats
+        or quality.get("recovery_needed")
+        or str(quality.get("status") or "").strip() == "fallback"
+    ):
         return False
+
     morning_scores = {
         normalize_boat(x.get("boat")): safe_float(x.get("score"))
-        for x in (morning.get("boats") or [])
+        for x in (
+            morning_source.get("boats")
+            or (morning_source.get("raw") or {}).get("boats")
+            or []
+        )
     }
-    live_boats = live.get("boats") or (live.get("raw") or {}).get("boats") or []
     ranked = sorted(
         live_boats,
         key=lambda x: safe_int(x.get("rank")) or 99,
@@ -1272,8 +1331,13 @@ def has_signal(morning, live):
     return False
 
 
-def down_signal_info(morning, live):
-    if not morning or not live:
+def down_signal_info(morning, live, formation_prediction=None):
+    live_boats, quality, morning_source = _signal_source(
+        morning,
+        live,
+        formation_prediction,
+    )
+    if not morning_source or not live_boats:
         return {
             "available": False,
             "active": False,
@@ -1281,8 +1345,6 @@ def down_signal_info(morning, live):
             "reasons": [],
         }
 
-    raw = live.get("raw") or {}
-    quality = live.get("prediction_quality") or raw.get("prediction_quality") or {}
     if quality.get("recovery_needed") or str(quality.get("status") or "").strip() == "fallback":
         return {
             "available": False,
@@ -1294,9 +1356,12 @@ def down_signal_info(morning, live):
 
     morning_scores = {
         normalize_boat(x.get("boat")): safe_float(x.get("score"))
-        for x in (morning.get("boats") or [])
+        for x in (
+            morning_source.get("boats")
+            or (morning_source.get("raw") or {}).get("boats")
+            or []
+        )
     }
-    live_boats = live.get("boats") or raw.get("boats") or []
     ranked = sorted(
         live_boats,
         key=lambda x: safe_int(x.get("rank")) or 99,
@@ -1364,7 +1429,6 @@ def down_signal_info(morning, live):
         "formation_effect": False,
         "status": "provisional_analysis_only",
     }
-
 
 def down_signal_marker(info):
     if not isinstance(info, dict):
@@ -1746,10 +1810,10 @@ def build_race_rows(
                     ai_details.get(race_code) or ai_details.get("".join(ch for ch in race_code if ch.isdigit())[:12]),
 
                 "signal":
-                    has_signal(morning, live),
+                    has_signal(morning, live, formation_prediction),
 
                 "down_signal":
-                    down_signal_info(morning, live),
+                    down_signal_info(morning, live, formation_prediction),
 
                 "morning_eval":
                     evaluate_top3(
