@@ -1,6 +1,6 @@
 {
   "target_date": "20261007",
-  "generated_at": "2026-10-07T17:36:26+09:00",
+  "generated_at": "2026-10-07T17:38:46.231140+09:00",
   "formation_model": "formation_gap_flow_v2",
   "upcoming_race_count": 31,
   "races": [
@@ -2197,7 +2197,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -3257,7 +3260,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -3321,7 +3324,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -4381,7 +4387,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": true,
@@ -4414,7 +4439,8 @@
         "ai_effect": false,
         "formation_effect": false,
         "status": "provisional_analysis_only"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -4432,7 +4458,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -5997,7 +6023,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -7057,7 +7086,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -7121,7 +7150,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -8181,7 +8213,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -8190,7 +8241,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -8208,7 +8260,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -9949,7 +10001,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -11009,7 +11064,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -11073,7 +11128,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -12133,7 +12191,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -12142,7 +12219,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -12160,7 +12238,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -13889,7 +13967,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -14949,7 +15030,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -15013,7 +15094,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -16073,7 +16157,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -16082,7 +16185,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -16100,7 +16204,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -17665,7 +17769,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -18725,7 +18832,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -18789,7 +18896,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -19849,7 +19959,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -19858,7 +19987,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -19876,7 +20006,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -21400,7 +21530,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -22460,7 +22593,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -22524,7 +22657,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -23584,7 +23720,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -23593,7 +23748,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -23611,7 +23767,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -25366,7 +25522,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -26426,7 +26585,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -26490,7 +26649,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -27550,7 +27712,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -27559,7 +27740,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -27577,7 +27759,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -29320,7 +29502,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -30380,7 +30565,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -30444,7 +30629,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -31504,7 +31692,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -31513,7 +31720,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -31531,7 +31739,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -33067,7 +33275,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -34127,7 +34338,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -34191,7 +34402,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -35251,7 +35465,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -35260,7 +35493,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -35278,7 +35512,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -36802,7 +37036,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -37862,7 +38099,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -37926,7 +38163,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -38986,7 +39226,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -38995,7 +39254,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -39013,7 +39273,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -40756,7 +41016,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -41816,7 +42079,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -41880,7 +42143,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -42940,7 +43206,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -42949,7 +43234,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -42967,7 +43253,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -44710,7 +44996,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -45770,7 +46059,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -45834,7 +46123,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -46894,7 +47186,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -46903,7 +47214,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -46921,7 +47233,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -48471,7 +48783,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -49531,7 +49846,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -49595,7 +49910,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -50655,7 +50973,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -50664,7 +51001,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -50682,7 +51020,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -52206,7 +52544,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -53266,7 +53607,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -53330,7 +53671,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -54390,7 +54734,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -54399,7 +54762,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -54417,7 +54781,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -56172,7 +56536,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -57232,7 +57599,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -57296,7 +57663,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -58356,7 +58726,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -58365,7 +58754,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -58383,7 +58773,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -60112,7 +60502,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -61172,7 +61565,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -61236,7 +61629,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -62296,7 +62692,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -62305,7 +62720,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -62323,7 +62739,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -63900,7 +64316,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -64960,7 +65379,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -65024,7 +65443,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -66084,7 +66506,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -66093,7 +66534,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -66111,7 +66553,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -67866,7 +68308,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -68926,7 +69371,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -68990,7 +69435,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -70050,7 +70498,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -70059,7 +70526,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -70077,7 +70545,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -71601,7 +72069,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -72661,7 +73132,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -72725,7 +73196,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -73785,7 +74259,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -73794,7 +74287,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -73812,7 +74306,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -75555,7 +76049,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -76615,7 +77112,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -76679,7 +77176,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -77739,7 +78239,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -77748,7 +78267,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -77766,7 +78286,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -79275,7 +79795,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -80335,7 +80858,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -80399,7 +80922,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -81459,7 +81985,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -81468,7 +82013,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -81486,7 +82032,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -83229,7 +83775,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -84289,7 +84838,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -84353,7 +84902,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -85413,7 +85965,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -85422,7 +85993,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -85440,7 +86012,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -87019,7 +87591,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -88079,7 +88654,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -88143,7 +88718,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -89203,7 +89781,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -89212,7 +89809,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -89230,7 +89828,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -90959,7 +91557,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -92019,7 +92620,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -92083,7 +92684,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -93143,7 +93747,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -93152,7 +93775,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -93170,7 +93794,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -94720,7 +95344,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -95780,7 +96407,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -95844,7 +96471,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -96904,7 +97534,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -96913,7 +97562,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -96931,7 +97581,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -98674,7 +99324,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -99734,7 +100387,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -99798,7 +100451,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -100858,7 +101514,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -100867,7 +101542,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -100885,7 +101561,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -102628,7 +103304,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -103688,7 +104367,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -103752,7 +104431,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -104812,7 +105494,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -104821,7 +105522,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -104839,7 +105541,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -106594,7 +107296,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -107654,7 +108359,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -107718,7 +108423,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -108778,7 +109486,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -108787,7 +109514,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -108805,7 +109533,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -110534,7 +111262,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -111594,7 +112325,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -111658,7 +112389,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -112718,7 +113452,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -112727,7 +113480,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -112745,7 +113499,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -114500,7 +115254,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -115560,7 +116317,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -115624,7 +116381,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -116684,7 +117444,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -116693,7 +117472,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     },
     {
       "target_date": "20261007",
@@ -116711,7 +117491,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:36:26+09:00",
+      "generated_at": "2026-10-07T17:38:46.231140+09:00",
       "boats": [
         {
           "rank": 1,
@@ -118466,7 +119246,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -119526,7 +120309,7 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
       "ai_score_prediction": {
         "model_version": "ai_finish_order_score_fallback_20261007",
@@ -119590,7 +120373,10 @@
         "status": "experimental",
         "signal_mode": false,
         "signal_boats": {},
-        "signal_rule": null,
+        "signal_rule": {
+          "enabled_in_ai": false,
+          "reason": "風神雷神シグナルは表示・保存・分析専用"
+        },
         "points": 8,
         "investment_100yen": 800,
         "position_scores": [
@@ -120650,7 +121436,26 @@
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
-        "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+        "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
+      },
+      "up_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "raijin_signal_v0_20261007",
+        "system_name": "風神雷神シグナル",
+        "signal_name": "雷神",
+        "thresholds": {
+          "level1_min": 7.5,
+          "level2_min": 10.0,
+          "level3_min": 12.5,
+          "outside_live_top3": true
+        },
+        "candidates": [],
+        "max_rise": null,
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       },
       "down_signal": {
         "available": false,
@@ -120659,7 +121464,8 @@
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
         "suppressed_reason": "missing_morning_reference"
-      }
+      },
+      "signal_system_name": "風神雷神シグナル"
     }
   ]
 }
