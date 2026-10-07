@@ -3072,11 +3072,11 @@ details.all-scores summary {{
   white-space:nowrap;
 }}
 
-.down-signal {
+.down-signal {{
   display:inline-block;
   margin-left:2px;
   font-weight:800;
-}
+}}
 
 .result-flash {{
   display:inline-block;
