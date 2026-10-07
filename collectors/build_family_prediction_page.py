@@ -168,18 +168,95 @@ def _prediction_body(boats, formation, label, morning_score_map=None):
     return f'<div class="race-prediction-view" data-view="{esc(label)}"><div class="top-picks">{top_html}</div><details><summary>6艇すべてのスコア</summary><div class="scores">{chips}</div></details>{form}</div>'
 
 
-def signal_marker(race):
+def _provisional_down_signal_from_race(race):
+    stored = race.get("down_signal")
+    if isinstance(stored, dict) and "level" in stored:
+        return stored
+
+    quality = race.get("prediction_quality") or {}
+    if quality.get("recovery_needed") or text(quality.get("status")) == "fallback":
+        return {"available": False, "active": False, "level": 0, "reasons": []}
+
     boats = race.get("boats") or []
-    morning = {text(x.get("boat")): to_float(x.get("score")) for x in (race.get("morning_boats") or [])}
+    morning = {
+        text(x.get("boat")): to_float(x.get("score"))
+        for x in (race.get("morning_boats") or [])
+    }
     if len(boats) != 6 or not morning:
-        return ""
-    for rank, boat in enumerate(boats, 1):
+        return {"available": False, "active": False, "level": 0, "reasons": []}
+
+    live_scores = []
+    deltas = []
+    for boat in boats:
         live = to_float(boat.get("score"))
         base = morning.get(text(boat.get("boat")))
-        if rank > 3 and live is not None and base is not None and live - base >= 10.0:
-            return " ⚡"
-    return ""
+        if live is None or base is None:
+            return {"available": False, "active": False, "level": 0, "reasons": []}
+        live_scores.append(live)
+        deltas.append(live - base)
 
+    rank1_delta = deltas[0]
+    top3_delta_sum = sum(deltas[:3])
+    gap12 = live_scores[0] - live_scores[1]
+    criteria = [
+        ("rank1_drop_5", rank1_delta <= -5.0),
+        ("top3_total_drop_10", top3_delta_sum <= -10.0),
+        ("rank1_drop_close_gap", rank1_delta <= -3.0 and gap12 <= 5.0),
+    ]
+    reasons = [name for name, met in criteria if met]
+    return {
+        "available": True,
+        "active": bool(reasons),
+        "level": min(3, len(reasons)),
+        "reasons": reasons,
+        "metrics": {
+            "rank1_delta": round(rank1_delta, 2),
+            "top3_delta_sum": round(top3_delta_sum, 2),
+            "gap_1_2": round(gap12, 2),
+        },
+        "status": "provisional_analysis_only",
+    }
+
+
+def signal_marker(race):
+    boats = race.get("boats") or []
+    morning = {
+        text(x.get("boat")): to_float(x.get("score"))
+        for x in (race.get("morning_boats") or [])
+    }
+
+    markers = []
+    if len(boats) == 6 and morning:
+        for rank, boat in enumerate(boats, 1):
+            live = to_float(boat.get("score"))
+            base = morning.get(text(boat.get("boat")))
+            if (
+                rank > 3
+                and live is not None
+                and base is not None
+                and live - base >= 10.0
+            ):
+                markers.append("⚡")
+                break
+
+    down = _provisional_down_signal_from_race(race)
+    level = int(down.get("level") or 0)
+    if level > 0:
+        metrics = down.get("metrics") or {}
+        title = (
+            f"暫定下落シグナル {level}/3"
+            f"｜1位朝比 {to_float(metrics.get('rank1_delta')) or 0:.1f}"
+            f"｜TOP3合計 {to_float(metrics.get('top3_delta_sum')) or 0:.1f}"
+            f"｜1-2位差 {to_float(metrics.get('gap_1_2')) or 0:.1f}"
+            "｜表示・分析のみ（AI買い目には未反映）"
+        )
+        markers.append(
+            f'<span class="down-signal" title="{esc(title)}">'
+            + ("🔻" * level)
+            + "</span>"
+        )
+
+    return (" " + " ".join(markers)) if markers else ""
 
 def quality_warning_marker(race):
     quality = race.get("prediction_quality") or {}
@@ -713,7 +790,13 @@ def main():
     .badge-wrap {{display:flex;align-items:center;gap:5px}}
     .data-ok {{font-size:13px;color:#2e7d32}}
     .data-ng {{font-size:14px;color:#b26a00;font-weight:800}}
-    .quality-warning {{font-size:12px;color:#9a5b00;font-weight:900;white-space:nowrap}}
+    .down-signal {
+  display:inline-block;
+  margin-left:2px;
+  font-weight:800;
+}
+
+.quality-warning {{font-size:12px;color:#9a5b00;font-weight:900;white-space:nowrap}}
 
     .badge.morning {{
       background: var(--morning-bg);
