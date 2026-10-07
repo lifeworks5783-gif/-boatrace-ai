@@ -29,6 +29,8 @@ on:
       - "collectors/build_family_race_compare_page.py"
       - "collectors/build_family_results_page.py"
       - "collectors/build_family_analysis_page.py"
+      - "collectors/build_family_signal_analysis_page.py"
+      - "evaluations/fujin_raijin/**"
       - "evaluations/2026/10/02/backfill_alignment/**"
       - "evaluations/all_candidate_single_factors/**"
       - "evaluations/pdca_incremental_20260930_20261003/**"
@@ -106,15 +108,18 @@ jobs:
 
           echo "結果ページ生成: PASS"
 
-      - name: AI分析ページを生成
+      - name: 風神雷神専用AI分析ページを生成
         run: |
-          python -u collectors/build_family_analysis_page.py \
+          python -u collectors/build_family_signal_analysis_page.py \
             --evaluations-root evaluations \
             --output-dir _family_site
 
           test -s _family_site/analysis.html
+          grep -q '風神雷神 AI分析' _family_site/analysis.html
+          grep -q '買わない（0点）' _family_site/analysis.html
+          grep -q '3連単120通り' _family_site/analysis.html
 
-          echo "AI分析ページ生成: PASS"
+          echo "風神雷神専用AI分析ページ生成: PASS"
 
       - name: レース照合ページを生成
         run: |
