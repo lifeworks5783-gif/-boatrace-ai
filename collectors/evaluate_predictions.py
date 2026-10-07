@@ -79,6 +79,30 @@ def load_json(path, required=True):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_official_miss_boats(target_date):
+    """締切前beforeinfoで欠場扱い(is_miss)だった艇だけを返す。"""
+    y, m, day = target_date[:4], target_date[4:6], target_date[6:8]
+    live_root = Path("daily_inputs") / y / m / day / "live"
+    misses = defaultdict(set)
+    if not live_root.exists():
+        return misses
+
+    for path in sorted(live_root.glob("**/beforeinfo_entries_*.csv")):
+        try:
+            with path.open("r", encoding="utf-8-sig", newline="") as f:
+                for row in csv.DictReader(f):
+                    flag = str(row.get("is_miss") or "").strip().lower()
+                    if flag not in {"true", "1", "yes"}:
+                        continue
+                    race_key = canonical_race_id(row.get("race_id"))
+                    boat = to_int(row.get("boat"))
+                    if race_key and boat is not None:
+                        misses[race_key].add(boat)
+        except Exception:
+            continue
+    return misses
+
+
 def load_analysis_live_payload(target_date, production_payload):
     """AI分析用に安全確認済みの欠損復旧直前予測があれば使用する。"""
     y, m, day = target_date[:4], target_date[4:6], target_date[6:8]
@@ -110,6 +134,8 @@ def load_analysis_live_payload(target_date, production_payload):
             if race_key:
                 grouped[race_key].append(row)
 
+    official_misses = load_official_miss_boats(target_date)
+
     expected = to_int(manifest.get("merged_analysis_races"))
     if expected is not None and len(grouped) != expected:
         return production_payload, "production_live_json", manifest
@@ -124,7 +150,19 @@ def load_analysis_live_payload(target_date, production_payload):
                 to_int(row.get("boat")) or 99,
             )
         )
-        if len(boat_rows) != 6:
+        present_boats = {
+            to_int(row.get("boat"))
+            for row in boat_rows
+            if to_int(row.get("boat")) is not None
+        }
+        missing_boats = sorted(set(range(1, 7)) - present_boats)
+        allowed_missing = official_misses.get(race_key, set())
+
+        # 通常は6艇必須。5艇以下を認めるのは、締切前beforeinfoで
+        # is_miss=True と記録された欠場艇だけ。
+        if len(boat_rows) < 3 or any(boat not in allowed_missing for boat in missing_boats):
+            return production_payload, "production_live_json", manifest
+        if len(boat_rows) + len(missing_boats) != 6:
             return production_payload, "production_live_json", manifest
 
         first = boat_rows[0]
@@ -136,6 +174,7 @@ def load_analysis_live_payload(target_date, production_payload):
                 "race": to_int(first.get("race")),
                 "deadline": first.get("deadline"),
                 "prediction_type": "live",
+                "official_miss_boats": missing_boats,
                 "boats": boat_rows,
             }
         )
@@ -259,7 +298,13 @@ def evaluate_stage(name, payload, actual):
             continue
 
         boats = ordered_boats(race)
-        if len(boats) != 6:
+        official_miss_boats = {
+            to_int(x)
+            for x in (race.get("official_miss_boats") or [])
+            if to_int(x) is not None
+        }
+        expected_boats = 6 - len(official_miss_boats)
+        if len(boats) < 3 or len(boats) != expected_boats:
             continue
 
         order = [to_int(row.get("boat")) for row in boats]
