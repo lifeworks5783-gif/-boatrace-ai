@@ -2,8 +2,8 @@
   "schema_version": "1.0",
   "model_version": "provisional_v5_20261007_live_saved_morning_fallback",
   "target_date": "20261007",
-  "prediction_stage": "live_final",
-  "updated_at": "2026-10-07T15:07:06+09:00",
+  "prediction_stage": "live",
+  "generated_at": "2026-10-07T15:07:06+09:00",
   "weights": {
     "structural": 80.0,
     "exhibition_time": 6.0,
@@ -11,9 +11,14 @@
     "F": 0.0,
     "environment": 0.0
   },
+  "live_policy": {
+    "course": "32点を展示進入コースへ差し替え",
+    "exhibition_st": "本人90日平均STとの差を14%評価。±0.06秒で最大補正、展示F=0.4、90日ST10走未満/欠損=0.5",
+    "exhibition_time": "6%。レース内展示タイム順位で評価",
+    "missing_course_history": "直前コース履歴欠損時のみ、当日朝の保存済み本番スコアを構造80%へ使用。欠損値の0点・架空補完はしない"
+  },
   "race_count": 80,
   "boat_count": 480,
-  "selection_rule": "締切済みrace_idは既存最終予測を保持。締切前race_idだけprovisional_v1_80_6_14で更新",
   "races": [
     {
       "race_id": "20261007-01-01",
