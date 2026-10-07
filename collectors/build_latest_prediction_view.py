@@ -19,6 +19,8 @@ JST = timezone(timedelta(hours=9))
 
 FORMATION_MODEL = "formation_gap_flow_v2"
 
+DOWN_SIGNAL_RULE_VERSION = "down_signal_v0_20261007"
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -207,6 +209,99 @@ def ranked_boats(race):
 
     return rows
 
+
+
+def build_down_signal(
+    boats,
+    prediction_quality=None,
+):
+    """Provisional decline signal. Display/save only; never changes AI or formation."""
+    quality = prediction_quality or {}
+    if (
+        quality.get("recovery_needed")
+        or text(quality.get("status")) == "fallback"
+    ):
+        return {
+            "available": False,
+            "active": False,
+            "level": 0,
+            "rule_version": DOWN_SIGNAL_RULE_VERSION,
+            "reasons": [],
+            "suppressed_reason": "fallback_prediction",
+        }
+
+    if len(boats) != 6:
+        return {
+            "available": False,
+            "active": False,
+            "level": 0,
+            "rule_version": DOWN_SIGNAL_RULE_VERSION,
+            "reasons": [],
+            "suppressed_reason": "incomplete_boats",
+        }
+
+    live_scores = []
+    deltas = []
+
+    for row in boats:
+        live_score = to_float(row.get("score"))
+        morning_score = to_float(row.get("morning_score_reference"))
+        if live_score is None or morning_score is None:
+            return {
+                "available": False,
+                "active": False,
+                "level": 0,
+                "rule_version": DOWN_SIGNAL_RULE_VERSION,
+                "reasons": [],
+                "suppressed_reason": "missing_morning_reference",
+            }
+        live_scores.append(live_score)
+        deltas.append(live_score - morning_score)
+
+    rank1_delta = deltas[0]
+    top3_delta_sum = sum(deltas[:3])
+    gap12 = live_scores[0] - live_scores[1]
+
+    criteria = [
+        {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": rank1_delta <= -5.0,
+        },
+        {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": top3_delta_sum <= -10.0,
+        },
+        {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": rank1_delta <= -3.0 and gap12 <= 5.0,
+        },
+    ]
+    reasons = [
+        item["id"]
+        for item in criteria
+        if item["met"]
+    ]
+    level = min(3, len(reasons))
+
+    return {
+        "available": True,
+        "active": level > 0,
+        "level": level,
+        "rule_version": DOWN_SIGNAL_RULE_VERSION,
+        "reasons": reasons,
+        "criteria": criteria,
+        "metrics": {
+            "rank1_delta": round(rank1_delta, 2),
+            "top3_delta_sum": round(top3_delta_sum, 2),
+            "gap_1_2": round(gap12, 2),
+        },
+        "ai_effect": False,
+        "formation_effect": False,
+        "status": "provisional_analysis_only",
+    }
 
 def parse_deadline(
     target_date,
@@ -1632,6 +1727,12 @@ def main():
             ),
             "ai_score_prediction": (
                 ai_score_prediction
+            ),
+            "down_signal": (
+                build_down_signal(
+                    boats,
+                    prediction_quality,
+                )
             ),
         }
 
