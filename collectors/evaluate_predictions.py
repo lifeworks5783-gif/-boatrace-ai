@@ -79,6 +79,78 @@ def load_json(path, required=True):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_analysis_live_payload(target_date, production_payload):
+    """AI分析用に安全確認済みの欠損復旧直前予測があれば使用する。"""
+    y, m, day = target_date[:4], target_date[4:6], target_date[6:8]
+    recovery_dir = Path("evaluations") / y / m / day / "recovery"
+    merged_path = recovery_dir / f"merged_live_predictions_{target_date}.csv"
+    manifest_path = recovery_dir / f"live_recovery_manifest_{target_date}.json"
+
+    if not merged_path.is_file() or not manifest_path.is_file():
+        return production_payload, "production_live_json", None
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception:
+        return production_payload, "production_live_json", None
+
+    safe_recovery = (
+        manifest.get("status") == "complete"
+        and manifest.get("treat_recovered_as_observation") is True
+        and manifest.get("result_leakage") is False
+        and not (manifest.get("still_missing") or [])
+    )
+    if not safe_recovery:
+        return production_payload, "production_live_json", manifest
+
+    grouped = defaultdict(list)
+    with merged_path.open("r", encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            race_key = canonical_race_id(row.get("race_id"))
+            if race_key:
+                grouped[race_key].append(row)
+
+    expected = to_int(manifest.get("merged_analysis_races"))
+    if expected is not None and len(grouped) != expected:
+        return production_payload, "production_live_json", manifest
+
+    races = []
+    for race_key in sorted(grouped):
+        boat_rows = grouped[race_key]
+        boat_rows.sort(
+            key=lambda row: (
+                to_int(row.get("rank")) or 99,
+                -(to_float(row.get("score")) or 0),
+                to_int(row.get("boat")) or 99,
+            )
+        )
+        if len(boat_rows) != 6:
+            return production_payload, "production_live_json", manifest
+
+        first = boat_rows[0]
+        races.append(
+            {
+                "race_id": first.get("race_id"),
+                "venue_code": first.get("venue_code"),
+                "venue_name": first.get("venue_name"),
+                "race": to_int(first.get("race")),
+                "deadline": first.get("deadline"),
+                "prediction_type": "live",
+                "boats": boat_rows,
+            }
+        )
+
+    payload = {
+        "model_version": (
+            production_payload.get("model_version")
+            if isinstance(production_payload, dict)
+            else None
+        ),
+        "races": races,
+    }
+    return payload, str(merged_path), manifest
+
+
 def first_existing_value(row, keys):
     for key in keys:
         value = row.get(key)
@@ -508,9 +580,12 @@ def main():
             base / f"morning_predictions_{target_date}.json"
         )
 
-        live_payload = load_json(
+        production_live_payload = load_json(
             base / "live" / f"live_predictions_final_{target_date}.json",
             required=args.require_live,
+        )
+        live_payload, analysis_live_source, recovery_manifest = (
+            load_analysis_live_payload(target_date, production_live_payload)
         )
 
         formation_payload = load_json(
@@ -570,6 +645,8 @@ def main():
             "target_date": target_date,
             "generated_at": datetime.now(JST).isoformat(),
             "actual_races_available": len(actual),
+            "analysis_live_source": analysis_live_source,
+            "recovery_manifest": recovery_manifest,
             "morning": morning_summary,
             "live": live_summary,
             "morning_vs_live": comparison,
