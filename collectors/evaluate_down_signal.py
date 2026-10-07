@@ -385,7 +385,7 @@ def main():
                 "3": "outside_live_top3 max rise >= 12.5",
             },
             "max_level": 3,
-            "prediction_effect": false,
+            "prediction_effect": False,
         },
         "skipped_incomplete_races": skipped,
         "summary": summarize(details),
