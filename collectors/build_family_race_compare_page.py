@@ -921,7 +921,7 @@ def locate_live_file(
 
     for path in candidates:
 
-        if path.is_file():
+        if path.is_file() and path.stat().st_size > 0:
             return path
 
     search_root = (
