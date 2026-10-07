@@ -79,6 +79,12 @@ jobs:
       - name: 強度別6〜24点を再探索
         run: python -u collectors/evaluate_fujin_raijin_strength_points.py --date "$TARGET_DATE"
 
+      - name: 現行シグナルAI補正の累積成績を更新
+        run: |
+          python -u collectors/evaluate_signal_ai_performance.py
+          test -s evaluations/signal_ai/latest/summary.json
+          test -s evaluations/signal_ai/latest/details.csv
+
       - name: 4日累積PDCAを再計算
         run: python -u collectors/evaluate_pdca_incremental_4day.py
 
