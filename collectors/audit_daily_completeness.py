@@ -41,6 +41,13 @@ def main():
             cur=live.setdefault(key,{})
             src=provenance.setdefault(key,{})
             for k,v in r.items():
+                # change_parts は「部品交換なし」のとき空欄が正常。
+                # 値の有無ではなく列が存在した事実を保持する。
+                if k=="change_parts":
+                    if source=="original_pre_race" or k not in cur:
+                        cur[k]=v
+                        src[k]=source
+                    continue
                 if not nonempty(v): continue
                 if source=="original_pre_race" or not nonempty(cur.get(k)):
                     cur[k]=v; src[k]=source
@@ -92,10 +99,13 @@ def main():
             if not lr:
                 miss.append(f"boat{boat}:beforeinfo")
                 continue
-            for field in ("exhibition_course","exhibition_time","exhibition_st_raw"):
-                if not nonempty(lr.get(field)):miss.append(f"boat{boat}:{field}")
-                elif provenance.get((rid,boat),{}).get(field)=="post_result_retry":
-                    recovered_fields.append(f"boat{boat}:{field}")
+            is_miss = str(lr.get("is_miss") or "").strip().lower() in {"true","1","yes"}
+            # 欠場艇は公式beforeinfoでも展示値が空欄になるため欠損扱いしない。
+            if not is_miss:
+                for field in ("exhibition_course","exhibition_time","exhibition_st_raw"):
+                    if not nonempty(lr.get(field)):miss.append(f"boat{boat}:{field}")
+                    elif provenance.get((rid,boat),{}).get(field)=="post_result_retry":
+                        recovered_fields.append(f"boat{boat}:{field}")
             # change_parts may legitimately be blank; only schema presence is required.
             if "change_parts" not in lr: miss.append(f"boat{boat}:change_parts_column")
         if recovered_fields: recovered.append({"race_id":rid,"fields":sorted(set(recovered_fields))})
@@ -116,7 +126,7 @@ def main():
             used_retry=True
         if used_retry: recovered_complete+=1
         else: original_complete+=1
-    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":bool(issues),"issues":issues,"recovered_after_result":recovered,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
+    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":bool(issues),"issues":issues,"recovered_after_result":recovered,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"exhibition_exception":"is_miss=true boats may legitimately have blank exhibition fields","required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
     (out/f"completeness_{d}.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     with (out/f"missing_{d}.csv").open("w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=["race_id","missing"]);w.writeheader()
