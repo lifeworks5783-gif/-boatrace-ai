@@ -589,6 +589,14 @@ def main():
                 continue
 
             deadline = parse_deadline(target_date, race)
+            requested_at = None
+            requested_raw = text(race.get("beforeinfo_requested_at"))
+            if requested_raw:
+                try:
+                    requested_at = parse_now(requested_raw)
+                except (ValueError, TypeError):
+                    requested_at = None
+
             collected_at = None
             collected_raw = text(race.get("beforeinfo_collected_at"))
             if collected_raw:
@@ -597,13 +605,21 @@ def main():
                 except (ValueError, TypeError):
                     collected_at = None
 
-            # 直前情報の有効性は「計算した時刻」ではなく
-            # 「その直前情報を締切前に取得したか」で判定する。
-            # 締切後に計算が遅延しても、締切前取得データなら予測対象にする。
+            # 直前情報の有効性は原則として締切前取得。
+            # ただしHTTP取得を締切前に開始し、通信完了だけがごく短時間
+            # 締切後になったケースは、結果ページではなくbeforeinfo取得なので
+            # 通信遅延として許容する。これによりネットワーク待ち数秒で捨てない。
+            request_grace_used = False
             if deadline is not None and not args.historical_backfill:
                 if collected_at is not None and collected_at >= deadline:
-                    skipped_after_deadline.append(race_id)
-                    continue
+                    request_grace_used = bool(
+                        requested_at is not None
+                        and requested_at < deadline
+                        and (collected_at - deadline).total_seconds() <= 30
+                    )
+                    if not request_grace_used:
+                        skipped_after_deadline.append(race_id)
+                        continue
                 if collected_at is None and now >= deadline:
                     skipped_after_deadline.append(race_id)
                     continue
@@ -661,6 +677,10 @@ def main():
                 "recovery_needed": bool(fallback_info),
                 "reason": (fallback_info or {}).get("reason") if fallback_info else [],
                 "fallback_source": (fallback_info or {}).get("source") if fallback_info else None,
+                "request_started_before_deadline": bool(
+                    requested_at is not None and deadline is not None and requested_at < deadline
+                ),
+                "request_grace_used": request_grace_used,
                 "recorded_at": now.isoformat(),
             }
 
