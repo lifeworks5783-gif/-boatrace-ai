@@ -598,9 +598,15 @@ def build_race(
                 "distance_m"
             )
         ),
-        "deadline": race.get(
-            "deadline",
-            "",
+        "deadline": (
+            live_race.get("deadline")
+            if live_race and live_race.get("deadline")
+            else race.get("deadline", "")
+        ),
+        "deadline_source": (
+            live_race.get("deadline_source")
+            if live_race and live_race.get("deadline_source")
+            else "morning_program"
         ),
         "beforeinfo_requested_at": (
             live_race.get("requested_at", "")
