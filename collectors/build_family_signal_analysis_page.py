@@ -81,6 +81,60 @@ def combo_table(backtest):
     )
 
 
+def current_signal_ai_table(signal_ai):
+    groups = signal_ai.get("by_signal") or {}
+    rows = []
+    for f in range(4):
+        for r in range(4):
+            key = f"F{f}R{r}"
+            x = groups.get(key) or {}
+            if not x:
+                continue
+            p5 = x.get("payout_5000plus") or {}
+            man = x.get("manshu") or {}
+            cuts = x.get("rank_cut_hit_rate_pct") or {}
+            rows.append(
+                "<tr>"
+                f"<td>{html.escape(key)}</td>"
+                f"<td>{html.escape(str(x.get('rule_text') or '—'))}</td>"
+                f"<td>{n(x.get('races'),0)}</td>"
+                f"<td>{pct(x.get('hit_rate24_pct'))}</td>"
+                f"<td>{n(p5.get('hits24'),0)}/{n(p5.get('races'),0)} ({pct(p5.get('hit_rate24_pct'))})</td>"
+                f"<td>{n(man.get('hits24'),0)}/{n(man.get('races'),0)} ({pct(man.get('hit_rate24_pct'))})</td>"
+                f"<td>{pct(x.get('roi24_pct'))}</td>"
+                f"<td>{pct(cuts.get('6'))}</td>"
+                f"<td>{pct(cuts.get('12'))}</td>"
+                f"<td>{pct(cuts.get('18'))}</td>"
+                f"<td>{pct(cuts.get('24'))}</td>"
+                f"<td>{n((x.get('actual_combo_rank') or {}).get('median'))}</td>"
+                "</tr>"
+            )
+    if not rows:
+        return '<div class="empty">現行シグナルAI補正の累積結果はまだありません。</div>'
+    return (
+        '<div class="table-wrap"><table><thead><tr>'
+        '<th>シグナル</th><th>採用中補正</th><th>R数</th><th>24点的中率</th>'
+        '<th>5千円以上</th><th>万舟</th><th>24点ROI</th>'
+        '<th>上位6内</th><th>上位12内</th><th>上位18内</th><th>上位24内</th><th>実着順位中央値</th>'
+        '</tr></thead><tbody>' + "".join(rows) + '</tbody></table></div>'
+    )
+
+
+def current_signal_ai_metrics(signal_ai):
+    overall = signal_ai.get("overall_if_all_signals_bought24") or {}
+    p5 = overall.get("payout_5000plus") or {}
+    man = overall.get("manshu") or {}
+    policy = signal_ai.get("decision_policy") or {}
+    return (
+        card("現行補正の評価R", n(overall.get("races"),0), f"{n(signal_ai.get('source_date_count'),0)}日分")
+        + card("上位24点的中率", pct(overall.get("hit_rate24_pct")), f"{n(overall.get('hits24'),0)}的中")
+        + card("5千円以上的中率", pct(p5.get("hit_rate24_pct")), f"{n(p5.get('hits24'),0)}/{n(p5.get('races'),0)}")
+        + card("万舟的中率", pct(man.get("hit_rate24_pct")), f"{n(man.get('hits24'),0)}/{n(man.get('races'),0)}")
+        + card("全シグナル24点ROI", pct(overall.get("roi24_pct")), "全シグナルを仮に購入した比較値")
+        + card("買い/見送り", "学習中" if not policy.get("purchase_decision_active") else "稼働中", "現時点は全シグナル24候補を保存")
+    )
+
+
 def best_buff(buff):
     top = buff.get("top40_selected_on_training") or []
     if not top:
