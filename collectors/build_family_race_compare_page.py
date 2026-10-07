@@ -1208,6 +1208,52 @@ def latest_by_race(
     return output
 
 
+def load_archive_result_fallback(target_date):
+    """外部公開CSVが遅延・欠損した場合だけ、検証済み公式保存結果で補完する。"""
+    yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
+    base = Path("archive") / yyyy / mm / dd
+    result_path = base / f"results_{target_date}_all.csv"
+    boat_path = base / f"boat_results_{target_date}_all.csv"
+    validation_path = base / f"validation_{target_date}.json"
+
+    validation = read_json(validation_path) or {}
+    if validation.get("status") != "PASS":
+        return {}
+
+    results_by_race = {}
+    if result_path.is_file():
+        with result_path.open("r", encoding="utf-8-sig", newline="") as f:
+            for row in csv.DictReader(f):
+                race_code = extract_race_code(row, target_date)
+                actual = parse_trifecta_result(row.get("trifecta"))
+                if not race_code or len(actual) != 3:
+                    continue
+                results_by_race[race_code] = {
+                    "actual": actual,
+                    "payout": safe_int(row.get("trifecta_pay")),
+                    "technique": str(row.get("technique") or "").strip(),
+                    "actual_names": ["", "", ""],
+                }
+
+    if boat_path.is_file() and results_by_race:
+        names_by_race = {}
+        with boat_path.open("r", encoding="utf-8-sig", newline="") as f:
+            for row in csv.DictReader(f):
+                race_code = extract_race_code(row, target_date)
+                finish = safe_int(row.get("finish"))
+                if race_code not in results_by_race or finish not in (1, 2, 3):
+                    continue
+                names_by_race.setdefault(race_code, {})[finish] = str(
+                    row.get("racer_name") or ""
+                ).replace("　", " ").strip()
+
+        for race_code, item in results_by_race.items():
+            names = names_by_race.get(race_code, {})
+            item["actual_names"] = [names.get(rank, "") for rank in (1, 2, 3)]
+
+    return results_by_race
+
+
 # =========================================================
 # 評価
 # =========================================================
@@ -1787,6 +1833,7 @@ def build_race_rows(
     )
 
     ai_details = load_ai_details(target_date)
+    archive_fallback = load_archive_result_fallback(target_date)
     race_rows = []
 
     # 詳細結果CSVは払戻CSVより数分遅れる場合がある。
@@ -1802,10 +1849,18 @@ def build_race_rows(
         if str(code).startswith(target_date)
         and len(parse_trifecta_result(row.get("3連単_組番"))) == 3
     )
+    # 外部公開CSVが1Rだけ遅れても、公式保存結果の検証がPASSなら表示から落とさない。
+    completed_codes.update(
+        code
+        for code in archive_fallback
+        if str(code).startswith(target_date)
+    )
 
     for race_code in sorted(completed_codes):
         result = results.get(race_code, {})
         payout_row = payouts.get(race_code, {})
+        archive_result = archive_fallback.get(race_code, {})
+        archive_fallback_used = False
 
         morning = (
             morning_predictions.get(
@@ -1847,16 +1902,24 @@ def build_race_rows(
                 payout_row.get("3連単_組番")
             )
             if len(actual) != 3:
+                actual = list(archive_result.get("actual") or [])
+                archive_fallback_used = len(actual) == 3
+            if len(actual) != 3:
                 continue
-            names = prediction_name_map(
-                live,
-                morning,
-                formation_prediction,
-            )
-            actual_names = [
-                names.get(boat, "")
-                for boat in actual
-            ]
+
+            archived_names = archive_result.get("actual_names") or []
+            if archive_fallback_used and len(archived_names) == 3:
+                actual_names = archived_names
+            else:
+                names = prediction_name_map(
+                    live,
+                    morning,
+                    formation_prediction,
+                )
+                actual_names = [
+                    names.get(boat, "")
+                    for boat in actual
+                ]
 
         if live:
             live_stage = str(live.get("stage") or (live.get("raw") or {}).get("stage") or (live.get("raw") or {}).get("prediction_stage") or "").strip().lower()
@@ -1904,6 +1967,10 @@ def build_race_rows(
                 "3連単_払戻金"
             )
         )
+        if payout_value is None:
+            payout_value = safe_int(
+                archive_result.get("payout")
+            )
 
         odds_value = safe_float(
             odds_row.get(
@@ -1935,6 +2002,8 @@ def build_race_rows(
         deadline = str(
             result.get("締切時刻")
             or payout_row.get("締切時刻")
+            or (live or {}).get("raw", {}).get("deadline")
+            or (morning or {}).get("raw", {}).get("deadline")
             or ""
         ).strip()
 
@@ -1968,7 +2037,11 @@ def build_race_rows(
                             )
                         ).strip()
                         if detailed_result_ready
-                        else "速報"
+                        else (
+                            "公式保存"
+                            if archive_fallback_used
+                            else "速報"
+                        )
                     ),
 
                 "technique":
@@ -1980,14 +2053,22 @@ def build_race_rows(
                             )
                         ).strip()
                         if detailed_result_ready
-                        else "詳細反映待ち"
+                        else (
+                            str(archive_result.get("technique") or "").strip()
+                            if archive_fallback_used
+                            else "詳細反映待ち"
+                        )
                     ),
 
                 "result_source":
                     (
                         "detailed"
                         if detailed_result_ready
-                        else "payout"
+                        else (
+                            "archive"
+                            if archive_fallback_used
+                            else "payout"
+                        )
                     ),
 
                 "actual":
