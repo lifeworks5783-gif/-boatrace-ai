@@ -22,6 +22,8 @@ FORMATION_MODEL = "formation_gap_flow_v2"
 DOWN_SIGNAL_RULE_VERSION = "down_signal_v0_20261007"
 UP_SIGNAL_RULE_VERSION = "raijin_signal_v1_20261008"
 SIGNAL_SYSTEM_NAME = "風神雷神シグナル"
+SIGNAL_AI_CONFIG_PATH = Path("config/signal_ai/signal_ai_corrections_v1_20261008.json")
+SIGNAL_AI_MODEL_VERSION = "signal_ai_revalue_v1_20261008"
 
 
 def parse_args():
@@ -410,6 +412,132 @@ def build_down_signal(
         "formation_effect": False,
         "status": "provisional_analysis_only",
     }
+
+def load_signal_ai_config():
+    if not SIGNAL_AI_CONFIG_PATH.is_file():
+        raise RuntimeError(f"シグナルAI補正設定がありません: {SIGNAL_AI_CONFIG_PATH}")
+    config = json.loads(SIGNAL_AI_CONFIG_PATH.read_text(encoding="utf-8"))
+    config["_source"] = str(SIGNAL_AI_CONFIG_PATH)
+    return config
+
+
+def build_signal_ai_prediction(boats, up_signal, down_signal, config):
+    """Revalue all boats for signal-only AI ranking without changing normal scores."""
+    fujin_level = int((down_signal or {}).get("level") or 0)
+    raijin_level = int((up_signal or {}).get("level") or 0)
+    if fujin_level <= 0 and raijin_level <= 0:
+        return None
+    if len(boats) < 3:
+        return None
+
+    rule_key = f"F{fujin_level}R{raijin_level}"
+    rule = (config.get("rules") or {}).get(rule_key)
+    if not rule:
+        raise RuntimeError(f"シグナルAI補正ルール未定義: {rule_key}")
+
+    profiles = config.get("level_profiles") or {}
+    attenuation = config.get("raijin_rank_attenuation") or {}
+    base_rows = []
+    base_score = {}
+    delta = {}
+    for rank, row in enumerate(boats, start=1):
+        boat = boat_number(row)
+        score = boat_score(row)
+        morning = to_float(row.get("morning_score_reference"))
+        if boat is None or score is None:
+            continue
+        base_score[boat] = float(score)
+        delta[boat] = float(score) - morning if morning is not None else 0.0
+        base_rows.append({"boat": boat, "rank": rank, "base_score": float(score)})
+
+    if len(base_rows) < 3:
+        return None
+
+    adjusted = dict(base_score)
+    adjustments = {boat: 0.0 for boat in adjusted}
+
+    f_rule = rule.get("fujin")
+    if fujin_level > 0 and f_rule:
+        profile = profiles.get(f_rule.get("level_profile")) or {}
+        level_mult = float(profile.get(str(fujin_level), 1.0))
+        top3 = [x["boat"] for x in base_rows[:3]]
+        target = f_rule.get("target")
+        if target == "rank1":
+            targets = top3[:1]
+        elif target == "negative_top3":
+            targets = [b for b in top3 if delta.get(b, 0.0) < 0.0]
+        else:
+            targets = top3
+        for boat in targets:
+            if f_rule.get("mode") == "drop_ratio":
+                penalty = max(0.0, -delta.get(boat, 0.0)) * float(f_rule.get("strength") or 0.0) * level_mult
+            else:
+                penalty = float(f_rule.get("strength") or 0.0) * level_mult
+            adjusted[boat] -= penalty
+            adjustments[boat] -= penalty
+
+    r_rule = rule.get("raijin")
+    if raijin_level > 0 and r_rule:
+        profile = profiles.get(r_rule.get("level_profile")) or {}
+        level_mult = float(profile.get(str(raijin_level), 1.0))
+        rank_att = attenuation.get(r_rule.get("rank_attenuation")) or {}
+        for candidate in (up_signal or {}).get("candidates") or []:
+            boat = to_int(candidate.get("boat"))
+            rise = to_float(candidate.get("rise"))
+            rank = to_int(candidate.get("rank"))
+            if boat not in adjusted or rise is None or rank is None:
+                continue
+            bonus = rise * float(r_rule.get("multiplier") or 0.0) * level_mult * float(rank_att.get(str(rank), 1.0))
+            adjusted[boat] += bonus
+            adjustments[boat] += bonus
+
+    adjusted_rows = []
+    for item in base_rows:
+        boat = item["boat"]
+        adjusted_rows.append({
+            "boat": boat,
+            "normal_rank": item["rank"],
+            "normal_score": round(base_score[boat], 3),
+            "signal_adjustment": round(adjustments[boat], 3),
+            "signal_ai_score": round(adjusted[boat], 3),
+            "morning_to_current_delta": round(delta.get(boat, 0.0), 3),
+        })
+    adjusted_rows.sort(key=lambda x: (-x["signal_ai_score"], x["boat"]))
+    for rank, item in enumerate(adjusted_rows, start=1):
+        item["signal_ai_rank"] = rank
+
+    combos = []
+    boats_available = sorted(adjusted)
+    for first, second, third in itertools.permutations(boats_available, 3):
+        score = adjusted[first] * 0.50 + adjusted[second] * 0.30 + adjusted[third] * 0.20
+        combos.append({
+            "combination": f"{first}-{second}-{third}",
+            "score": round(score, 3),
+        })
+    combos.sort(key=lambda x: (-x["score"], x["combination"]))
+
+    candidate_points = min(int(config.get("candidate_points") or 24), len(combos))
+    return {
+        "model_version": config.get("model_version") or SIGNAL_AI_MODEL_VERSION,
+        "logic_effective_date": config.get("effective_date"),
+        "logic_config_source": config.get("_source"),
+        "status": "active_signal_ai",
+        "normal_prediction_unchanged": True,
+        "signal_key": rule_key,
+        "fujin_level": fujin_level,
+        "raijin_level": raijin_level,
+        "rule": rule,
+        "points": candidate_points,
+        "investment_100yen": candidate_points * 100,
+        "boat_scores": sorted(adjusted_rows, key=lambda x: x["boat"]),
+        "signal_ai_ranking": adjusted_rows,
+        "combinations": combos[:candidate_points],
+        "all_120_combinations": combos,
+        "valid_combination_count": len(combos),
+        "combination_method": config.get("combination_method"),
+        "note": "通常予測は変更せず、風神雷神シグナル別補正で6艇を再評価した買い目専用AI。全シグナル組合せで上位24通りを候補保存。",
+    }
+
 
 def parse_deadline(
     target_date,
@@ -1487,7 +1615,9 @@ def main():
     )
 
     ai_score_config = load_ai_score_config(target_date)
+    signal_ai_config = load_signal_ai_config()
     print("AIスコア日別ロジック:", ai_score_config.get("model_version"), ai_score_config.get("_source"))
+    print("シグナルAI補正:", signal_ai_config.get("model_version"), signal_ai_config.get("_source"))
 
     datetime.strptime(
         target_date,
@@ -1715,8 +1845,22 @@ def main():
             ai_score_config,
         )
 
-        # 通常3連単フォーメーションとAIスコア予測は独立させる。
-        # ⚡シグナルが出ても通常formationは上書きしない。
+        # 風神雷神は通常予測・通常formation・既存AIスコアを変更しない。
+        # シグナル専用の別レイヤーで6艇を再評価し、上位24通りを保存する。
+        up_signal = build_up_signal(
+            boats,
+            prediction_quality,
+        )
+        down_signal = build_down_signal(
+            boats,
+            prediction_quality,
+        )
+        signal_ai_prediction = build_signal_ai_prediction(
+            boats,
+            up_signal,
+            down_signal,
+            signal_ai_config,
+        )
 
         row = {
             "target_date": (
@@ -1785,17 +1929,14 @@ def main():
             "ai_score_prediction": (
                 ai_score_prediction
             ),
+            "signal_ai_prediction": (
+                signal_ai_prediction
+            ),
             "up_signal": (
-                build_up_signal(
-                    boats,
-                    prediction_quality,
-                )
+                up_signal
             ),
             "down_signal": (
-                build_down_signal(
-                    boats,
-                    prediction_quality,
-                )
+                down_signal
             ),
             "signal_system_name": SIGNAL_SYSTEM_NAME,
         }
