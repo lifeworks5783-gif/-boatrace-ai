@@ -127,17 +127,18 @@ def point_policy(points):
             f"<td>{p.get('strength_4','—')}</td>"
             f"<td>{p.get('strength_5','—')}</td>"
             f"<td>{p.get('strength_6','—')}</td>"
-            f"<td>{pct(va.get('hit_rate_pct'))}</td>"
+            f"<td>{pct(va.get('purchase_rate_pct'))}</td>"
+            f"<td>{pct(va.get('hit_rate_on_purchased_pct'))}</td>"
             f"<td>{n(va.get('avg_points'))}</td>"
             f"<td>{pct(va.get('roi_pct'))}</td>"
             f"<td>{n(va.get('vs_same_points_no_buff',{}).get('hit_delta'),0)}</td>"
-            f"<td>{pct(latest.get('hit_rate_pct'))}</td>"
+            f"<td>{pct(latest.get('hit_rate_on_purchased_pct'))}</td>"
             "</tr>"
         )
     return (
         '<div class="table-wrap"><table><thead><tr>'
         '<th>#</th><th>強1</th><th>強2</th><th>強3</th><th>強4</th><th>強5</th><th>強6</th>'
-        '<th>検証的中率</th><th>平均点数</th><th>検証ROI</th><th>補正純増的中</th><th>最新日的中率</th>'
+        '<th>購入率</th><th>購入R的中率</th><th>平均点数</th><th>検証ROI</th><th>補正純増的中</th><th>最新購入R的中率</th>'
         '</tr></thead><tbody>' + "".join(rows) + '</tbody></table></div>'
     )
 
