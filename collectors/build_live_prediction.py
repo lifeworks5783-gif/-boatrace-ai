@@ -11,7 +11,7 @@ from pathlib import Path
 import build_morning_prediction as morning
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "provisional_v4_20261006_live_traceable_inputs"
+MODEL_VERSION = "provisional_v5_20261007_live_saved_morning_fallback"
 
 
 def parse_args():
@@ -296,7 +296,68 @@ def is_miss_boat(boat):
     return v is True or text(v).lower() in {"true","1","yes"}
 
 
-def score_race(race, public_store, feature_manifest=None):
+def load_saved_morning_race_map(target_date):
+    """当日朝に確定保存した予測を、直前構造特徴量欠損時の実データfallbackとして読む。"""
+    path = (
+        Path("predictions")
+        / target_date[:4]
+        / target_date[4:6]
+        / target_date[6:8]
+        / f"morning_predictions_{target_date}.json"
+    )
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    races = data.get("races")
+    if not isinstance(races, list):
+        return {}
+    return {
+        text(race.get("race_id")): race
+        for race in races
+        if isinstance(race, dict) and text(race.get("race_id"))
+    }
+
+
+def _saved_morning_fallback(saved_race, active_lanes):
+    """保存済み朝予測から、スコアと5基礎要素の実値だけを取り出す。"""
+    if not isinstance(saved_race, dict):
+        return None
+    by_lane = {}
+    for row in saved_race.get("boats") or []:
+        lane = to_int(row.get("boat"))
+        if lane in active_lanes:
+            by_lane[lane] = row
+    if set(by_lane) != set(active_lanes):
+        return None
+
+    scores = {}
+    details = {}
+    for lane in active_lanes:
+        row = by_lane[lane]
+        score = to_float(row.get("score"))
+        comps = row.get("components") or {}
+        values = {}
+        for key in ("racer_course", "grade", "motor", "boat", "national_top2"):
+            comp = comps.get(key) or {}
+            value = to_float(comp.get("raw_score_0_1"))
+            if value is None:
+                return None
+            values[key] = value
+        if score is None:
+            return None
+        scores[lane] = score
+        details[lane] = {
+            "score": score,
+            **values,
+            "course": lane,
+        }
+    return scores, details
+
+
+def score_race(race, public_store, feature_manifest=None, saved_morning_race=None):
     all_boats=race.get("boats")
     missed=[x for x in all_boats if is_miss_boat(x)] if isinstance(all_boats,list) else []
     boats=[x for x in all_boats if not is_miss_boat(x)] if isinstance(all_boats,list) else all_boats
@@ -304,10 +365,38 @@ def score_race(race, public_store, feature_manifest=None):
     if len(boats)<3: raise RuntimeError(f"有効艇不足: {race.get('race_id')}")
     overrides={to_int(x.get("boat")):(get_exhibition_course(x) or to_int(x.get("boat"))) for x in boats}
     work_race=dict(race); work_race["boats"]=boats
-    morning_scores=morning.provisional_scores(work_race,public_store)
-    structural=morning.provisional_scores(work_race,public_store,overrides)
-    structural_details, structural_missing = morning.provisional_details(work_race, public_store, overrides)
-    if len(structural)!=len(boats) or structural_missing: raise RuntimeError(f"直前構造スコア欠損: {race.get('race_id')} {structural_missing}")
+    active_lanes={to_int(x.get("boat")) for x in boats}
+    saved_bundle=_saved_morning_fallback(saved_morning_race, active_lanes)
+    fresh_morning_details, fresh_morning_missing = morning.provisional_details(work_race, public_store)
+    if saved_bundle is not None:
+        morning_scores=dict(saved_bundle[0])
+    elif not fresh_morning_missing and len(fresh_morning_details)==len(boats):
+        morning_scores={lane:d["score"] for lane,d in fresh_morning_details.items()}
+    else:
+        raise RuntimeError(
+            f"朝基礎スコア欠損: {race.get('race_id')} {fresh_morning_missing}"
+        )
+
+    structural_details, structural_missing = morning.provisional_details(
+        work_race, public_store, overrides
+    )
+    structural_fallback = None
+    if structural_missing or len(structural_details)!=len(boats):
+        # 展示進入コース側の履歴が欠けても、欠損値を捏造せず、
+        # 当日朝に確定保存済みの本番スコアを構造80%の実データfallbackにする。
+        # 展示タイム6%・展示ST14%は取得済み直前値をそのまま使う。
+        if saved_bundle is None:
+            raise RuntimeError(
+                f"直前構造スコア欠損: {race.get('race_id')} {structural_missing}"
+            )
+        structural, structural_details = saved_bundle
+        structural_fallback = {
+            "used": True,
+            "source": "saved_morning_prediction",
+            "reason": structural_missing,
+        }
+    else:
+        structural={lane:d["score"] for lane,d in structural_details.items()}
     time_ranks=morning.rank_lower_is_better({to_int(x.get("boat")):get_exhibition_time(x) for x in boats if get_exhibition_time(x) is not None})
     st_delta_scores={to_int(x.get("boat")):personal_st_delta_score(x) for x in boats}
     # 展示ST14%は本人90日平均STとの差で評価。F=0.4、90日ST10走未満/欠損=0.5。
@@ -330,7 +419,7 @@ def score_race(race, public_store, feature_manifest=None):
             "data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),
             "exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),
             "change_parts":before.get("change_parts",""),
-            "input_trace":{"history_feature_manifest":feature_manifest,"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"racer_course":history.get("racer_course"),"beforeinfo":{"exhibition_course":get_exhibition_course(boat),"exhibition_time":get_exhibition_time(boat),"exhibition_st_raw":raw_exhibition_st_value(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"change_parts":before.get("change_parts","")},"weather_water":race_context(race),"official_f_count":racer.get("official_f_count"),"official_l_count":racer.get("official_l_count"),"official_avg_st":racer.get("official_avg_st"),"official_fl_available":racer.get("official_fl_available",False),"candidate_components":{"f_l_holdings":{"available":racer.get("official_fl_available",False),"f_count":racer.get("official_f_count"),"l_count":racer.get("official_l_count"),"active_in_score":False},"motor_30d":{"available":history.get("motor_30d_available",False),"features":history.get("motor_30d"),"active_in_score":False},"parts_exchange":{"available":before.get("change_parts") not in (None,""),"value":before.get("change_parts",""),"active_in_score":False},"weather_water":{"available":bool(race_context(race)),"value":race_context(race),"active_in_score":False}}},
+            "input_trace":{"history_feature_manifest":feature_manifest,"structural_course_fallback":structural_fallback,"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"racer_course":history.get("racer_course"),"beforeinfo":{"exhibition_course":get_exhibition_course(boat),"exhibition_time":get_exhibition_time(boat),"exhibition_st_raw":raw_exhibition_st_value(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"change_parts":before.get("change_parts","")},"weather_water":race_context(race),"official_f_count":racer.get("official_f_count"),"official_l_count":racer.get("official_l_count"),"official_avg_st":racer.get("official_avg_st"),"official_fl_available":racer.get("official_fl_available",False),"candidate_components":{"f_l_holdings":{"available":racer.get("official_fl_available",False),"f_count":racer.get("official_f_count"),"l_count":racer.get("official_l_count"),"active_in_score":False},"motor_30d":{"available":history.get("motor_30d_available",False),"features":history.get("motor_30d"),"active_in_score":False},"parts_exchange":{"available":before.get("change_parts") not in (None,""),"value":before.get("change_parts",""),"active_in_score":False},"weather_water":{"available":bool(race_context(race)),"value":race_context(race),"active_in_score":False}}},
             "components":{
                 "racer_course":{"weight":40.0,"raw_score_0_1":round(sd["racer_course"],6),"available":True},
                 "grade":{"weight":20.0,"raw_score_0_1":round(sd["grade"],6),"available":True},
@@ -489,6 +578,9 @@ def main():
         csv_rows = []
         skipped_after_deadline = []
         skipped_no_live_data = []
+        skipped_score_error = []
+        structural_fallback_races = []
+        saved_morning_races = load_saved_morning_race_map(target_date)
 
         for race in races:
             race_id = text(race.get("race_id"))
@@ -534,7 +626,33 @@ def main():
                 skipped_no_live_data.append(race_id)
                 continue
 
-            scored = score_race(race, public_store, payload.get("history_feature_manifest"))
+            try:
+                scored = score_race(
+                    race,
+                    public_store,
+                    payload.get("history_feature_manifest"),
+                    saved_morning_races.get(race_id),
+                )
+            except RuntimeError as exc:
+                # 1レースの履歴欠損で、同時刻に取得済みの他レースまで失わない。
+                skipped_score_error.append({
+                    "race_id": race_id,
+                    "error": str(exc),
+                })
+                print(f"WARN: {race_id} は直前計算を個別スキップ: {exc}")
+                continue
+
+            fallback_info = None
+            for item in scored:
+                trace = item.get("input_trace") or {}
+                if trace.get("structural_course_fallback"):
+                    fallback_info = trace["structural_course_fallback"]
+                    break
+            if fallback_info:
+                structural_fallback_races.append({
+                    "race_id": race_id,
+                    **fallback_info,
+                })
 
             pred = {
                 "race_id": race_id,
@@ -602,8 +720,10 @@ def main():
             "prediction_boat_count": len(csv_rows),
             "skipped_after_deadline": skipped_after_deadline,
             "skipped_no_live_data": skipped_no_live_data,
+            "skipped_score_error": skipped_score_error,
+            "structural_fallback_races": structural_fallback_races,
             "current_day_result_leakage": 0,
-            "errors": [],
+            "errors": skipped_score_error,
         }
         validation_json.write_text(
             json.dumps(validation, ensure_ascii=False, indent=2),
@@ -625,6 +745,7 @@ def main():
                 "course": "32点を展示進入コースへ差し替え",
                 "exhibition_st": "本人90日平均STとの差を14%評価。±0.06秒で最大補正、展示F=0.4、90日ST10走未満/欠損=0.5",
                 "exhibition_time": "6%。レース内展示タイム順位で評価",
+                "missing_course_history": "直前コース履歴欠損時のみ、当日朝の保存済み本番スコアを構造80%へ使用。欠損値の0点・架空補完はしない",
             },
             "race_count": len(predicted_races),
             "boat_count": len(csv_rows),
