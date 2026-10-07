@@ -7,6 +7,7 @@ import json
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 
 JST = timezone(timedelta(hours=9))
@@ -259,6 +260,107 @@ def parse_deadline(
     return None
 
 
+def normalize_external_race_id(value):
+    digits = "".join(
+        ch
+        for ch in str(value or "")
+        if ch.isdigit()
+    )
+    if len(digits) < 12:
+        return ""
+    return (
+        f"{digits[:8]}-"
+        f"{digits[8:10]}-"
+        f"{digits[10:12]}"
+    )
+
+
+def load_dynamic_deadlines(
+    target_date,
+):
+    url = (
+        "https://raw.githubusercontent.com/"
+        "BoatraceCSV/boatracecsv.github.io/main/data/previews/od3/"
+        f"{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}.csv"
+    )
+
+    try:
+        req = Request(
+            url,
+            headers={
+                "User-Agent":
+                    "boatrace-ai-deadline-overlay/1.0"
+            },
+        )
+
+        with urlopen(
+            req,
+            timeout=20,
+        ) as response:
+            body = response.read().decode(
+                "utf-8-sig"
+            )
+
+        reader = csv.DictReader(
+            body.splitlines()
+        )
+
+        latest = {}
+
+        for row in reader:
+            race_id = normalize_external_race_id(
+                row.get(
+                    "レースコード",
+                    "",
+                )
+            )
+            deadline = text(
+                row.get(
+                    "締切時刻"
+                )
+            )
+            obtained_at = text(
+                row.get(
+                    "取得日時"
+                )
+            )
+
+            if (
+                not race_id
+                or not deadline
+            ):
+                continue
+
+            previous = latest.get(
+                race_id
+            )
+
+            if (
+                previous is None
+                or obtained_at
+                >= previous[0]
+            ):
+                latest[
+                    race_id
+                ] = (
+                    obtained_at,
+                    deadline,
+                )
+
+        return {
+            race_id: value[1]
+            for race_id, value
+            in latest.items()
+        }
+
+    except Exception as exc:
+        print(
+            "WARN: 当日締切時刻の動的取得に失敗:",
+            exc,
+        )
+        return {}
+
+
 def load_program_deadlines(
     target_date,
 ):
@@ -272,48 +374,69 @@ def load_program_deadlines(
 
     result = {}
 
-    if not path.exists():
-        return result
+    if path.exists():
+        with path.open(
+            "r",
+            encoding="utf-8-sig",
+            newline="",
+        ) as f:
 
-    with path.open(
-        "r",
-        encoding="utf-8-sig",
-        newline="",
-    ) as f:
+            reader = csv.DictReader(
+                f
+            )
 
-        reader = csv.DictReader(
-            f
+            for row in reader:
+                race_id = text(
+                    row.get(
+                        "race_id"
+                    )
+                )
+
+                deadline = (
+                    row.get(
+                        "deadline"
+                    )
+                    or row.get(
+                        "deadline_time"
+                    )
+                    or row.get(
+                        "close_time"
+                    )
+                    or row.get(
+                        "cutoff_time"
+                    )
+                )
+
+                if (
+                    race_id
+                    and deadline
+                ):
+                    result[
+                        race_id
+                    ] = deadline
+
+    dynamic = load_dynamic_deadlines(
+        target_date
+    )
+
+    changed = {
+        race_id: (
+            result.get(race_id),
+            deadline,
+        )
+        for race_id, deadline in dynamic.items()
+        if result.get(race_id) != deadline
+    }
+
+    if changed:
+        print(
+            "当日締切変更を最新一覧へ反映:",
+            changed,
         )
 
-        for row in reader:
-            race_id = text(
-                row.get(
-                    "race_id"
-                )
-            )
-
-            deadline = (
-                row.get(
-                    "deadline"
-                )
-                or row.get(
-                    "deadline_time"
-                )
-                or row.get(
-                    "close_time"
-                )
-                or row.get(
-                    "cutoff_time"
-                )
-            )
-
-            if (
-                race_id
-                and deadline
-            ):
-                result[
-                    race_id
-                ] = deadline
+    result.update(
+        dynamic
+    )
 
     return result
 
@@ -328,7 +451,19 @@ def race_deadline_raw(
         )
     )
 
-    value = (
+    # 当日進行遅延などで締切が変わるため、
+    # 最新の動的締切を朝予測JSON内の固定時刻より優先する。
+    revised = program_deadlines.get(
+        race_id
+    )
+
+    if revised not in (
+        None,
+        "",
+    ):
+        return revised
+
+    return (
         race.get(
             "deadline"
         )
@@ -341,16 +476,6 @@ def race_deadline_raw(
         or race.get(
             "cutoff_time"
         )
-    )
-
-    if value not in (
-        None,
-        "",
-    ):
-        return value
-
-    return program_deadlines.get(
-        race_id
     )
 
 
