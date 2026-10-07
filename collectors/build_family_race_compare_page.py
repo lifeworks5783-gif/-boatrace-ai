@@ -1249,16 +1249,152 @@ def odds_minutes_before(
 def has_signal(morning, live):
     if not morning or not live:
         return False
-    morning_scores = {normalize_boat(x.get("boat")): safe_float(x.get("score")) for x in (morning.get("boats") or [])}
-    live_boats = live.get("boats") or []
-    for rank, boat in enumerate(live_boats, 1):
+    morning_scores = {
+        normalize_boat(x.get("boat")): safe_float(x.get("score"))
+        for x in (morning.get("boats") or [])
+    }
+    live_boats = live.get("boats") or (live.get("raw") or {}).get("boats") or []
+    ranked = sorted(
+        live_boats,
+        key=lambda x: safe_int(x.get("rank")) or 99,
+    )
+    for rank, boat in enumerate(ranked, 1):
         boat_no = normalize_boat(boat.get("boat"))
         live_score = safe_float(boat.get("score"))
         base = morning_scores.get(boat_no)
-        if rank > 3 and live_score is not None and base is not None and live_score - base >= 10.0:
+        if (
+            rank > 3
+            and live_score is not None
+            and base is not None
+            and live_score - base >= 10.0
+        ):
             return True
     return False
 
+
+def down_signal_info(morning, live):
+    if not morning or not live:
+        return {
+            "available": False,
+            "active": False,
+            "level": 0,
+            "reasons": [],
+        }
+
+    raw = live.get("raw") or {}
+    quality = live.get("prediction_quality") or raw.get("prediction_quality") or {}
+    if quality.get("recovery_needed") or str(quality.get("status") or "").strip() == "fallback":
+        return {
+            "available": False,
+            "active": False,
+            "level": 0,
+            "reasons": [],
+            "suppressed_reason": "fallback_prediction",
+        }
+
+    morning_scores = {
+        normalize_boat(x.get("boat")): safe_float(x.get("score"))
+        for x in (morning.get("boats") or [])
+    }
+    live_boats = live.get("boats") or raw.get("boats") or []
+    ranked = sorted(
+        live_boats,
+        key=lambda x: safe_int(x.get("rank")) or 99,
+    )
+    if len(ranked) != 6 or len(morning_scores) < 6:
+        return {
+            "available": False,
+            "active": False,
+            "level": 0,
+            "reasons": [],
+        }
+
+    live_scores = []
+    deltas = []
+    for boat in ranked:
+        boat_no = normalize_boat(boat.get("boat"))
+        live_score = safe_float(boat.get("score"))
+        base = morning_scores.get(boat_no)
+        if boat_no is None or live_score is None or base is None:
+            return {
+                "available": False,
+                "active": False,
+                "level": 0,
+                "reasons": [],
+            }
+        live_scores.append(live_score)
+        deltas.append(live_score - base)
+
+    rank1_delta = deltas[0]
+    top3_delta_sum = sum(deltas[:3])
+    gap12 = live_scores[0] - live_scores[1]
+
+    criteria = [
+        {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": rank1_delta <= -5.0,
+        },
+        {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": top3_delta_sum <= -10.0,
+        },
+        {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": rank1_delta <= -3.0 and gap12 <= 5.0,
+        },
+    ]
+    reasons = [item["id"] for item in criteria if item["met"]]
+    level = min(3, len(reasons))
+
+    return {
+        "available": True,
+        "active": level > 0,
+        "level": level,
+        "reasons": reasons,
+        "criteria": criteria,
+        "metrics": {
+            "rank1_delta": round(rank1_delta, 2),
+            "top3_delta_sum": round(top3_delta_sum, 2),
+            "gap_1_2": round(gap12, 2),
+        },
+        "ai_effect": False,
+        "formation_effect": False,
+        "status": "provisional_analysis_only",
+    }
+
+
+def down_signal_marker(info):
+    if not isinstance(info, dict):
+        return ""
+    level = safe_int(info.get("level")) or 0
+    if level <= 0:
+        return ""
+
+    metrics = info.get("metrics") or {}
+    rank1_delta = safe_float(metrics.get("rank1_delta"))
+    top3_delta_sum = safe_float(metrics.get("top3_delta_sum"))
+    gap12 = safe_float(metrics.get("gap_1_2"))
+
+    parts = [f"暫定下落シグナル {level}/3"]
+    if rank1_delta is not None:
+        parts.append(f"1位朝比 {rank1_delta:.1f}")
+    if top3_delta_sum is not None:
+        parts.append(f"TOP3合計 {top3_delta_sum:.1f}")
+    if gap12 is not None:
+        parts.append(f"1-2位差 {gap12:.1f}")
+    parts.append("表示・分析のみ（AI買い目には未反映）")
+    title = "｜".join(parts)
+
+    return (
+        ' <span class="down-signal" title="'
+        + esc(title)
+        + '">'
+        + ("🔻" * min(3, level))
+        + "</span>"
+    )
 
 def parse_trifecta_result(value):
     text = str(value or "").strip()
@@ -1611,6 +1747,9 @@ def build_race_rows(
 
                 "signal":
                     has_signal(morning, live),
+
+                "down_signal":
+                    down_signal_info(morning, live),
 
                 "morning_eval":
                     evaluate_top3(
@@ -2346,7 +2485,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{" ⚡" if row.get("signal") else ""} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{" ⚡" if row.get("signal") else ""}{down_signal_marker(row.get("down_signal"))} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
@@ -2868,6 +3007,12 @@ details.all-scores summary {{
   font-weight:900;
   white-space:nowrap;
 }}
+
+.down-signal {
+  display:inline-block;
+  margin-left:2px;
+  font-weight:800;
+}
 
 .result-flash {{
   display:inline-block;
