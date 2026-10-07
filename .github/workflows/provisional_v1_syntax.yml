@@ -14,6 +14,6 @@ jobs:
       - run: python -m py_compile collectors/build_morning_prediction.py collectors/build_live_prediction.py
       - run: |
           grep -q 'MODEL_VERSION = "provisional_v4_20261006_morning_traceable_inputs"' collectors/build_morning_prediction.py
-          grep -q 'MODEL_VERSION = "provisional_v4_20261006_live_traceable_inputs"' collectors/build_live_prediction.py
+          grep -q 'MODEL_VERSION = "provisional_v5_20261007_live_saved_morning_fallback"' collectors/build_live_prediction.py
           python -m py_compile collectors/build_prediction_input.py collectors/enrich_prediction_input.py collectors/audit_daily_completeness.py collectors/evaluate_all_candidate_single_factors.py collectors/evaluate_live_extra_factors.py collectors/evaluate_environment_course_interactions.py collectors/evaluate_f_hold_inventory.py
           echo "PROVISIONAL_LIVE_READY"
