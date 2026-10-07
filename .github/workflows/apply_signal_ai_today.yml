@@ -1,4 +1,4 @@
-name: Apply signal AI prediction today
+name: Rebuild Fujin Raijin signal display today
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Rebuild today's saved predictions with signal-only AI reranking
+      - name: Rebuild today's saved predictions with display-only Fujin Raijin signals
         run: |
           D="${{ inputs.target_date }}"
           [ -n "$D" ] || D=$(TZ=Asia/Tokyo date +%Y%m%d)
@@ -37,37 +37,40 @@ jobs:
           test -s predictions/latest_by_deadline.json
           test -s "predictions/${D:0:4}/${D:4:2}/${D:6:2}/live/formation_predictions_final_${D}.json"
           python - <<'PY'
-          import json,datetime,pathlib
-          import os
+          import json,pathlib,os
           d=os.environ["TARGET_DATE"]
           p=pathlib.Path("predictions")/d[:4]/d[4:6]/d[6:8]/"live"/f"formation_predictions_final_{d}.json"
           x=json.loads(p.read_text())
-          races=x.get("races",[]); sig=[r for r in races if (r.get("ai_score_prediction") or {}).get("signal_mode")]
-          bad=[r.get("race_id") for r in sig if (r.get("ai_score_prediction") or {}).get("points")!=12]
-          normal_bad=[r.get("race_id") for r in races if not (r.get("ai_score_prediction") or {}).get("signal_mode") and (r.get("ai_score_prediction") or {}).get("points")!=8]
-          print("races",len(races),"signal",len(sig),"signal_bad",bad,"normal_bad",normal_bad)
-          assert not bad and not normal_bad
-          rerank_bad=[]
-          for r in sig:
+          races=x.get("races",[])
+          bad_points=[]
+          bad_signal_effect=[]
+          raijin=[]
+          fujin=[]
+          for r in races:
               ai=r.get("ai_score_prediction") or {}
-              ai_combos=[v.get("combination") for v in ai.get("combinations",[])]
-              all120=ai.get("all_120_combinations") or []
-              base120=ai.get("base_120_combinations") or []
-              top12=[v.get("combination") for v in all120[:12]]
-              expected = int(ai.get("valid_combination_count") or 120)
-              if (
-                  len(all120)!=expected
-                  or len(base120)!=expected
-                  or len({v.get("combination") for v in all120})!=expected
-                  or not ai.get("rerank_verified")
-                  or ai_combos!=top12
-              ):
-                  rerank_bad.append(r.get("race_id"))
-          print("AI-only rerank_bad",rerank_bad)
-          assert not rerank_bad
-          out=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"signal_ai_apply_summary.json"
+              if ai.get("points") != 8:
+                  bad_points.append(r.get("race_id"))
+              if ai.get("signal_mode") or (ai.get("signal_boats") or {}):
+                  bad_signal_effect.append(r.get("race_id"))
+              up=r.get("up_signal") or {}
+              down=r.get("down_signal") or {}
+              if int(up.get("level") or 0)>0:
+                  raijin.append({"race_id":r.get("race_id"),"level":up.get("level"),"max_rise":up.get("max_rise")})
+              if int(down.get("level") or 0)>0:
+                  fujin.append({"race_id":r.get("race_id"),"level":down.get("level")})
+          print("races",len(races),"raijin",len(raijin),"fujin",len(fujin),"bad_points",bad_points,"bad_signal_effect",bad_signal_effect)
+          assert not bad_points
+          assert not bad_signal_effect
+          out=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"fujin_raijin_rebuild_summary.json"
           out.parent.mkdir(parents=True,exist_ok=True)
-          out.write_text(json.dumps({"date":d,"race_count":len(races),"signal_count":len(sig),"signals":[{"race_id":r.get("race_id"),"points":r["ai_score_prediction"]["points"],"signal_boats":r["ai_score_prediction"].get("signal_boats"),"combinations":[c.get("combination") for c in r["ai_score_prediction"].get("combinations",[])]} for r in sig],"normal_bad":normal_bad},ensure_ascii=False,indent=2))
+          out.write_text(json.dumps({
+              "date":d,
+              "system_name":"風神雷神シグナル",
+              "prediction_effect":False,
+              "race_count":len(races),
+              "raijin":raijin,
+              "fujin":fujin,
+          },ensure_ascii=False,indent=2))
           PY
       - name: Commit rebuilt outputs
         run: |
@@ -75,7 +78,7 @@ jobs:
           git config user.email "boatrace-ai-bot@users.noreply.github.com"
           git add predictions/ evaluations/
           if git diff --cached --quiet; then echo "No changes"; exit 0; fi
-          git commit -m "Apply signal-only AI 12-point rule to today's races"
+          git commit -m "Rebuild display-only Fujin Raijin signals"
           git pull --rebase origin main
           git push origin HEAD:main
 
@@ -84,6 +87,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "⚡再計算・保存完了後に家族共有ページを更新します。"
+          echo "風神雷神シグナル再生成・保存完了後に家族共有ページを更新します。"
           gh workflow run family_prediction_page.yml --ref main
           echo "家族共有ページ更新を起動: PASS"
