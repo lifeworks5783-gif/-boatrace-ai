@@ -66,17 +66,25 @@ jobs:
           export TARGET_DATE
           READY=$(read_validation_count new_ready_races)
           NEW=$(read_validation_count selected_new_races)
+          UNREADY=$(read_validation_count unready_new_count)
+          TOTAL_READY=$READY
 
-          # 新規候補があるのに公式直前情報がまだ未確定なら、
-          # 次のscheduleを待たず90秒後に1回だけ再確認する。
-          # 既に1件でも取得できた場合は予測開始を遅らせず、
-          # 残りは5分後の次回runで再確認する。
-          if [ "$READY" -eq 0 ] && [ "$NEW" -gt 0 ]; then
-            echo "新規直前情報が未確定。90秒後に再確認します"
-            sleep 90
+          # 一部レースだけ公式直前情報が未確定でも、他レースが取れたことを理由に
+          # 再確認を打ち切らない。最大2回、60秒間隔で未確定レースを追う。
+          # GitHub schedule の遅延があっても、同じrun内で取り逃しを減らす。
+          for ATTEMPT in 1 2; do
+            if [ "$UNREADY" -le 0 ]; then
+              break
+            fi
+            echo "未確定の新規直前情報が ${UNREADY}R。60秒後に再確認します (${ATTEMPT}/2)"
+            sleep 60
             python -u collectors/today_beforeinfo.py --mode live
-            READY=$(read_validation_count new_ready_races)
-          fi
+            READY_NOW=$(read_validation_count new_ready_races)
+            UNREADY=$(read_validation_count unready_new_count)
+            TOTAL_READY=$((TOTAL_READY + READY_NOW))
+          done
+
+          READY=$TOTAL_READY
 
           if [ "$READY" -le 0 ]; then
             echo "HAS_READY_BEFOREINFO=false" >> "$GITHUB_ENV"
