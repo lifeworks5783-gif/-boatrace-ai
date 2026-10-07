@@ -5,6 +5,7 @@ on:
     paths:
       - config/run_ai_analysis_now.txt
       - collectors/evaluate_pdca_incremental_4day.py
+      - collectors/evaluate_down_signal.py
       - .github/workflows/pdca_incremental_4day.yml
   workflow_dispatch:
 permissions:
@@ -91,6 +92,14 @@ jobs:
           python -u collectors/evaluate_ai_score_prediction.py --date "$TARGET_DATE"
           test -s "evaluations/$YEAR/$MONTH/$DAY/ai_score_simulation_${TARGET_DATE}.json"
           test -s "evaluations/$YEAR/$MONTH/$DAY/ai_score_simulation_${TARGET_DATE}.csv"
+
+      - name: Evaluate provisional decline signal
+        run: |
+          python -u collectors/evaluate_down_signal.py --date "$TARGET_DATE"
+          test -s "evaluations/$YEAR/$MONTH/$DAY/down_signal_analysis_${TARGET_DATE}.json"
+          test -s "evaluations/$YEAR/$MONTH/$DAY/down_signal_analysis_${TARGET_DATE}.csv"
+          test -s "evaluations/down_signal/latest/summary.json"
+          test -s "evaluations/down_signal/latest/details.csv"
 
       - name: Run expanding PDCA
         run: python -u collectors/evaluate_pdca_incremental_4day.py
