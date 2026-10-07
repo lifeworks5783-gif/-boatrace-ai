@@ -836,6 +836,23 @@ def load_recovered_live_predictions(target_date):
         print(f"WARN: 復旧直前予測CSV読込失敗: {merged_path}: {exc}")
         return {}
 
+    official_misses = {}
+    live_root = Path("daily_inputs") / yyyy / mm / dd / "live"
+    if live_root.exists():
+        for miss_path in sorted(live_root.glob("**/beforeinfo_entries_*.csv")):
+            try:
+                with miss_path.open("r", encoding="utf-8-sig", newline="") as f:
+                    for row in csv.DictReader(f):
+                        flag = str(row.get("is_miss") or "").strip().lower()
+                        if flag not in {"true", "1", "yes"}:
+                            continue
+                        race_code = extract_race_code(row, target_date)
+                        boat = safe_int(row.get("boat"))
+                        if race_code and boat is not None:
+                            official_misses.setdefault(race_code, set()).add(boat)
+            except Exception:
+                continue
+
     expected = safe_int(manifest.get("merged_analysis_races"))
     if expected is not None and len(grouped) != expected:
         print(
@@ -855,7 +872,16 @@ def load_recovered_live_predictions(target_date):
                 safe_int(row.get("boat")) or 99,
             )
         )
-        if len(boats) != 6:
+        present_boats = {
+            safe_int(row.get("boat"))
+            for row in boats
+            if safe_int(row.get("boat")) is not None
+        }
+        missing_boats = sorted(set(range(1, 7)) - present_boats)
+        allowed_missing = official_misses.get(race_code, set())
+        if len(boats) < 3 or any(boat not in allowed_missing for boat in missing_boats):
+            return {}
+        if len(boats) + len(missing_boats) != 6:
             return {}
 
         top3 = []
@@ -880,6 +906,7 @@ def load_recovered_live_predictions(target_date):
             "deadline": first.get("deadline"),
             "stage": "live_recovered_analysis",
             "prediction_quality": quality,
+            "official_miss_boats": missing_boats,
             "boats": boats,
         }
         output[race_code] = {
@@ -889,6 +916,7 @@ def load_recovered_live_predictions(target_date):
             "raw": raw,
             "stage": "live_recovered_analysis",
             "prediction_quality": quality,
+            "official_miss_boats": missing_boats,
             "ai_score_prediction": {},
         }
 
