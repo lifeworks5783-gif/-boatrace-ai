@@ -48,7 +48,7 @@ jobs:
 
       - name: 必要ライブラリを準備
         run: |
-          pip install -q requests beautifulsoup4 lhafile pandas
+          pip install -q requests beautifulsoup4 lhafile
 
       - name: 日本時間を設定
         run: |
@@ -437,16 +437,6 @@ jobs:
             "data/prediction_input_enriched_validation_live_${TARGET_DATE}.json" \
             "${INPUT_DEST}/"
 
-      - name: 終了済みレース結果を随時取得
-        run: |
-          # 直前更新のたびに、その時点で公式確定済みの結果も回収する。
-          # 未確定レースは fast_results.py 側で無視されるため、結果リークは予測計算後にのみ実行する。
-          python -u collectors/fast_results.py --date "${TARGET_DATE}"
-
-          RESULT_DEST="daily_inputs/${YEAR}/${MONTH}/${DAY}/results"
-          mkdir -p "${RESULT_DEST}"
-          find data -maxdepth 1 -type f -name "*result*${TARGET_DATE}*" -exec cp {} "${RESULT_DEST}/" \; || true
-
       - name: スマホ用最新予想一覧を生成
         run: |
           python -u collectors/build_latest_prediction_view.py \
@@ -467,18 +457,6 @@ jobs:
 
           # 本日の基本データキャッシュ
           git add "${BASE_CACHE_DIR}"
-
-          # 随時取得した確定結果も保存（存在する場合のみ）
-          RESULT_DEST="daily_inputs/${YEAR}/${MONTH}/${DAY}/results"
-          if [ -d "${RESULT_DEST}" ]; then git add "${RESULT_DEST}"; fi
-          find data -maxdepth 1 -type f -name "*result*${TARGET_DATE}*" -print0 | xargs -0 -r git add
-
-          # 結果取得後、その場で当日評価も更新する。これにより家族ページの
-          # レース照合が「確定0R」のまま残らない。
-          if find data -maxdepth 1 -type f -name "*result*${TARGET_DATE}*" | grep -q .; then
-            python -u collectors/evaluate_predictions.py --date "${TARGET_DATE}"
-            find evaluations -type f -path "*/${YEAR}/${MONTH}/${DAY}/*" -print0 2>/dev/null | xargs -0 -r git add
-          fi
 
           # スマホ用最新表示
           git add predictions/latest.md
