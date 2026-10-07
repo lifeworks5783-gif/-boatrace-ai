@@ -16,14 +16,14 @@ from evaluate_fujin_raijin_buff_debuff_search import (
 )
 
 
-VERSION = "fujin_raijin_strength_points_search_v1_20261007"
-POINT_CHOICES = tuple(range(8, 25, 2))  # 8,10,...,24
+VERSION = "fujin_raijin_strength_points_search_v2_20261007"
+POINT_CHOICES = tuple(range(6, 25, 2))  # 6,8,10,...,24
 TOP_BUFF_VARIANTS = 20
 
 
 def parse_args():
     p = argparse.ArgumentParser(
-        description="風神+雷神の合算強度と買い目8-24点の組み合わせ探索"
+        description="風神+雷神の合算強度と買い目6-24点の組み合わせ探索"
     )
     p.add_argument("--date", required=False, help="最新評価日 YYYYMMDD")
     return p.parse_args()
@@ -46,11 +46,11 @@ def strength(race):
 
 
 def monotonic_policies():
-    # 強度0は最低8点に固定。
-    # 強度1..6は8-24点の2点刻みで単調非減少。
-    # 9種類から重複あり6個選択 = 3003通り。
+    # 強度0は最低6点に固定。
+    # 強度1..6は6-24点の2点刻みで単調非減少。
+    # 10種類から重複あり6個選択 = 5005通り。
     for vals in itertools.combinations_with_replacement(POINT_CHOICES, 6):
-        yield (8,) + vals
+        yield (6,) + vals
 
 
 def policy_key(p):
@@ -318,12 +318,12 @@ def main():
         "formation_effect": False,
         "method": {
             "combined_strength": "風神Lv + 雷神Lv (0-6)",
-            "point_range": [8, 24],
+            "point_range": [6, 24],
             "point_step": 2,
-            "strength0_fixed_points": 8,
+            "strength0_fixed_points": 6,
             "monotonic_points": True,
             "combination_ranking": "補正後艇スコアで全120通りを50/30/20加重し上位N点",
-            "note": "現行formation_gap_flow_v2は本番比較基準として保持し、この探索では8-24点拡張の効果を独立検証する",
+            "note": "現行formation_gap_flow_v2は本番比較基準として保持し、この探索では6-24点拡張の効果を独立検証する",
         },
         "search_space": {
             "buff_variants": min(TOP_BUFF_VARIANTS, len(top)),
