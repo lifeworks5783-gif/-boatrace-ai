@@ -20,7 +20,7 @@ from evaluate_down_signal import (
 
 
 SYSTEM_NAME = "風神雷神シグナル"
-BACKTEST_VERSION = "fujin_raijin_combo_backtest_v2_20261007"
+BACKTEST_VERSION = "fujin_raijin_combo_backtest_v3_20261008"
 
 
 def parse_args():
@@ -340,9 +340,9 @@ def main():
                 "level": "成立条件数をLv1-Lv3として扱う",
             },
             "raijin": {
-                "level1": "直前TOP3外の最大上昇 >= 7.5 and < 10.0",
-                "level2": "直前TOP3外の最大上昇 >= 10.0 and < 12.5",
-                "level3": "直前TOP3外の最大上昇 >= 12.5",
+                "level1": "直前TOP3外の対象艇が朝比+7.5以上+10未満",
+                "level2": "直前TOP3外の対象艇の最大上昇が+10以上。Lv3条件に該当しない限り上限なし",
+                "level3": "直前TOP3外かつ朝比+7.5以上の対象艇に通常予測スコア50以上がいる",
             },
         },
         "analyzable_dates": dates,
