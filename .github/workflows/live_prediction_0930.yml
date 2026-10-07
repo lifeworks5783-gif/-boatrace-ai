@@ -450,6 +450,43 @@ jobs:
 
           cat predictions/latest_by_deadline.md
 
+      - name: 補完マークの永続化を検証
+        if: env.HAS_LIVE_PREDICTION == 'true'
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          d=os.environ["TARGET_DATE"]
+          base=Path("predictions")/d[:4]/d[4:6]/d[6:8]/"live"
+          live=json.loads((base/f"live_predictions_final_{d}.json").read_text(encoding="utf-8"))
+          formation=json.loads((base/f"formation_predictions_final_{d}.json").read_text(encoding="utf-8"))
+          deadline=json.loads(Path("predictions/latest_by_deadline.json").read_text(encoding="utf-8"))
+
+          def flagged(payload):
+              out={}
+              for race in payload.get("races") or []:
+                  rid=str(race.get("race_id") or "")
+                  q=race.get("prediction_quality") or {}
+                  if q.get("recovery_needed") or q.get("status")=="fallback":
+                      out[rid]=q
+              return out
+
+          live_flags=flagged(live)
+          formation_flags=flagged(formation)
+          deadline_flags=flagged(deadline)
+
+          for rid,q in live_flags.items():
+              if q.get("mark")!="⚠" or q.get("label")!="補完あり":
+                  raise SystemExit(f"ERROR: {rid} 補完マーク定義不正: {q}")
+              if rid not in formation_flags:
+                  raise SystemExit(f"ERROR: {rid} 補完マークがformationで消失")
+              if rid not in deadline_flags:
+                  raise SystemExit(f"ERROR: {rid} 補完マークがlatest_by_deadlineで消失")
+
+          print(f"補完マーク永続化 PASS: {len(live_flags)}R")
+          PY
+
       - name: GitHubへ保存
         run: |
           git config user.name "boatrace-data-bot"
