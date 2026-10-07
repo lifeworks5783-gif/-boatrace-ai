@@ -20,7 +20,7 @@ JST = timezone(timedelta(hours=9))
 FORMATION_MODEL = "formation_gap_flow_v2"
 
 DOWN_SIGNAL_RULE_VERSION = "down_signal_v0_20261007"
-UP_SIGNAL_RULE_VERSION = "raijin_signal_v0_20261007"
+UP_SIGNAL_RULE_VERSION = "raijin_signal_v1_20261008"
 SIGNAL_SYSTEM_NAME = "風神雷神シグナル"
 
 
@@ -270,17 +270,25 @@ def build_up_signal(
                 "boat": boat,
                 "rank": live_rank,
                 "rise": round(rise, 2),
+                "score": round(live_score, 2),
             })
 
     max_rise = max(
         (item["rise"] for item in candidates),
         default=None,
     )
+    has_score50 = any(
+        item.get("score") is not None
+        and item["score"] >= 50.0
+        for item in candidates
+    )
     if max_rise is None:
         level = 0
-    elif max_rise >= 12.5:
+    elif has_score50:
+        # Lv3: 通常予測スコア50以上まで浮上した雷神対象艇がいる。
         level = 3
     elif max_rise >= 10.0:
+        # Lv2: +10以上。Lv3条件に該当しない限り上限なし。
         level = 2
     else:
         level = 1
@@ -293,13 +301,18 @@ def build_up_signal(
         "system_name": SIGNAL_SYSTEM_NAME,
         "signal_name": "雷神",
         "thresholds": {
-            "level1_min": 7.5,
-            "level2_min": 10.0,
-            "level3_min": 12.5,
+            "level1_rise_min": 7.5,
+            "level1_rise_max_exclusive": 10.0,
+            "level2_rise_min": 10.0,
+            "level2_rise_max": None,
+            "level3_candidate_score_min": 50.0,
+            "level3_candidate_rise_min": 7.5,
             "outside_live_top3": True,
+            "level3_priority": True,
         },
         "candidates": candidates,
         "max_rise": max_rise,
+        "has_score50_candidate": has_score50,
         "ai_effect": False,
         "formation_effect": False,
         "status": "provisional_analysis_only",
