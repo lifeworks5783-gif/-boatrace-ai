@@ -1474,7 +1474,11 @@ def up_signal_info(morning, live, formation_prediction=None):
         or raw_formation.get("up_signal")
         or {}
     )
-    if isinstance(stored, dict) and "level" in stored:
+    if (
+        isinstance(stored, dict)
+        and "level" in stored
+        and stored.get("rule_version") == "raijin_signal_v1_20261008"
+    ):
         return stored
 
     live_boats, quality, morning_source = _signal_source(
@@ -1525,12 +1529,17 @@ def up_signal_info(morning, live, formation_prediction=None):
                 "boat": boat_no,
                 "rank": rank,
                 "rise": round(rise, 2),
+                "score": round(live_score, 2),
             })
 
     max_rise = max((x["rise"] for x in candidates), default=None)
+    has_score50 = any(
+        x.get("score") is not None and x["score"] >= 50.0
+        for x in candidates
+    )
     if max_rise is None:
         level = 0
-    elif max_rise >= 12.5:
+    elif has_score50:
         level = 3
     elif max_rise >= 10.0:
         level = 2
@@ -1541,7 +1550,9 @@ def up_signal_info(morning, live, formation_prediction=None):
         "available": True,
         "active": level > 0,
         "level": level,
+        "rule_version": "raijin_signal_v1_20261008",
         "max_rise": max_rise,
+        "has_score50_candidate": has_score50,
         "candidates": candidates,
         "status": "provisional_analysis_only",
         "ai_effect": False,
