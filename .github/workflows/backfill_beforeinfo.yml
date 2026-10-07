@@ -41,7 +41,7 @@ jobs:
 
       - name: 対象日を設定
         run: |
-          TARGET_DATE="${{ inputs.target_date || '20261006' }}"
+          TARGET_DATE="${{ inputs.target_date || '20261007' }}"
           echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
           echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
           echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
@@ -56,9 +56,14 @@ jobs:
           cp "${BASE}/program_races_${TARGET_DATE}.csv" data/
           cp "${BASE}/program_entries_${TARGET_DATE}.csv" data/
 
-      - name: 全レースの直前情報を再取得
+      - name: 欠損している直前情報だけ再取得
         run: |
-          python -u collectors/today_beforeinfo.py --date "${TARGET_DATE}" --mode all
+          RAW_ROOT="daily_inputs/${YEAR}/${MONTH}/${DAY}/live/raw"
+          LATEST_RAW=$(find "$RAW_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | tail -n 1 || true)
+          if [ -n "$LATEST_RAW" ]; then
+            find "$LATEST_RAW" -maxdepth 1 -type f -name "beforeinfo_*${TARGET_DATE}*" -exec cp {} data/ \;
+          fi
+          python -u collectors/today_beforeinfo.py --date "${TARGET_DATE}" --mode missing
 
       - name: 再取得結果を保存
         run: |
