@@ -173,7 +173,83 @@ def normalize_external_race_id(value: str) -> str:
     return f"{digits[:8]}-{digits[8:10]}-{digits[10:12]}"
 
 
-def load_dynamic_deadlines(target_date: str) -> dict[str, str]:
+def parse_official_venue_deadlines(
+    html: str,
+    target_date: str,
+    venue_code: str,
+) -> dict[str, str]:
+    soup = BeautifulSoup(html, "html.parser")
+    times: list[str] = []
+
+    label = soup.find(
+        string=lambda value: (
+            isinstance(value, str)
+            and "締切予定時刻" in value
+        )
+    )
+
+    if label is not None:
+        row = label.find_parent("tr")
+        if row is not None:
+            times = re.findall(
+                r"(?<!\d)(\d{1,2}:\d{2})(?!\d)",
+                row.get_text(" ", strip=True),
+            )
+
+    if len(times) < 12:
+        full_text = soup.get_text(" ", strip=True)
+        pos = full_text.find("締切予定時刻")
+        if pos >= 0:
+            segment = full_text[pos:pos + 500]
+            times = re.findall(
+                r"(?<!\d)(\d{1,2}:\d{2})(?!\d)",
+                segment,
+            )[:12]
+
+    if len(times) < 12:
+        return {}
+
+    return {
+        f"{target_date}-{venue_code}-{race_no:02d}": deadline
+        for race_no, deadline
+        in enumerate(times[:12], start=1)
+    }
+
+
+def fetch_official_venue_deadlines(
+    target_date: str,
+    venue_code: str,
+) -> dict[str, str]:
+    url = (
+        "https://www.boatrace.jp/owpc/pc/race/beforeinfo"
+        f"?hd={target_date}&jcd={venue_code}&rno=1"
+    )
+
+    try:
+        response = requests.get(
+            url,
+            timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT),
+            headers={
+                "User-Agent":
+                    "Mozilla/5.0 (compatible; boatrace-ai-deadline/1.0)"
+            },
+        )
+        response.raise_for_status()
+        return parse_official_venue_deadlines(
+            response.text,
+            target_date,
+            venue_code,
+        )
+    except Exception as exc:
+        print(
+            f"WARN: 公式締切取得失敗 {venue_code}: {exc}"
+        )
+        return {}
+
+
+def load_odds_deadline_fallback(
+    target_date: str,
+) -> dict[str, str]:
     dt = datetime.strptime(target_date, "%Y%m%d")
     url = (
         "https://raw.githubusercontent.com/"
@@ -219,18 +295,64 @@ def load_dynamic_deadlines(target_date: str) -> dict[str, str]:
 
     except Exception as exc:
         print(
-            "WARN: 当日締切時刻の動的取得に失敗: "
+            "WARN: オッズ締切フォールバック取得失敗: "
             f"{exc}"
         )
         return {}
+
+
+def load_dynamic_deadlines(
+    target_date: str,
+    venue_codes: list[str],
+) -> dict[str, str]:
+    official: dict[str, str] = {}
+
+    with ThreadPoolExecutor(
+        max_workers=min(max(len(venue_codes), 1), 4)
+    ) as executor:
+        futures = {
+            executor.submit(
+                fetch_official_venue_deadlines,
+                target_date,
+                venue_code,
+            ): venue_code
+            for venue_code in venue_codes
+        }
+
+        for future in as_completed(futures):
+            official.update(
+                future.result()
+            )
+
+    # 公式HTMLが一時的に取れなかったレースだけ、更新頻度の高い
+    # 公開オッズCSVを補助ソースとして使う。
+    odds = load_odds_deadline_fallback(
+        target_date
+    )
+    for race_id, deadline in odds.items():
+        official.setdefault(
+            race_id,
+            deadline,
+        )
+
+    return official
 
 
 def apply_dynamic_deadlines(
     races: list[dict],
     target_date: str,
 ) -> tuple[list[dict], dict[str, str]]:
+    venue_codes = sorted(
+        {
+            str(row.get("venue_code", "")).zfill(2)
+            for row in races
+            if str(row.get("venue_code", "")).strip()
+        }
+    )
+
     overlay = load_dynamic_deadlines(
-        target_date
+        target_date,
+        venue_codes,
     )
 
     if not overlay:
@@ -254,7 +376,7 @@ def apply_dynamic_deadlines(
         if revised and revised != original:
             item["deadline_original"] = original
             item["deadline"] = revised
-            item["deadline_source"] = "live_odds"
+            item["deadline_source"] = "official_live_schedule"
             changed[race_id] = (
                 f"{original}->{revised}"
             )
