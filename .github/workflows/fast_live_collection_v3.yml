@@ -6,6 +6,12 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      quick_mode:
+        description: "ボタン更新用。取得済み分を先に反映し、未確定待ちを短縮する"
+        required: false
+        default: false
+        type: boolean
   push:
     paths:
       - "config/run_fast_live_v3_now.txt"
@@ -68,21 +74,34 @@ jobs:
           NEW=$(read_validation_count selected_new_races)
           UNREADY=$(read_validation_count unready_new_count)
           TOTAL_READY=$READY
+          QUICK_MODE="${{ inputs.quick_mode || false }}"
 
-          # 一部レースだけ公式直前情報が未確定でも、他レースが取れたことを理由に
-          # 再確認を打ち切らない。最大2回、60秒間隔で未確定レースを追う。
-          # GitHub schedule の遅延があっても、同じrun内で取り逃しを減らす。
-          for ATTEMPT in 1 2; do
-            if [ "$UNREADY" -le 0 ]; then
-              break
+          if [ "$QUICK_MODE" = "true" ]; then
+            # 家族ページの「最新情報に更新」ボタンは応答性を優先する。
+            # 1件でも取得済みなら待たずにその分を反映する。
+            # まだ1件も取れていない場合だけ20秒後に1回再確認する。
+            if [ "$READY" -le 0 ] && [ "$UNREADY" -gt 0 ]; then
+              echo "ボタン更新: 直前情報がまだ未確定。20秒後に1回だけ再確認します"
+              sleep 20
+              python -u collectors/today_beforeinfo.py --mode live
+              READY_NOW=$(read_validation_count new_ready_races)
+              UNREADY=$(read_validation_count unready_new_count)
+              TOTAL_READY=$((TOTAL_READY + READY_NOW))
             fi
-            echo "未確定の新規直前情報が ${UNREADY}R。60秒後に再確認します (${ATTEMPT}/2)"
-            sleep 60
-            python -u collectors/today_beforeinfo.py --mode live
-            READY_NOW=$(read_validation_count new_ready_races)
-            UNREADY=$(read_validation_count unready_new_count)
-            TOTAL_READY=$((TOTAL_READY + READY_NOW))
-          done
+          else
+            # 自動更新は欠損防止を優先し、未確定レースを最大2回追う。
+            for ATTEMPT in 1 2; do
+              if [ "$UNREADY" -le 0 ]; then
+                break
+              fi
+              echo "未確定の新規直前情報が ${UNREADY}R。60秒後に再確認します (${ATTEMPT}/2)"
+              sleep 60
+              python -u collectors/today_beforeinfo.py --mode live
+              READY_NOW=$(read_validation_count new_ready_races)
+              UNREADY=$(read_validation_count unready_new_count)
+              TOTAL_READY=$((TOTAL_READY + READY_NOW))
+            done
+          fi
 
           READY=$TOTAL_READY
 
