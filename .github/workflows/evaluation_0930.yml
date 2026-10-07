@@ -11,6 +11,11 @@ on:
     - cron: "10 16 * * *"
 
   workflow_dispatch:
+    inputs:
+      target_date:
+        description: "評価対象日 YYYYMMDD（空欄は昨日）"
+        required: false
+        type: string
 
 concurrency:
   group: boatrace-fast-evaluation
@@ -40,7 +45,12 @@ jobs:
 
       - name: 前日の日付を設定
         run: |
-          TARGET_DATE=$(TZ=Asia/Tokyo date -d "yesterday" +%Y%m%d)
+          INPUT_DATE="${{ github.event.inputs.target_date }}"
+          if [ -n "${INPUT_DATE}" ]; then
+            TARGET_DATE="${INPUT_DATE}"
+          else
+            TARGET_DATE=$(TZ=Asia/Tokyo date -d "yesterday" +%Y%m%d)
+          fi
 
           YEAR=${TARGET_DATE:0:4}
           MONTH=${TARGET_DATE:4:2}
