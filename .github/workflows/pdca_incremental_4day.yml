@@ -6,6 +6,7 @@ on:
       - config/run_ai_analysis_now.txt
       - collectors/evaluate_pdca_incremental_4day.py
       - collectors/evaluate_down_signal.py
+      - collectors/evaluate_fujin_raijin_history.py
       - .github/workflows/pdca_incremental_4day.yml
   workflow_dispatch:
 permissions:
@@ -100,6 +101,15 @@ jobs:
           test -s "evaluations/$YEAR/$MONTH/$DAY/down_signal_analysis_${TARGET_DATE}.csv"
           test -s "evaluations/down_signal/latest/summary.json"
           test -s "evaluations/down_signal/latest/details.csv"
+
+      - name: Evaluate Fujin Raijin combinations and historical total
+        run: |
+          python -u collectors/evaluate_fujin_raijin_history.py --date "$TARGET_DATE"
+          test -s "evaluations/$YEAR/$MONTH/$DAY/fujin_raijin_combo_${TARGET_DATE}.json"
+          test -s "evaluations/$YEAR/$MONTH/$DAY/fujin_raijin_combo_${TARGET_DATE}.csv"
+          test -s "evaluations/fujin_raijin/latest/backtest_summary.json"
+          test -s "evaluations/fujin_raijin/latest/backtest_details.csv"
+          test -s "evaluations/fujin_raijin/latest/combination_matrix.csv"
 
       - name: Run expanding PDCA
         run: python -u collectors/evaluate_pdca_incremental_4day.py
