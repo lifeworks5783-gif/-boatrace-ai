@@ -8,7 +8,7 @@ import math
 from collections import defaultdict
 from pathlib import Path
 
-from evaluate_down_signal import normalize_race_id, parse_actual, payout_value, read_csv, signal_from_rows
+from evaluate_down_signal import normalize_race_id, parse_actual, payout_value, read_csv, resolve_analysis_live_path, signal_from_rows
 
 
 VERSION = "fujin_raijin_buff_debuff_search_v1_20261007"
@@ -135,8 +135,9 @@ def discover_dates():
 
 def load_races(d):
     y, m, day = d[:4], d[4:6], d[6:8]
-    lp = Path("predictions") / y / m / day / "live" / f"live_predictions_final_{d}.csv"
+    production_lp = Path("predictions") / y / m / day / "live" / f"live_predictions_final_{d}.csv"
     rp = Path("archive") / y / m / day / f"results_{d}_all.csv"
+    lp, _ = resolve_analysis_live_path(d, production_lp)
     live = read_csv(lp)
     results = read_csv(rp)
 
