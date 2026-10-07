@@ -110,6 +110,27 @@ def signal_from_rows(rows):
         (idx + 1) > 3 and deltas[idx] >= 7.5
         for idx in range(6)
     )
+    raijin_candidates = [
+        {
+            "boat": to_int(ranked[idx].get("boat")),
+            "rank": idx + 1,
+            "rise": round(deltas[idx], 2),
+        }
+        for idx in range(6)
+        if (idx + 1) > 3 and deltas[idx] >= 7.5
+    ]
+    raijin_max_rise = max(
+        (x["rise"] for x in raijin_candidates),
+        default=None,
+    )
+    if raijin_max_rise is None:
+        raijin_level = 0
+    elif raijin_max_rise >= 12.5:
+        raijin_level = 3
+    elif raijin_max_rise >= 10.0:
+        raijin_level = 2
+    else:
+        raijin_level = 1
 
     return {
         "ranked": ranked,
@@ -123,6 +144,9 @@ def signal_from_rows(rows):
         "down_active": bool(reasons),
         "up_signal_10": up10,
         "up_candidate_75": up75,
+        "raijin_level": raijin_level,
+        "raijin_max_rise": raijin_max_rise,
+        "raijin_candidates": raijin_candidates,
     }
 
 
@@ -161,6 +185,12 @@ def summarize(details):
     for level in range(4):
         by_level[str(level)] = group_summary(
             [x for x in details if int(x.get("down_level") or 0) == level]
+        )
+
+    by_raijin_level = {}
+    for level in range(4):
+        by_raijin_level[str(level)] = group_summary(
+            [x for x in details if int(x.get("raijin_level") or 0) == level]
         )
 
     active = [x for x in details if x.get("down_active")]
@@ -221,6 +251,7 @@ def summarize(details):
         "down_active": group_summary(active),
         "down_inactive": group_summary(inactive),
         "by_level": by_level,
+        "by_raijin_level": by_raijin_level,
         "by_criterion": criteria,
         "interaction_with_up10": interaction_10,
         "interaction_with_up75": interaction_75,
@@ -233,6 +264,7 @@ def write_details_csv(path, details):
         "down_active", "down_level", "down_reasons",
         "rank1_delta", "top3_delta_sum", "gap_1_2",
         "up_signal_10", "up_candidate_75",
+        "raijin_level", "raijin_max_rise",
         "pred1_boat", "pred1_win", "pred1_top3",
         "actual_winner", "actual_winner_pred_rank",
         "payout", "manshu",
@@ -318,6 +350,8 @@ def main():
             "gap_1_2": sig["gap_1_2"],
             "up_signal_10": sig["up_signal_10"],
             "up_candidate_75": sig["up_candidate_75"],
+            "raijin_level": sig["raijin_level"],
+            "raijin_max_rise": sig["raijin_max_rise"],
             "pred1_boat": pred1_boat,
             "pred1_win": pred1_boat == actual[0],
             "pred1_top3": pred1_boat in actual,
@@ -339,12 +373,19 @@ def main():
         "ai_effect": False,
         "formation_effect": False,
         "rules": {
-            "one_mark_each": [
+            "system_name": "風神雷神シグナル",
+            "fujin_one_mark_each": [
                 "rank1_delta <= -5.0",
                 "top3_delta_sum <= -10.0",
                 "rank1_delta <= -3.0 and gap_1_2 <= 5.0",
             ],
+            "raijin_levels": {
+                "1": "outside_live_top3 max rise >= 7.5 and < 10.0",
+                "2": "outside_live_top3 max rise >= 10.0 and < 12.5",
+                "3": "outside_live_top3 max rise >= 12.5",
+            },
             "max_level": 3,
+            "prediction_effect": false,
         },
         "skipped_incomplete_races": skipped,
         "summary": summarize(details),
