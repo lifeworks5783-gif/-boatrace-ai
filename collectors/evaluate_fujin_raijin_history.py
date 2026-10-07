@@ -19,7 +19,7 @@ from evaluate_down_signal import (
 
 
 SYSTEM_NAME = "風神雷神シグナル"
-BACKTEST_VERSION = "fujin_raijin_combo_backtest_v1_20261007"
+BACKTEST_VERSION = "fujin_raijin_combo_backtest_v2_20261007"
 
 
 def parse_args():
@@ -41,12 +41,15 @@ def label(level, name):
 def group_stats(rows, total_races):
     payouts = [int(x.get("payout") or 0) for x in rows]
     n = len(rows)
+    p5 = sum(1 for p in payouts if p >= 5000)
     manshu = sum(1 for x in rows if x.get("manshu"))
     p30 = sum(1 for p in payouts if p >= 30000)
     p50 = sum(1 for p in payouts if p >= 50000)
     return {
         "races": n,
         "activation_rate_pct": pct(n, total_races),
+        "payout_5000plus": p5,
+        "payout_5000plus_rate_pct": pct(p5, n),
         "manshu": manshu,
         "manshu_rate_pct": pct(manshu, n),
         "avg_payout": round(sum(payouts) / n) if n else None,
@@ -114,8 +117,24 @@ def summarize(details):
         for level in range(4)
     }
 
+    payout_5000plus_total = sum(1 for x in details if int(x.get("payout") or 0) >= 5000)
+    signal_rows = [x for x in details if x["fujin_level"] > 0 or x["raijin_level"] > 0]
+    signal_5000plus = sum(1 for x in signal_rows if int(x.get("payout") or 0) >= 5000)
+    no_signal_rows = [x for x in details if x["fujin_level"] == 0 and x["raijin_level"] == 0]
+    no_signal_5000plus = sum(1 for x in no_signal_rows if int(x.get("payout") or 0) >= 5000)
+
     return {
         "all": group_stats(details, total),
+        "payout_5000_signal_summary": {
+            "payout_5000plus_total": payout_5000plus_total,
+            "signal_active_races": len(signal_rows),
+            "signal_5000plus": signal_5000plus,
+            "signal_5000plus_rate_pct": pct(signal_5000plus, len(signal_rows)),
+            "signal_capture_rate_of_all_5000plus_pct": pct(signal_5000plus, payout_5000plus_total),
+            "no_signal_races": len(no_signal_rows),
+            "no_signal_5000plus": no_signal_5000plus,
+            "no_signal_5000plus_rate_pct": pct(no_signal_5000plus, len(no_signal_rows)),
+        },
         "presence": presence,
         "fujin_levels": fujin_levels,
         "raijin_levels": raijin_levels,
@@ -190,6 +209,7 @@ def evaluate_date(d):
             "gap_1_2": sig.get("gap_1_2"),
             "raijin_max_rise": sig.get("raijin_max_rise"),
             "payout": payout,
+            "payout_5000plus": payout >= 5000,
             "manshu": payout >= 10000,
         })
 
@@ -224,7 +244,7 @@ def write_details_csv(path, rows):
         "fujin_active", "raijin_active",
         "fujin_reasons",
         "rank1_delta", "top3_delta_sum", "gap_1_2",
-        "raijin_max_rise", "payout", "manshu",
+        "raijin_max_rise", "payout", "payout_5000plus", "manshu",
     ]
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
@@ -240,6 +260,7 @@ def write_matrix_csv(path, summary):
     fields = [
         "key", "label", "fujin_level", "raijin_level",
         "races", "activation_rate_pct",
+        "payout_5000plus", "payout_5000plus_rate_pct",
         "manshu", "manshu_rate_pct",
         "avg_payout", "median_payout",
         "payout_30000plus", "payout_30000plus_rate_pct",
@@ -257,6 +278,8 @@ def write_matrix_csv(path, summary):
                 "raijin_level": stats["raijin_level"],
                 "races": stats["races"],
                 "activation_rate_pct": stats["activation_rate_pct"],
+                "payout_5000plus": stats["payout_5000plus"],
+                "payout_5000plus_rate_pct": stats["payout_5000plus_rate_pct"],
                 "manshu": stats["manshu"],
                 "manshu_rate_pct": stats["manshu_rate_pct"],
                 "avg_payout": stats["avg_payout"],
