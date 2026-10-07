@@ -71,6 +71,9 @@ jobs:
       - name: 風神雷神の組み合わせ・累積を再評価
         run: python -u collectors/evaluate_fujin_raijin_history.py --date "$TARGET_DATE"
 
+      - name: 風神の詳細PDCAを日次・累積更新
+        run: python -u collectors/evaluate_fujin_deep_metrics.py --date "$TARGET_DATE"
+
       - name: バフ・デバフ候補を再探索
         run: python -u collectors/evaluate_fujin_raijin_buff_debuff_search.py --date "$TARGET_DATE"
 
