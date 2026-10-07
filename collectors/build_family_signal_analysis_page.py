@@ -64,18 +64,19 @@ def combo_table(backtest):
                 f"<td>{html.escape(str(x.get('label') or f'F{f}×R{r}'))}</td>"
                 f"<td>{n(x.get('races'),0)}</td>"
                 f"<td>{pct(x.get('activation_rate_pct'))}</td>"
+                f"<td>{n(x.get('payout_5000plus'),0)}</td>"
+                f"<td>{pct(x.get('payout_5000plus_rate_pct'))}</td>"
                 f"<td>{n(x.get('manshu'),0)}</td>"
                 f"<td>{pct(x.get('manshu_rate_pct'))}</td>"
                 f"<td>{yen(x.get('avg_payout'))}</td>"
-                f"<td>{pct(x.get('payout_30000plus_rate_pct'))}</td>"
                 "</tr>"
             )
     if not rows:
         return '<div class="empty">組み合わせ集計はまだありません。</div>'
     return (
         '<div class="table-wrap"><table><thead><tr>'
-        '<th>組み合わせ</th><th>R数</th><th>全体比</th><th>万舟</th><th>万舟率</th>'
-        '<th>平均払戻</th><th>3万円以上率</th>'
+        '<th>組み合わせ</th><th>R数</th><th>全体比</th><th>5千円以上</th><th>5千円以上率</th>'
+        '<th>万舟</th><th>万舟率</th><th>平均払戻</th>'
         '</tr></thead><tbody>' + "".join(rows) + '</tbody></table></div>'
     )
 
@@ -152,13 +153,15 @@ def build_page(root: Path) -> str:
     presence = total.get("presence") or {}
     anysig = presence.get("any_signal") or {}
     neither = presence.get("neither") or {}
+    p5 = total.get("payout_5000_signal_summary") or {}
     dates = backtest.get("analyzable_dates") or []
 
     metrics = (
         card("検証レース", n(backtest.get("evaluated_races"),0), f"{len(dates)}日分")
         + card("シグナル発動", n(anysig.get("races"),0), f"発動率 {pct(anysig.get('activation_rate_pct'))}")
         + card("未発動＝見送り", n(neither.get("races"),0), "購入0点")
-        + card("発動時万舟率", pct(anysig.get("manshu_rate_pct")), f"{n(anysig.get('manshu'),0)}本")
+        + card("発動時5千円以上率", pct(p5.get("signal_5000plus_rate_pct")), f"{n(p5.get('signal_5000plus'),0)}R")
+        + card("5千円以上捕捉率", pct(p5.get("signal_capture_rate_of_all_5000plus_pct")), "全5千円以上Rのうちシグナル発動")
     )
 
     search = points.get("search_space") or {}
@@ -208,7 +211,7 @@ def build_page(root: Path) -> str:
 
 <section class="card">
 <h2>風神 × 雷神 組み合わせ別</h2>
-<p class="note">発動率・万舟率・平均払戻を全16組み合わせで比較。未発動は今後AI購入対象から除外します。</p>
+<p class="note">発動率・5,000円以上率・万舟率・平均払戻を全16組み合わせで比較。5,000円以上を第一評価ラインとし、未発動はAI購入対象から除外します。</p>
 {combo_table(backtest)}
 </section>
 
