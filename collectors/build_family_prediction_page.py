@@ -303,7 +303,7 @@ def signal_marker(race):
             f"雷神シグナル {raijin_level}/3"
             f"｜最大上昇 +{max_rise or 0:.1f}"
             + (f"｜{candidate_text}" if candidate_text else "")
-            + "｜表示・分析のみ（予測計算には未反映）"
+            + "｜通常予測には未反映・シグナルAI再評価に使用"
         )
 
     fujin_title = ""
@@ -314,7 +314,7 @@ def signal_marker(race):
             f"｜1位朝比 {to_float(metrics.get('rank1_delta')) or 0:.1f}"
             f"｜TOP3合計 {to_float(metrics.get('top3_delta_sum')) or 0:.1f}"
             f"｜1-2位差 {to_float(metrics.get('gap_1_2')) or 0:.1f}"
-            "｜表示・分析のみ（予測計算には未反映）"
+            "｜通常予測には未反映・シグナルAI再評価に使用"
         )
 
     top = (
@@ -414,12 +414,61 @@ def build_card(race, index, is_completed=False):
 def build_ai_card(race, index):
     venue = text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
     deadline = time_label(race.get("deadline"))
+    signal_ai = race.get("signal_ai_prediction") or {}
+
+    if signal_ai:
+        ai = signal_ai
+        position = ai.get("boat_scores") or []
+        combos = (ai.get("combinations") or [])[:24]
+        score_rows = "".join(
+            '<tr>'
+            f'<td>{esc(x.get("boat"))}号艇</td>'
+            f'<td>{esc(score_label(x.get("normal_score")))}</td>'
+            f'<td>{esc(score_label(x.get("signal_adjustment")))}</td>'
+            f'<td>{esc(score_label(x.get("signal_ai_score")))}</td>'
+            f'<td>{esc(x.get("signal_ai_rank"))}位</td>'
+            '</tr>'
+            for x in position
+        )
+        combo_rows = "".join(
+            '<div class="ai-combo">'
+            f'<b>{i}位 {esc(x.get("combination"))}</b>'
+            f'<span>AI評価 {esc(score_label(x.get("score")))}点</span>'
+            '</div>'
+            for i, x in enumerate(combos, 1)
+        )
+        signal_key = text(ai.get("signal_key"))
+        return f"""
+        <article class="race-card">
+          <div class="race-head">
+            <div class="race-order">{index}</div>
+            <div class="race-main">
+              <div class="deadline">{esc(deadline)}</div>
+              <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>
+            </div>
+            <div class="badge live">シグナルAI</div>
+          </div>
+          <div class="formation-title">シグナルAI評価・上位24点</div>
+          <div class="ai-note">通常予測は変更せず、{esc(signal_key)}専用補正で6艇を再評価しています。</div>
+          <div class="ai-combos">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
+          <details>
+            <summary>6艇のシグナルAI再評価を見る</summary>
+            <div class="ai-table-wrap">
+              <table class="ai-table">
+                <thead><tr><th>艇</th><th>通常</th><th>補正</th><th>補正後</th><th>順位</th></tr></thead>
+                <tbody>{score_rows}</tbody>
+              </table>
+            </div>
+          </details>
+          <div class="ai-note">上位24通りは候補として必ず表示。購入点数の6〜24点最適化は今後のPDCAで別途検証します。</div>
+        </article>
+        """
+
     ai = race.get("ai_score_prediction") or {}
     position = ai.get("position_scores") or []
     combos = (ai.get("all_120_combinations") or [])[:12]
     if not combos:
         combos = ai.get("combinations") or []
-    points = int(ai.get("points") or 0)
     score_rows = "".join(
         '<tr>'
         f'<td>{esc(x.get("boat"))}号艇</td>'
@@ -446,7 +495,8 @@ def build_ai_card(race, index):
         </div>
         <div class="badge live">AIスコア</div>
       </div>
-      <div class="formation-title">AIスコア予測・上位12点</div>\n      <div class="ai-note">AI独自スコアによる組み合わせ評価</div>
+      <div class="formation-title">AIスコア予測・上位12点</div>
+      <div class="ai-note">AI独自スコアによる組み合わせ評価</div>
       <div class="ai-candidates">
         <div><b>1着候補</b> {"・".join(esc(x) for x in ai.get("first_candidates") or [])}</div>
         <div><b>2着候補</b> {"・".join(esc(x) for x in ai.get("second_candidates") or [])}</div>
@@ -462,7 +512,7 @@ def build_ai_card(race, index):
           </table>
         </div>
       </details>
-      <div class="ai-note">予想はAI順位上位12点まで表示。収支検証は上位8点を各100円、1レース800円として集計します。</div>
+      <div class="ai-note">既存AIスコアは通常予測とは独立。シグナルがないレースでは従来表示を維持します。</div>
     </article>
     """
 
