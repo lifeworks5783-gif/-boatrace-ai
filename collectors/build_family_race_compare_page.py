@@ -2044,10 +2044,33 @@ def load_ai_evaluation(target_date):
     return {"count": n, "overlap": safe_float(overall.get("top3_alignment_rate")) * 100.0 if safe_float(overall.get("top3_alignment_rate")) is not None else None, "exact": safe_float(overall.get("exact_alignment_rate")) * 100.0 if safe_float(overall.get("exact_alignment_rate")) is not None else None, "bought_hit": safe_float(overall.get("hit_rate")) * 100.0 if safe_float(overall.get("hit_rate")) is not None else None}
 
 
+def final_ai_prediction(row):
+    """終了済みレースのAI予測は、結果を使わず事前生成済みformation保存値を最優先で使う。"""
+    formation = row.get("formation_prediction")
+    if formation and (
+        formation.get("ai_score_prediction")
+        or (formation.get("raw") or {}).get("ai_score_prediction")
+    ):
+        return formation
+    live = row.get("live")
+    if live and (
+        live.get("ai_score_prediction")
+        or (live.get("raw") or {}).get("ai_score_prediction")
+    ):
+        return live
+    morning = row.get("morning")
+    if morning and (
+        morning.get("ai_score_prediction")
+        or (morning.get("raw") or {}).get("ai_score_prediction")
+    ):
+        return morning
+    return formation or live or morning
+
+
 def ai_score_summary(rows):
     evals = []
     for row in rows:
-        prediction = row.get("live") or row.get("morning")
+        prediction = final_ai_prediction(row)
         result = ai_score_eval(prediction, row.get("actual") or [])
         if result is not None:
             evals.append(result)
@@ -2285,7 +2308,7 @@ def render_html(
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
   <div class="label simulation-label">AIスコア予測・保存済み上位12点</div>\n  <div class="simulation-meta">AI独自スコアによる組み合わせ評価</div>
-  {ai_score_result_html(row["live"] or row["morning"], row["trifecta"], row["payout"]) if ((row["live"] or row["morning"] or {}).get("ai_score_prediction")) else ai_eval_detail_html(row.get("ai_evaluation"))}
+  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"]) if final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction")) else ai_eval_detail_html(row.get("ai_evaluation"))}
 
   <div class="money-grid">
 
