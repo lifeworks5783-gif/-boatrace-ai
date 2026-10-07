@@ -42,7 +42,7 @@ RACE_FIELDS = [
     "deadline", "weather", "air_temperature_c",
     "water_temperature_c", "wind_speed_mps",
     "wind_direction_code", "wind_direction", "wave_height_cm",
-    "stabilizer", "fixed_course", "source_url", "collected_at",
+    "stabilizer", "fixed_course", "source_url", "requested_at", "collected_at",
 ]
 
 ENTRY_FIELDS = [
@@ -51,7 +51,7 @@ ENTRY_FIELDS = [
     "exhibition_time", "tilt", "exhibition_course",
     "exhibition_st_raw", "exhibition_st_seconds",
     "exhibition_st_flag", "change_parts", "is_miss",
-    "source_url", "collected_at",
+    "source_url", "requested_at", "collected_at",
 ]
 
 
@@ -714,6 +714,7 @@ def parse_entry_table(soup: BeautifulSoup):
 def parse_beforeinfo(
     html: str,
     base: dict,
+    requested_at: str = "",
 ):
     soup = BeautifulSoup(
         html,
@@ -776,6 +777,7 @@ def parse_beforeinfo(
         **weather,
         **flags,
         "source_url": url,
+        "requested_at": requested_at,
         "collected_at": collected_at,
     }
 
@@ -791,6 +793,7 @@ def parse_beforeinfo(
                 "race_id": race_id,
                 **row,
                 "source_url": url,
+                "requested_at": requested_at,
                 "collected_at": collected_at,
             }
         )
@@ -822,12 +825,15 @@ def fetch_one(
         base,
     )
 
+    requested_at = datetime.now(JST).isoformat()
+
     try:
         html = fetch_html(url)
 
         parsed = parse_beforeinfo(
             html,
             base,
+            requested_at=requested_at,
         )
 
         return {
@@ -1126,6 +1132,7 @@ def main():
     fetched = 0
     ready = 0
     failed = []
+    unready_new_races = []
     per_request_seconds = []
 
     if selected:
@@ -1174,6 +1181,8 @@ def main():
                             ],
                         }
                     )
+                    if reason == "new":
+                        unready_new_races.append(base["race_id"])
 
                     print(
                         f"{base['venue_name']} "
@@ -1190,6 +1199,8 @@ def main():
                 parsed = result["parsed"]
 
                 if parsed is None:
+                    if reason == "new":
+                        unready_new_races.append(base["race_id"])
                     print(
                         f"{base['venue_name']} "
                         f"{race_no}R "
@@ -1319,6 +1330,8 @@ def main():
             ),
             "fetched_races": fetched,
             "new_ready_races": ready,
+            "unready_new_count": len(set(unready_new_races)),
+            "unready_new_races": sorted(set(unready_new_races)),
             "failed_races": failed,
             "average_request_seconds": round(
                 average_request_seconds,
