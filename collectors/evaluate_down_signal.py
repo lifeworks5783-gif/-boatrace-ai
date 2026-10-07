@@ -3,11 +3,55 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import subprocess
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 
 RULE_VERSION = "down_signal_v0_20261007"
+
+
+
+def recovery_requested(target_date):
+    marker = Path("config/recover_live_for_analysis.txt")
+    if not marker.is_file():
+        return False
+    try:
+        return target_date in marker.read_text(encoding="utf-8")
+    except Exception:
+        return False
+
+
+def recovery_paths(target_date):
+    y, m, day = target_date[:4], target_date[4:6], target_date[6:8]
+    out_dir = Path("evaluations") / y / m / day / "recovery"
+    return (
+        out_dir / f"merged_live_predictions_{target_date}.csv",
+        out_dir / f"live_recovery_manifest_{target_date}.json",
+    )
+
+
+def resolve_analysis_live_path(target_date, production_live_path):
+    merged_path, manifest_path = recovery_paths(target_date)
+    if merged_path.is_file():
+        return merged_path, manifest_path
+
+    if recovery_requested(target_date):
+        subprocess.run(
+            [
+                sys.executable,
+                "-u",
+                "collectors/recover_missing_live_for_analysis.py",
+                "--date",
+                target_date,
+            ],
+            check=True,
+        )
+        if merged_path.is_file():
+            return merged_path, manifest_path
+
+    return Path(production_live_path), manifest_path
 
 
 def parse_args():
@@ -283,10 +327,11 @@ def main():
     d = args.date
     y, m, day = d[:4], d[4:6], d[6:8]
 
-    live_path = Path("predictions") / y / m / day / "live" / f"live_predictions_final_{d}.csv"
+    production_live_path = Path("predictions") / y / m / day / "live" / f"live_predictions_final_{d}.csv"
     result_path = Path("archive") / y / m / day / f"results_{d}_all.csv"
-    if not live_path.is_file():
-        raise RuntimeError(f"直前予測CSVがありません: {live_path}")
+    if not production_live_path.is_file():
+        raise RuntimeError(f"直前予測CSVがありません: {production_live_path}")
+    live_path, recovery_manifest_path = resolve_analysis_live_path(d, production_live_path)
     if not result_path.is_file():
         raise RuntimeError(f"結果CSVがありません: {result_path}")
 
@@ -388,6 +433,12 @@ def main():
             "prediction_effect": False,
         },
         "skipped_incomplete_races": skipped,
+        "analysis_live_source": str(live_path),
+        "recovery_manifest": (
+            json.loads(recovery_manifest_path.read_text(encoding="utf-8"))
+            if recovery_manifest_path.is_file()
+            else None
+        ),
         "summary": summarize(details),
         "details": details,
     }
