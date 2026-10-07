@@ -1,0 +1,98 @@
+name: 回収済み日・予測結果再評価
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/run_recovered_eval_*.txt"
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "再評価対象日 YYYYMMDD"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: recovered-day-evaluation-writer
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 最新のmainを読み込む
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 対象日を設定
+        run: |
+          INPUT_DATE="${{ github.event.inputs.target_date }}"
+          if [ -n "$INPUT_DATE" ]; then
+            TARGET_DATE="$INPUT_DATE"
+          else
+            CHANGED=$(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}" | grep -E '^config/run_recovered_eval_[0-9]{8}\.txt$' | head -1 || true)
+            test -n "$CHANGED"
+            TARGET_DATE=$(basename "$CHANGED" | sed -E 's/run_recovered_eval_([0-9]{8})\.txt/\1/')
+          fi
+          echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
+          echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
+          echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
+          echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
+
+      - name: 回収マニフェストを安全確認
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          p=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"recovery"/f"live_recovery_manifest_{d}.json"
+          m=json.loads(p.read_text(encoding="utf-8"))
+          ok=(
+              m.get("status")=="complete"
+              and m.get("treat_recovered_as_observation") is True
+              and m.get("result_leakage") is False
+              and not (m.get("still_missing") or [])
+          )
+          if not ok:
+              raise SystemExit("safe recovery manifest check failed")
+          print({
+              "expected_races":m.get("expected_races"),
+              "merged_analysis_races":m.get("merged_analysis_races"),
+              "recovered_races":len(m.get("recovered_races") or []),
+              "result_leakage":m.get("result_leakage"),
+          })
+          PY
+
+      - name: 朝・直前・買い方を再評価
+        run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
+
+      - name: 風神雷神分析を再評価
+        run: python -u collectors/evaluate_down_signal.py --date "$TARGET_DATE"
+
+      - name: 評価サマリーを再生成
+        run: python -u collectors/build_evaluation_summary.py --date "$TARGET_DATE"
+
+      - name: 評価結果を保存
+        run: |
+          git config user.name "boatrace-evaluation-bot"
+          git config user.email "boatrace-evaluation-bot@users.noreply.github.com"
+          git add "evaluations/${YEAR}/${MONTH}/${DAY}" evaluations/down_signal/latest 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "評価結果に変更なし"
+            exit 0
+          fi
+          git commit -m "Re-evaluate recovered live data ${TARGET_DATE}"
+          git pull --rebase origin main
+          git push origin main
