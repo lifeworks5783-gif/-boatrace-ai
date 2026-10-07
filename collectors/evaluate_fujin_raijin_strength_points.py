@@ -16,7 +16,7 @@ from evaluate_fujin_raijin_buff_debuff_search import (
 )
 
 
-VERSION = "fujin_raijin_strength_points_search_v3_20261007"
+VERSION = "fujin_raijin_strength_points_search_v4_20261007"
 POINT_CHOICES = tuple(range(6, 25, 2))  # 6,8,10,...,24
 TOP_BUFF_VARIANTS = 20
 
@@ -106,6 +106,8 @@ def build_lookup(records):
 def metrics_from_policy(lookup, policy):
     total = {
         "races": 0,
+        "purchased_races": 0,
+        "skipped_races": 0,
         "hits": 0,
         "return": 0,
         "manshu_hits": 0,
@@ -118,15 +120,28 @@ def metrics_from_policy(lookup, policy):
         n = policy[s]
         m = dict(lookup[(s, n)])
         m["points_per_race"] = n
+        m["purchased"] = n > 0
         by_strength[str(s)] = m
-        for k in total:
+        total["races"] += m["races"]
+        if n > 0:
+            total["purchased_races"] += m["races"]
+        else:
+            total["skipped_races"] += m["races"]
+        for k in (
+            "hits", "return", "manshu_hits",
+            "rescued_vs_current", "lost_vs_current", "points",
+        ):
             total[k] += m[k]
 
     races = total["races"]
+    purchased = total["purchased_races"]
     investment = total["points"] * BET
     total["investment"] = investment
+    total["purchase_rate_pct"] = round(100 * purchased / races, 2) if races else None
     total["hit_rate_pct"] = round(100 * total["hits"] / races, 2) if races else None
-    total["avg_points"] = round(total["points"] / races, 2) if races else None
+    total["hit_rate_on_purchased_pct"] = round(100 * total["hits"] / purchased, 2) if purchased else None
+    total["avg_points_all_races"] = round(total["points"] / races, 2) if races else None
+    total["avg_points"] = round(total["points"] / purchased, 2) if purchased else None
     total["roi_pct"] = round(100 * total["return"] / investment, 2) if investment else None
     total["net_rescues_vs_current"] = total["rescued_vs_current"] - total["lost_vs_current"]
     return total, by_strength
@@ -319,7 +334,8 @@ def main():
         "formation_effect": False,
         "method": {
             "combined_strength": "風神Lv + 雷神Lv (0-6)",
-            "point_range": [0, 24],
+            "signal_point_range": [6, 24],
+            "no_signal_points": 0,
             "point_step": 2,
             "strength0_fixed_points": 0,
             "monotonic_points": True,
@@ -353,13 +369,13 @@ def main():
     fields = [
         "validation_rank", "buff_rank", "buff_key", "policy_key",
         "s0", "s1", "s2", "s3", "s4", "s5", "s6",
-        "train_hits", "train_hit_rate_pct", "train_avg_points", "train_roi_pct",
+        "train_hits", "train_hit_rate_pct", "train_hit_rate_on_purchased_pct", "train_purchase_rate_pct", "train_avg_points", "train_roi_pct",
         "train_buff_hit_delta", "train_manshu_hits",
-        "validation_hits", "validation_hit_rate_pct", "validation_avg_points", "validation_roi_pct",
+        "validation_hits", "validation_hit_rate_pct", "validation_hit_rate_on_purchased_pct", "validation_purchase_rate_pct", "validation_avg_points", "validation_roi_pct",
         "validation_buff_hit_delta", "validation_manshu_hits",
-        "latest_hits", "latest_hit_rate_pct", "latest_avg_points", "latest_roi_pct",
+        "latest_hits", "latest_hit_rate_pct", "latest_hit_rate_on_purchased_pct", "latest_purchase_rate_pct", "latest_avg_points", "latest_roi_pct",
         "latest_buff_hit_delta", "latest_manshu_hits",
-        "all_hits", "all_hit_rate_pct", "all_avg_points", "all_roi_pct",
+        "all_hits", "all_hit_rate_pct", "all_hit_rate_on_purchased_pct", "all_purchase_rate_pct", "all_avg_points", "all_roi_pct",
         "all_buff_hit_delta", "all_manshu_hits",
     ]
     with (out_dir / "validation_top50.csv").open("w", encoding="utf-8", newline="") as fh:
@@ -378,6 +394,8 @@ def main():
                 m = x[name]
                 row[f"{name}_hits"] = m["hits"]
                 row[f"{name}_hit_rate_pct"] = m["hit_rate_pct"]
+                row[f"{name}_hit_rate_on_purchased_pct"] = m["hit_rate_on_purchased_pct"]
+                row[f"{name}_purchase_rate_pct"] = m["purchase_rate_pct"]
                 row[f"{name}_avg_points"] = m["avg_points"]
                 row[f"{name}_roi_pct"] = m["roi_pct"]
                 row[f"{name}_buff_hit_delta"] = m["vs_same_points_no_buff"]["hit_delta"]
