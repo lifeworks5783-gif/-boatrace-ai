@@ -1166,6 +1166,36 @@ def main():
             )
         )
 
+        prediction_quality = (
+            race.get("prediction_quality")
+            or {
+                "status": "normal",
+                "mark": "",
+                "label": "正常",
+                "recovery_needed": False,
+                "reason": [],
+                "fallback_source": None,
+            }
+        )
+
+        # 直前データが締切までに確定しなかった場合も「予測なし」にしない。
+        # 締切10分前以降は、保存済み朝予測を直前補完として継続使用し、
+        # 必ず品質マークを残す。後から正規の締切前直前予測が保存されたら
+        # live側が優先され、この補完表示は自動的に解消する。
+        if race_id not in live and race_id in morning and deadline_dt is not None:
+            minutes_to_deadline = (deadline_dt - now).total_seconds() / 60.0
+            if minutes_to_deadline <= 10.0:
+                prediction_type = "直前"
+                prediction_quality = {
+                    "status": "fallback",
+                    "mark": "⚠",
+                    "label": "補完あり",
+                    "recovery_needed": True,
+                    "reason": ["締切前の直前情報が未確定または未保存"],
+                    "fallback_source": "saved_morning_prediction",
+                    "recorded_at": now.isoformat(),
+                }
+
         cleaned_boats = []
 
         for index, boat in enumerate(
@@ -1288,15 +1318,7 @@ def main():
                 prediction_type
             ),
             "prediction_quality": (
-                race.get("prediction_quality")
-                or {
-                    "status": "normal",
-                    "mark": "",
-                    "label": "正常",
-                    "recovery_needed": False,
-                    "reason": [],
-                    "fallback_source": None,
-                }
+                prediction_quality
             ),
             "generated_at": (
                 text(
