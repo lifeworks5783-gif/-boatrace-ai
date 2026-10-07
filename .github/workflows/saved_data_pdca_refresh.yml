@@ -1,0 +1,104 @@
+name: Saved-data PDCA refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/run_saved_pdca_*.txt"
+      - ".github/workflows/saved_data_pdca_refresh.yml"
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "PDCA対象日 YYYYMMDD"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: pdca-incremental-main
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 最新mainを読み込む
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 対象日を設定
+        run: |
+          INPUT_DATE="${{ github.event.inputs.target_date }}"
+          if [ -n "$INPUT_DATE" ]; then
+            TARGET_DATE="$INPUT_DATE"
+          else
+            CHANGED=$(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}" | grep -E '^config/run_saved_pdca_[0-9]{8}\.txt$' | head -1 || true)
+            test -n "$CHANGED"
+            TARGET_DATE=$(basename "$CHANGED" | sed -E 's/run_saved_pdca_([0-9]{8})\.txt/\1/')
+          fi
+          echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
+          echo "YEAR=${TARGET_DATE:0:4}" >> "$GITHUB_ENV"
+          echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
+          echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
+
+      - name: 保存済みデータの完全性を確認
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          p=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+          q=json.loads(p.read_text(encoding="utf-8"))
+          print({"status":q.get("status"),"audited":q.get("audited_races"),"complete":q.get("complete_races"),"incomplete":q.get("incomplete_races")})
+          if q.get("status")!="PASS" or q.get("complete_races")!=144:
+              raise SystemExit("saved-data PDCA requires 144R PASS")
+          PY
+
+      - name: 風神雷神の日次シグナルを再評価
+        run: python -u collectors/evaluate_down_signal.py --date "$TARGET_DATE"
+
+      - name: 風神雷神の組み合わせ・累積を再評価
+        run: python -u collectors/evaluate_fujin_raijin_history.py --date "$TARGET_DATE"
+
+      - name: バフ・デバフ候補を再探索
+        run: python -u collectors/evaluate_fujin_raijin_buff_debuff_search.py --date "$TARGET_DATE"
+
+      - name: 強度別6〜24点を再探索
+        run: python -u collectors/evaluate_fujin_raijin_strength_points.py --date "$TARGET_DATE"
+
+      - name: 4日累積PDCAを再計算
+        run: python -u collectors/evaluate_pdca_incremental_4day.py
+
+      - name: 評価結果だけ保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/
+          if git diff --cached --quiet; then
+            echo "PDCA結果に変更なし"
+            exit 0
+          fi
+          git commit -m "Refresh saved-data PDCA ${TARGET_DATE}"
+          git restore .
+          git clean -fd
+          git pull --rebase origin main
+          git push origin main
+
+      - name: 家族共有AI分析ページを再公開
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run family_prediction_page.yml --ref main
+          echo "家族共有ページ更新を開始しました。"
