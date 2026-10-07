@@ -166,6 +166,112 @@ def load_base_races(target_date: str) -> list[dict]:
         return list(csv.DictReader(f))
 
 
+def normalize_external_race_id(value: str) -> str:
+    digits = "".join(ch for ch in str(value or "") if ch.isdigit())
+    if len(digits) < 12:
+        return ""
+    return f"{digits[:8]}-{digits[8:10]}-{digits[10:12]}"
+
+
+def load_dynamic_deadlines(target_date: str) -> dict[str, str]:
+    dt = datetime.strptime(target_date, "%Y%m%d")
+    url = (
+        "https://raw.githubusercontent.com/"
+        "BoatraceCSV/boatracecsv.github.io/main/data/previews/od3/"
+        f"{dt:%Y/%m/%d}.csv"
+    )
+
+    try:
+        response = requests.get(
+            url,
+            timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT),
+            headers={"User-Agent": "boatrace-ai-deadline-overlay/1.0"},
+        )
+        response.raise_for_status()
+        rows = csv.DictReader(response.text.lstrip("\ufeff").splitlines())
+
+        latest: dict[str, tuple[str, str]] = {}
+        for row in rows:
+            race_id = normalize_external_race_id(
+                row.get("レースコード", "")
+            )
+            deadline = str(
+                row.get("締切時刻", "")
+            ).strip()
+            obtained_at = str(
+                row.get("取得日時", "")
+            ).strip()
+
+            if not race_id or not deadline:
+                continue
+
+            previous = latest.get(race_id)
+            if previous is None or obtained_at >= previous[0]:
+                latest[race_id] = (
+                    obtained_at,
+                    deadline,
+                )
+
+        return {
+            race_id: value[1]
+            for race_id, value in latest.items()
+        }
+
+    except Exception as exc:
+        print(
+            "WARN: 当日締切時刻の動的取得に失敗: "
+            f"{exc}"
+        )
+        return {}
+
+
+def apply_dynamic_deadlines(
+    races: list[dict],
+    target_date: str,
+) -> tuple[list[dict], dict[str, str]]:
+    overlay = load_dynamic_deadlines(
+        target_date
+    )
+
+    if not overlay:
+        return races, {}
+
+    changed: dict[str, str] = {}
+    output = []
+
+    for row in races:
+        item = dict(row)
+        race_id = str(
+            item.get("race_id", "")
+        ).strip()
+        revised = overlay.get(
+            race_id
+        )
+        original = str(
+            item.get("deadline", "")
+        ).strip()
+
+        if revised and revised != original:
+            item["deadline_original"] = original
+            item["deadline"] = revised
+            item["deadline_source"] = "live_odds"
+            changed[race_id] = (
+                f"{original}->{revised}"
+            )
+
+        output.append(
+            item
+        )
+
+    if changed:
+        print(
+            "当日締切変更を反映:",
+            changed,
+        )
+
+    return output, changed
+
+
 def archive_beforeinfo_dir(target_date: str) -> Path:
     dt = datetime.strptime(target_date, "%Y%m%d")
 
@@ -1069,6 +1175,11 @@ def main():
         target_date
     )
 
+    base_races, deadline_changes = apply_dynamic_deadlines(
+        base_races,
+        target_date,
+    )
+
     selected = select_races(
         races=base_races,
         target_date=target_date,
@@ -1323,6 +1434,7 @@ def main():
                 args.min_refresh_interval
             ),
             "workers": workers,
+            "deadline_changes": deadline_changes,
             "selected_races": len(selected),
             "selected_new_races": new_count,
             "selected_refresh_races": (
