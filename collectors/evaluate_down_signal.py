@@ -9,7 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 
 
-RULE_VERSION = "down_signal_v0_20261007"
+RULE_VERSION = "down_signal_v1_20261008"
 
 
 
@@ -159,6 +159,7 @@ def signal_from_rows(rows):
             "boat": to_int(ranked[idx].get("boat")),
             "rank": idx + 1,
             "rise": round(deltas[idx], 2),
+            "score": round(live_scores[idx], 2),
         }
         for idx in range(6)
         if (idx + 1) > 3 and deltas[idx] >= 7.5
@@ -167,11 +168,17 @@ def signal_from_rows(rows):
         (x["rise"] for x in raijin_candidates),
         default=None,
     )
+    raijin_has_score50 = any(
+        (x.get("score") is not None and x["score"] >= 50.0)
+        for x in raijin_candidates
+    )
     if raijin_max_rise is None:
         raijin_level = 0
-    elif raijin_max_rise >= 12.5:
+    elif raijin_has_score50:
+        # Lv3: 上昇幅だけでなく、通常予測スコア50以上まで浮上した実戦候補。
         raijin_level = 3
     elif raijin_max_rise >= 10.0:
+        # Lv2: +10以上。Lv3条件に該当しない限り上限なし。
         raijin_level = 2
     else:
         raijin_level = 1
@@ -190,6 +197,7 @@ def signal_from_rows(rows):
         "up_candidate_75": up75,
         "raijin_level": raijin_level,
         "raijin_max_rise": raijin_max_rise,
+        "raijin_has_score50": raijin_has_score50,
         "raijin_candidates": raijin_candidates,
     }
 
@@ -425,9 +433,9 @@ def main():
                 "rank1_delta <= -3.0 and gap_1_2 <= 5.0",
             ],
             "raijin_levels": {
-                "1": "outside_live_top3 max rise >= 7.5 and < 10.0",
-                "2": "outside_live_top3 max rise >= 10.0 and < 12.5",
-                "3": "outside_live_top3 max rise >= 12.5",
+                "1": "outside_live_top3 candidate rise >= 7.5 and < 10.0",
+                "2": "outside_live_top3 candidate max rise >= 10.0, no upper bound, unless Lv3",
+                "3": "outside_live_top3 candidate rise >= 7.5 and current normal score >= 50.0",
             },
             "max_level": 3,
             "prediction_effect": False,
