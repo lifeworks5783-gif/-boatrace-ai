@@ -13,6 +13,10 @@ on:
 permissions:
   contents: write
   actions: write
+
+concurrency:
+  group: pdca-incremental-main
+  cancel-in-progress: true
 jobs:
   evaluate:
     runs-on: ubuntu-latest
@@ -123,7 +127,8 @@ jobs:
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add evaluations/ archive/ predictions/
+          # PDCAは評価結果だけを保存。リアルタイム予測ファイルは別workflowの正本なので触らない。
+          git add evaluations/ archive/
           git diff --cached --quiet || git commit -m "Save complete evaluation outputs $TARGET_DATE"
           git restore .
           git clean -fd
