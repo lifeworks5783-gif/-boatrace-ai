@@ -1557,7 +1557,9 @@ def build_race_rows(
                     ),
 
                 "morning_formation_hit": formation_hit(formation_prediction, trifecta, "morning_formation") if formation_hit(formation_prediction, trifecta, "morning_formation") is not None else formation_hit(live, trifecta, "morning_formation"),
-                "live_formation_hit": formation_hit(live, trifecta, "formation"),
+                # 最終formationは、直前予測があるレースでは必ず直前予測から生成される。
+                # live_predictions_final 自体にはformationを持たないため、保存済みformation側を参照する。
+                "live_formation_hit": formation_hit(formation_prediction, trifecta, "formation") if live else None,
 
                 "trifecta":
                     trifecta,
@@ -2117,10 +2119,10 @@ def render_html(
 
     morning_hit_summary = hit_summary("morning_formation_hit")
     live_hit_summary = hit_summary("live_formation_hit")
-    saved_formation_rate = load_formation_evaluation(target_date)
-    # 現行保存済み買い目評価は直前側の正式値。朝側は朝買い目の保存評価が無いため捏造せず非表示。
-    if saved_formation_rate is not None:
-        live_hit_summary = {"count": len(race_rows), "hits": None, "rate": saved_formation_rate}
+    # 直前買い目的中率は、直前予測が実際に存在したレースだけを対象に
+    # その時点で保存された最終formationを照合する。
+    # 日次formation評価は「直前が無ければ朝」を含む最終予測全体なので、
+    # ここへ流用すると直前欄の分母がずれるため使用しない。
     # 日次AI評価ファイルを正本にする。予測JSONへの埋め込み有無で0Rにならないようにする。
     ai_summary = load_ai_evaluation(target_date) or ai_score_summary(race_rows)
 
