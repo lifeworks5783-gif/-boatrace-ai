@@ -27,6 +27,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install prediction dependencies
+        run: pip install requests beautifulsoup4
       - name: Rebuild today's saved predictions with display-only Fujin Raijin signals
         run: |
           D="${{ inputs.target_date }}"
