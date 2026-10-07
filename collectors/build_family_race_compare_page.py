@@ -1260,6 +1260,39 @@ def has_signal(morning, live):
     return False
 
 
+def parse_trifecta_result(value):
+    text = str(value or "").strip()
+    if not text:
+        return []
+    parts = [normalize_boat(x) for x in text.replace("=", "-").split("-")]
+    if len(parts) != 3 or any(x is None or x not in range(1, 7) for x in parts):
+        return []
+    if len(set(parts)) != 3:
+        return []
+    return parts
+
+
+def prediction_name_map(*predictions):
+    names = {}
+    for prediction in predictions:
+        if not prediction:
+            continue
+        boats = prediction.get("boats") or (prediction.get("raw") or {}).get("boats") or []
+        for row in boats:
+            boat = normalize_boat(row.get("boat"))
+            if boat is None:
+                continue
+            name = str(
+                row.get("name")
+                or row.get("racer_name")
+                or row.get("player_name")
+                or ""
+            ).replace("　", " ").strip()
+            if name:
+                names.setdefault(boat, name)
+    return names
+
+
 # =========================================================
 # レースデータ統合
 # =========================================================
@@ -1357,58 +1390,23 @@ def build_race_rows(
     ai_details = load_ai_details(target_date)
     race_rows = []
 
-    for (
-        race_code,
-        result,
-    ) in results.items():
+    # 詳細結果CSVは払戻CSVより数分遅れる場合がある。
+    # 払戻で3連単が確定していれば、その時点で終了済みレースとして扱う。
+    completed_codes = set(
+        code
+        for code in results
+        if str(code).startswith(target_date)
+    )
+    completed_codes.update(
+        code
+        for code, row in payouts.items()
+        if str(code).startswith(target_date)
+        and len(parse_trifecta_result(row.get("3連単_組番"))) == 3
+    )
 
-        if not race_code.startswith(
-            target_date
-        ):
-            continue
-
-        actual = []
-
-        actual_names = []
-
-        valid = True
-
-        for rank in range(
-            1,
-            4,
-        ):
-
-            boat = normalize_boat(
-                result.get(
-                    f"{rank}着_艇番"
-                )
-            )
-
-            if boat is None:
-
-                valid = False
-                break
-
-            actual.append(
-                boat
-            )
-
-            name = str(
-                result.get(
-                    f"{rank}着_選手名",
-                    "",
-                )
-            ).replace(
-                "　",
-                " ",
-            ).strip()
-
-            actual_names.append(
-                name
-            )
-
-        if not valid:
-            continue
+    for race_code in sorted(completed_codes):
+        result = results.get(race_code, {})
+        payout_row = payouts.get(race_code, {})
 
         morning = (
             morning_predictions.get(
@@ -1422,6 +1420,44 @@ def build_race_rows(
             )
         )
         formation_prediction = (formation_predictions or {}).get(race_code)
+
+        actual = []
+        actual_names = []
+        detailed_result_ready = True
+
+        for rank in range(1, 4):
+            boat = normalize_boat(
+                result.get(f"{rank}着_艇番")
+            )
+            if boat is None:
+                detailed_result_ready = False
+                break
+
+            actual.append(boat)
+            actual_names.append(
+                str(
+                    result.get(
+                        f"{rank}着_選手名",
+                        "",
+                    )
+                ).replace("　", " ").strip()
+            )
+
+        if not detailed_result_ready:
+            actual = parse_trifecta_result(
+                payout_row.get("3連単_組番")
+            )
+            if len(actual) != 3:
+                continue
+            names = prediction_name_map(
+                live,
+                morning,
+                formation_prediction,
+            )
+            actual_names = [
+                names.get(boat, "")
+                for boat in actual
+            ]
 
         if live:
             live_stage = str(live.get("stage") or (live.get("raw") or {}).get("stage") or (live.get("raw") or {}).get("prediction_stage") or "").strip().lower()
@@ -1451,13 +1487,6 @@ def build_race_rows(
                 )
             ):
                 live = formation_prediction
-
-        payout_row = (
-            payouts.get(
-                race_code,
-                {},
-            )
-        )
 
         odds_row = (
             odds.get(
@@ -1505,10 +1534,9 @@ def build_race_rows(
             race_no = 0
 
         deadline = str(
-            result.get(
-                "締切時刻",
-                "",
-            )
+            result.get("締切時刻")
+            or payout_row.get("締切時刻")
+            or ""
         ).strip()
 
         odds_time = str(
@@ -1533,20 +1561,35 @@ def build_race_rows(
                     deadline,
 
                 "result_time":
-                    str(
-                        result.get(
-                            "結果記録時刻",
-                            "",
-                        )
-                    ).strip(),
+                    (
+                        str(
+                            result.get(
+                                "結果記録時刻",
+                                "",
+                            )
+                        ).strip()
+                        if detailed_result_ready
+                        else "速報"
+                    ),
 
                 "technique":
-                    str(
-                        result.get(
-                            "決まり手",
-                            "",
-                        )
-                    ).strip(),
+                    (
+                        str(
+                            result.get(
+                                "決まり手",
+                                "",
+                            )
+                        ).strip()
+                        if detailed_result_ready
+                        else "詳細反映待ち"
+                    ),
+
+                "result_source":
+                    (
+                        "detailed"
+                        if detailed_result_ready
+                        else "payout"
+                    ),
 
                 "actual":
                     actual,
@@ -1606,6 +1649,24 @@ def build_race_rows(
                     ),
             }
         )
+
+    built_codes = {
+        row["race_code"]
+        for row in race_rows
+    }
+    missing_codes = sorted(
+        completed_codes - built_codes
+    )
+    if missing_codes:
+        raise RuntimeError(
+            "レース照合欠損: "
+            + ", ".join(missing_codes)
+        )
+
+    print(
+        "レース照合整合性: PASS / "
+        f"確定元 {len(completed_codes)}R = 表示 {len(built_codes)}R"
+    )
 
     # 締切が遅いレースを上に
     race_rows.sort(
@@ -2285,7 +2346,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{" ⚡" if row.get("signal") else ""} {prediction_quality_warning(row["live"])}
+        {row["race"]}R{" ⚡" if row.get("signal") else ""} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
@@ -2803,6 +2864,15 @@ details.all-scores summary {{
   display:inline-block;
   margin-left:4px;
   color:#9a5b00;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+}}
+
+.result-flash {{
+  display:inline-block;
+  margin-left:4px;
+  color:#174f7a;
   font-size:11px;
   font-weight:900;
   white-space:nowrap;
