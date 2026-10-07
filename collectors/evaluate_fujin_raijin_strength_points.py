@@ -184,28 +184,79 @@ def add_delta(adjusted, no_buff):
 
 def pareto(rows):
     # 最大化: hits, ROI / 最小化: avg_points
-    frontier = []
+    # 最大10万件超の探索でも総当たりO(n^2)にしない。
+    # 同一3指標は代表1件へ圧縮し、hits降順のグループごとに
+    # avg_points以下の最大ROIをFenwick treeで照会する。
+    unique = {}
     for x in rows:
-        xm = x["train"]
-        dominated = False
-        for y in rows:
-            if x is y:
-                continue
-            ym = y["train"]
-            if (
-                ym["hits"] >= xm["hits"]
-                and (ym["roi_pct"] or -999) >= (xm["roi_pct"] or -999)
-                and (ym["avg_points"] or 999) <= (xm["avg_points"] or 999)
-                and (
-                    ym["hits"] > xm["hits"]
-                    or (ym["roi_pct"] or -999) > (xm["roi_pct"] or -999)
-                    or (ym["avg_points"] or 999) < (xm["avg_points"] or 999)
-                )
-            ):
-                dominated = True
-                break
-        if not dominated:
-            frontier.append(x)
+        m = x["train"]
+        key = (
+            int(m["hits"]),
+            float(m["roi_pct"]) if m["roi_pct"] is not None else -999.0,
+            float(m["avg_points"]) if m["avg_points"] is not None else 999.0,
+        )
+        unique.setdefault(key, x)
+
+    compact = list(unique.values())
+    avg_values = sorted({
+        float(x["train"]["avg_points"]) if x["train"]["avg_points"] is not None else 999.0
+        for x in compact
+    })
+    avg_index = {v: i + 1 for i, v in enumerate(avg_values)}
+    bit = [-1000000000.0] * (len(avg_values) + 2)
+
+    def query(i):
+        best = -1000000000.0
+        while i > 0:
+            if bit[i] > best:
+                best = bit[i]
+            i -= i & -i
+        return best
+
+    def update(i, value):
+        while i < len(bit):
+            if value > bit[i]:
+                bit[i] = value
+            i += i & -i
+
+    compact.sort(
+        key=lambda x: (
+            -int(x["train"]["hits"]),
+            float(x["train"]["avg_points"]) if x["train"]["avg_points"] is not None else 999.0,
+            -(float(x["train"]["roi_pct"]) if x["train"]["roi_pct"] is not None else -999.0),
+        )
+    )
+
+    frontier = []
+    pos = 0
+    while pos < len(compact):
+        hits = int(compact[pos]["train"]["hits"])
+        end = pos
+        while end < len(compact) and int(compact[end]["train"]["hits"]) == hits:
+            end += 1
+
+        group = compact[pos:end]
+        same_hits_best_roi = -1000000000.0
+        for x in group:
+            m = x["train"]
+            avg = float(m["avg_points"]) if m["avg_points"] is not None else 999.0
+            roi = float(m["roi_pct"]) if m["roi_pct"] is not None else -999.0
+            dominated_by_higher_hits = query(avg_index[avg]) >= roi
+            dominated_by_same_hits = same_hits_best_roi >= roi
+            if not dominated_by_higher_hits and not dominated_by_same_hits:
+                frontier.append(x)
+            if roi > same_hits_best_roi:
+                same_hits_best_roi = roi
+
+        # 同一hits内を相互比較し終えてから登録する。
+        for x in group:
+            m = x["train"]
+            avg = float(m["avg_points"]) if m["avg_points"] is not None else 999.0
+            roi = float(m["roi_pct"]) if m["roi_pct"] is not None else -999.0
+            update(avg_index[avg], roi)
+
+        pos = end
+
     frontier.sort(
         key=lambda x: (
             -x["train"]["hits"],
