@@ -218,46 +218,115 @@ def _provisional_down_signal_from_race(race):
     }
 
 
-def signal_marker(race):
+def _provisional_up_signal_from_race(race):
+    stored = race.get("up_signal")
+    if isinstance(stored, dict) and "level" in stored:
+        return stored
+
+    quality = race.get("prediction_quality") or {}
+    if quality.get("recovery_needed") or text(quality.get("status")) == "fallback":
+        return {"available": False, "active": False, "level": 0, "candidates": []}
+
     boats = race.get("boats") or []
     morning = {
         text(x.get("boat")): to_float(x.get("score"))
         for x in (race.get("morning_boats") or [])
     }
+    if len(boats) != 6 or not morning:
+        return {"available": False, "active": False, "level": 0, "candidates": []}
 
-    markers = []
-    if len(boats) == 6 and morning:
-        for rank, boat in enumerate(boats, 1):
-            live = to_float(boat.get("score"))
-            base = morning.get(text(boat.get("boat")))
-            if (
-                rank > 3
-                and live is not None
-                and base is not None
-                and live - base >= 10.0
-            ):
-                markers.append("⚡")
-                break
+    candidates = []
+    for rank, boat in enumerate(boats, 1):
+        live = to_float(boat.get("score"))
+        base = morning.get(text(boat.get("boat")))
+        if rank <= 3 or live is None or base is None:
+            continue
+        rise = live - base
+        if rise >= 7.5:
+            candidates.append({
+                "boat": text(boat.get("boat")),
+                "rank": rank,
+                "rise": round(rise, 2),
+            })
 
-    down = _provisional_down_signal_from_race(race)
-    level = int(down.get("level") or 0)
-    if level > 0:
-        metrics = down.get("metrics") or {}
-        title = (
-            f"暫定下落シグナル {level}/3"
+    max_rise = max((x["rise"] for x in candidates), default=None)
+    if max_rise is None:
+        level = 0
+    elif max_rise >= 12.5:
+        level = 3
+    elif max_rise >= 10.0:
+        level = 2
+    else:
+        level = 1
+
+    return {
+        "available": True,
+        "active": level > 0,
+        "level": level,
+        "max_rise": max_rise,
+        "candidates": candidates,
+        "status": "provisional_analysis_only",
+        "ai_effect": False,
+        "formation_effect": False,
+    }
+
+
+def signal_marker(race):
+    raijin = _provisional_up_signal_from_race(race)
+    fujin = _provisional_down_signal_from_race(race)
+
+    raijin_level = int(raijin.get("level") or 0)
+    fujin_level = int(fujin.get("level") or 0)
+
+    if raijin_level <= 0 and fujin_level <= 0:
+        return ""
+
+    raijin_title = ""
+    if raijin_level > 0:
+        max_rise = to_float(raijin.get("max_rise"))
+        candidate_text = " / ".join(
+            f"{text(x.get('boat'))}号艇 +{to_float(x.get('rise')) or 0:.1f}"
+            for x in (raijin.get("candidates") or [])
+        )
+        raijin_title = (
+            f"雷神シグナル {raijin_level}/3"
+            f"｜最大上昇 +{max_rise or 0:.1f}"
+            + (f"｜{candidate_text}" if candidate_text else "")
+            + "｜表示・分析のみ（予測計算には未反映）"
+        )
+
+    fujin_title = ""
+    if fujin_level > 0:
+        metrics = fujin.get("metrics") or {}
+        fujin_title = (
+            f"風神シグナル {fujin_level}/3"
             f"｜1位朝比 {to_float(metrics.get('rank1_delta')) or 0:.1f}"
             f"｜TOP3合計 {to_float(metrics.get('top3_delta_sum')) or 0:.1f}"
             f"｜1-2位差 {to_float(metrics.get('gap_1_2')) or 0:.1f}"
-            "｜表示・分析のみ（AI買い目には未反映）"
-        )
-        markers.append(
-            f'<span class="down-signal" title="{esc(title)}">'
-            + ("🔻" * level)
-            + "</span>"
+            "｜表示・分析のみ（予測計算には未反映）"
         )
 
-    return (" " + " ".join(markers)) if markers else ""
+    top = (
+        f'<span class="signal-row raijin" title="{esc(raijin_title)}">'
+        + ("⚡" * min(3, raijin_level))
+        + "</span>"
+        if raijin_level > 0
+        else '<span class="signal-row raijin empty-signal">&nbsp;</span>'
+    )
+    bottom = (
+        f'<span class="signal-row fujin" title="{esc(fujin_title)}">'
+        + ("💨" * min(3, fujin_level))
+        + "</span>"
+        if fujin_level > 0
+        else '<span class="signal-row fujin empty-signal">&nbsp;</span>'
+    )
 
+    return (
+        '<span class="fujin-raijin-stack" title="風神雷神シグナル">'
+        + top
+        + bottom
+        + "</span>"
+    )
 def quality_warning_marker(race):
     quality = race.get("prediction_quality") or {}
     if quality.get("recovery_needed") or text(quality.get("status")) == "fallback":
@@ -742,7 +811,10 @@ def main():
 
     .race-name {{
       margin-top: 3px;
-
+      display:flex;
+      align-items:center;
+      gap:2px;
+      flex-wrap:wrap;
       font-size: 16px;
       font-weight: 700;
     }}
@@ -790,11 +862,33 @@ def main():
     .badge-wrap {{display:flex;align-items:center;gap:5px}}
     .data-ok {{font-size:13px;color:#2e7d32}}
     .data-ng {{font-size:14px;color:#b26a00;font-weight:800}}
-    .down-signal {{
-  display:inline-block;
-  margin-left:2px;
-  font-weight:800;
-}}
+    .fujin-raijin-stack {{
+      display:inline-grid;
+      grid-template-rows:auto auto;
+      align-items:center;
+      justify-items:start;
+      gap:0;
+      margin-left:5px;
+      vertical-align:middle;
+      line-height:1;
+    }}
+    .signal-row {{
+      display:block;
+      min-height:13px;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:-1px;
+      white-space:nowrap;
+    }}
+    .signal-row.raijin {{
+      color:#9a6500;
+    }}
+    .signal-row.fujin {{
+      color:#176b7a;
+    }}
+    .signal-row.empty-signal {{
+      visibility:hidden;
+    }}
 
 .quality-warning {{font-size:12px;color:#9a5b00;font-weight:900;white-space:nowrap}}
 
