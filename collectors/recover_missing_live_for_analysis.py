@@ -95,8 +95,56 @@ def main():
         copy_base_if_needed(d)
 
         # 結果・払戻はこの復旧入力には使わない。
-        # BOAT RACE公式の当該日beforeinfo（展示・進入・気象等）だけを再取得する。
-        run("collectors/today_beforeinfo.py", "--date", d, "--mode", "all")
+        # 欠損していたレースだけを BOAT RACE公式 beforeinfo から再取得する。
+        # 全144Rの再アクセスを避け、既知の収集不具合で欠けた対象だけを復旧する。
+        import today_beforeinfo as tbi
+
+        missing_set = set(missing_before)
+        target_bases = [
+            row for row in expected_rows
+            if normalize_race_id(row.get("race_id")) in missing_set
+        ]
+        race_rows = []
+        entry_rows = []
+        retry_errors = []
+        for base in target_bases:
+            result = tbi.fetch_one(base, d)
+            if result.get("parsed") is None:
+                retry_errors.append({
+                    "race_id": normalize_race_id(base.get("race_id")),
+                    "error": result.get("error"),
+                })
+                continue
+            race_row, entries = result["parsed"]
+            race_rows.append(race_row)
+            entry_rows.extend(entries)
+
+        if retry_errors:
+            print("official beforeinfo retry errors:", json.dumps(retry_errors, ensure_ascii=False))
+
+        tbi.write_csv(
+            Path("data") / f"beforeinfo_races_{d}.csv",
+            race_rows,
+            tbi.RACE_FIELDS,
+        )
+        tbi.write_csv(
+            Path("data") / f"beforeinfo_entries_{d}.csv",
+            entry_rows,
+            tbi.ENTRY_FIELDS,
+        )
+        validation = {
+            "date": d,
+            "mode": "analysis_recovery",
+            "requested_races": len(target_bases),
+            "ready_races": len(race_rows),
+            "entry_rows": len(entry_rows),
+            "errors": retry_errors,
+            "provenance": "post_result_retry_due_known_live_collection_bug",
+        }
+        (Path("data") / f"beforeinfo_validation_{d}.json").write_text(
+            json.dumps(validation, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
         for name in (
             f"beforeinfo_races_{d}.csv",
