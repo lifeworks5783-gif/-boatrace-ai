@@ -16,7 +16,7 @@ from evaluate_fujin_raijin_buff_debuff_search import (
 )
 
 
-VERSION = "fujin_raijin_strength_points_search_v2_20261007"
+VERSION = "fujin_raijin_strength_points_search_v3_20261007"
 POINT_CHOICES = tuple(range(6, 25, 2))  # 6,8,10,...,24
 TOP_BUFF_VARIANTS = 20
 
@@ -46,11 +46,11 @@ def strength(race):
 
 
 def monotonic_policies():
-    # 強度0は最低6点に固定。
+    # 強度0（風神・雷神とも未発動）は買わない=0点。
     # 強度1..6は6-24点の2点刻みで単調非減少。
     # 10種類から重複あり6個選択 = 5005通り。
     for vals in itertools.combinations_with_replacement(POINT_CHOICES, 6):
-        yield (6,) + vals
+        yield (0,) + vals
 
 
 def policy_key(p):
@@ -84,8 +84,9 @@ def build_lookup(records):
     lookup = {}
     for s in range(7):
         rs = [x for x in records if x["strength"] == s]
-        for n in POINT_CHOICES:
-            hits = [x for x in rs if x["actual_rank"] <= n]
+        point_candidates = (0,) if s == 0 else POINT_CHOICES
+        for n in point_candidates:
+            hits = [x for x in rs if n > 0 and x["actual_rank"] <= n]
             lookup[(s, n)] = {
                 "races": len(rs),
                 "hits": len(hits),
@@ -318,12 +319,12 @@ def main():
         "formation_effect": False,
         "method": {
             "combined_strength": "風神Lv + 雷神Lv (0-6)",
-            "point_range": [6, 24],
+            "point_range": [0, 24],
             "point_step": 2,
-            "strength0_fixed_points": 6,
+            "strength0_fixed_points": 0,
             "monotonic_points": True,
             "combination_ranking": "補正後艇スコアで全120通りを50/30/20加重し上位N点",
-            "note": "現行formation_gap_flow_v2は本番比較基準として保持し、この探索では6-24点拡張の効果を独立検証する",
+            "note": "風神・雷神とも未発動は0点で見送り。発動レースのみ6-24点で全120通り上位N点を検証する。現行formation_gap_flow_v2は本番比較基準として保持する",
         },
         "search_space": {
             "buff_variants": min(TOP_BUFF_VARIANTS, len(top)),
