@@ -30,3 +30,11 @@ jobs:
         run: |
           gh workflow run fast_live_collection_v3.yml --ref main
           echo "既存のFast Live Collection V3へ処理を引き渡しました。"
+
+      - name: 既存の高速結果評価も当日分で起動
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+          gh workflow run evaluation_0930.yml --ref main -f target_date="${TARGET_DATE}"
+          echo "既存の高速結果評価を当日分で起動しました: ${TARGET_DATE}"
