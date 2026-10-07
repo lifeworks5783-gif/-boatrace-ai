@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "model_version": "formation_gap_flow_v2",
   "target_date": "20261007",
-  "generated_at": "2026-10-07T17:14:42+09:00",
+  "generated_at": "2026-10-07T17:24:32.459042+09:00",
   "race_count": 144,
   "simulation_rule": "3連単各組み合わせ100円固定",
   "races": [
@@ -4378,6 +4378,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 7.2,
+          "top3_delta_sum": 20.04,
+          "gap_1_2": 5.68
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -9452,6 +9484,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 4.32,
+          "top3_delta_sum": 8.46,
+          "gap_1_2": 14.56
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -9471,9 +9535,9 @@
           "締切前の直前情報が未確定または未保存"
         ],
         "fallback_source": "saved_morning_prediction",
-        "recorded_at": "2026-10-07T17:14:42+09:00"
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -13249,6 +13313,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -18351,6 +18423,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 5.58,
+          "top3_delta_sum": -0.98,
+          "gap_1_2": 5.28
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -23442,6 +23546,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.96,
+          "top3_delta_sum": -6.46,
+          "gap_1_2": 10.8
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -23460,7 +23596,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -27195,6 +27331,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -27213,7 +27357,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -30963,6 +31107,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -30981,7 +31133,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -34702,6 +34854,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -34720,7 +34880,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -38455,6 +38615,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -38473,7 +38641,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -42235,6 +42403,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -42253,7 +42429,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -45947,6 +46123,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -45965,7 +46149,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -49700,6 +49884,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -54709,6 +54901,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -5.12,
+          "top3_delta_sum": 6.54,
+          "gap_1_2": 2.8
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -59035,6 +59262,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.96,
+          "top3_delta_sum": 1.62,
+          "gap_1_2": 2.4
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -59054,9 +59313,9 @@
           "締切前の直前情報が未確定または未保存"
         ],
         "fallback_source": "saved_morning_prediction",
-        "recorded_at": "2026-10-07T17:14:42+09:00"
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -62724,6 +62983,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -62743,9 +63010,9 @@
           "締切前の直前情報が未確定または未保存"
         ],
         "fallback_source": "saved_morning_prediction",
-        "recorded_at": "2026-10-07T17:14:42+09:00"
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -66427,6 +66694,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -70766,6 +71041,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.14,
+          "top3_delta_sum": -1.08,
+          "gap_1_2": 21.75
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -75105,6 +75412,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -3.73,
+          "top3_delta_sum": -18.52,
+          "gap_1_2": 1.48
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -79438,6 +79780,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -5.51,
+          "top3_delta_sum": -7.48,
+          "gap_1_2": 3.23
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -83771,6 +84148,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 5.24,
+          "top3_delta_sum": -3.51,
+          "gap_1_2": 17.61
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -88787,6 +89196,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -5.98,
+          "top3_delta_sum": -16.56,
+          "gap_1_2": 23.52
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -93100,6 +93544,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -8.91,
+          "top3_delta_sum": -22.06,
+          "gap_1_2": 16.05
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -97425,6 +97904,42 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 3,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -6.22,
+          "top3_delta_sum": -22.16,
+          "gap_1_2": 3.76
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -102454,6 +102969,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -6.46,
+          "top3_delta_sum": -3.82,
+          "gap_1_2": 29.76
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -107019,6 +107568,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 13.34,
+          "top3_delta_sum": 15.72,
+          "gap_1_2": 2.08
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -112278,6 +112859,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -116863,6 +117452,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.52,
+          "top3_delta_sum": 12.54,
+          "gap_1_2": 12.56
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -122131,6 +122752,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 5.44,
+          "top3_delta_sum": 2.52,
+          "gap_1_2": 15.28
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -126716,6 +127369,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.74,
+          "top3_delta_sum": 5.76,
+          "gap_1_2": 1.61
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -131978,6 +132663,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 0.56,
+          "top3_delta_sum": 11.52,
+          "gap_1_2": 2.88
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -137231,6 +137948,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -5.56,
+          "top3_delta_sum": -13.07,
+          "gap_1_2": 10.8
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -142493,6 +143245,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.6,
+          "top3_delta_sum": 6.8,
+          "gap_1_2": 33.6
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -147756,6 +148540,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 4.76,
+          "top3_delta_sum": 13.68,
+          "gap_1_2": 6.24
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -152325,6 +153141,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -156884,6 +157708,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -6.08,
+          "top3_delta_sum": 1.06,
+          "gap_1_2": 14.76
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -162159,6 +163017,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.7,
+          "top3_delta_sum": 7.48,
+          "gap_1_2": 19.36
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -167216,6 +168106,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.62,
+          "top3_delta_sum": 5.72,
+          "gap_1_2": 7.02
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -167235,9 +168157,9 @@
           "締切前の直前情報が未確定または未保存"
         ],
         "fallback_source": "saved_morning_prediction",
-        "recorded_at": "2026-10-07T17:14:42+09:00"
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -170958,6 +171880,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -175981,6 +176911,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 0.06,
+          "top3_delta_sum": 36.74,
+          "gap_1_2": 3.2
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -180998,6 +181960,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 2.56,
+          "top3_delta_sum": 4.49,
+          "gap_1_2": 5.33
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -185365,6 +186359,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 4.98,
+          "top3_delta_sum": 2.85,
+          "gap_1_2": 1.52
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -190385,6 +191411,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -0.58,
+          "top3_delta_sum": -1.98,
+          "gap_1_2": 7.26
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -190403,7 +191461,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -194153,6 +195211,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -194171,7 +195237,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -197880,6 +198946,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -197898,7 +198972,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -201607,6 +202681,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -201625,7 +202707,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -205334,6 +206416,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -205352,7 +206442,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -209061,6 +210151,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -209079,7 +210177,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -212843,6 +213941,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -212862,9 +213968,9 @@
           "締切前の直前情報が未確定または未保存"
         ],
         "fallback_source": "saved_morning_prediction",
-        "recorded_at": "2026-10-07T17:14:42+09:00"
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -216804,6 +217910,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -221328,6 +222442,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -2.11,
+          "top3_delta_sum": 11.03,
+          "gap_1_2": 0.61
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -225906,6 +227052,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 6.48,
+          "top3_delta_sum": -10.46,
+          "gap_1_2": 24.0
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -231166,6 +232346,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -2.3,
+          "top3_delta_sum": 3.9,
+          "gap_1_2": 6.56
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -236435,6 +237647,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.64,
+          "top3_delta_sum": 6.66,
+          "gap_1_2": 0.48
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -241688,6 +242932,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 0.76,
+          "top3_delta_sum": 9.23,
+          "gap_1_2": 19.57
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -246953,6 +248229,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -0.13,
+          "top3_delta_sum": -7.68,
+          "gap_1_2": 0.15
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -252222,6 +253530,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -8.16,
+          "top3_delta_sum": 0.64,
+          "gap_1_2": 1.96
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -257491,6 +258834,42 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 3,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -13.38,
+          "top3_delta_sum": -21.28,
+          "gap_1_2": 4.53
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -262022,6 +263401,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.06,
+          "top3_delta_sum": 8.1,
+          "gap_1_2": 7.76
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -266553,6 +267964,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.88,
+          "top3_delta_sum": -16.82,
+          "gap_1_2": 23.28
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -271828,6 +273273,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.8,
+          "top3_delta_sum": -5.36,
+          "gap_1_2": 19.06
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -276401,6 +277878,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -3.9,
+          "top3_delta_sum": -10.16,
+          "gap_1_2": 5.12
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -280980,6 +282491,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.56,
+          "top3_delta_sum": 9.86,
+          "gap_1_2": 8.96
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -285553,6 +287096,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 6.82,
+          "top3_delta_sum": 11.04,
+          "gap_1_2": 8.8
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -290832,6 +292407,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -6.53,
+          "top3_delta_sum": -10.75,
+          "gap_1_2": 24.83
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -295391,6 +297001,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -5.04,
+          "top3_delta_sum": -13.04,
+          "gap_1_2": 10.16
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -300654,6 +302299,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 4.52,
+          "top3_delta_sum": -0.79,
+          "gap_1_2": 5.29
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -305929,6 +307606,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -1.52,
+          "top3_delta_sum": 12.92,
+          "gap_1_2": 17.7
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -311198,6 +312907,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -9.42,
+          "top3_delta_sum": -9.34,
+          "gap_1_2": 7.68
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -316460,6 +318203,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -0.2,
+          "top3_delta_sum": 15.05,
+          "gap_1_2": 17.12
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -321721,6 +323496,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 2.98,
+          "top3_delta_sum": 12.96,
+          "gap_1_2": 0.72
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -326293,6 +328100,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.24,
+          "top3_delta_sum": 13.92,
+          "gap_1_2": 5.92
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -330865,6 +332704,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -10.44,
+          "top3_delta_sum": -20.64,
+          "gap_1_2": 12.0
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -336138,6 +338012,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.45,
+          "top3_delta_sum": -1.23,
+          "gap_1_2": 1.81
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -340717,6 +342623,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 4.2,
+          "top3_delta_sum": 7.3,
+          "gap_1_2": 7.44
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -345979,6 +347917,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.64,
+          "top3_delta_sum": 0.43,
+          "gap_1_2": 17.52
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -351245,6 +353215,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.16,
+          "top3_delta_sum": 6.67,
+          "gap_1_2": 22.75
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -351264,9 +353266,9 @@
           "締切前の直前情報が未確定または未保存"
         ],
         "fallback_source": "saved_morning_prediction",
-        "recorded_at": "2026-10-07T17:14:42+09:00"
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -355192,6 +357194,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -360448,6 +362458,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -12.32,
+          "top3_delta_sum": -12.04,
+          "gap_1_2": 9.28
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -365723,6 +367768,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.26,
+          "top3_delta_sum": -2.02,
+          "gap_1_2": 22.46
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -370998,6 +373075,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.24,
+          "top3_delta_sum": 9.9,
+          "gap_1_2": 29.44
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -376267,6 +378376,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.52,
+          "top3_delta_sum": -3.76,
+          "gap_1_2": 6.56
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -381533,6 +383674,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -5.89,
+          "top3_delta_sum": -0.31,
+          "gap_1_2": 15.41
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -386794,6 +388969,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.36,
+          "top3_delta_sum": 9.8,
+          "gap_1_2": 4.48
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -391365,6 +393572,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.02,
+          "top3_delta_sum": -3.42,
+          "gap_1_2": 1.44
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -396640,6 +398881,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.9,
+          "top3_delta_sum": -11.64,
+          "gap_1_2": 25.84
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -401213,6 +403488,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.4,
+          "top3_delta_sum": 15.38,
+          "gap_1_2": 6.96
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -406488,6 +408795,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 4.44,
+          "top3_delta_sum": 12.34,
+          "gap_1_2": 4.32
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -411059,6 +413398,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.18,
+          "top3_delta_sum": 10.2,
+          "gap_1_2": 4.72
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -416334,6 +418705,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 2.0,
+          "top3_delta_sum": 14.68,
+          "gap_1_2": 11.84
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -421609,6 +424012,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.84,
+          "top3_delta_sum": 14.08,
+          "gap_1_2": 12.42
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -426864,6 +429299,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 4.16,
+          "top3_delta_sum": 3.21,
+          "gap_1_2": 11.6
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -432125,6 +434592,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.18,
+          "top3_delta_sum": -15.2,
+          "gap_1_2": 0.24
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -437394,6 +439896,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 5.8,
+          "top3_delta_sum": -8.06,
+          "gap_1_2": 7.96
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -442656,6 +445190,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -1.0,
+          "top3_delta_sum": 11.98,
+          "gap_1_2": 2.56
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -447221,6 +449787,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -2.1,
+          "top3_delta_sum": 10.46,
+          "gap_1_2": 2.58
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -451806,6 +454404,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.24,
+          "top3_delta_sum": 9.33,
+          "gap_1_2": 22.96
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -456895,6 +459525,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -1.46,
+          "top3_delta_sum": -5.87,
+          "gap_1_2": 11.28
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -456914,9 +459576,9 @@
           "締切前の直前情報が未確定または未保存"
         ],
         "fallback_source": "saved_morning_prediction",
-        "recorded_at": "2026-10-07T17:14:42+09:00"
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -460639,6 +463301,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -465660,6 +468330,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 6.32,
+          "top3_delta_sum": -12.96,
+          "gap_1_2": 5.92
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -470677,6 +473381,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -0.2,
+          "top3_delta_sum": 20.54,
+          "gap_1_2": 6.34
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -475739,6 +478475,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 0.04,
+          "top3_delta_sum": 8.34,
+          "gap_1_2": 8.56
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -480813,6 +483581,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 2.64,
+          "top3_delta_sum": -3.03,
+          "gap_1_2": 3.47
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -485959,6 +488759,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.44,
+          "top3_delta_sum": -2.25,
+          "gap_1_2": 7.04
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -490962,6 +493794,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 0.96,
+          "top3_delta_sum": 10.48,
+          "gap_1_2": 25.12
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -495369,6 +498233,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -7.3,
+          "top3_delta_sum": -8.4,
+          "gap_1_2": 0.4
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -500413,6 +503312,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 0.9,
+          "top3_delta_sum": 14.08,
+          "gap_1_2": 13.44
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -505429,6 +508360,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -0.08,
+          "top3_delta_sum": -0.25,
+          "gap_1_2": 4.66
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -510486,6 +513449,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -11.22,
+          "top3_delta_sum": -13.02,
+          "gap_1_2": 16.88
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -515735,6 +518733,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -7.89,
+          "top3_delta_sum": -13.54,
+          "gap_1_2": 19.54
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -515754,9 +518787,9 @@
           "締切前の直前情報が未確定または未保存"
         ],
         "fallback_source": "saved_morning_prediction",
-        "recorded_at": "2026-10-07T17:14:42+09:00"
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -519629,6 +522662,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -524188,6 +527229,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.36,
+          "top3_delta_sum": 2.88,
+          "gap_1_2": 13.68
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -529451,6 +532524,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.78,
+          "top3_delta_sum": 11.04,
+          "gap_1_2": 6.56
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -533982,6 +537087,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 5.46,
+          "top3_delta_sum": 4.12,
+          "gap_1_2": 4.24
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -539203,6 +542340,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 3.54,
+          "top3_delta_sum": 10.14,
+          "gap_1_2": 3.4
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -543768,6 +546937,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -7.72,
+          "top3_delta_sum": 4.0,
+          "gap_1_2": 4.86
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -548334,6 +551538,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.9,
+          "top3_delta_sum": 7.15,
+          "gap_1_2": 6.51
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -552878,6 +556114,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 6.02,
+          "top3_delta_sum": 1.12,
+          "gap_1_2": 22.72
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -557457,6 +560725,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -9.52,
+          "top3_delta_sum": -14.28,
+          "gap_1_2": 9.68
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -562042,6 +565345,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10",
+          "rank1_drop_close_gap"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": true
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -3.36,
+          "top3_delta_sum": -10.82,
+          "gap_1_2": 1.68
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -566614,6 +569952,41 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 2,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5",
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -6.34,
+          "top3_delta_sum": -12.85,
+          "gap_1_2": 25.2
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -566632,7 +570005,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -570546,6 +573919,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -570564,7 +573945,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -574504,6 +577885,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -574522,7 +577911,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -578450,6 +581839,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -578468,7 +581865,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -582408,6 +585805,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -582426,7 +585831,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -586366,6 +589771,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -586384,7 +589797,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -590312,6 +593725,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -590330,7 +593751,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -594258,6 +597679,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -594276,7 +597705,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -598204,6 +601633,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -598222,7 +601659,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -602162,6 +605599,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -602180,7 +605625,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -606094,6 +609539,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -606112,7 +609565,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -610052,6 +613505,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -610070,7 +613531,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -614010,6 +617471,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -619266,6 +622735,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -1.48,
+          "top3_delta_sum": 11.54,
+          "gap_1_2": 7.84
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -624535,6 +628036,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "rank1_drop_5"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": true
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -11.76,
+          "top3_delta_sum": -2.23,
+          "gap_1_2": 5.76
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -629804,6 +633339,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -0.48,
+          "top3_delta_sum": -4.1,
+          "gap_1_2": 16.34
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -635072,6 +638639,40 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": true,
+        "level": 1,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [
+          "top3_total_drop_10"
+        ],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": true
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 0.91,
+          "top3_delta_sum": -12.66,
+          "gap_1_2": 1.28
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -639651,6 +643252,38 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": true,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -4.52,
+          "top3_delta_sum": -9.75,
+          "gap_1_2": 10.7
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only"
       }
     },
     {
@@ -639660,16 +643293,19 @@
       "venue_name": "大村",
       "race": 6,
       "deadline": "2026-10-07T17:34:00+09:00",
-      "prediction_type": "朝",
+      "prediction_type": "直前",
       "prediction_quality": {
-        "status": "normal",
-        "mark": "",
-        "label": "正常",
-        "recovery_needed": false,
-        "reason": [],
-        "fallback_source": null
+        "status": "fallback",
+        "mark": "⚠",
+        "label": "補完あり",
+        "recovery_needed": true,
+        "reason": [
+          "締切前の直前情報が未確定または未保存"
+        ],
+        "fallback_source": "saved_morning_prediction",
+        "recorded_at": "2026-10-07T17:24:32.459042+09:00"
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -643609,6 +647245,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "fallback_prediction"
       }
     },
     {
@@ -643627,7 +647271,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -647553,6 +651197,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -647571,7 +651223,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -651499,6 +655151,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -651517,7 +655177,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -655445,6 +659105,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -655463,7 +659131,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -659377,6 +663045,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -659395,7 +663071,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -663323,6 +666999,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     },
     {
@@ -663341,7 +667025,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-07T17:14:42+09:00",
+      "generated_at": "2026-10-07T17:24:32.459042+09:00",
       "boats": [
         {
           "rank": 1,
@@ -667255,6 +670939,14 @@
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。"
+      },
+      "down_signal": {
+        "available": false,
+        "active": false,
+        "level": 0,
+        "rule_version": "down_signal_v0_20261007",
+        "reasons": [],
+        "suppressed_reason": "missing_morning_reference"
       }
     }
   ]
