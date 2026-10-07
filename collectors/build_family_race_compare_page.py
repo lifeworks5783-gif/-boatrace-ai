@@ -805,6 +805,96 @@ def load_prediction_file(
     return output
 
 
+def load_recovered_live_predictions(target_date):
+    """既知の収集不具合を安全に復旧した直前予測を照合表示用に読む。"""
+    yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
+    recovery_dir = Path("evaluations") / yyyy / mm / dd / "recovery"
+    merged_path = recovery_dir / f"merged_live_predictions_{target_date}.csv"
+    manifest_path = recovery_dir / f"live_recovery_manifest_{target_date}.json"
+
+    if not merged_path.is_file() or not manifest_path.is_file():
+        return {}
+
+    manifest = read_json(manifest_path) or {}
+    safe_recovery = (
+        manifest.get("status") == "complete"
+        and manifest.get("treat_recovered_as_observation") is True
+        and manifest.get("result_leakage") is False
+        and not (manifest.get("still_missing") or [])
+    )
+    if not safe_recovery:
+        return {}
+
+    grouped = {}
+    try:
+        with merged_path.open("r", encoding="utf-8-sig", newline="") as f:
+            for row in csv.DictReader(f):
+                race_code = extract_race_code(row, target_date)
+                if race_code:
+                    grouped.setdefault(race_code, []).append(row)
+    except Exception as exc:
+        print(f"WARN: 復旧直前予測CSV読込失敗: {merged_path}: {exc}")
+        return {}
+
+    expected = safe_int(manifest.get("merged_analysis_races"))
+    if expected is not None and len(grouped) != expected:
+        print(
+            "WARN: 復旧直前予測のレース数不一致:",
+            len(grouped),
+            "!=",
+            expected,
+        )
+        return {}
+
+    output = {}
+    for race_code, boats in grouped.items():
+        boats.sort(
+            key=lambda row: (
+                safe_int(row.get("rank")) or 99,
+                -(safe_float(row.get("score")) or 0),
+                safe_int(row.get("boat")) or 99,
+            )
+        )
+        if len(boats) != 6:
+            return {}
+
+        top3 = []
+        for row in boats[:3]:
+            pick = normalize_pick(row)
+            if pick:
+                top3.append(pick)
+        if len(top3) != 3:
+            return {}
+
+        first = boats[0]
+        quality = {
+            "status": "recovered_observation",
+            "recovery_needed": False,
+            "provenance": manifest.get("provenance"),
+        }
+        raw = {
+            "race_id": first.get("race_id"),
+            "venue_code": first.get("venue_code"),
+            "venue_name": first.get("venue_name"),
+            "race": first.get("race"),
+            "deadline": first.get("deadline"),
+            "stage": "live_recovered_analysis",
+            "prediction_quality": quality,
+            "boats": boats,
+        }
+        output[race_code] = {
+            "race_code": race_code,
+            "top3": top3,
+            "boats": boats,
+            "raw": raw,
+            "stage": "live_recovered_analysis",
+            "prediction_quality": quality,
+            "ai_score_prediction": {},
+        }
+
+    return output
+
+
 def locate_morning_file(
     root,
     target_date,
@@ -1025,6 +1115,17 @@ def load_predictions(
         live = load_prediction_file(
             live_file,
             target_date,
+        )
+
+    recovered_live = load_recovered_live_predictions(
+        target_date
+    )
+    if recovered_live:
+        live = recovered_live
+        print(
+            "復旧済み直前予測を照合表示に採用:",
+            len(live),
+            "R",
         )
 
     print(
