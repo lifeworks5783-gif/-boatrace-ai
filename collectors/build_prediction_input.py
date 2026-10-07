@@ -602,6 +602,11 @@ def build_race(
             "deadline",
             "",
         ),
+        "beforeinfo_requested_at": (
+            live_race.get("requested_at", "")
+            if live_race
+            else ""
+        ),
         "beforeinfo_collected_at": (
             live_race.get("collected_at", "")
             if live_race
