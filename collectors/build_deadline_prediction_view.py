@@ -293,11 +293,18 @@ def main():
             or {}
         )
 
+        quality = race.get("prediction_quality") or {}
+        quality_mark = " ⚠補完あり" if (
+            quality.get("recovery_needed")
+            or text(quality.get("status")) == "fallback"
+        ) else ""
+
         lines.append(
             f"## {index}. "
             f"{deadline_label(race.get('deadline'))} "
             f"{venue} {race_no}R "
             f"【{prediction_type}】"
+            f"{quality_mark}"
         )
 
         lines.append("")
