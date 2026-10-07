@@ -798,6 +798,7 @@ def load_prediction_file(
             "boats": row.get("boats") or [],
             "raw": row,
             "stage": str(row.get("stage") or row.get("prediction_stage") or row.get("source_stage") or "").strip(),
+            "prediction_quality": row.get("prediction_quality") or {},
             "ai_score_prediction": row.get("ai_score_prediction") or {},
         }
 
@@ -1714,6 +1715,22 @@ def score_delta_html(boat, score, morning_scores):
     return f'<span class="score-delta down">▼ {delta:.1f}</span>'
 
 
+def prediction_quality_warning(prediction):
+    if not prediction:
+        return ""
+    raw = prediction.get("raw") or {}
+    quality = prediction.get("prediction_quality") or raw.get("prediction_quality") or {}
+    status = str(quality.get("status") or "").strip()
+    if quality.get("recovery_needed") or status == "fallback":
+        reasons = quality.get("reason") or []
+        reason_text = " / ".join(str(x).strip() for x in reasons if str(x).strip())
+        title = "補完値を使って生成した直前予測。締切前の正式データで再計算できる場合は復元対象"
+        if reason_text:
+            title += f"：{reason_text}"
+        return f'<span class="quality-warning" title="{esc(title)}">⚠補完あり</span>'
+    return ""
+
+
 def prediction_html(prediction, morning_scores=None):
     if not prediction:
         return '<span class="missing">予測なし</span>'
@@ -2244,7 +2261,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{" ⚡" if row.get("signal") else ""}
+        {row["race"]}R{" ⚡" if row.get("signal") else ""} {prediction_quality_warning(row["live"])}
       </div>
 
       <div class="sub">
@@ -2300,7 +2317,7 @@ def render_html(
   <div class="prediction-row">
 
     <div class="label">
-      直前予測
+      直前予測 {prediction_quality_warning(row["live"])}
     </div>
 
     <div>
@@ -2756,6 +2773,15 @@ details.all-scores summary {{
     var(--muted);
 
   font-size:12px;
+}}
+
+.quality-warning {{
+  display:inline-block;
+  margin-left:4px;
+  color:#9a5b00;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
 }}
 
 .simulation-label {{
