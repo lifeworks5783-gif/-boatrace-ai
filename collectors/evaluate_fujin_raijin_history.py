@@ -13,6 +13,7 @@ from evaluate_down_signal import (
     parse_actual,
     payout_value,
     read_csv,
+    resolve_analysis_live_path,
     signal_from_rows,
     to_int,
 )
@@ -144,16 +145,17 @@ def summarize(details):
 
 def evaluate_date(d):
     y, m, day = d[:4], d[4:6], d[6:8]
-    live_path = Path("predictions") / y / m / day / "live" / f"live_predictions_final_{d}.csv"
+    production_live_path = Path("predictions") / y / m / day / "live" / f"live_predictions_final_{d}.csv"
     result_path = Path("archive") / y / m / day / f"results_{d}_all.csv"
-    if not live_path.is_file() or not result_path.is_file():
+    if not production_live_path.is_file() or not result_path.is_file():
         return [], {
             "date": d,
             "status": "missing_input",
-            "live_exists": live_path.is_file(),
+            "live_exists": production_live_path.is_file(),
             "result_exists": result_path.is_file(),
         }
 
+    live_path, _ = resolve_analysis_live_path(d, production_live_path)
     live_rows = read_csv(live_path)
     result_rows = read_csv(result_path)
 
