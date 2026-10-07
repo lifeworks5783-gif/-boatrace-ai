@@ -1,0 +1,753 @@
+{
+  "schema_version": 1,
+  "model_version": "signal_ai_revalue_v1_20261008",
+  "effective_date": "20261008",
+  "normal_prediction_unchanged": true,
+  "candidate_points": 24,
+  "decision_policy": {
+    "status": "learning",
+    "purchase_decision_active": false,
+    "current_evaluation": "all_signal_races_top24",
+    "default_action": "evaluate_only",
+    "future_goal": "シグナル別に買い/見送りと6〜24点を確定し、買い判定レースだけの的中率・回収率・万舟捕捉率を累積評価する",
+    "note": "現時点では保留・見送り区分を候補生成に使用せず、全シグナルで24候補を保存して学習データを蓄積する。"
+  },
+  "source_dates": [
+    "20260930",
+    "20261001",
+    "20261002",
+    "20261003",
+    "20261004",
+    "20261005",
+    "20261006",
+    "20261007"
+  ],
+  "source_date_count": 8,
+  "evaluated_signal_races": 446,
+  "overall_if_all_signals_bought24": {
+    "races": 446,
+    "hits24": 298,
+    "hit_rate24_pct": 66.82,
+    "investment24": 1070400,
+    "return24": 996170,
+    "profit24": -74230,
+    "roi24_pct": 93.07,
+    "payout_5000plus": {
+      "races": 131,
+      "hits24": 53,
+      "hit_rate24_pct": 40.46
+    },
+    "manshu": {
+      "races": 61,
+      "hits24": 17,
+      "hit_rate24_pct": 27.87
+    },
+    "payout_30000plus": {
+      "races": 21,
+      "hits24": 2,
+      "hit_rate24_pct": 9.52
+    },
+    "actual_combo_rank": {
+      "mean": 26.09,
+      "median": 17.0
+    },
+    "rank_cut_hit_rate_pct": {
+      "6": 25.78,
+      "8": 32.06,
+      "12": 40.36,
+      "18": 53.36,
+      "24": 66.82
+    }
+  },
+  "by_signal": {
+    "F0R1": {
+      "signal_key": "F0R1",
+      "current_rule": {
+        "fujin": null,
+        "raijin": {
+          "multiplier": 0.25,
+          "level_profile": "flat",
+          "rank_attenuation": "soft"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "雷神:+rise×0.25×flat×soft",
+      "races": 52,
+      "hits24": 35,
+      "hit_rate24_pct": 67.31,
+      "investment24": 124800,
+      "return24": 72510,
+      "profit24": -52290,
+      "roi24_pct": 58.1,
+      "payout_5000plus": {
+        "races": 13,
+        "hits24": 3,
+        "hit_rate24_pct": 23.08
+      },
+      "manshu": {
+        "races": 5,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "payout_30000plus": {
+        "races": 2,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "actual_combo_rank": {
+        "mean": 22.56,
+        "median": 16.5
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 30.77,
+        "8": 38.46,
+        "12": 40.38,
+        "18": 53.85,
+        "24": 67.31
+      }
+    },
+    "F0R2": {
+      "signal_key": "F0R2",
+      "current_rule": {
+        "fujin": null,
+        "raijin": {
+          "multiplier": 1.75,
+          "level_profile": "flat",
+          "rank_attenuation": "flat"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "雷神:+rise×1.75×flat×flat",
+      "races": 127,
+      "hits24": 80,
+      "hit_rate24_pct": 62.99,
+      "investment24": 304800,
+      "return24": 226430,
+      "profit24": -78370,
+      "roi24_pct": 74.29,
+      "payout_5000plus": {
+        "races": 40,
+        "hits24": 12,
+        "hit_rate24_pct": 30.0
+      },
+      "manshu": {
+        "races": 22,
+        "hits24": 3,
+        "hit_rate24_pct": 13.64
+      },
+      "payout_30000plus": {
+        "races": 8,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "actual_combo_rank": {
+        "mean": 28.69,
+        "median": 16
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 25.2,
+        "8": 30.71,
+        "12": 39.37,
+        "18": 55.12,
+        "24": 62.99
+      }
+    },
+    "F0R3": {
+      "signal_key": "F0R3",
+      "current_rule": {
+        "fujin": null,
+        "raijin": {
+          "multiplier": 1.75,
+          "level_profile": "linear",
+          "rank_attenuation": "soft"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "雷神:+rise×1.75×linear×soft",
+      "races": 24,
+      "hits24": 12,
+      "hit_rate24_pct": 50.0,
+      "investment24": 57600,
+      "return24": 82940,
+      "profit24": 25340,
+      "roi24_pct": 143.99,
+      "payout_5000plus": {
+        "races": 8,
+        "hits24": 4,
+        "hit_rate24_pct": 50.0
+      },
+      "manshu": {
+        "races": 4,
+        "hits24": 3,
+        "hit_rate24_pct": 75.0
+      },
+      "payout_30000plus": {
+        "races": 2,
+        "hits24": 1,
+        "hit_rate24_pct": 50.0
+      },
+      "actual_combo_rank": {
+        "mean": 30.42,
+        "median": 25.5
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 8.33,
+        "8": 12.5,
+        "12": 25.0,
+        "18": 25.0,
+        "24": 50.0
+      }
+    },
+    "F1R0": {
+      "signal_key": "F1R0",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "fixed",
+          "strength": 2,
+          "level_profile": "flat"
+        },
+        "raijin": null,
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/fixed/2×flat",
+      "races": 59,
+      "hits24": 45,
+      "hit_rate24_pct": 76.27,
+      "investment24": 141600,
+      "return24": 118890,
+      "profit24": -22710,
+      "roi24_pct": 83.96,
+      "payout_5000plus": {
+        "races": 17,
+        "hits24": 7,
+        "hit_rate24_pct": 41.18
+      },
+      "manshu": {
+        "races": 5,
+        "hits24": 1,
+        "hit_rate24_pct": 20.0
+      },
+      "payout_30000plus": {
+        "races": 1,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "actual_combo_rank": {
+        "mean": 23.19,
+        "median": 14
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 33.9,
+        "8": 42.37,
+        "12": 47.46,
+        "18": 61.02,
+        "24": 76.27
+      }
+    },
+    "F1R1": {
+      "signal_key": "F1R1",
+      "current_rule": {
+        "fujin": {
+          "target": "negative_top3",
+          "mode": "fixed",
+          "strength": 2,
+          "level_profile": "flat"
+        },
+        "raijin": {
+          "multiplier": 2,
+          "level_profile": "flat",
+          "rank_attenuation": "soft"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:negative_top3/fixed/2×flat / 雷神:+rise×2×flat×soft",
+      "races": 22,
+      "hits24": 19,
+      "hit_rate24_pct": 86.36,
+      "investment24": 52800,
+      "return24": 46720,
+      "profit24": -6080,
+      "roi24_pct": 88.48,
+      "payout_5000plus": {
+        "races": 2,
+        "hits24": 2,
+        "hit_rate24_pct": 100.0
+      },
+      "manshu": {
+        "races": 1,
+        "hits24": 1,
+        "hit_rate24_pct": 100.0
+      },
+      "payout_30000plus": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "actual_combo_rank": {
+        "mean": 17.14,
+        "median": 12.5
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 22.73,
+        "8": 36.36,
+        "12": 50.0,
+        "18": 72.73,
+        "24": 86.36
+      }
+    },
+    "F1R2": {
+      "signal_key": "F1R2",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "fixed",
+          "strength": 8,
+          "level_profile": "flat"
+        },
+        "raijin": {
+          "multiplier": 0.25,
+          "level_profile": "flat",
+          "rank_attenuation": "flat"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/fixed/8×flat / 雷神:+rise×0.25×flat×flat",
+      "races": 46,
+      "hits24": 34,
+      "hit_rate24_pct": 73.91,
+      "investment24": 110400,
+      "return24": 106110,
+      "profit24": -4290,
+      "roi24_pct": 96.11,
+      "payout_5000plus": {
+        "races": 13,
+        "hits24": 7,
+        "hit_rate24_pct": 53.85
+      },
+      "manshu": {
+        "races": 3,
+        "hits24": 1,
+        "hit_rate24_pct": 33.33
+      },
+      "payout_30000plus": {
+        "races": 2,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "actual_combo_rank": {
+        "mean": 20.2,
+        "median": 12.5
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 32.61,
+        "8": 32.61,
+        "12": 50.0,
+        "18": 63.04,
+        "24": 73.91
+      }
+    },
+    "F1R3": {
+      "signal_key": "F1R3",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "fixed",
+          "strength": 8,
+          "level_profile": "flat"
+        },
+        "raijin": {
+          "multiplier": 0.25,
+          "level_profile": "flat",
+          "rank_attenuation": "flat"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/fixed/8×flat / 雷神:+rise×0.25×flat×flat",
+      "races": 9,
+      "hits24": 6,
+      "hit_rate24_pct": 66.67,
+      "investment24": 21600,
+      "return24": 16610,
+      "profit24": -4990,
+      "roi24_pct": 76.9,
+      "payout_5000plus": {
+        "races": 2,
+        "hits24": 1,
+        "hit_rate24_pct": 50.0
+      },
+      "manshu": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "payout_30000plus": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "actual_combo_rank": {
+        "mean": 21.67,
+        "median": 17
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 44.44,
+        "8": 44.44,
+        "12": 44.44,
+        "18": 55.56,
+        "24": 66.67
+      }
+    },
+    "F2R0": {
+      "signal_key": "F2R0",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "drop_ratio",
+          "strength": 1.25,
+          "level_profile": "linear"
+        },
+        "raijin": null,
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/drop_ratio/1.25×linear",
+      "races": 48,
+      "hits24": 22,
+      "hit_rate24_pct": 45.83,
+      "investment24": 115200,
+      "return24": 167860,
+      "profit24": 52660,
+      "roi24_pct": 145.71,
+      "payout_5000plus": {
+        "races": 20,
+        "hits24": 9,
+        "hit_rate24_pct": 45.0
+      },
+      "manshu": {
+        "races": 12,
+        "hits24": 5,
+        "hit_rate24_pct": 41.67
+      },
+      "payout_30000plus": {
+        "races": 4,
+        "hits24": 1,
+        "hit_rate24_pct": 25.0
+      },
+      "actual_combo_rank": {
+        "mean": 39.81,
+        "median": 32.5
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 8.33,
+        "8": 16.67,
+        "12": 20.83,
+        "18": 31.25,
+        "24": 45.83
+      }
+    },
+    "F2R1": {
+      "signal_key": "F2R1",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "fixed",
+          "strength": 8,
+          "level_profile": "linear"
+        },
+        "raijin": {
+          "multiplier": 0.25,
+          "level_profile": "flat",
+          "rank_attenuation": "flat"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/fixed/8×linear / 雷神:+rise×0.25×flat×flat",
+      "races": 10,
+      "hits24": 9,
+      "hit_rate24_pct": 90.0,
+      "investment24": 24000,
+      "return24": 30190,
+      "profit24": 6190,
+      "roi24_pct": 125.79,
+      "payout_5000plus": {
+        "races": 2,
+        "hits24": 2,
+        "hit_rate24_pct": 100.0
+      },
+      "manshu": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "payout_30000plus": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "actual_combo_rank": {
+        "mean": 17.2,
+        "median": 11.0
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 20.0,
+        "8": 50.0,
+        "12": 50.0,
+        "18": 60.0,
+        "24": 90.0
+      }
+    },
+    "F2R2": {
+      "signal_key": "F2R2",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "fixed",
+          "strength": 8,
+          "level_profile": "linear"
+        },
+        "raijin": {
+          "multiplier": 0.5,
+          "level_profile": "flat",
+          "rank_attenuation": "flat"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/fixed/8×linear / 雷神:+rise×0.5×flat×flat",
+      "races": 27,
+      "hits24": 21,
+      "hit_rate24_pct": 77.78,
+      "investment24": 64800,
+      "return24": 90760,
+      "profit24": 25960,
+      "roi24_pct": 140.06,
+      "payout_5000plus": {
+        "races": 10,
+        "hits24": 5,
+        "hit_rate24_pct": 50.0
+      },
+      "manshu": {
+        "races": 6,
+        "hits24": 3,
+        "hit_rate24_pct": 50.0
+      },
+      "payout_30000plus": {
+        "races": 1,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "actual_combo_rank": {
+        "mean": 23.15,
+        "median": 14
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 33.33,
+        "8": 37.04,
+        "12": 44.44,
+        "18": 55.56,
+        "24": 77.78
+      }
+    },
+    "F2R3": {
+      "signal_key": "F2R3",
+      "current_rule": {
+        "fujin": {
+          "target": "negative_top3",
+          "mode": "drop_ratio",
+          "strength": 0.5,
+          "level_profile": "flat"
+        },
+        "raijin": {
+          "multiplier": 1,
+          "level_profile": "soft",
+          "rank_attenuation": "soft"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:negative_top3/drop_ratio/0.5×flat / 雷神:+rise×1×soft×soft",
+      "races": 6,
+      "hits24": 4,
+      "hit_rate24_pct": 66.67,
+      "investment24": 14400,
+      "return24": 9400,
+      "profit24": -5000,
+      "roi24_pct": 65.28,
+      "payout_5000plus": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "manshu": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "payout_30000plus": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "actual_combo_rank": {
+        "mean": 26.67,
+        "median": 23.5
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 16.67,
+        "8": 16.67,
+        "12": 33.33,
+        "18": 33.33,
+        "24": 66.67
+      }
+    },
+    "F3R0": {
+      "signal_key": "F3R0",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "fixed",
+          "strength": 4,
+          "level_profile": "linear"
+        },
+        "raijin": null,
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/fixed/4×linear",
+      "races": 10,
+      "hits24": 8,
+      "hit_rate24_pct": 80.0,
+      "investment24": 24000,
+      "return24": 22300,
+      "profit24": -1700,
+      "roi24_pct": 92.92,
+      "payout_5000plus": {
+        "races": 2,
+        "hits24": 1,
+        "hit_rate24_pct": 50.0
+      },
+      "manshu": {
+        "races": 1,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "payout_30000plus": {
+        "races": 1,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "actual_combo_rank": {
+        "mean": 21.1,
+        "median": 10.5
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 40.0,
+        "8": 40.0,
+        "12": 60.0,
+        "18": 70.0,
+        "24": 80.0
+      }
+    },
+    "F3R1": {
+      "signal_key": "F3R1",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "fixed",
+          "strength": 2,
+          "level_profile": "flat"
+        },
+        "raijin": {
+          "multiplier": 0.25,
+          "level_profile": "flat",
+          "rank_attenuation": "flat"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/fixed/2×flat / 雷神:+rise×0.25×flat×flat",
+      "races": 1,
+      "hits24": 1,
+      "hit_rate24_pct": 100.0,
+      "investment24": 2400,
+      "return24": 860,
+      "profit24": -1540,
+      "roi24_pct": 35.83,
+      "payout_5000plus": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "manshu": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "payout_30000plus": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "actual_combo_rank": {
+        "mean": 14.0,
+        "median": 14
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 0.0,
+        "8": 0.0,
+        "12": 0.0,
+        "18": 100.0,
+        "24": 100.0
+      }
+    },
+    "F3R2": {
+      "signal_key": "F3R2",
+      "current_rule": {
+        "fujin": {
+          "target": "rank1",
+          "mode": "fixed",
+          "strength": 2,
+          "level_profile": "flat"
+        },
+        "raijin": {
+          "multiplier": 0.25,
+          "level_profile": "flat",
+          "rank_attenuation": "flat"
+        },
+        "source": "best_20260930_20261007"
+      },
+      "rule_text": "風神:rank1/fixed/2×flat / 雷神:+rise×0.25×flat×flat",
+      "races": 5,
+      "hits24": 2,
+      "hit_rate24_pct": 40.0,
+      "investment24": 12000,
+      "return24": 4590,
+      "profit24": -7410,
+      "roi24_pct": 38.25,
+      "payout_5000plus": {
+        "races": 2,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "manshu": {
+        "races": 2,
+        "hits24": 0,
+        "hit_rate24_pct": 0.0
+      },
+      "payout_30000plus": {
+        "races": 0,
+        "hits24": 0,
+        "hit_rate24_pct": null
+      },
+      "actual_combo_rank": {
+        "mean": 25.2,
+        "median": 30
+      },
+      "rank_cut_hit_rate_pct": {
+        "6": 20.0,
+        "8": 20.0,
+        "12": 40.0,
+        "18": 40.0,
+        "24": 40.0
+      }
+    }
+  },
+  "skipped": [],
+  "note": "現行シグナルAI補正で全シグナルを24点評価。買い/見送り判定はまだ学習中で、ROIは全該当レースを24点購入した仮定。"
+}
