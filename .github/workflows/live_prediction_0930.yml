@@ -473,6 +473,13 @@ jobs:
           if [ -d "${RESULT_DEST}" ]; then git add "${RESULT_DEST}"; fi
           find data -maxdepth 1 -type f -name "*result*${TARGET_DATE}*" -print0 | xargs -0 -r git add
 
+          # 結果取得後、その場で当日評価も更新する。これにより家族ページの
+          # レース照合が「確定0R」のまま残らない。
+          if find data -maxdepth 1 -type f -name "*result*${TARGET_DATE}*" | grep -q .; then
+            python -u collectors/evaluate_predictions.py --date "${TARGET_DATE}" || true
+            find evaluations -type f -path "*/${YEAR}/${MONTH}/${DAY}/*" -print0 2>/dev/null | xargs -0 -r git add
+          fi
+
           # スマホ用最新表示
           git add predictions/latest.md
           git add predictions/latest.json
