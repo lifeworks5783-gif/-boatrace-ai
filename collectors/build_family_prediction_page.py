@@ -790,11 +790,11 @@ def main():
     .badge-wrap {{display:flex;align-items:center;gap:5px}}
     .data-ok {{font-size:13px;color:#2e7d32}}
     .data-ng {{font-size:14px;color:#b26a00;font-weight:800}}
-    .down-signal {
+    .down-signal {{
   display:inline-block;
   margin-left:2px;
   font-weight:800;
-}
+}}
 
 .quality-warning {{font-size:12px;color:#9a5b00;font-weight:900;white-space:nowrap}}
 
