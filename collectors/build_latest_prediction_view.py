@@ -20,6 +20,8 @@ JST = timezone(timedelta(hours=9))
 FORMATION_MODEL = "formation_gap_flow_v2"
 
 DOWN_SIGNAL_RULE_VERSION = "down_signal_v0_20261007"
+UP_SIGNAL_RULE_VERSION = "raijin_signal_v0_20261007"
+SIGNAL_SYSTEM_NAME = "風神雷神シグナル"
 
 
 def parse_args():
@@ -209,6 +211,99 @@ def ranked_boats(race):
 
     return rows
 
+
+
+def build_up_signal(
+    boats,
+    prediction_quality=None,
+):
+    """Raijin display signal. Save/analyze only; never changes AI or formation."""
+    quality = prediction_quality or {}
+    if (
+        quality.get("recovery_needed")
+        or text(quality.get("status")) == "fallback"
+    ):
+        return {
+            "available": False,
+            "active": False,
+            "level": 0,
+            "rule_version": UP_SIGNAL_RULE_VERSION,
+            "system_name": SIGNAL_SYSTEM_NAME,
+            "signal_name": "雷神",
+            "candidates": [],
+            "max_rise": None,
+            "ai_effect": False,
+            "formation_effect": False,
+            "suppressed_reason": "fallback_prediction",
+        }
+
+    if len(boats) != 6:
+        return {
+            "available": False,
+            "active": False,
+            "level": 0,
+            "rule_version": UP_SIGNAL_RULE_VERSION,
+            "system_name": SIGNAL_SYSTEM_NAME,
+            "signal_name": "雷神",
+            "candidates": [],
+            "max_rise": None,
+            "ai_effect": False,
+            "formation_effect": False,
+            "suppressed_reason": "incomplete_boats",
+        }
+
+    candidates = []
+    for live_rank, row in enumerate(boats, start=1):
+        live_score = to_float(row.get("score"))
+        morning_score = to_float(row.get("morning_score_reference"))
+        boat = boat_number(row)
+        if (
+            live_rank <= 3
+            or boat is None
+            or live_score is None
+            or morning_score is None
+        ):
+            continue
+        rise = live_score - morning_score
+        if rise >= 7.5:
+            candidates.append({
+                "boat": boat,
+                "rank": live_rank,
+                "rise": round(rise, 2),
+            })
+
+    max_rise = max(
+        (item["rise"] for item in candidates),
+        default=None,
+    )
+    if max_rise is None:
+        level = 0
+    elif max_rise >= 12.5:
+        level = 3
+    elif max_rise >= 10.0:
+        level = 2
+    else:
+        level = 1
+
+    return {
+        "available": True,
+        "active": level > 0,
+        "level": level,
+        "rule_version": UP_SIGNAL_RULE_VERSION,
+        "system_name": SIGNAL_SYSTEM_NAME,
+        "signal_name": "雷神",
+        "thresholds": {
+            "level1_min": 7.5,
+            "level2_min": 10.0,
+            "level3_min": 12.5,
+            "outside_live_top3": True,
+        },
+        "candidates": candidates,
+        "max_rise": max_rise,
+        "ai_effect": False,
+        "formation_effect": False,
+        "status": "provisional_analysis_only",
+    }
 
 
 def build_down_signal(
@@ -1064,55 +1159,11 @@ def build_ai_score_prediction(boats, ai_config):
     if len(combos) != expected_combos or len({x["combination"] for x in combos}) != expected_combos:
         raise RuntimeError(f"AIスコア3連単{expected_combos}通りの生成に失敗しました")
 
-    # ⚡ signal mode: keep boat/base AI scores unchanged and re-rank only the 120 trifecta combinations.
-    # Provisional rule selected by the 2026-10-05 general-rule search (15/34 signal races, no lost baseline hits).
-    signals = {}
-    for live_rank, row in enumerate(boats, start=1):
-        live_score = to_float(row.get("score"))
-        morning_score = to_float(row.get("morning_score_reference"))
-        boat = boat_number(row)
-        if live_rank > 3 and boat is not None and live_score is not None and morning_score is not None:
-            rise = live_score - morning_score
-            if rise >= 10.0:
-                signals[boat] = {"rise": rise, "rank": live_rank}
-
+    # 風神雷神シグナルは表示・保存・分析専用。
+    # 2026-10-07以降、シグナルによるAI再順位付け・購入点数変更は行わない。
     base_combos = [dict(x) for x in combos]
-    base_rank_by_combo = {
-        item["combination"]: rank
-        for rank, item in enumerate(base_combos, start=1)
-    }
-    if signals:
-        reranked = []
-        position_weights = (0.0, 0.6, 0.4)
-        multiplier = 1.5
-        for original_index, item in enumerate(base_combos):
-            parts = tuple(int(x) for x in item["combination"].split("-"))
-            bonus = 0.0
-            for position, boat in enumerate(parts):
-                signal = signals.get(boat)
-                if not signal:
-                    continue
-                rank = signal["rank"]
-                attenuation = 1.0 if rank <= 4 else 0.7 if rank == 5 else 1.0
-                bonus += multiplier * signal["rise"] * position_weights[position] * attenuation
-            reranked.append({
-                **item,
-                "base_score": item["score"],
-                "base_rank": original_index + 1,
-                "signal_bonus": round(bonus, 3),
-                "score": round(item["score"] + bonus, 3),
-                "_original_index": original_index,
-            })
-        reranked.sort(key=lambda x:(-x["score"],x["_original_index"]))
-        combos = []
-        for reranked_rank, x in enumerate(reranked, start=1):
-            item = {k:v for k,v in x.items() if k != "_original_index"}
-            item["reranked_rank"] = reranked_rank
-            item["rank_change"] = item["base_rank"] - reranked_rank
-            combos.append(item)
-        points = 12
-    else:
-        points=int(ai_config.get("purchase_points",8))
+    points = int(ai_config.get("purchase_points", 8))
+    signals = {}
 
     points = min(points, len(combos))
     selected=combos[:points]
@@ -1123,9 +1174,12 @@ def build_ai_score_prediction(boats, ai_config):
         "logic_config_source": ai_config.get("_source"),
         "logic_snapshot": frozen,
         "status": ai_config.get("status","experimental"),
-        "signal_mode": bool(signals),
-        "signal_boats": {str(k): {"rise": round(v["rise"], 2), "rank": v["rank"]} for k,v in signals.items()},
-        "signal_rule": {"threshold":10.0,"outside_live_top3":True,"w1":0.0,"w2":0.6,"w3":0.4,"multiplier":1.5,"rank5":0.7,"rank6":1.0} if signals else None,
+        "signal_mode": False,
+        "signal_boats": {},
+        "signal_rule": {
+            "enabled_in_ai": False,
+            "reason": "風神雷神シグナルは表示・保存・分析専用",
+        },
         "points": points,
         "investment_100yen": points*100,
         "position_scores": sorted(scored,key=lambda x:x["boat"]),
@@ -1140,18 +1194,8 @@ def build_ai_score_prediction(boats, ai_config):
         "rerank_verified": (
             len(combos) == expected_combos
             and len({x["combination"] for x in combos}) == expected_combos
-            and (
-                not signals
-                or all(
-                    abs(
-                        x["score"]
-                        - (x["base_score"] + x["signal_bonus"])
-                    ) < 0.002
-                    for x in combos
-                )
-            )
         ),
-        "note":"通常時は既存AI上位8点。⚡時は補正前120通りをbase_120_combinationsへ保存し、各組合せにsignal_bonusを加算して120通り全体を再順位付け。その補正後順位の上位12点を採用。",
+        "note":"AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。",
     }
 
 def score_label(value):
@@ -1728,12 +1772,19 @@ def main():
             "ai_score_prediction": (
                 ai_score_prediction
             ),
+            "up_signal": (
+                build_up_signal(
+                    boats,
+                    prediction_quality,
+                )
+            ),
             "down_signal": (
                 build_down_signal(
                     boats,
                     prediction_quality,
                 )
             ),
+            "signal_system_name": SIGNAL_SYSTEM_NAME,
         }
 
         all_rows.append(
