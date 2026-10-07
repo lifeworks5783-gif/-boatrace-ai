@@ -2134,9 +2134,17 @@ def render_html(
         final_rows.append({
             **row,
             "final_prediction": final_prediction,
-            "final_formation_hit": formation_hit(final_prediction, row.get("trifecta"), "formation"),
+            "final_eval": evaluate_top3(final_prediction, row.get("actual") or []),
+            # 最終買い目は build_latest_prediction_view.py が
+            # 「直前があれば直前、無ければ朝」で保存した formation を正本にする。
+            "final_formation_hit": formation_hit(
+                row.get("formation_prediction") or final_prediction,
+                row.get("trifecta"),
+                "formation",
+            ),
             "final_box_hit": box_hit(final_prediction, row.get("trifecta")),
         })
+    final_summary = aggregate(final_rows, "final_eval")
     final_formation_summary = hit_summary_from_rows(final_rows, "final_formation_hit")
     final_box_summary = hit_summary_from_rows(final_rows, "final_box_hit")
 
@@ -3073,19 +3081,19 @@ TOP3整合率は、
 <div class="summary-box">
 
   <span>
-    直前 TOP3整合 / 完全一致 / 買い目的中
+    最終予測（直前優先） TOP3整合 / 完全一致 / 買い目的中
   </span>
 
   <strong>
-    {percent(live_summary["overlap"])}
+    {percent(final_summary["overlap"])}
     /
-    {percent(live_summary["exact"])}
+    {percent(final_summary["exact"])}
     /
-    {percent(live_hit_summary["rate"])}
+    {percent(final_formation_summary["rate"])}
   </strong>
 
   <span>
-    {live_summary["count"]}R
+    {final_summary["count"]}R
   </span>
 
 </div>
