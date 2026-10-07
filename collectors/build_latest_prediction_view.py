@@ -4,10 +4,15 @@ import argparse
 import csv
 import itertools
 import json
+import re
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
+
+import requests
+from bs4 import BeautifulSoup
 
 
 JST = timezone(timedelta(hours=9))
@@ -275,7 +280,110 @@ def normalize_external_race_id(value):
     )
 
 
-def load_dynamic_deadlines(
+def parse_official_venue_deadlines(
+    html,
+    target_date,
+    venue_code,
+):
+    soup = BeautifulSoup(
+        html,
+        "html.parser",
+    )
+
+    times = []
+
+    label = soup.find(
+        string=lambda value: (
+            isinstance(value, str)
+            and "締切予定時刻" in value
+        )
+    )
+
+    if label is not None:
+        row = label.find_parent(
+            "tr"
+        )
+        if row is not None:
+            times = re.findall(
+                r"(?<!\d)(\d{1,2}:\d{2})(?!\d)",
+                row.get_text(
+                    " ",
+                    strip=True,
+                ),
+            )
+
+    if len(times) < 12:
+        full_text = soup.get_text(
+            " ",
+            strip=True,
+        )
+        pos = full_text.find(
+            "締切予定時刻"
+        )
+
+        if pos >= 0:
+            segment = full_text[
+                pos:pos + 500
+            ]
+            times = re.findall(
+                r"(?<!\d)(\d{1,2}:\d{2})(?!\d)",
+                segment,
+            )[:12]
+
+    if len(times) < 12:
+        return {}
+
+    return {
+        (
+            f"{target_date}-"
+            f"{venue_code}-"
+            f"{race_no:02d}"
+        ): deadline
+        for race_no, deadline
+        in enumerate(
+            times[:12],
+            start=1,
+        )
+    }
+
+
+def fetch_official_venue_deadlines(
+    target_date,
+    venue_code,
+):
+    url = (
+        "https://www.boatrace.jp/owpc/pc/race/beforeinfo"
+        f"?hd={target_date}"
+        f"&jcd={venue_code}"
+        "&rno=1"
+    )
+
+    try:
+        response = requests.get(
+            url,
+            timeout=(5, 12),
+            headers={
+                "User-Agent":
+                    "Mozilla/5.0 (compatible; boatrace-ai-deadline/1.0)"
+            },
+        )
+        response.raise_for_status()
+
+        return parse_official_venue_deadlines(
+            response.text,
+            target_date,
+            venue_code,
+        )
+
+    except Exception as exc:
+        print(
+            f"WARN: 公式締切取得失敗 {venue_code}:",
+            exc,
+        )
+        return {}
+
+
+def load_odds_deadline_fallback(
     target_date,
 ):
     url = (
@@ -355,10 +463,57 @@ def load_dynamic_deadlines(
 
     except Exception as exc:
         print(
-            "WARN: 当日締切時刻の動的取得に失敗:",
+            "WARN: オッズ締切フォールバック取得失敗:",
             exc,
         )
         return {}
+
+
+def load_dynamic_deadlines(
+    target_date,
+    venue_codes,
+):
+    official = {}
+
+    with ThreadPoolExecutor(
+        max_workers=min(
+            max(
+                len(venue_codes),
+                1,
+            ),
+            4,
+        )
+    ) as executor:
+        futures = {
+            executor.submit(
+                fetch_official_venue_deadlines,
+                target_date,
+                venue_code,
+            ): venue_code
+            for venue_code
+            in venue_codes
+        }
+
+        for future in as_completed(
+            futures
+        ):
+            official.update(
+                future.result()
+            )
+
+    odds = (
+        load_odds_deadline_fallback(
+            target_date
+        )
+    )
+
+    for race_id, deadline in odds.items():
+        official.setdefault(
+            race_id,
+            deadline,
+        )
+
+    return official
 
 
 def load_program_deadlines(
@@ -416,7 +571,14 @@ def load_program_deadlines(
                     ] = deadline
 
     dynamic = load_dynamic_deadlines(
-        target_date
+        target_date,
+        sorted(
+            {
+                race_id.split("-")[1]
+                for race_id in result
+                if len(race_id.split("-")) >= 3
+            }
+        ),
     )
 
     changed = {
