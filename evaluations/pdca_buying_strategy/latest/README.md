@@ -1,6 +1,6 @@
 # 買い方PDCA 1・2・3 継続比較
 
-- exact signal records: 398
+- exact signal records: 410
 - production changed: false
 
 ## 1 シグナル V1/V2/なし
