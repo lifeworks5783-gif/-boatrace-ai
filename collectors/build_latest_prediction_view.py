@@ -866,6 +866,9 @@ def write_formation_csv(
         "race",
         "deadline",
         "prediction_type",
+        "quality_status",
+        "quality_mark",
+        "recovery_needed",
         "formation_type",
         "gap_1_2",
         "first_candidates",
@@ -949,6 +952,9 @@ def write_formation_csv(
                         "prediction_type"
                     ]
                 ),
+                "quality_status": ((item.get("prediction_quality") or {}).get("status") or "normal"),
+                "quality_mark": ((item.get("prediction_quality") or {}).get("mark") or ""),
+                "recovery_needed": bool((item.get("prediction_quality") or {}).get("recovery_needed")),
                 "formation_type": (
                     formation[
                         "formation_type"
@@ -1199,6 +1205,7 @@ def main():
                     "exhibition_st": boat.get("exhibition_st"),
                     "exhibition_f": boat.get("exhibition_f"),
                     "components": boat.get("components") or {},
+                    "input_trace": boat.get("input_trace") or {},
                 }
             )
 
@@ -1279,6 +1286,17 @@ def main():
             ),
             "prediction_type": (
                 prediction_type
+            ),
+            "prediction_quality": (
+                race.get("prediction_quality")
+                or {
+                    "status": "normal",
+                    "mark": "",
+                    "label": "正常",
+                    "recovery_needed": False,
+                    "reason": [],
+                    "fallback_source": None,
+                }
             ),
             "generated_at": (
                 text(
