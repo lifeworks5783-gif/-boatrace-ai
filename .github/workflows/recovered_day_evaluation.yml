@@ -75,24 +75,31 @@ jobs:
           })
           PY
 
-      - name: 朝・直前・買い方を再評価
-        run: python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
-
-      - name: 風神雷神分析を再評価
-        run: python -u collectors/evaluate_down_signal.py --date "$TARGET_DATE"
-
-      - name: 評価サマリーを再生成
-        run: python -u collectors/build_evaluation_summary.py --date "$TARGET_DATE"
-
-      - name: 評価結果を保存
+      - name: 最新main基準で再評価して安全に保存
         run: |
           git config user.name "boatrace-evaluation-bot"
           git config user.email "boatrace-evaluation-bot@users.noreply.github.com"
-          git add "evaluations/${YEAR}/${MONTH}/${DAY}" evaluations/down_signal/latest 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo "評価結果に変更なし"
-            exit 0
-          fi
-          git commit -m "Re-evaluate recovered live data ${TARGET_DATE}"
-          git pull --rebase origin main
-          git push origin main
+
+          for ATTEMPT in 1 2 3; do
+            echo "再評価・保存 attempt=${ATTEMPT}"
+            git fetch origin main
+            git reset --hard origin/main
+
+            python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
+            python -u collectors/evaluate_down_signal.py --date "$TARGET_DATE"
+            python -u collectors/build_evaluation_summary.py --date "$TARGET_DATE"
+
+            git add "evaluations/${YEAR}/${MONTH}/${DAY}" evaluations/down_signal/latest 2>/dev/null || true
+            if git diff --cached --quiet; then
+              echo "評価結果に変更なし"
+              exit 0
+            fi
+
+            git commit -m "Re-evaluate recovered live data ${TARGET_DATE}"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+          done
+
+          echo "3回再試行しても保存できませんでした"
+          exit 1
