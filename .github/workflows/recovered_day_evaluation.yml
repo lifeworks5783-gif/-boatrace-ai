@@ -109,7 +109,7 @@ jobs:
         run: |
           git config user.name "boatrace-evaluation-bot"
           git config user.email "boatrace-evaluation-bot@users.noreply.github.com"
-          git add "evaluations/${YEAR}/${MONTH}/${DAY}" evaluations/down_signal/latest 2>/dev/null || true
+          git add "evaluations/${YEAR}/${MONTH}/${DAY}" evaluations/down_signal/latest evaluations/latest_summary.md 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "評価結果に変更なし"
             exit 0
