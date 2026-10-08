@@ -173,7 +173,8 @@ def _prediction_body(boats, formation, label, morning_score_map=None):
         form=f'<div class="formation"><div class="formation-title">3連単 {ftype}・{points}点・{inv:,}円</div><div class="formation-grid"><div><b>1着</b> {first or "なし"}</div><div><b>2着</b> {second or "なし"}</div><div><b>3着</b> {third or "なし"}</div></div><div class="combos">{combos}</div></div>'
     else:
         form='<div class="formation unavailable">フォーメーションはスコア不足のため生成なし</div>'
-    return f'<div class="race-prediction-view" data-view="{esc(label)}"><div class="top-picks">{top_html}</div><details><summary>6艇すべてのスコア</summary><div class="scores">{chips}</div></details>{form}</div>'
+    score_title = "6艇すべてのスコア" if len(boats) == 6 else f"取得済み{len(boats)}艇のスコア"
+    return f'<div class="race-prediction-view" data-view="{esc(label)}"><div class="top-picks">{top_html}</div><details><summary>{score_title}</summary><div class="scores">{chips}</div></details>{form}</div>'
 
 
 def _provisional_down_signal_from_race(race):
