@@ -5,11 +5,6 @@ permissions:
   actions: write
 
 on:
-  schedule:
-    # 毎日 01:10 JST
-    # UTCでは前日16:10
-    - cron: "10 16 * * *"
-
   workflow_dispatch:
     inputs:
       target_date:
