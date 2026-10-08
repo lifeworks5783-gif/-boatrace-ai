@@ -83,7 +83,7 @@ jobs:
           PY
       - name: 完全性監査（異常時は公式を先に再確認）
         run: |
-          python collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+          python collectors/audit_daily_completeness.py --date "$D"
 
       - name: 本番直前予測と表示を再生成
         run: |
