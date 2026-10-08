@@ -1050,9 +1050,12 @@ def main():
         align-items: start;
       }}
       .scores .chip {{
-        width: fit-content;
+        width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        min-width: 0;
       }}
     }}
 
