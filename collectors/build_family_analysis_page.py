@@ -125,6 +125,20 @@ def venue_technique_html():
   n=totals[code]; v=counts[code]; pct=lambda k: "—" if not n else f"{100*v[k]/n:.1f}%"; rows.append([html.escape(name),fmt_int(n),pct("逃げ"),pct("差し"),pct("まくり"),pct("まくり差し"),pct("抜き"),pct("その他")])
  return '<section class="section-card"><div class="title-row"><div><h2>24場・決まり手特性</h2><p class="section-note">直近90日分の取得可能な結果から、会場ごとの決まり手構成比を自動集計します。R数が少ない会場は参考値です。</p></div>'+badge("自動集計","good")+'</div>'+table(["会場","R数","逃げ","差し","まくり","まくり差し","抜き","その他"],rows)+'</section>'
 
+
+def venue_course_characteristics_html():
+ path=Path("features/venue_course_features.csv")
+ if not path.exists():
+  return '<section class="section-card"><div class="title-row"><div><h2>24場・場単体コース特性</h2><p class="section-note">場×実進入コースの30日・90日成績を毎日蓄積します。</p></div>'+badge("収集中","warn")+'</div></section>'
+ try:
+  with path.open(encoding="utf-8-sig",newline="") as h: data=list(csv.DictReader(h))
+ except Exception:
+  data=[]
+ rows=[]
+ for r in data:
+  rows.append([html.escape(str(r.get("venue_name") or r.get("venue_code") or "—")),html.escape(str(r.get("course") or "—")),fmt_pct((num(r.get("d90_win_rate")) or 0)*100 if num(r.get("d90_win_rate")) is not None else None),fmt_pct((num(r.get("d90_top2_rate")) or 0)*100 if num(r.get("d90_top2_rate")) is not None else None),fmt_pct((num(r.get("d90_top3_rate")) or 0)*100 if num(r.get("d90_top3_rate")) is not None else None),fmt_num(r.get("d90_avg_st"),3),fmt_int(r.get("d90_starts"))])
+ return '<section class="section-card"><div class="title-row"><div><h2>24場・場単体コース特性</h2><p class="section-note">選手とは切り離し、各場×実進入1〜6コースの直近90日成績を独立保存・表示します。</p></div>'+badge("毎日更新","good")+'</div>'+table(["会場","コース","1着率","2連対率","3連対率","平均ST","母数"],rows)+'</section>'
+
 def factor_ja(value: Any) -> str:
     key = str(value or "—")
     return FACTOR_JA.get(key, LABELS.get(key, key))
