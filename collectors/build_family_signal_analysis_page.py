@@ -198,6 +198,49 @@ def point_policy(points):
     )
 
 
+def legacy_analysis_sections(root: Path) -> str:
+    """Restore the core analysis sections that remain backed by saved evaluation data."""
+    try:
+        import build_family_analysis_page as legacy
+        files = legacy.find_analysis_files(root)
+        pdca_path = root / "pdca_7d_latest" / "summary.json"
+        pdca = legacy.load_json(pdca_path)
+        sections = []
+
+        # ① 単体要素分析 + ③ 日別/累積推移
+        daily = legacy.current_pdca_html(root)
+        if daily:
+            sections.append('<section class="card"><h2>① 単体要素分析・③ 日別／累積推移</h2>'
+                            '<p class="note">保存済みPDCAデータから、朝・直前の各要素を日別・累積・母数つきで再表示します。</p>'
+                            + daily + '</section>')
+
+        # ④ 整合性TOP10
+        if pdca:
+            sections.append('<section class="card"><h2>④ 整合性TOP10</h2>'
+                            '<p class="note">TOP10外も削除せず保存・再評価を継続します。</p>'
+                            + legacy.top10_html(pdca) + '</section>')
+
+        return "".join(sections)
+    except Exception as exc:
+        return '<section class="card"><h2>①・③・④ 既存分析</h2><div class="empty">保存データの読み込み待ちです。</div></section>'
+
+
+def detailed_signal_validation(backtest) -> str:
+    total = backtest.get("total") or {}
+    p10 = total.get("payout_10000_signal_summary") or {}
+    p5 = total.get("payout_5000_signal_summary") or {}
+    presence = total.get("presence") or {}
+    anysig = presence.get("any_signal") or {}
+    rows = [
+        ["1万円以上レースのシグナル捕捉率", pct(p10.get("signal_capture_rate_of_all_10000plus_pct")), n(p10.get("signal_10000plus"),0)],
+        ["シグナル発動→1万円以上率", pct(p10.get("signal_10000plus_rate_pct")), n(p10.get("signal_10000plus"),0)],
+        ["5千円以上レースのシグナル捕捉率", pct(p5.get("signal_capture_rate_of_all_5000plus_pct")), n(p5.get("signal_5000plus"),0)],
+        ["シグナル発動レース数", "—", n(anysig.get("races"),0)],
+    ]
+    body="".join(f"<tr><td>{html.escape(str(a))}</td><td>{html.escape(str(b))}</td><td>{html.escape(str(d))}</td></tr>" for a,b,d in rows)
+    return '<div class="table-wrap"><table><thead><tr><th>検証項目</th><th>率</th><th>該当R</th></tr></thead><tbody>'+body+'</tbody></table></div>'
+
+
 def build_page(root: Path) -> str:
     backtest = load_json(root / "fujin_raijin/latest/backtest_summary.json")
     buff = load_json(root / "fujin_raijin/buff_debuff/latest.json")
@@ -288,6 +331,14 @@ def build_page(root: Path) -> str:
 <p class="note">現行補正で24候補を保存しながら、シグナル別に「買う/見送る」と購入点数6〜24点を探索します。最終的には買い判定レースだけの的中率・回収率・万舟捕捉率を本指標にします。</p>
 <p class="note">{html.escape(search_text)}</p>
 {point_policy(points)}
+</section>
+
+{legacy_analysis_sections(root)}
+
+<section class="card">
+<h2>⑧ シグナル検証・詳細</h2>
+<p class="note">万舟捕捉率、シグナル発動後の高配当率など、買い／見送り判定に必要な固定検証項目を保存済みデータから再表示します。対象艇の着順別率・通常スコア帯との関係は保存データが揃い次第この枠へ継続追加します。</p>
+{detailed_signal_validation(backtest)}
 </section>
 
 <section class="card">
