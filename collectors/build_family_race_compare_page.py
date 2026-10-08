@@ -3237,6 +3237,30 @@ details.all-scores summary {{
   margin-top:7px;
 }}
 .score-delta {{ margin-left:5px; font-weight:900; white-space:nowrap; }}
+@media (max-width:600px) {{
+  .score-chips {{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:6px;
+  }}
+  .score-chip {{
+    min-width:0;
+    width:100%;
+    min-height:54px;
+    display:block;
+    box-sizing:border-box;
+    padding:9px 10px;
+    line-height:1.35;
+    border-radius:24px;
+    font-size:clamp(10.5px,3vw,12px);
+    overflow-wrap:anywhere;
+  }}
+  .score-chip .score-delta {{
+    display:inline-block;
+    margin-left:4px;
+    white-space:nowrap;
+  }}
+}}
 .score-delta.up {{ color:#a33f58; }}
 .score-delta.down {{ color:#2f6690; }}
 .score-delta.flat {{ color:var(--muted); }}
