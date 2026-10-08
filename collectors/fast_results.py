@@ -1106,6 +1106,22 @@ def main() -> int:
         exist_ok=True,
     )
 
+    # Preserve previously archived results and detailed fields when the fast
+    # endpoint is partial or intentionally omits course/ST/race time.
+    for src, keys in [(results_path, ["venue_code", "race"]),
+                      (boats_path, ["venue_code", "race", "boat"])]:
+        previous = archive_dir / src.name
+        if previous.exists():
+            old = pd.read_csv(previous, dtype=str).fillna("")
+            new = pd.read_csv(src, dtype=str).fillna("")
+            for frame in (old, new):
+                for key in keys:
+                    frame[key] = pd.to_numeric(frame[key], errors="raise").astype(int)
+            old = old.drop_duplicates(keys, keep="last").set_index(keys)
+            new = new.drop_duplicates(keys, keep="last").set_index(keys)
+            merged = new.replace("", pd.NA).combine_first(old.replace("", pd.NA))
+            merged.reset_index().fillna("").to_csv(src, index=False, encoding="utf-8-sig")
+
     for src in [
         results_path,
         boats_path,
