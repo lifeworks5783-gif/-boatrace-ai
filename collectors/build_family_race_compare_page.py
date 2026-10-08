@@ -2394,6 +2394,8 @@ def prediction_quality_warning(prediction):
     quality = prediction.get("prediction_quality") or raw.get("prediction_quality") or {}
     status = str(quality.get("status") or "").strip()
     if status == "recovered_observation":
+        if quality.get("pre_deadline_snapshot") or quality.get("provenance") == "saved_pre_deadline_official_beforeinfo":
+            return '<span class="quality-warning" title="締切前に公式展示6艇分を保存済み。こちらの直前予測の保存処理の不備で計算・表示に反映できなかったため、取得済みの締切前入力から通常ロジックで再計算。結果・払戻・着順は予測計算に不使用。">↻締切前データから直前予測を復旧</span>'
         return '<span class="quality-warning" title="取得処理の不備で直前予測が未保存だったため、終了後に取得した公式の展示情報だけで再計算。結果・払戻・着順は予測計算に不使用。">↻公式展示情報から復旧（事後計算）</span>'
     if quality.get("recovery_needed") or status == "fallback":
         reasons = quality.get("reason") or []
