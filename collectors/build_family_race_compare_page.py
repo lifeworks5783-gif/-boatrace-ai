@@ -2227,6 +2227,10 @@ def build_race_rows(
                     ),
             }
         )
+        # 復旧したスコアと、当時保存できていない直前買い目を混同しない。
+        # 朝の代替買い目を「直前購入的中」として数えない。
+        if live and (live.get("prediction_quality") or {}).get("status") == "recovered_observation":
+            race_rows[-1]["live_formation_hit"] = None
 
     built_codes = {
         row["race_code"]
@@ -2389,6 +2393,8 @@ def prediction_quality_warning(prediction):
     raw = prediction.get("raw") or {}
     quality = prediction.get("prediction_quality") or raw.get("prediction_quality") or {}
     status = str(quality.get("status") or "").strip()
+    if status == "recovered_observation":
+        return '<span class="quality-warning" title="取得処理の不備で直前予測が未保存だったため、終了後に取得した公式の展示情報だけで再計算。結果・払戻・着順は予測計算に不使用。">↻公式展示情報から復旧（事後計算）</span>'
     if quality.get("recovery_needed") or status == "fallback":
         reasons = quality.get("reason") or []
         reason_text = " / ".join(str(x).strip() for x in reasons if str(x).strip())
