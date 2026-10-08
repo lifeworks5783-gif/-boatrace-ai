@@ -3649,9 +3649,15 @@ details.all-scores summary {{
   }}
 
   .score-chip {{
-    width:fit-content;
+    width:100%;
     max-width:100%;
+    min-width:0;
+    min-height:52px;
     box-sizing:border-box;
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    align-content:center;
   }}
 
   .simulation-grid {{
