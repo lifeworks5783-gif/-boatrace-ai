@@ -2436,7 +2436,8 @@ def all_scores_html(prediction, label, morning_scores=None):
         f'{score:.1f}{score_delta_html(b, score, morning_scores)}</span>'
         for b, score, name in scored
     )
-    return f'<details class="all-scores"><summary>{esc(label)}・6艇すべてのスコア</summary><div class="score-chips">{chips}</div></details>'
+    score_title = "6艇すべてのスコア" if len(scored) == 6 else f"取得済み{len(scored)}艇のスコア"
+    return f'<details class="all-scores"><summary>{esc(label)}・{score_title}</summary><div class="score-chips">{chips}</div></details>'
 
 def formation_hit(prediction, trifecta, formation_key="formation"):
     if not prediction:
