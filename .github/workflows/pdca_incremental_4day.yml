@@ -142,6 +142,8 @@ jobs:
           python -u collectors/prepare_live_analysis_input.py --date "$TARGET_DATE"
           python -u collectors/analyze_score_components.py --date "$TARGET_DATE"
           python -u collectors/analyze_live_factors.py --date "$TARGET_DATE"
+          # 場×コース・選手×場の特徴量は重要な固定収集項目。表示変更とは無関係に毎日更新する。
+          python -u collectors/build_historical_features.py --as-of "$TARGET_DATE"
           EVAL_DIR="evaluations/$YEAR/$MONTH/$DAY"
           test -s "$EVAL_DIR/score_component_analysis_${TARGET_DATE}.json"
           test -s "$EVAL_DIR/score_component_analysis_${TARGET_DATE}.md"
