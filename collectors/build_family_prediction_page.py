@@ -137,12 +137,16 @@ def boat_line(boat, mark="", morning_score_map=None):
     if racer:
         name += f" {racer}"
 
+    delta_html = score_delta_html(boat, morning_score_map)
+
     return (
         '<div class="pick">'
         f'<span class="mark">{esc(mark)}</span>'
+        '<span class="pick-name-wrap">'
         f'<span class="pick-name">{name}</span>'
+        f'{delta_html}'
+        '</span>'
         f'<span class="score">{score}</span>'
-        f'{score_delta_html(boat, morning_score_map)}'
         "</div>"
     )
 
@@ -150,8 +154,12 @@ def boat_line(boat, mark="", morning_score_map=None):
 def _prediction_body(boats, formation, label, morning_score_map=None):
     top_html = "".join(boat_line(boat, ["◎","○","▲"][i], morning_score_map) for i, boat in enumerate(boats[:3]))
     chips = "".join(
-        '<span class="chip">'+esc(boat.get("boat"))+'号艇 '+esc(score_label(boat.get("score"))) +
-        score_delta_html(boat, morning_score_map) + '</span>'
+        '<span class="chip">'
+        + esc(boat.get("boat")) + '号艇'
+        + ((' ' + esc(boat.get("racer_name"))) if text(boat.get("racer_name")) else '')
+        + ' ' + esc(score_label(boat.get("score")))
+        + score_delta_html(boat, morning_score_map)
+        + '</span>'
         for boat in boats
     )
     points = int(formation.get("points") or 0)
@@ -987,9 +995,22 @@ def main():
       font-weight: 900;
     }}
 
+    .pick-name-wrap {{
+      display: flex;
+      align-items: baseline;
+      min-width: 0;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }}
+
     .pick-name {{
       font-weight: 700;
       overflow-wrap: anywhere;
+    }}
+
+    .pick-name-wrap .score-delta {{
+      margin-left: 0;
+      flex: 0 0 auto;
     }}
 
     .score {{
