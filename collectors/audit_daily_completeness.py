@@ -3,6 +3,9 @@ import argparse,csv,json,re
 from datetime import datetime
 from pathlib import Path
 
+import requests
+from bs4 import BeautifulSoup
+
 def rows(p):
     if not p.exists(): return []
     with p.open(encoding="utf-8-sig",newline="") as f:return list(csv.DictReader(f))
@@ -10,6 +13,25 @@ def norm(v):
     m=re.fullmatch(r"(\d{8})[-_](\d{1,2})[-_](\d{1,2})",str(v or "").strip())
     return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}" if m else str(v or "").strip()
 def nonempty(v): return str(v or "").strip()!=""
+
+def official_beforeinfo_check(d,rid):
+    """異常時は要確認に送る前にBOAT RACE公式beforeinfoを必ず再参照する。"""
+    try:
+        _,venue,race=rid.split("-")
+        url=f"https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd={d}&jcd={venue}&rno={int(race)}"
+        res=requests.get(url,timeout=(5,12),headers={"User-Agent":"Mozilla/5.0 (compatible; boatrace-ai-quality-audit/1.0)"})
+        res.raise_for_status()
+        soup=BeautifulSoup(res.text,"html.parser")
+        tbodies=[]
+        for tb in soup.select("tbody"):
+            if tb.select_one('a[href*="toban="]'): tbodies.append(tb)
+        official=[]
+        for idx,tb in enumerate(tbodies,1):
+            cls=tb.get("class",[])
+            official.append({"boat":idx,"is_miss":"is-miss" in cls})
+        return {"checked":True,"source_url":url,"official_boats":official,"boat_count":len(official)}
+    except Exception as exc:
+        return {"checked":False,"error":str(exc)}
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument("--date",required=True);a=ap.parse_args();d=a.date
@@ -74,7 +96,7 @@ def main():
                     cur[k]=v; src[k]=source
     for p in sorted((base/"live"/"raw").glob("*/beforeinfo_races_*.csv")) if (base/"live"/"raw").exists() else []: merge_races(p,"original_pre_race")
     for p in sorted((base/"live"/"retry_after_results").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"retry_after_results").exists() else []: merge_races(p,"post_result_retry")
-    issues=[];complete=0;recovered=[]
+    issues=[];complete=0;recovered=[];official_checks=[]
     race_ids=sorted(expected|actual)
     for rid in race_ids:
         miss=[]
@@ -109,7 +131,20 @@ def main():
             # change_parts may legitimately be blank; only schema presence is required.
             if "change_parts" not in lr: miss.append(f"boat{boat}:change_parts_column")
         if recovered_fields: recovered.append({"race_id":rid,"fields":sorted(set(recovered_fields))})
-        if miss:issues.append({"race_id":rid,"missing":sorted(set(miss))})
+        # 欠損/艇数異常は、△要確認へ送る前に必ず公式を再参照する。
+        # 公式で欠場艇と確認できた項目は正規ケースとして解消する。
+        if miss:
+            chk=official_beforeinfo_check(d,rid)
+            official_checks.append({"race_id":rid,**chk})
+            if chk.get("checked"):
+                official_miss={str(x["boat"]) for x in chk.get("official_boats",[]) if x.get("is_miss")}
+                resolved=[]
+                for item in miss:
+                    mboat=re.match(r"boat(\\d+):",item)
+                    if mboat and mboat.group(1) in official_miss:
+                        resolved.append(item)
+                miss=[x for x in miss if x not in resolved]
+        if miss:issues.append({"race_id":rid,"missing":sorted(set(miss)),"quality_mark":"△","quality_label":"要確認"})
         else:complete+=1
     status="PASS" if not issues else "INCOMPLETE"
     original_complete=0
@@ -126,7 +161,7 @@ def main():
             used_retry=True
         if used_retry: recovered_complete+=1
         else: original_complete+=1
-    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":bool(issues),"issues":issues,"recovered_after_result":recovered,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"exhibition_exception":"is_miss=true boats may legitimately have blank exhibition fields","required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
+    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":bool(issues),"issues":issues,"recovered_after_result":recovered,"official_rechecks":official_checks,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"exhibition_exception":"is_miss=true boats may legitimately have blank exhibition fields","required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
     (out/f"completeness_{d}.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     with (out/f"missing_{d}.csv").open("w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=["race_id","missing"]);w.writeheader()
