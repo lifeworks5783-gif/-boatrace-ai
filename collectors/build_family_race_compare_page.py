@@ -2509,21 +2509,33 @@ def evaluation_html(
 
 
 def ai_score_result_html(prediction, trifecta, payout):
+    """Use saved signal-only top 24 when active; do not modify normal AI."""
     if not prediction:
         return '<div class="simulation missing">AIスコア予測なし</div>'
-    ai = prediction.get("ai_score_prediction") or (prediction.get("raw") or {}).get("ai_score_prediction") or {}
-    all120 = ai.get("all_120_combinations") or []
-    top12 = all120[:12]
-    if not top12:
-        top12 = ai.get("combinations") or []
-    if not top12:
-        return '<div class="simulation missing">AIスコア予測なし</div>'
+    raw = prediction.get("raw") or {}
+    signal = prediction.get("signal_ai_prediction") or raw.get("signal_ai_prediction") or {}
+    is_signal = bool(signal and signal.get("signal_key"))
+    ai = signal if is_signal else (
+        prediction.get("ai_score_prediction") or raw.get("ai_score_prediction") or {}
+    )
+    label = "風神雷神専用AI予想" if is_signal else "通常AIスコア予測"
+    all120 = ai.get("all_120_combinations") or ai.get("combinations") or []
+    purchase_points = 24 if is_signal else (safe_int(ai.get("points")) or 8)
+    display_points = 24 if is_signal else 12
+    visible = all120[:display_points]
+    if not visible:
+        return '<div class="simulation missing">AI予想の保存済み買い目なし</div>'
 
+    bought_combos = [
+        str(item.get("combination") or "") for item in all120[:purchase_points]
+    ]
+    # Incomplete saved combinations are not counted as a full 24-point ticket.
+    if is_signal and len(bought_combos) != 24:
+        return '<div class="simulation missing">シグナルAIの購入24点が未保存のため集計対象外</div>'
     rows = []
-    for i, item in enumerate(top12, 1):
+    for i, item in enumerate(visible, 1):
         combo = str(item.get("combination") or "")
         score = safe_float(item.get("score"))
-        purchase_points = safe_int(ai.get("points")) or 8
         bought = i <= purchase_points
         classes = ["ai-result-pick"]
         if bought:
@@ -2539,10 +2551,8 @@ def ai_score_result_html(prediction, trifecta, payout):
             '</div>'
         )
 
-    purchase_points = safe_int(ai.get("points")) or 8
-    bought_combos = [str(x.get("combination") or "") for x in top12[:purchase_points]]
     hit = trifecta in bought_combos
-    investment = safe_int(ai.get("investment_100yen"))
+    investment = purchase_points * 100 if is_signal else safe_int(ai.get("investment_100yen"))
     if investment is None:
         investment = len(bought_combos) * 100
     returned = payout if hit and payout is not None else 0
@@ -2552,18 +2562,17 @@ def ai_score_result_html(prediction, trifecta, payout):
     return f"""
     <details class="simulation-box ai-result-box">
       <summary class="ai-result-summary">
-        <span class="simulation-title">AIスコア予測を見る</span>
+        <span class="simulation-title">{label}を見る</span>
         <span class="ai-result-summary-meta">
-          上位12点 ／ {status} ／ 投資 <b>{investment:,}円</b> ／ 払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b>
+          購入{purchase_points}点 ／ {status} ／ 投資 <b>{investment:,}円</b> ／ 払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b>
         </span>
       </summary>
       <div class="ai-result-body">
-        <div class="simulation-meta">表示12点 ／ 購入・収支検証は上位{purchase_points}点・各100円</div>
+        <div class="simulation-meta">表示{len(visible)}点 ／ 購入上位{purchase_points}点・各100円</div>
         <div class="ai-result-list">{''.join(rows)}</div>
       </div>
     </details>
     """
-
 
 
 def ai_eval_detail_html(detail):
@@ -3019,7 +3028,7 @@ def render_html(
 
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
-  <div class="label simulation-label">AIスコア予測・保存済み上位12点</div>\n  <div class="simulation-meta">AI独自スコアによる組み合わせ評価</div>
+  <div class="label simulation-label">シグナル発動：専用AI24点／非発動：通常AIスコア予測</div>\n  <div class="simulation-meta">シグナル発動時は専用AI上位24点を各100円で照合し、投資・払戻・収支を計算</div>
   {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"]) if final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction")) else ai_eval_detail_html(row.get("ai_evaluation"))}
 
   <div class="money-grid">
