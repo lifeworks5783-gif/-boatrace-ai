@@ -482,7 +482,7 @@ def build_ai_card(race, index):
           <div class="formation-title">6艇のシグナルAI再評価</div>
           <div class="ai-note">通常予測は変更せず、{esc(signal_key)}専用補正で6艇を再評価しています。</div>
           <div class="ai-table-wrap">
-            <table class="ai-table">
+            <table class="ai-table signal-ai-table">
               <thead><tr><th>艇</th><th>通常</th><th>補正</th><th>補正後</th><th>順位</th></tr></thead>
               <tbody>{score_rows}</tbody>
             </table>
@@ -502,7 +502,7 @@ def build_ai_card(race, index):
         combos = ai.get("combinations") or []
     score_rows = "".join(
         '<tr>'
-        f'<td>{esc(x.get("boat"))}号艇</td>'
+        f'<td>{esc(x.get("boat"))}号艇{(" " + esc(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat"))))) if text(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat")))) else ""}</td>'
         f'<td>{esc(score_label(x.get("first_score")))}</td>'
         f'<td>{esc(score_label(x.get("second_score")))}</td>'
         f'<td>{esc(score_label(x.get("third_score")))}</td>'
@@ -526,22 +526,22 @@ def build_ai_card(race, index):
         </div>
         <div class="badge live">AIスコア</div>
       </div>
-      <div class="formation-title">AIスコア予測・上位12点</div>
-      <div class="ai-note">AI独自スコアによる組み合わせ評価</div>
-      <div class="ai-candidates">
-        <div><b>1着候補</b> {"・".join(esc(x) for x in ai.get("first_candidates") or [])}</div>
-        <div><b>2着候補</b> {"・".join(esc(x) for x in ai.get("second_candidates") or [])}</div>
-        <div><b>3着候補</b> {"・".join(esc(x) for x in ai.get("third_candidates") or [])}</div>
+      <div class="formation-title">6艇のAIスコア</div>
+      <div class="ai-note">AI独自スコアによる着順別評価です。</div>
+      <div class="ai-table-wrap">
+        <table class="ai-table">
+          <thead><tr><th>艇</th><th>1着</th><th>2着</th><th>3着</th></tr></thead>
+          <tbody>{score_rows}</tbody>
+        </table>
       </div>
-      <div class="ai-combos">{combo_rows or "AI予測はまだ生成されていません。"}</div>
-      <details>
-        <summary>着順別AIスコアを見る</summary>
-        <div class="ai-table-wrap">
-          <table class="ai-table">
-            <thead><tr><th>艇</th><th>1着</th><th>2着</th><th>3着</th></tr></thead>
-            <tbody>{score_rows}</tbody>
-          </table>
+      <details class="ai-combo-details">
+        <summary>AIスコア予想・上位12点を見る</summary>
+        <div class="ai-candidates">
+          <div><b>1着候補</b> {"・".join(esc(x) for x in ai.get("first_candidates") or [])}</div>
+          <div><b>2着候補</b> {"・".join(esc(x) for x in ai.get("second_candidates") or [])}</div>
+          <div><b>3着候補</b> {"・".join(esc(x) for x in ai.get("third_candidates") or [])}</div>
         </div>
+        <div class="ai-combos">{combo_rows or "AI予測はまだ生成されていません。"}</div>
       </details>
       <div class="ai-note">既存AIスコアは通常予測とは独立。シグナルがないレースでは従来表示を維持します。</div>
     </article>
@@ -833,8 +833,8 @@ def main():
     .ai-table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
     .ai-table th, .ai-table td {{ padding: 7px; border-bottom: 1px solid var(--line); text-align: right; }}
     .ai-table th:first-child, .ai-table td:first-child {{ text-align: left; }}
-    .ai-table th:nth-child(4), .ai-table td:nth-child(4),
-    .ai-table th:nth-child(5), .ai-table td:nth-child(5) {{
+    .signal-ai-table th:nth-child(4), .signal-ai-table td:nth-child(4),
+    .signal-ai-table th:nth-child(5), .signal-ai-table td:nth-child(5) {{
       font-weight: 900;
       color: var(--live-accent);
       background: rgba(20, 140, 130, .08);
