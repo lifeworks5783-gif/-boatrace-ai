@@ -88,10 +88,13 @@ def main():
     for p in raw_paths: merge_live(p,"original_pre_race")
     retry_paths=sorted((base/"live"/"retry_after_results").glob("**/beforeinfo_entries_*.csv")) if (base/"live"/"retry_after_results").exists() else []
     for p in retry_paths: merge_live(p,"post_result_retry")
+    # Backfill is useful for completeness/audit, but it is never relabeled as genuine pre-race observation.
+    backfill_paths=sorted((base/"live"/"backfill").glob("**/beforeinfo_entries_*.csv")) if (base/"live"/"backfill").exists() else []
+    for p in backfill_paths: merge_live(p,"post_result_retry")
     # Older layouts: exclude retry_after_results because it was handled above.
     older=sorted((base/"live").glob("**/beforeinfo_entries_*.csv")) if (base/"live").exists() else []
     for p in older:
-        if "retry_after_results" in p.parts or p in raw_paths: continue
+        if "retry_after_results" in p.parts or "backfill" in p.parts or p in raw_paths: continue
         merge_live(p,"original_pre_race")
     # Race-level beforeinfo (weather/water/wind/wave/flags) is audited separately.
     live_races={}; race_provenance={}
@@ -107,6 +110,7 @@ def main():
                     cur[k]=v; src[k]=source
     for p in sorted((base/"live"/"raw").glob("*/beforeinfo_races_*.csv")) if (base/"live"/"raw").exists() else []: merge_races(p,"original_pre_race")
     for p in sorted((base/"live"/"retry_after_results").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"retry_after_results").exists() else []: merge_races(p,"post_result_retry")
+    for p in sorted((base/"live"/"backfill").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"backfill").exists() else []: merge_races(p,"post_result_retry")
     issues=[];complete=0;recovered=[];official_checks=[]
     race_ids=sorted(expected|actual)
     pending=[]
