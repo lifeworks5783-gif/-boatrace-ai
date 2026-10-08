@@ -49,6 +49,13 @@ jobs:
           cp "$BF/beforeinfo_races_$D.csv" data/
           cp "$BF/beforeinfo_entries_$D.csv" data/
           cp "$BF/beforeinfo_validation_$D.json" data/
+      - name: 保存済み入力にない直前情報だけ補完
+        run: |
+          python -u collectors/today_beforeinfo.py --date "$D" --mode missing
+          BF="daily_inputs/$Y/$M/$DAY/live/backfill"
+          cp "data/beforeinfo_races_$D.csv" "$BF/"
+          cp "data/beforeinfo_entries_$D.csv" "$BF/"
+          cp "data/beforeinfo_validation_$D.json" "$BF/"
       - name: 直前入力を再構築
         run: |
           python -u collectors/build_prediction_input.py --date "$D" --stage live
@@ -65,6 +72,7 @@ jobs:
           p=f"data/live_predictions_final_{d}.json"
           x=json.load(open(p,encoding="utf-8"))
           races=x.get("races") or x.get("predictions") or []
+          if not races: raise SystemExit("直前予測監査FAIL: 予測0R")
           bad=[]
           review=[]
           for r in races:
@@ -98,7 +106,7 @@ jobs:
         run: |
           git config user.name "boatrace-recovery-bot"
           git config user.email "boatrace-recovery-bot@users.noreply.github.com"
-          git add "predictions/$Y/$M/$DAY/live" predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
+          git add "daily_inputs/$Y/$M/$DAY/live/backfill" "predictions/$Y/$M/$DAY/live" predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
           # 監査/再構築で生成された未追跡・未ステージファイルはpush対象外。
           # pull --rebase 前に退避して競合停止を防ぐ。
           if git diff --cached --quiet; then exit 0; fi
