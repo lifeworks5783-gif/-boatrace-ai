@@ -286,7 +286,7 @@ def build_page(root: Path) -> str:
 .rule>div{{background:#fff;border:1px solid #d1e0ff;border-radius:12px;padding:12px}}.rule b{{display:block;font-size:18px;margin-top:3px}}
 .metrics{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}}.metric{{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}}.metric .label{{font-size:12px;color:var(--muted)}}.metric .value{{font-size:22px;font-weight:750;margin:4px 0}}
 .table-wrap{{overflow:auto;border:1px solid var(--line);border-radius:12px}}table{{width:100%;border-collapse:collapse;min-width:780px;background:#fff}}th,td{{padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px;text-align:right;white-space:nowrap}}th:first-child,td:first-child{{text-align:left;position:sticky;left:0;background:#fff}}th{{background:#f9fafb}}
-.badge{{display:inline-block;padding:4px 8px;border-radius:999px;background:#ecfdf3;color:var(--good);font-size:12px;font-weight:700}}.warn{{background:#fffaeb;color:var(--warn)}}.empty{{padding:18px;color:var(--muted);text-align:center}}
+.badge{{display:inline-block;padding:4px 8px;border-radius:999px;background:#ecfdf3;color:var(--good);font-size:12px;font-weight:700}} .adopted-logic{{color:var(--good);font-weight:900}} .logic-legend{{margin:8px 0 12px;padding:9px 11px;border-radius:9px;background:#f2f4f7;color:var(--muted);font-size:12px}} .legend-green{{color:var(--good);font-weight:900}}.warn{{background:#fffaeb;color:var(--warn)}}.empty{{padding:18px;color:var(--muted);text-align:center}}
 .action{{width:100%;border:0;border-radius:12px;background:var(--accent);color:#fff;padding:13px;font-size:16px;font-weight:700}}footer{{color:var(--muted);font-size:12px;padding:16px 2px 30px}}
 </style>
 </head>
