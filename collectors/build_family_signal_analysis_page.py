@@ -223,8 +223,9 @@ def legacy_analysis_sections(root: Path) -> str:
         # 場特性・選手戦法×会場適性は重要な固定分析。表示だけでなく元データ収集も継続する。
         sections.append('<section class="card"><h2>⑨ 場の特性・選手戦法 × 会場適性</h2>'
                         '<p class="note">24場の決まり手特性と、選手の得意戦法×会場・進入コースの相性を継続分析します。既存項目を削除せず母数を蓄積します。</p>'
+                        + legacy.venue_course_characteristics_html()
                         + legacy.venue_technique_html()
-                        + '<div class="note">逃げ・差し・まくり・まくり差しについて、選手実績 × 会場の決まり手発生率 × 進入コースを継続検証します。</div>'
+                        + '<div class="note">場単体は選手と切り離して保存。さらに逃げ・差し・まくり・まくり差しについて、選手実績 × 会場の決まり手発生率 × 進入コースを別系列で継続検証します。</div>'
                         + '</section>')
 
         return "".join(sections)
