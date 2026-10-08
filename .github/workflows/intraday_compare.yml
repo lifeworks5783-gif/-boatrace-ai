@@ -52,7 +52,14 @@ jobs:
 
       - name: 終了済みレース結果を取得
         run: |
+          # 当日途中は未終了レースがあるため fast_results の PARTIAL(exit 2) は正常。
+          set +e
           python -u collectors/fast_results.py --date "${TARGET_DATE}"
+          RC=$?
+          set -e
+          if [ "$RC" -ne 0 ] && [ "$RC" -ne 2 ]; then
+            exit "$RC"
+          fi
           test -s "data/results_${TARGET_DATE}_all.csv"
           RESULT_COUNT=$(python - <<'PY'
           import os,pandas as pd
