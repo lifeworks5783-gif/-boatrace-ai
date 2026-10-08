@@ -90,8 +90,12 @@ jobs:
               echo "CHANGED=true" >> "$GITHUB_ENV"
               exit 0
             fi
+            # Other live workflows may update generated data while this job is running.
+            # Preserve any unstaged generated files before rebasing, then restore them.
+            git stash push -u -m "intraday-rebase-${GITHUB_RUN_ID}" || true
             git fetch origin main
-            git rebase origin/main || { git rebase --abort || true; exit 1; }
+            git rebase origin/main || { git rebase --abort || true; git stash pop || true; exit 1; }
+            git stash pop || true
             sleep 3
           done
           exit 1
