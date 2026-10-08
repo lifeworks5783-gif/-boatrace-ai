@@ -419,10 +419,33 @@ def build_card(race, index, is_completed=False):
     """
 
 
+def _ai_boat_name_map(race):
+    name_map = {}
+    sources = [
+        race.get("live_prediction") or {},
+        race.get("morning_prediction") or {},
+        race.get("prediction") or {},
+        race,
+    ]
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        boats = source.get("boats") or (source.get("raw") or {}).get("boats") or []
+        for boat in boats:
+            if not isinstance(boat, dict):
+                continue
+            no = text(boat.get("boat"))
+            name = text(boat.get("racer_name") or boat.get("name") or boat.get("player_name") or boat.get("racer"))
+            if no and name and no not in name_map:
+                name_map[no] = name
+    return name_map
+
+
 def build_ai_card(race, index):
     venue = text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
     deadline = time_label(race.get("deadline"))
     signal_ai = race.get("signal_ai_prediction") or {}
+    ai_name_map = _ai_boat_name_map(race)
 
     if signal_ai:
         ai = signal_ai
@@ -430,7 +453,7 @@ def build_ai_card(race, index):
         combos = (ai.get("combinations") or [])[:24]
         score_rows = "".join(
             '<tr>'
-            f'<td>{esc(x.get("boat"))}号艇</td>'
+            f'<td>{esc(x.get("boat"))}号艇{(" " + esc(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat"))))) if text(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat")))) else ""}</td>'
             f'<td>{esc(score_label(x.get("normal_score")))}</td>'
             f'<td>{esc(score_label(x.get("signal_adjustment")))}</td>'
             f'<td>{esc(score_label(x.get("signal_ai_score")))}</td>'
@@ -456,17 +479,17 @@ def build_ai_card(race, index):
             </div>
             <div class="badge live">シグナルAI</div>
           </div>
-          <div class="formation-title">シグナルAI評価・上位24点</div>
+          <div class="formation-title">6艇のシグナルAI再評価</div>
           <div class="ai-note">通常予測は変更せず、{esc(signal_key)}専用補正で6艇を再評価しています。</div>
-          <div class="ai-combos">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
-          <details>
-            <summary>6艇のシグナルAI再評価を見る</summary>
-            <div class="ai-table-wrap">
-              <table class="ai-table">
-                <thead><tr><th>艇</th><th>通常</th><th>補正</th><th>補正後</th><th>順位</th></tr></thead>
-                <tbody>{score_rows}</tbody>
-              </table>
-            </div>
+          <div class="ai-table-wrap">
+            <table class="ai-table">
+              <thead><tr><th>艇</th><th>通常</th><th>補正</th><th>補正後</th><th>順位</th></tr></thead>
+              <tbody>{score_rows}</tbody>
+            </table>
+          </div>
+          <details class="ai-combo-details">
+            <summary>シグナルAI予想・上位24点を見る</summary>
+            <div class="ai-combos">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
           </details>
           <div class="ai-note">上位24通りは候補として必ず表示。購入点数の6〜24点最適化は今後のPDCAで別途検証します。</div>
         </article>
