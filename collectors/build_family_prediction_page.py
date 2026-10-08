@@ -156,7 +156,7 @@ def _prediction_body(boats, formation, label, morning_score_map=None):
     chips = "".join(
         '<span class="chip">'
         + esc(boat.get("boat")) + '号艇'
-        + ((' ' + esc(boat.get("racer_name"))) if text(boat.get("racer_name")) else '')
+        + ((' ' + esc(boat.get("racer_name") or boat.get("name") or boat.get("player_name") or boat.get("racer"))) if text(boat.get("racer_name") or boat.get("name") or boat.get("player_name") or boat.get("racer")) else '')
         + ' ' + esc(score_label(boat.get("score")))
         + score_delta_html(boat, morning_score_map)
         + '</span>'
