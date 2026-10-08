@@ -292,8 +292,6 @@ def build_page(root: Path) -> str:
 </head>
 <body><div class="wrap">
 <header><h1>風神雷神 AI分析</h1><div class="meta">現行シグナルAI補正・買い/見送り判定・6〜24点最適化を累積検証</div></header>
-<nav><a href="index.html">最新予想</a><a href="results.html">結果・成績</a><a href="analysis.html" class="active">AI分析</a><a href="race_compare.html">レース照合</a></nav>
-
 <section class="card hero">
 <h2>第一段階の固定ルール</h2>
 <div class="rule">
