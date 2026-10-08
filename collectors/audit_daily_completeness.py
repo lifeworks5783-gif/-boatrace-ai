@@ -5,6 +5,7 @@ from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def rows(p):
     if not p.exists(): return []
@@ -108,6 +109,7 @@ def main():
     for p in sorted((base/"live"/"retry_after_results").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"retry_after_results").exists() else []: merge_races(p,"post_result_retry")
     issues=[];complete=0;recovered=[];official_checks=[]
     race_ids=sorted(expected|actual)
+    pending=[]
     for rid in race_ids:
         miss=[]
         if rid not in expected: miss.append("morning_program")
@@ -141,21 +143,38 @@ def main():
             # change_parts may legitimately be blank; only schema presence is required.
             if "change_parts" not in lr: miss.append(f"boat{boat}:change_parts_column")
         if recovered_fields: recovered.append({"race_id":rid,"fields":sorted(set(recovered_fields))})
-        # 欠損/艇数異常は、△要確認へ送る前に必ず公式を再参照する。
-        # 公式で欠場艇と確認できた項目は正規ケースとして解消する。
+        # まず手元データだけで候補を絞る。公式アクセスは候補だけを後段で並列実行する。
         if miss:
-            chk=official_beforeinfo_check(d,rid)
-            official_checks.append({"race_id":rid,**chk})
-            if chk.get("checked"):
-                official_miss={str(x["boat"]) for x in chk.get("official_boats",[]) if x.get("is_miss")}
-                resolved=[]
-                for item in miss:
-                    mboat=re.match(r"boat(\\d+):",item)
-                    if mboat and mboat.group(1) in official_miss:
-                        resolved.append(item)
-                miss=[x for x in miss if x not in resolved]
-        if miss:issues.append({"race_id":rid,"missing":sorted(set(miss)),"quality_mark":"△","quality_label":"要確認"})
-        else:complete+=1
+            pending.append((rid, sorted(set(miss))))
+        else:
+            complete+=1
+
+    # △にする前に、異常候補は必ず公式を再参照する。
+    # SP版を先に見て、取れない場合のみPC版へフォールバック。少数並列で全体停止を防ぐ。
+    checks={}
+    if pending:
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            futures={pool.submit(official_beforeinfo_check,d,rid):rid for rid,_ in pending}
+            for future in as_completed(futures):
+                rid=futures[future]
+                try: checks[rid]=future.result()
+                except Exception as exc: checks[rid]={"checked":False,"errors":[f"worker:{type(exc).__name__}"]}
+    for rid, miss0 in pending:
+        miss=list(miss0)
+        chk=checks.get(rid,{"checked":False,"errors":["not_checked"]})
+        official_checks.append({"race_id":rid,**chk})
+        if chk.get("checked"):
+            official_miss={str(x["boat"]) for x in chk.get("official_boats",[]) if x.get("is_miss")}
+            resolved=[]
+            for item in miss:
+                mboat=re.match(r"boat(\\d+):",item)
+                if mboat and mboat.group(1) in official_miss:
+                    resolved.append(item)
+            miss=[x for x in miss if x not in resolved]
+        if miss:
+            issues.append({"race_id":rid,"missing":sorted(set(miss)),"quality_mark":"△","quality_label":"要確認"})
+        else:
+            complete+=1
     status="PASS" if not issues else "INCOMPLETE"
     original_complete=0
     recovered_complete=0
