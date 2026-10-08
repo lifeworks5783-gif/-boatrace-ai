@@ -220,6 +220,13 @@ def legacy_analysis_sections(root: Path) -> str:
                             '<p class="note">TOP10外も削除せず保存・再評価を継続します。</p>'
                             + legacy.top10_html(pdca) + '</section>')
 
+        # 場特性・選手戦法×会場適性は重要な固定分析。表示だけでなく元データ収集も継続する。
+        sections.append('<section class="card"><h2>⑨ 場の特性・選手戦法 × 会場適性</h2>'
+                        '<p class="note">24場の決まり手特性と、選手の得意戦法×会場・進入コースの相性を継続分析します。既存項目を削除せず母数を蓄積します。</p>'
+                        + legacy.venue_technique_html()
+                        + '<div class="note">逃げ・差し・まくり・まくり差しについて、選手実績 × 会場の決まり手発生率 × 進入コースを継続検証します。</div>'
+                        + '</section>')
+
         return "".join(sections)
     except Exception as exc:
         return '<section class="card"><h2>①・③・④ 既存分析</h2><div class="empty">保存データの読み込み待ちです。</div></section>'
