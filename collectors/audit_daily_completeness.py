@@ -14,24 +14,34 @@ def norm(v):
     return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}" if m else str(v or "").strip()
 def nonempty(v): return str(v or "").strip()!=""
 
+def _parse_official_beforeinfo(html):
+    soup=BeautifulSoup(html,"html.parser")
+    tbodies=[tb for tb in soup.select("tbody") if tb.select_one('a[href*="toban="]')]
+    official=[]
+    for idx,tb in enumerate(tbodies,1):
+        cls=tb.get("class",[])
+        official.append({"boat":idx,"is_miss":"is-miss" in cls})
+    return official
+
 def official_beforeinfo_check(d,rid):
-    """異常時は要確認に送る前にBOAT RACE公式beforeinfoを必ず再参照する。"""
-    try:
-        _,venue,race=rid.split("-")
-        url=f"https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd={d}&jcd={venue}&rno={int(race)}"
-        res=requests.get(url,timeout=(5,12),headers={"User-Agent":"Mozilla/5.0 (compatible; boatrace-ai-quality-audit/1.0)"})
-        res.raise_for_status()
-        soup=BeautifulSoup(res.text,"html.parser")
-        tbodies=[]
-        for tb in soup.select("tbody"):
-            if tb.select_one('a[href*="toban="]'): tbodies.append(tb)
-        official=[]
-        for idx,tb in enumerate(tbodies,1):
-            cls=tb.get("class",[])
-            official.append({"boat":idx,"is_miss":"is-miss" in cls})
-        return {"checked":True,"source_url":url,"official_boats":official,"boat_count":len(official)}
-    except Exception as exc:
-        return {"checked":False,"error":str(exc)}
+    """異常時のみ公式を再確認。速報性を優先してSP版→PC版の順。全体処理は止めない。"""
+    _,venue,race=rid.split("-")
+    urls=[
+        f"https://www.boatrace.jp/owsp/sp/race/beforeinfo?hd={d}&jcd={venue}&rno={int(race)}",
+        f"https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd={d}&jcd={venue}&rno={int(race)}",
+    ]
+    errors=[]
+    for url in urls:
+        try:
+            res=requests.get(url,timeout=(2,4),headers={"User-Agent":"Mozilla/5.0 (compatible; boatrace-ai-quality-audit/1.1)"})
+            res.raise_for_status()
+            official=_parse_official_beforeinfo(res.text)
+            if official:
+                return {"checked":True,"source_url":url,"source_variant":"sp" if "/owsp/" in url else "pc","official_boats":official,"boat_count":len(official)}
+            errors.append(f"{url}:no_rows")
+        except Exception as exc:
+            errors.append(f"{url}:{type(exc).__name__}")
+    return {"checked":False,"errors":errors}
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument("--date",required=True);a=ap.parse_args();d=a.date
