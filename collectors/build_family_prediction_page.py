@@ -496,18 +496,30 @@ def build_ai_card(race, index):
         """
 
     ai = race.get("ai_score_prediction") or {}
+    normal_prediction = race.get("live_prediction") or race.get("morning_prediction") or race.get("prediction") or {}
+    normal_boats = normal_prediction.get("boats") or (normal_prediction.get("raw") or {}).get("boats") or []
+    normal_score_map = {
+        text(x.get("boat")): safe_float(x.get("score"))
+        for x in normal_boats
+        if isinstance(x, dict) and text(x.get("boat"))
+    }
     position = ai.get("position_scores") or []
     combos = (ai.get("all_120_combinations") or [])[:12]
     if not combos:
         combos = ai.get("combinations") or []
+
     score_rows = "".join(
         '<tr>'
         f'<td>{esc(x.get("boat"))}号艇{(" " + esc(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat"))))) if text(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat")))) else ""}</td>'
-        f'<td>{esc(score_label(x.get("first_score")))}</td>'
-        f'<td>{esc(score_label(x.get("second_score")))}</td>'
-        f'<td>{esc(score_label(x.get("third_score")))}</td>'
+        f'<td>{esc(score_label(normal_score_map.get(text(x.get("boat")))))}</td>'
+        f'<td>{esc(score_label(0))}</td>'
+        f'<td>{esc(score_label(normal_score_map.get(text(x.get("boat")))))}</td>'
+        f'<td>{rank}位</td>'
         '</tr>'
-        for x in position
+        for rank, x in enumerate(
+            sorted(position, key=lambda row: -(normal_score_map.get(text(row.get("boat"))) if normal_score_map.get(text(row.get("boat"))) is not None else -9999)),
+            start=1
+        )
     )
     combo_rows = "".join(
         '<div class="ai-combo">'
@@ -524,26 +536,20 @@ def build_ai_card(race, index):
           <div class="deadline">{esc(deadline)}</div>
           <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>
         </div>
-        <div class="badge live">AIスコア</div>
+        <div class="badge live">シグナルAI</div>
       </div>
-      <div class="formation-title">6艇のAIスコア</div>
-      <div class="ai-note">AI独自スコアによる着順別評価です。</div>
+      <div class="formation-title">6艇のシグナルAI再評価</div>
+      <div class="ai-note">通常予測は変更せず、シグナル補正対象外のレースは補正0.0で表示します。</div>
       <div class="ai-table-wrap">
-        <table class="ai-table">
-          <thead><tr><th>艇</th><th>1着</th><th>2着</th><th>3着</th></tr></thead>
+        <table class="ai-table signal-ai-table">
+          <thead><tr><th>艇</th><th>通常</th><th>補正</th><th>補正後</th><th>順位</th></tr></thead>
           <tbody>{score_rows}</tbody>
         </table>
       </div>
       <details class="ai-combo-details">
-        <summary>AIスコア予想・上位12点を見る</summary>
-        <div class="ai-candidates">
-          <div><b>1着候補</b> {"・".join(esc(x) for x in ai.get("first_candidates") or [])}</div>
-          <div><b>2着候補</b> {"・".join(esc(x) for x in ai.get("second_candidates") or [])}</div>
-          <div><b>3着候補</b> {"・".join(esc(x) for x in ai.get("third_candidates") or [])}</div>
-        </div>
+        <summary>シグナルAI予想・上位12点を見る</summary>
         <div class="ai-combos">{combo_rows or "AI予測はまだ生成されていません。"}</div>
       </details>
-      <div class="ai-note">既存AIスコアは通常予測とは独立。シグナルがないレースでは従来表示を維持します。</div>
     </article>
     """
 
