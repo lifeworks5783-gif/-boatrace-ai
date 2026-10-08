@@ -2180,14 +2180,19 @@ def build_race_rows(
         completed_codes - built_codes
     )
     if missing_codes:
-        raise RuntimeError(
-            "レース照合欠損: "
+        # 当日途中は公開結果CSVの更新タイミング差で、一部レースだけ
+        # 着順/払戻の片側が先に到着することがある。取得済みレースまで
+        # ページ全体を止めず、欠損分は次回5分更新で自動補完する。
+        print(
+            "WARN: レース照合一時欠損（次回更新で再取得）: "
             + ", ".join(missing_codes)
         )
 
     print(
-        "レース照合整合性: PASS / "
-        f"確定元 {len(completed_codes)}R = 表示 {len(built_codes)}R"
+        "レース照合整合性: "
+        + ("PARTIAL" if missing_codes else "PASS")
+        + " / "
+        + f"確定元 {len(completed_codes)}R / 表示 {len(built_codes)}R"
     )
 
     # 締切が遅いレースを上に
