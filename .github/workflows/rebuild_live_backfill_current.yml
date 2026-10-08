@@ -99,10 +99,14 @@ jobs:
           git config user.name "boatrace-recovery-bot"
           git config user.email "boatrace-recovery-bot@users.noreply.github.com"
           git add "predictions/$Y/$M/$DAY/live" predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
+          # 監査/再構築で生成された未追跡・未ステージファイルはpush対象外。
+          # pull --rebase 前に退避して競合停止を防ぐ。
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Repair live predictions from recovered beforeinfo $D"
+          git stash push -u -m "rebuild-live-generated-$D" || true
           git pull --rebase origin main
           git push origin main
+          git stash drop || true
       - name: 家族ページ更新
         env:
           GH_TOKEN: ${{ github.token }}
