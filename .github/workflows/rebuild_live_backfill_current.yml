@@ -14,6 +14,10 @@ on:
         description: "対象日 YYYYMMDD"
         required: true
         default: "20261008"
+      target_race_id:
+        description: "1レース限定復旧用のレースID。空なら従来方式"
+        required: false
+        default: ""
 
 concurrency:
   group: boatrace-main-writer
@@ -39,6 +43,9 @@ jobs:
           echo "Y=${D:0:4}" >> "$GITHUB_ENV"
           echo "M=${D:4:2}" >> "$GITHUB_ENV"
           echo "DAY=${D:6:2}" >> "$GITHUB_ENV"
+          TARGET_RACE="${{ inputs.target_race_id || '' }}"
+          if [ -z "$TARGET_RACE" ] && [ "${{ github.event_name }}" = "push" ] && [ "$D" = "20261008" ]; then TARGET_RACE="20261008-20-09"; fi
+          echo "TARGET_RACE=$TARGET_RACE" >> "$GITHUB_ENV"
       - name: 基本・復旧直前データを復元
         run: |
           mkdir -p data
@@ -61,9 +68,67 @@ jobs:
           python -u collectors/build_prediction_input.py --date "$D" --stage live
           python -u collectors/build_history_features.py --as-of "$D"
           python -u collectors/enrich_prediction_input.py --date "$D" --stage live
-      - name: 正式直前予測を再計算
+      - name: 復旧前の正式予測を厳重退避
+        run: |
+          if [ -n "$TARGET_RACE" ]; then
+            SRC="predictions/$Y/$M/$DAY/live/live_predictions_final_$D"
+            test -s "${SRC}.json" && test -s "${SRC}.csv"
+            cp "${SRC}.json" "data/original_live_$D.json"
+            cp "${SRC}.csv" "data/original_live_$D.csv"
+          fi
+      - name: 公式beforeinfoだけから直前スコアを再計算
         run: |
           python -u collectors/build_live_prediction.py --date "$D" --historical-backfill
+      - name: 指定した1レースだけを元データへ安全に合流
+        if: env.TARGET_RACE != ''
+        run: |
+          python - <<'PY'
+          import csv,json,os
+          from pathlib import Path
+          d=os.environ["D"]; rid=os.environ["TARGET_RACE"]
+          assert rid.startswith(d+"-") and rid.count("-")==2, (d,rid)
+          out=Path("data"); path=out/f"live_predictions_final_{d}.json"
+          original=json.loads((out/f"original_live_{d}.json").read_text(encoding="utf-8"))
+          reconstructed=json.loads((out/f"live_predictions_current_{d}.json").read_text(encoding="utf-8"))
+          val=json.loads((out/f"live_predictions_validation_current_{d}.json").read_text(encoding="utf-8"))
+          assert val.get("current_day_result_leakage")==0 and val.get("status")=="PASS",val
+          match=[r for r in reconstructed.get("races",[]) if r.get("race_id")==rid]
+          assert len(match)==1,("missing reconstructed race",rid)
+          rebuilt=match[0]; scores=rebuilt.get("boats") or []
+          official=list(csv.DictReader((Path("daily_inputs")/d[:4]/d[4:6]/d[6:8]/"live"/"backfill"/f"beforeinfo_entries_{d}.csv").open(encoding="utf-8-sig")))
+          official=[r for r in official if r["race_id"]==rid]
+          assert len(official)==6 and {int(x["boat"]) for x in official}==set(range(1,7)),("invalid official entry rows",rid)
+          for row in official:
+            assert row.get("source_url","").startswith("https://www.boatrace.jp/"),row
+            assert all(row.get(key) for key in ("exhibition_course","exhibition_time","exhibition_st_raw")),row
+          assert len(scores)==6 and {int(x["boat"]) for x in scores}==set(range(1,7)),("invalid restored scores",rid)
+          assert all(x.get("score") is not None and x.get("racer_name") for x in scores),scores
+          old_rows=original.get("races",[])
+          old_by_id={r["race_id"]:r for r in old_rows}
+          if rid in old_by_id:
+            assert (old_by_id[rid].get("prediction_quality") or {}).get("status") in ("fallback","recovered_observation"),"refuse to overwrite true saved live prediction"
+          assert len(old_by_id)==len(old_rows),"duplicate historical races"
+          quality=rebuilt.setdefault("prediction_quality",{})
+          quality.update({"status":"recovered_observation","label":"公式直前情報から事後復旧","mark":"↻","recovery_needed":False,"provenance":"post_result_official_beforeinfo","prediction_generated_after_deadline":True,"result_leakage":False,"reason":["予測前の取得機構障害による未保存を復旧"]})
+          old_by_id[rid]=rebuilt
+          merged=sorted(old_by_id.values(),key=lambda r:(str(r.get("venue_code")),int(r.get("race") or 0)))
+          assert all(old_by_id[k]==v for k,v in ((r["race_id"],r) for r in old_rows) if k!=rid),"changed original saved rows"
+          original.update({"races":merged,"race_count":len(merged),"boat_count":sum(len(r.get("boats") or []) for r in merged)})
+          path.write_text(json.dumps(original,ensure_ascii=False,indent=2),encoding="utf-8")
+          csv_path=out/f"live_predictions_final_{d}.csv"
+          with (out/f"original_live_{d}.csv").open(encoding="utf-8-sig",newline="") as stream:
+            reader=csv.DictReader(stream); fieldnames=reader.fieldnames; old_csv=list(reader)
+          with (out/f"live_predictions_current_{d}.csv").open(encoding="utf-8-sig",newline="") as stream:
+            added=[r for r in csv.DictReader(stream) if r.get("race_id")==rid]
+          assert len(added)==6 and len({x["boat"] for x in added})==6
+          joined=[r for r in old_csv if r["race_id"]!=rid]+added
+          with csv_path.open("w",encoding="utf-8-sig",newline="") as stream:
+            writer=csv.DictWriter(stream,fieldnames=fieldnames);writer.writeheader();writer.writerows(joined)
+          manifest={"date":d,"race_id":rid,"status":"recovered_observation","source":"BOAT RACE official beforeinfo (acquired after race)","pre_race_snapshot":False,"factors_only_pre_race":True,"original_prediction_was_missing":rid not in {r["race_id"] for r in old_rows},"result_leakage":False,"recovered_boats":6,"unmodified_original_races":len(old_rows)-(rid in {r["race_id"] for r in old_rows}),"score_generated_at":rebuilt.get("generated_at"),"recorded_beforeinfo_at":official[0].get("collected_at")}
+          dest=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"recovery";dest.mkdir(parents=True,exist_ok=True)
+          (dest/f"single_race_live_recovery_{d}.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
+          print(json.dumps(manifest,ensure_ascii=False))
+          PY
       - name: 全体監査
         run: |
           python - <<'PY'
@@ -100,13 +165,18 @@ jobs:
           cp "data/live_predictions_final_$D.json" "$DEST/"
           cp "data/live_predictions_final_$D.csv" "$DEST/"
           NOW="$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M:%S%:z)"
-          python -u collectors/build_latest_prediction_view.py --date "$D" --now "$NOW"
-          python -u collectors/build_deadline_prediction_view.py --date "$D"
+          if [ -z "$TARGET_RACE" ]; then
+            python -u collectors/build_latest_prediction_view.py --date "$D" --now "$NOW"
+            python -u collectors/build_deadline_prediction_view.py --date "$D"
+          else
+            echo "事後復旧なので、当時のformation・買い目を上書きしない"
+          fi
       - name: 保存
         run: |
           git config user.name "boatrace-recovery-bot"
           git config user.email "boatrace-recovery-bot@users.noreply.github.com"
           git add "daily_inputs/$Y/$M/$DAY/live/backfill" "predictions/$Y/$M/$DAY/live" predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
+          if [ -n "$TARGET_RACE" ]; then git add "evaluations/$Y/$M/$DAY/recovery/single_race_live_recovery_$D.json"; fi
           # 監査/再構築で生成された未追跡・未ステージファイルはpush対象外。
           # pull --rebase 前に退避して競合停止を防ぐ。
           if git diff --cached --quiet; then exit 0; fi
@@ -118,4 +188,6 @@ jobs:
       - name: 家族ページ更新
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run family_prediction_page.yml --ref main
+        run: |
+          gh workflow run family_prediction_page.yml --ref main
+          if [ -n "$TARGET_RACE" ]; then gh workflow run intraday_compare.yml --ref main; fi
