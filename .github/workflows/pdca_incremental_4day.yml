@@ -76,15 +76,25 @@ jobs:
       - name: Validate selected date results
         run: python -u collectors/validate_daily.py --date "$TARGET_DATE"
 
-      - name: Archive selected date results
+      - name: Preserve canonical results and restore them for evaluation
         run: |
-          mkdir -p "archive/$YEAR/$MONTH/$DAY"
-          cp "data/venues_${TARGET_DATE}.csv" "archive/$YEAR/$MONTH/$DAY/"
-          cp "data/results_${TARGET_DATE}_all.csv" "archive/$YEAR/$MONTH/$DAY/"
-          cp "data/boat_results_${TARGET_DATE}_all.csv" "archive/$YEAR/$MONTH/$DAY/"
-          cp "data/validation_${TARGET_DATE}.json" "archive/$YEAR/$MONTH/$DAY/"
-          cp "data/manifest_${TARGET_DATE}.json" "archive/$YEAR/$MONTH/$DAY/"
-          if [ -f "data/excluded_races_${TARGET_DATE}.csv" ]; then cp "data/excluded_races_${TARGET_DATE}.csv" "archive/$YEAR/$MONTH/$DAY/"; fi
+          # PDCAの公式再取得結果は途中欠損を含みうる。監査済み保存結果は絶対に上書きしない。
+          # レース照合/結果成績/シグナル分析の参照元は同一の保存済みデータに統一。
+          DEST="archive/$YEAR/$MONTH/$DAY"
+          mkdir -p "$DEST"
+          if [ -s "$DEST/results_${TARGET_DATE}_all.csv" ] && [ -s "$DEST/boat_results_${TARGET_DATE}_all.csv" ]; then
+            echo "Preserve archived race results and use them for all PDCA evaluations."
+            cp "$DEST/results_${TARGET_DATE}_all.csv" "data/results_${TARGET_DATE}_all.csv"
+            cp "$DEST/boat_results_${TARGET_DATE}_all.csv" "data/boat_results_${TARGET_DATE}_all.csv"
+          else
+            echo "No saved results; adopt first verified results for this date."
+            cp "data/results_${TARGET_DATE}_all.csv" "$DEST/"
+            cp "data/boat_results_${TARGET_DATE}_all.csv" "$DEST/"
+          fi
+          # スナップショットmanifest等も、データ全体の再検証がない限り古いものを上書きしない。
+          for name in "venues_${TARGET_DATE}.csv" "validation_${TARGET_DATE}.json" "manifest_${TARGET_DATE}.json" "excluded_races_${TARGET_DATE}.csv"; do
+            if [ -s "data/$name" ] && [ ! -s "$DEST/$name" ]; then cp "data/$name" "$DEST/$name"; fi
+          done
 
       - name: Rebuild saved formation and AI predictions before evaluation
         run: python -u collectors/build_latest_prediction_view.py --date "$TARGET_DATE"
