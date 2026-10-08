@@ -235,6 +235,28 @@ def main():
     # Enrich actual order from fujin_deep, which is the canonical saved result alignment.
     deep=load_csv(Path("evaluations/fujin_deep/latest/details.csv"))
     truth_map={norm_race_id(x.get("race_id")):x for x in deep}
+    # fujin_deepは日次更新が遅れる場合がある。分析用の実着・払戻だけ、
+    # 日別保存済み公式結果から補完する（予測スコアやシグナル判定には渡さない）。
+    # 当日結果の答え合わせから漏れることを防ぐ。
+    for date in sorted(by_date):
+        archive = Path("archive") / date[:4] / date[4:6] / date[6:8] / f"results_{date}_all.csv"
+        for actual_row in load_csv(archive):
+            rid = norm_race_id(actual_row.get("race_id"))
+            combo = str(actual_row.get("trifecta") or "").strip()
+            parts = combo.split("-")
+            if not rid or len(parts)!=3:
+                continue
+            boats = [inum(x) for x in parts]
+            if any(x is None or x < 1 or x > 6 for x in boats) or len(set(boats))!=3:
+                continue
+            truth_map.setdefault(rid, {
+                "race_id":rid,
+                "actual_winner":boats[0],
+                "actual_second":boats[1],
+                "actual_third":boats[2],
+                "payout":inum(actual_row.get("trifecta_pay"),0),
+                "truth_source":"archived_official_result",
+            })
     groups=defaultdict(empty_bucket); overall=empty_bucket(); final_details=[]
     for d in details:
         tr=truth_map.get(d["race_id"])
