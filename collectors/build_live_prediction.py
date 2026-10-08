@@ -585,7 +585,10 @@ def main():
         for race in races:
             race_id = text(race.get("race_id"))
             boats = race.get("boats")
-            if not isinstance(boats, list) or len(boats) != 6:
+            # 欠場・出走取消等で6艇未満になるレースを処理停止させない。
+            # 取得できた艇で処理を継続し、完全性/原因確認は監査側で別管理する。
+            if not isinstance(boats, list) or len(boats) < 3:
+                skipped_no_live_data.append(race_id)
                 continue
 
             deadline = parse_deadline(target_date, race)
