@@ -954,7 +954,9 @@ def parse_beforeinfo(
 
     entry_rows = parse_entry_table(soup)
 
-    if len(entry_rows) != 6:
+    # 欠場・出走取消等で6艇未満でも取得できた公式情報は保存する。
+    # 原因未確定は後段の完全性監査で△として追跡し、収集自体は止めない。
+    if len(entry_rows) < 3:
         return None
 
     exhibition_count = sum(
@@ -969,9 +971,11 @@ def parse_beforeinfo(
         if row["exhibition_st_raw"]
     )
 
+    active_rows = [row for row in entry_rows if not row.get("is_miss")]
+    required_ready = max(3, len(active_rows))
     if (
-        exhibition_count < 4
-        or st_count < 4
+        exhibition_count < min(3, required_ready)
+        or st_count < min(3, required_ready)
     ):
         return None
 
@@ -1190,16 +1194,22 @@ def validate(
             + 1
         )
 
-    bad = {
+    # 6艇未満は即FAILにしない。欠場等の正規ケースと取得欠損を
+    # 後段の公式確認・完全性監査で区別する。
+    reduced = {
         race_id: count
         for race_id, count in count_by_race.items()
-        if count != 6
+        if 3 <= count < 6
     }
-
-    if bad:
+    invalid = {
+        race_id: count
+        for race_id, count in count_by_race.items()
+        if count < 3 or count > 6
+    }
+    if invalid:
         errors.append(
-            "6艇揃っていない直前情報: "
-            f"{len(bad)}レース"
+            "有効艇数が異常な直前情報: "
+            f"{len(invalid)}レース"
         )
 
     return {
