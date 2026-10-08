@@ -156,9 +156,10 @@ def main():
     # △にする前に、異常候補は必ず公式を再参照する。
     # SP版を先に見て、取れない場合のみPC版へフォールバック。少数並列で全体停止を防ぐ。
     checks={}
-    if pending:
+    beforeinfo_pending=[(rid,miss) for rid,miss in pending if any(x.startswith(("boat1:", "boat2:", "boat3:", "boat4:", "boat5:", "boat6:", "race:")) for x in miss)]
+    if beforeinfo_pending:
         with ThreadPoolExecutor(max_workers=4) as pool:
-            futures={pool.submit(official_beforeinfo_check,d,rid):rid for rid,_ in pending}
+            futures={pool.submit(official_beforeinfo_check,d,rid):rid for rid,_ in beforeinfo_pending}
             for future in as_completed(futures):
                 rid=futures[future]
                 try: checks[rid]=future.result()
@@ -171,7 +172,7 @@ def main():
             official_miss={str(x["boat"]) for x in chk.get("official_boats",[]) if x.get("is_miss")}
             resolved=[]
             for item in miss:
-                mboat=re.match(r"boat(\\d+):",item)
+                mboat=re.match(r"boat(\d+):",item)
                 if mboat and mboat.group(1) in official_miss:
                     resolved.append(item)
             miss=[x for x in miss if x not in resolved]
@@ -194,7 +195,7 @@ def main():
             used_retry=True
         if used_retry: recovered_complete+=1
         else: original_complete+=1
-    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":bool(issues),"issues":issues,"recovered_after_result":recovered,"official_rechecks":official_checks,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"exhibition_exception":"is_miss=true boats may legitimately have blank exhibition fields","required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
+    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":any(any(x.startswith(("race:", "boat1:", "boat2:", "boat3:", "boat4:", "boat5:", "boat6:")) for x in issue["missing"]) for issue in issues),"issues":issues,"recovered_after_result":recovered,"official_rechecks":official_checks,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"exhibition_exception":"is_miss=true boats may legitimately have blank exhibition fields","required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
     (out/f"completeness_{d}.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     with (out/f"missing_{d}.csv").open("w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=["race_id","missing"]);w.writeheader()
