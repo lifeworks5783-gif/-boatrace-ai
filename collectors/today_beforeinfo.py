@@ -26,7 +26,7 @@ DEFAULT_WORKERS = 4
 
 REQUEST_CONNECT_TIMEOUT = 5
 REQUEST_READ_TIMEOUT = 12
-REQUEST_RETRIES = 2
+REQUEST_RETRIES = 4
 
 _THREAD_LOCAL = threading.local()
 
@@ -1414,8 +1414,7 @@ def main():
                             ],
                         }
                     )
-                    if reason == "new":
-                        unready_new_races.append(base["race_id"])
+                    unready_new_races.append(base["race_id"])
 
                     print(
                         f"{base['venue_name']} "
@@ -1432,8 +1431,7 @@ def main():
                 parsed = result["parsed"]
 
                 if parsed is None:
-                    if reason == "new":
-                        unready_new_races.append(base["race_id"])
+                    unready_new_races.append(base["race_id"])
                     print(
                         f"{base['venue_name']} "
                         f"{race_no}R "
