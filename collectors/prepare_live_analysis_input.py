@@ -591,6 +591,10 @@ def main() -> int:
                     f"enriched_morning_"
                     f"{date}.json"
                 ),
+                # 本番で長期保存される朝入力は daily_inputs/YYYY/MM/DD 直下。
+                # 旧 morning/ サブフォルダだけを検索すると欠損と誤判定する。
+                f"daily_inputs/{year}/{month}/{day}/prediction_input_enriched_morning_{date}.json",
+                f"daily_inputs/{year}/{month}/{day}/prediction_input_morning_{date}.json",
 
                 (
                     f"data/"
@@ -626,6 +630,8 @@ def main() -> int:
                     f"morning/"
                     f"**/*final*.json"
                 ),
+                f"predictions/{year}/{month}/{day}/morning_predictions_{date}.json",
+                f"daily_inputs/{year}/{month}/{day}/morning_predictions_{date}.json",
 
                 (
                     f"predictions/"
