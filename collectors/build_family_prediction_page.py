@@ -833,6 +833,12 @@ def main():
     .ai-table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
     .ai-table th, .ai-table td {{ padding: 7px; border-bottom: 1px solid var(--line); text-align: right; }}
     .ai-table th:first-child, .ai-table td:first-child {{ text-align: left; }}
+    .ai-table th:nth-child(4), .ai-table td:nth-child(4),
+    .ai-table th:nth-child(5), .ai-table td:nth-child(5) {{
+      font-weight: 900;
+      color: var(--live-accent);
+      background: rgba(20, 140, 130, .08);
+    }}
     .ai-note {{ margin-top: 10px; color: var(--muted); font-size: 12px; }}
 
     .notice {{
