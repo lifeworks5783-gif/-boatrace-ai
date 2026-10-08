@@ -1,0 +1,167 @@
+# 直前情報5項目 個別答え合わせ
+
+対象日：2026/10/08
+
+## 取得カバレッジ
+
+- exhibition_time: 782
+- exhibition_st: 782
+- exhibition_f: 782
+- exhibition_course: 782
+- course_changed: 782
+- wind_speed: 782
+- wind_direction: 742
+- wave_height: 782
+
+## 個別要素分析
+
+```json
+{
+  "exhibition_time": {
+    "available": true,
+    "races": 131,
+    "best_win_rate_pct": 31.3,
+    "best_top3_rate_pct": 64.9,
+    "worst_win_rate_pct": 9.2,
+    "mean_within_race_spearman": 0.2413
+  },
+  "exhibition_st": {
+    "available": true,
+    "races": 98,
+    "best_win_rate_pct": 30.6,
+    "best_top3_rate_pct": 60.2,
+    "worst_win_rate_pct": 16.3,
+    "mean_within_race_spearman": 0.0658
+  },
+  "exhibition_f": {
+    "available": true,
+    "boats": 782,
+    "flagged_boats": 189,
+    "flagged_win_rate_pct": 16.9,
+    "flagged_top3_rate_pct": 51.3,
+    "unflagged_win_rate_pct": 16.9,
+    "unflagged_top3_rate_pct": 50.3
+  },
+  "course_changed": {
+    "available": true,
+    "boats": 782,
+    "flagged_boats": 50,
+    "flagged_win_rate_pct": 8.0,
+    "flagged_top3_rate_pct": 46.0,
+    "unflagged_win_rate_pct": 17.5,
+    "unflagged_top3_rate_pct": 50.8
+  }
+}
+```
+
+## 風速別
+
+```json
+[
+  {
+    "bucket": "0-2m",
+    "races": 80,
+    "boat1_win_rate_pct": 67.5
+  },
+  {
+    "bucket": "3-4m",
+    "races": 49,
+    "boat1_win_rate_pct": 61.2
+  },
+  {
+    "bucket": "5m以上",
+    "races": 3,
+    "boat1_win_rate_pct": 0.0
+  }
+]
+```
+
+## 展示タイム・ST・F 重み探索
+
+> これは候補探索です。1日だけの結果で本番配点は自動変更しません。
+
+```json
+{
+  "available": true,
+  "available_factors": [
+    "exhibition_time",
+    "exhibition_st",
+    "exhibition_f"
+  ],
+  "races": 131,
+  "baseline_top1_accuracy_pct": 50.4,
+  "best_candidates": [
+    {
+      "exhibition_time_weight": 4,
+      "exhibition_st_weight": 0,
+      "f_penalty": 4,
+      "top1_accuracy_pct": 53.4,
+      "improvement_vs_baseline_pt": 3.1
+    },
+    {
+      "exhibition_time_weight": 2,
+      "exhibition_st_weight": 8,
+      "f_penalty": 0,
+      "top1_accuracy_pct": 53.4,
+      "improvement_vs_baseline_pt": 3.1
+    },
+    {
+      "exhibition_time_weight": 2,
+      "exhibition_st_weight": 8,
+      "f_penalty": 2,
+      "top1_accuracy_pct": 53.4,
+      "improvement_vs_baseline_pt": 3.1
+    },
+    {
+      "exhibition_time_weight": 4,
+      "exhibition_st_weight": 10,
+      "f_penalty": 0,
+      "top1_accuracy_pct": 53.4,
+      "improvement_vs_baseline_pt": 3.1
+    },
+    {
+      "exhibition_time_weight": 4,
+      "exhibition_st_weight": 0,
+      "f_penalty": 0,
+      "top1_accuracy_pct": 52.7,
+      "improvement_vs_baseline_pt": 2.3
+    },
+    {
+      "exhibition_time_weight": 0,
+      "exhibition_st_weight": 6,
+      "f_penalty": 0,
+      "top1_accuracy_pct": 52.7,
+      "improvement_vs_baseline_pt": 2.3
+    },
+    {
+      "exhibition_time_weight": 2,
+      "exhibition_st_weight": 0,
+      "f_penalty": 4,
+      "top1_accuracy_pct": 52.7,
+      "improvement_vs_baseline_pt": 2.3
+    },
+    {
+      "exhibition_time_weight": 4,
+      "exhibition_st_weight": 0,
+      "f_penalty": 2,
+      "top1_accuracy_pct": 52.7,
+      "improvement_vs_baseline_pt": 2.3
+    },
+    {
+      "exhibition_time_weight": 0,
+      "exhibition_st_weight": 6,
+      "f_penalty": 2,
+      "top1_accuracy_pct": 52.7,
+      "improvement_vs_baseline_pt": 2.3
+    },
+    {
+      "exhibition_time_weight": 0,
+      "exhibition_st_weight": 8,
+      "f_penalty": 0,
+      "top1_accuracy_pct": 52.7,
+      "improvement_vs_baseline_pt": 2.3
+    }
+  ]
+}
+```
+
