@@ -6,6 +6,7 @@ import json
 import sys
 
 from collections import defaultdict
+from build_venue_course_features import build_venue_course_features
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -1756,6 +1757,14 @@ def main():
             racer_venue_features,
         )
 
+        venue_course_features = build_venue_course_features(
+            history, as_of_date, summarize, rows_in_days, prefixed, trend_fields, latest_venue_name
+        )
+        write_csv(
+            output_dir / "venue_course_features.csv",
+            venue_course_features,
+        )
+
 
         write_csv(
             output_dir
@@ -1872,6 +1881,12 @@ def main():
                 "racer_venue_features": (
                     len(
                         racer_venue_features
+                    )
+                ),
+
+                "venue_course_features": (
+                    len(
+                        venue_course_features
                     )
                 ),
 
