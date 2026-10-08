@@ -2019,6 +2019,7 @@ def build_race_rows(
         # build_latest_prediction_view が「直前補完」として保存した
         # formation側の予測は直前欄へ表示する。通常の朝fallbackは使わず、
         # 明示的な品質フラグ付きのものだけを採用する。
+        live_display = live
         if live is None and formation_prediction:
             formation_raw = formation_prediction.get("raw") or {}
             formation_quality = (
@@ -2037,7 +2038,9 @@ def build_race_rows(
                     or str(formation_quality.get("status") or "").strip() == "fallback"
                 )
             ):
-                live = formation_prediction
+                # This is a display-only morning fallback, not an observed pre-race live prediction.
+                # Keep it out of live score accuracy, hit-rate and final score selection.
+                live_display = formation_prediction
 
         odds_row = (
             odds.get(
@@ -2171,6 +2174,9 @@ def build_race_rows(
 
                 "live":
                     live,
+
+                "live_display":
+                    live_display,
 
                 "formation_prediction":
                     formation_prediction,
@@ -2386,10 +2392,10 @@ def prediction_quality_warning(prediction):
     if quality.get("recovery_needed") or status == "fallback":
         reasons = quality.get("reason") or []
         reason_text = " / ".join(str(x).strip() for x in reasons if str(x).strip())
-        title = "補完値を使って生成した直前予測。締切前の正式データで再計算できる場合は復元対象"
+        title = "正式な直前予測は未保存。朝予測ベースの参考表示であり、直前予測の成績には含めない"
         if reason_text:
             title += f"：{reason_text}"
-        return f'<span class="quality-warning" title="{esc(title)}">⚠補完あり</span>'
+        return f'<span class="quality-warning" title="{esc(title)}">⚠直前未保存・参考値</span>'
     return ""
 
 
@@ -2988,12 +2994,12 @@ def render_html(
   <div class="prediction-row">
 
     <div class="label">
-      直前予測 {prediction_quality_warning(row["live"])}
+      {("直前予測" if row["live"] else ("朝予測の参考表示（直前予測未保存）" if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
     </div>
 
     <div>
-      {prediction_html(row["live"], morning_reference_map(row["morning"], row["live"]))}
-      {all_scores_html(row["live"], "直前予測", morning_reference_map(row["morning"], row["live"]))}
+      {prediction_html(row.get("live_display"), morning_reference_map(row["morning"], row.get("live_display")))}
+      {all_scores_html(row.get("live_display"), ("直前予測" if row["live"] else "朝予測の参考表示"), morning_reference_map(row["morning"], row.get("live_display")))}
     </div>
 
     <div class="metrics">
