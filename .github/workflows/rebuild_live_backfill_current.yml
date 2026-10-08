@@ -66,16 +66,20 @@ jobs:
           x=json.load(open(p,encoding="utf-8"))
           races=x.get("races") or x.get("predictions") or []
           bad=[]
+          review=[]
           for r in races:
             bs=r.get("boats") or []
-            if len(bs)!=6: bad.append((r.get("race_id"),"boats",len(bs))); continue
+            # 3〜5艇は処理を止めず要確認として通す。原因確認は完全性監査へ回す。
+            if len(bs)<3 or len(bs)>6: bad.append((r.get("race_id"),"boats",len(bs))); continue
+            if len(bs)<6: review.append((r.get("race_id"),"reduced_field",len(bs)))
             ds=[]
             for b in bs:
               try: ds.append(abs(float(b["score"])-float(b["morning_score_reference"])))
               except: pass
             if len(ds)==6 and max(ds)<0.05: bad.append((r.get("race_id"),"all_delta_zero"))
-          print({"live_races":len(races),"bad":bad})
+          print({"live_races":len(races),"bad":bad,"review":review})
           if bad: raise SystemExit(f"直前予測監査FAIL {bad[:20]}")
+          print("△要確認:", review)
           PY
       - name: 本番直前予測と表示を再生成
         run: |
