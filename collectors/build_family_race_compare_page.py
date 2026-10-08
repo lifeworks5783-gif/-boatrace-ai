@@ -805,6 +805,52 @@ def load_prediction_file(
     return output
 
 
+def load_saved_score_rows(root, date, stage):
+    """Use persisted scored CSV; do not recalculate or infer missing predictions."""
+    folder = root / date[:4] / date[4:6] / date[6:8]
+    file = (folder / f"morning_predictions_{date}.csv" if stage == "morning"
+            else folder / "live" / f"live_predictions_final_{date}.csv")
+    if not file.is_file():
+        return {}
+    grouped = {}
+    with file.open("r", encoding="utf-8-sig", newline="") as stream:
+        for row in csv.DictReader(stream):
+            code = extract_race_code(row, date)
+            if code and safe_float(row.get("score")) is not None:
+                grouped.setdefault(code, []).append(row)
+    output = {}
+    for code, boats in grouped.items():
+        boats.sort(key=lambda b: (safe_int(b.get("rank")) or 99, safe_int(b.get("boat")) or 99))
+        top = [normalize_pick(b) for b in boats[:3]]
+        if len(top) < 3 or any(p is None for p in top):
+            continue
+        for pick in top:
+            source = next((b for b in boats if normalize_boat(b.get("boat")) == pick["boat"]), None)
+            if source:
+                pick["name"] = pick.get("name") or source.get("racer_name") or ""
+        output[code] = {"race_code": code, "top3": top, "boats": boats,
+                        "raw": {"boats": boats}, "stage": stage,
+                        "prediction_quality": {}, "ai_score_prediction": {}}
+    return output
+
+
+def merge_saved_scores(existing, saved):
+    """Preserve existing metadata/order; fill scores by boat number."""
+    for code, item in saved.items():
+        if code not in existing:
+            existing[code] = item
+            continue
+        current = existing[code]
+        scores = {normalize_boat(b.get("boat")): b for b in item["boats"]}
+        for pick in current.get("top3", []):
+            source = scores.get(normalize_boat(pick.get("boat")))
+            if source:
+                pick["score"] = safe_float(source.get("score"))
+                pick["name"] = pick.get("name") or source.get("racer_name") or ""
+        current["boats"] = item["boats"]
+    return existing
+
+
 def load_recovered_live_predictions(target_date):
     """既知の収集不具合を安全に復旧した直前予測を照合表示用に読む。"""
     yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
@@ -1145,11 +1191,15 @@ def load_predictions(
             target_date,
         )
 
+    morning = merge_saved_scores(morning, load_saved_score_rows(root, target_date, "morning"))
+    live = merge_saved_scores(live, load_saved_score_rows(root, target_date, "live"))
+
     recovered_live = load_recovered_live_predictions(
         target_date
     )
     if recovered_live:
-        live = recovered_live
+        for code, recovered in recovered_live.items():
+            live.setdefault(code, recovered)
         print(
             "復旧済み直前予測を照合表示に採用:",
             len(live),
