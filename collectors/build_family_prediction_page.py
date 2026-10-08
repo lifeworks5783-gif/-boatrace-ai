@@ -1405,3 +1405,4 @@ if __name__ == "__main__":
 
 # mobile-score-column-order-v1
 # publish-signal-ai-layout-v1
+# restore-signal-ai-reference-screen-20261008
