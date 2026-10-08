@@ -66,6 +66,10 @@ jobs:
           echo "RESULT_COUNT=${RESULT_COUNT}" >> "$GITHUB_ENV"
           echo "終了済み結果: ${RESULT_COUNT}R"
 
+      - name: 保存対象の結果で完全性監査を更新
+        if: env.RESULT_COUNT != '0'
+        run: python -u collectors/audit_daily_completeness.py --date "${TARGET_DATE}"
+
       - name: 終了済みレースを照合
         if: env.RESULT_COUNT != '0'
         run: |
@@ -79,7 +83,7 @@ jobs:
         run: |
           git config user.name "boatrace-intraday-bot"
           git config user.email "boatrace-intraday-bot@users.noreply.github.com"
-          git add "evaluations/${YEAR}/${MONTH}/${DAY}"
+          git add "evaluations/${YEAR}/${MONTH}/${DAY}" "archive/${YEAR}/${MONTH}/${DAY}"
           if git diff --cached --quiet; then
             echo "CHANGED=false" >> "$GITHUB_ENV"
             exit 0
