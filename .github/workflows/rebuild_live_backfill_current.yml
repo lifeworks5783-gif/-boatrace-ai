@@ -44,7 +44,7 @@ jobs:
           echo "M=${D:4:2}" >> "$GITHUB_ENV"
           echo "DAY=${D:6:2}" >> "$GITHUB_ENV"
           TARGET_RACE="${{ inputs.target_race_id || '' }}"
-          if [ -z "$TARGET_RACE" ] && [ "${{ github.event_name }}" = "push" ] && [ "$D" = "20261008" ]; then TARGET_RACE="20261008-20-09"; fi
+          if [ -z "$TARGET_RACE" ] && [ "${{ github.event_name }}" = "push" ] && [ "$D" = "20261008" ]; then TARGET_RACE="20261008-20-11"; fi
           echo "TARGET_RACE=$TARGET_RACE" >> "$GITHUB_ENV"
       - name: 基本・復旧直前データを復元
         run: |
@@ -109,7 +109,13 @@ jobs:
             assert (old_by_id[rid].get("prediction_quality") or {}).get("status") in ("fallback","recovered_observation"),"refuse to overwrite true saved live prediction"
           assert len(old_by_id)==len(old_rows),"duplicate historical races"
           quality=rebuilt.setdefault("prediction_quality",{})
-          quality.update({"status":"recovered_observation","label":"公式直前情報から事後復旧","mark":"↻","recovery_needed":False,"provenance":"post_result_official_beforeinfo","prediction_generated_after_deadline":True,"result_leakage":False,"reason":["予測前の取得機構障害による未保存を復旧"]})
+          from datetime import datetime
+          from datetime import timezone,timedelta
+          deadline=datetime.fromisoformat(d[:4]+"-"+d[4:6]+"-"+d[6:8]+"T"+str(rebuilt.get("deadline") or "00:00")+":00+09:00")
+          observed=datetime.fromisoformat(official[0]["collected_at"])
+          before_deadline=observed<deadline
+          provenance="saved_pre_deadline_official_beforeinfo" if before_deadline else "post_result_official_beforeinfo"
+          quality.update({"status":"recovered_observation","label":"締切前取得の公式直前情報から復旧" if before_deadline else "公式直前情報から事後復旧","mark":"↻","recovery_needed":False,"provenance":provenance,"pre_deadline_snapshot":before_deadline,"prediction_generated_after_deadline":True,"result_leakage":False,"reason":["こちら側の収集・保存処理の不備で予測を未保存。公式展示データから復元"]})
           old_by_id[rid]=rebuilt
           merged=sorted(old_by_id.values(),key=lambda r:(str(r.get("venue_code")),int(r.get("race") or 0)))
           assert all(old_by_id[k]==v for k,v in ((r["race_id"],r) for r in old_rows) if k!=rid),"changed original saved rows"
@@ -124,9 +130,9 @@ jobs:
           joined=[r for r in old_csv if r["race_id"]!=rid]+added
           with csv_path.open("w",encoding="utf-8-sig",newline="") as stream:
             writer=csv.DictWriter(stream,fieldnames=fieldnames);writer.writeheader();writer.writerows(joined)
-          manifest={"date":d,"race_id":rid,"status":"recovered_observation","source":"BOAT RACE official beforeinfo (acquired after race)","pre_race_snapshot":False,"factors_only_pre_race":True,"original_prediction_was_missing":rid not in {r["race_id"] for r in old_rows},"result_leakage":False,"recovered_boats":6,"unmodified_original_races":len(old_rows)-(rid in {r["race_id"] for r in old_rows}),"score_generated_at":rebuilt.get("generated_at"),"recorded_beforeinfo_at":official[0].get("collected_at")}
+          manifest={"date":d,"race_id":rid,"status":"recovered_observation","source":"BOAT RACE official beforeinfo","pre_race_snapshot":before_deadline,"factors_only_pre_race":True,"original_prediction_was_missing":rid not in {r["race_id"] for r in old_rows},"result_leakage":False,"recovered_boats":6,"unmodified_original_races":len(old_rows)-(rid in {r["race_id"] for r in old_rows}),"score_generated_at":rebuilt.get("generated_at"),"recorded_beforeinfo_at":official[0].get("collected_at"),"deadline_jst":deadline.isoformat(),"provenance":provenance,"collection_failure_attribution":"当方の収集保存処理の不備。公式データは保存済み","betting_formation":"original saved betting choices preserved"}
           dest=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"recovery";dest.mkdir(parents=True,exist_ok=True)
-          (dest/f"single_race_live_recovery_{d}.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
+          (dest/f"single_race_live_recovery_{d}_{rid[-5:].replace('-','_')}.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
           print(json.dumps(manifest,ensure_ascii=False))
           PY
       - name: 全体監査
@@ -176,7 +182,7 @@ jobs:
           git config user.name "boatrace-recovery-bot"
           git config user.email "boatrace-recovery-bot@users.noreply.github.com"
           git add "daily_inputs/$Y/$M/$DAY/live/backfill" "predictions/$Y/$M/$DAY/live" predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
-          if [ -n "$TARGET_RACE" ]; then git add "evaluations/$Y/$M/$DAY/recovery/single_race_live_recovery_$D.json"; fi
+          if [ -n "$TARGET_RACE" ]; then git add "evaluations/$Y/$M/$DAY/recovery/"; fi
           # 監査/再構築で生成された未追跡・未ステージファイルはpush対象外。
           # pull --rebase 前に退避して競合停止を防ぐ。
           if git diff --cached --quiet; then exit 0; fi
