@@ -1,0 +1,101 @@
+name: 当日データ照合・AI照合自動更新
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "config/run_intraday_compare_now.txt"
+  schedule:
+    # JST 07:04-23:54 / 10分間隔。5分周期の直前収集とずらして競合を避ける。
+    - cron: "4,14,24,34,44,54 22-23,0-14 * * *"
+
+concurrency:
+  group: boatrace-intraday-compare
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests beautifulsoup4 pandas scipy
+
+      - name: 当日データを準備
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+          YEAR=${TARGET_DATE:0:4}; MONTH=${TARGET_DATE:4:2}; DAY=${TARGET_DATE:6:2}
+          echo "TARGET_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
+          echo "YEAR=${YEAR}" >> "$GITHUB_ENV"
+          echo "MONTH=${MONTH}" >> "$GITHUB_ENV"
+          echo "DAY=${DAY}" >> "$GITHUB_ENV"
+          mkdir -p data "evaluations/${YEAR}/${MONTH}/${DAY}"
+          BASE="daily_inputs/${YEAR}/${MONTH}/${DAY}/base"
+          ARCHIVE_BASE="archive/${YEAR}/${MONTH}/${DAY}/pre_race/base"
+          if test -s "${BASE}/program_races_${TARGET_DATE}.csv"; then
+            cp "${BASE}"/* data/ 2>/dev/null || true
+          elif test -s "${ARCHIVE_BASE}/program_races_${TARGET_DATE}.csv"; then
+            cp "${ARCHIVE_BASE}"/* data/ 2>/dev/null || true
+          fi
+          test -s "data/program_races_${TARGET_DATE}.csv"
+          test -s "data/program_entries_${TARGET_DATE}.csv"
+
+      - name: 終了済みレース結果を取得
+        run: |
+          python -u collectors/fast_results.py --date "${TARGET_DATE}"
+          test -s "data/results_${TARGET_DATE}_all.csv"
+          RESULT_COUNT=$(python - <<'PY'
+          import os,pandas as pd
+          d=os.environ["TARGET_DATE"]
+          print(len(pd.read_csv(f"data/results_{d}_all.csv")))
+          PY
+          )
+          echo "RESULT_COUNT=${RESULT_COUNT}" >> "$GITHUB_ENV"
+          echo "終了済み結果: ${RESULT_COUNT}R"
+
+      - name: 終了済みレースを照合
+        if: env.RESULT_COUNT != '0'
+        run: |
+          python -u collectors/evaluate_predictions.py --date "${TARGET_DATE}"
+          python -u collectors/evaluate_ai_score_prediction.py --date "${TARGET_DATE}"
+          test -s "evaluations/${YEAR}/${MONTH}/${DAY}/prediction_evaluation_${TARGET_DATE}.json"
+          test -s "evaluations/${YEAR}/${MONTH}/${DAY}/ai_score_simulation_${TARGET_DATE}.json"
+
+      - name: 当日照合結果を保存
+        if: env.RESULT_COUNT != '0'
+        run: |
+          git config user.name "boatrace-intraday-bot"
+          git config user.email "boatrace-intraday-bot@users.noreply.github.com"
+          git add "evaluations/${YEAR}/${MONTH}/${DAY}"
+          if git diff --cached --quiet; then
+            echo "CHANGED=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          git commit -m "Intraday compare ${TARGET_DATE} $(TZ=Asia/Tokyo date +%H%M%S)"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "CHANGED=true" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main || { git rebase --abort || true; exit 1; }
+            sleep 3
+          done
+          exit 1
+
+      - name: 家族共有ページを更新
+        if: env.RESULT_COUNT != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run family_prediction_page.yml --repo "${GITHUB_REPOSITORY}" --ref main
