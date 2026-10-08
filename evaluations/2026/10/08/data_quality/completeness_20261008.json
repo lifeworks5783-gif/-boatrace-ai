@@ -1,13 +1,13 @@
 {
   "date": "20261008",
-  "status": "INCOMPLETE",
+  "status": "IN_PROGRESS",
   "expected_races": 144,
   "result_races": 141,
   "audited_races": 144,
-  "complete_races": 140,
+  "complete_races": 141,
   "original_pre_race_complete_races": 127,
-  "post_result_recovered_complete_races": 13,
-  "incomplete_races": 1,
+  "post_result_recovered_complete_races": 14,
+  "incomplete_races": 0,
   "pending_races": 3,
   "pending_result_details": [
     {
@@ -29,24 +29,9 @@
       "status": "AWAITING_RESULT"
     }
   ],
-  "audit_asof_jst": "2026-10-08T21:49:04.071964+09:00",
-  "needs_recollection": true,
-  "issues": [
-    {
-      "race_id": "20261008-20-09",
-      "missing": [
-        "boat1:beforeinfo",
-        "boat2:beforeinfo",
-        "boat3:beforeinfo",
-        "boat4:beforeinfo",
-        "boat5:beforeinfo",
-        "boat6:beforeinfo",
-        "race:beforeinfo"
-      ],
-      "quality_mark": "△",
-      "quality_label": "要確認"
-    }
-  ],
+  "audit_asof_jst": "2026-10-08T22:02:20.806820+09:00",
+  "needs_recollection": false,
+  "issues": [],
   "recovered_after_result": [
     {
       "race_id": "20261008-01-11",
@@ -292,6 +277,33 @@
       ]
     },
     {
+      "race_id": "20261008-20-09",
+      "fields": [
+        "boat1:exhibition_course",
+        "boat1:exhibition_st_raw",
+        "boat1:exhibition_time",
+        "boat2:exhibition_course",
+        "boat2:exhibition_st_raw",
+        "boat2:exhibition_time",
+        "boat3:exhibition_course",
+        "boat3:exhibition_st_raw",
+        "boat3:exhibition_time",
+        "boat4:exhibition_course",
+        "boat4:exhibition_st_raw",
+        "boat4:exhibition_time",
+        "boat5:exhibition_course",
+        "boat5:exhibition_st_raw",
+        "boat5:exhibition_time",
+        "boat6:exhibition_course",
+        "boat6:exhibition_st_raw",
+        "boat6:exhibition_time",
+        "race:air_temperature_c",
+        "race:water_temperature_c",
+        "race:wave_height_cm",
+        "race:wind_speed_mps"
+      ]
+    },
+    {
       "race_id": "20261008-23-03",
       "fields": [
         "boat1:exhibition_course",
@@ -400,16 +412,7 @@
       ]
     }
   ],
-  "official_rechecks": [
-    {
-      "race_id": "20261008-20-09",
-      "checked": false,
-      "errors": [
-        "https://www.boatrace.jp/owsp/sp/race/beforeinfo?hd=20261008&jcd=20&rno=9:ReadTimeout",
-        "https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd=20261008&jcd=20&rno=9:ReadTimeout"
-      ]
-    }
-  ],
+  "official_rechecks": [],
   "rules": {
     "prediction_leakage": "results are audit-only and must never be used to reconstruct prediction inputs",
     "required_live": [
