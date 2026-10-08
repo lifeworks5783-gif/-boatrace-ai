@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import html
 import json
 from pathlib import Path
@@ -417,6 +418,38 @@ def history_html(root: Path, dates: list[str], latest: str) -> str:
     )
 
 
+def signal_ai_24_metrics(root: Path, date: str) -> Dict[str, Any]:
+    """Simulated 24-point signal purchase ledger, separate from normal AI.
+
+    Uses saved prediction ranks from signal_ai/latest/details.csv, never
+    recomputes picks after seeing actual race outcomes.
+    """
+    ledger = root / "signal_ai" / "latest" / "details.csv"
+    if not ledger.is_file():
+        return {}
+    with ledger.open(encoding="utf-8-sig", newline="") as f:
+        rows = [x for x in csv.DictReader(f) if str(x.get("date")) == date]
+    if not rows:
+        return {}
+    n = len(rows)
+    wins = [
+        x for x in rows
+        if str(x.get("hit24")).strip().lower() in ("true", "1")
+    ]
+    paid = sum(int(float(x.get("payout") or 0)) for x in wins)
+    invested = n * 24 * 100
+    return {
+        "races": n,
+        "hits": len(wins),
+        "points": n * 24,
+        "investment": invested,
+        "returns": paid,
+        "profit": paid - invested,
+        "hit_rate": len(wins) / n if n else None,
+        "recovery_rate": 100 * paid / invested if invested else None,
+    }
+
+
 def build_page(evaluation_root: Path) -> str:
     dates = find_dates(evaluation_root)
 
@@ -440,6 +473,7 @@ def build_page(evaluation_root: Path) -> str:
         formation_overall = overall_metrics(formation)
         box_overall = overall_metrics(box)
         ai_overall = overall_metrics(ai)
+        signal_ai24 = signal_ai_24_metrics(evaluation_root, latest)
 
         body_parts = [
             strategy_html(
@@ -453,11 +487,17 @@ def build_page(evaluation_root: Path) -> str:
                 box_overall,
             ),
             strategy_html(
-                "AIスコア予測",
-                "1着・2着・3着を別採点。通常は120通りの上位8点、⚡時は補正後120通りの上位12点を各100円で購入した実績で集計。",
+                "通常AIスコア予測（専用シグナルAIとは別集計）",
+                "従来の通常AIスコア方式の成績です。風神雷神専用AI24点とは混同しません。",
                 ai_overall,
             ),
         ]
+        if signal_ai24:
+            body_parts.insert(0, strategy_html(
+                "風神雷神専用AI・購入24点の結果成績",
+                "シグナル発動全レースを24点・各100円で仮想購入。保存済み買い目と実着を照合し、投資・払戻・損益・回収率を24点に統一。",
+                signal_ai24,
+            ))
 
         ai_alignment = ai_alignment_html(ai)
         if ai_alignment:
@@ -608,7 +648,7 @@ footer {{ margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1
 {body}
 <footer>
 このページは自動更新されます。<br>
-フォーメーション・3艇BOX・AIスコア予測は別戦略として個別に集計しています。<br>
+フォーメーション・3艇BOX・通常AIスコア・風神雷神専用AI24点は別会計で集計しています。<br>
 予測・検証結果は将来の結果を保証するものではありません。
 </footer>
 </div>
