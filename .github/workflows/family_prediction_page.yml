@@ -28,6 +28,9 @@ on:
       - "collectors/build_family_analysis_page.py"
       - "collectors/build_family_signal_analysis_page.py"
       - "evaluations/fujin_raijin/**"
+      - "evaluations/signal_ai/**"
+      - "evaluations/signal_pdca_cross/**"
+      - "collectors/evaluate_signal_pdca_cross.py"
       - "evaluations/2026/10/02/backfill_alignment/**"
       - "evaluations/all_candidate_single_factors/**"
       - "evaluations/pdca_incremental_20260930_20261003/**"
@@ -95,6 +98,15 @@ jobs:
 
           echo "予想ページ生成: PASS"
 
+      - name: 風神雷神PDCAと購入24点成績を保存済み予測から更新
+        run: |
+          python -u collectors/evaluate_fujin_raijin_history.py
+          python -u collectors/evaluate_signal_ai_performance.py
+          python -u collectors/evaluate_signal_pdca_cross.py
+          test -s evaluations/signal_ai/latest/details.csv
+          test -s evaluations/signal_pdca_cross/latest/summary.json
+          echo "シグナルAI24点と高配当・16x4分析: PASS"
+
       - name: 結果・成績ページを生成
         run: |
           python -u collectors/build_family_results_page.py \
@@ -102,6 +114,7 @@ jobs:
             --output-dir _family_site
 
           test -s _family_site/results.html
+          grep -q '風神雷神専用AI・購入24点' _family_site/results.html
 
           echo "結果ページ生成: PASS"
 
@@ -113,7 +126,9 @@ jobs:
 
           test -s _family_site/analysis.html
           grep -q '風神雷神 AI分析' _family_site/analysis.html
-          grep -q '買わない（0点）' _family_site/analysis.html
+          grep -q '24点／2,400円' _family_site/analysis.html
+          grep -q '毎日必須・5,000円以上の高配当' _family_site/analysis.html
+          grep -q '毎日必須・風神雷神16通り' _family_site/analysis.html
           grep -q '3連単120通り' _family_site/analysis.html
 
           echo "風神雷神専用AI分析ページ生成: PASS"
