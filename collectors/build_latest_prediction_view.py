@@ -1999,14 +1999,29 @@ def main():
         ):
             prior = previous_by_id.get(text(row.get("race_id")))
             if prior:
+                # 通常予測と実際の買い目は当時保存した値を維持する。
+                # 一方、風神雷神は復旧スコアから通常ルールを再判定する。
+                # 旧fallbackから作られた「未発動」を保持してしまうと
+                # 公式データで判定可能になったあとも未発動の誤表示が続く。
                 for key in ("formation", "morning_formation", "ai_score_prediction",
-                            "morning_ai_score_prediction", "signal_ai_prediction",
-                            "up_signal", "down_signal"):
+                            "morning_ai_score_prediction"):
                     if key in prior:
                         row[key] = prior[key]
+                assert (row.get("up_signal") or {}).get("available") is True, (
+                    "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("up_signal")
+                )
+                assert (row.get("down_signal") or {}).get("available") is True, (
+                    "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("down_signal")
+                )
                 row["retrospective_score_recovery"] = True
+                row["retrospective_signal_recovery"] = True
+                row["signal_recovery_provenance"] = "official_beforeinfo_post_result_replay"
+                row["signal_detected_at_original_deadline"] = False
                 row["historical_bet_preserved"] = True
-                print("事後復旧スコアのみ採用・当時の買い目保存:", row.get("race_id"))
+                print("公式展示から通常シグナルを再判定・当時の買い目保存:",
+                      row.get("race_id"),
+                      "雷神", (row.get("up_signal") or {}).get("level"),
+                      "風神", (row.get("down_signal") or {}).get("level"))
 
     formation_json.write_text(
         json.dumps(
