@@ -1,6 +1,6 @@
 from __future__ import annotations
 import argparse,csv,json,re
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -55,6 +55,8 @@ def main():
     if not program: program=rows(Path("data")/f"program_races_{d}.csv")
     if not entries: entries=rows(Path("data")/f"program_entries_{d}.csv")
     expected={norm(r.get("race_id")) for r in program if norm(r.get("race_id"))}
+    schedule={norm(r.get("race_id")):str(r.get("deadline") or "").strip() for r in program}
+    now_jst=datetime.now(timezone(timedelta(hours=9)))
     entry_count={}
     for r in entries:
         rid=norm(r.get("race_id"))
@@ -111,7 +113,7 @@ def main():
     for p in sorted((base/"live"/"raw").glob("*/beforeinfo_races_*.csv")) if (base/"live"/"raw").exists() else []: merge_races(p,"original_pre_race")
     for p in sorted((base/"live"/"retry_after_results").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"retry_after_results").exists() else []: merge_races(p,"post_result_retry")
     for p in sorted((base/"live"/"backfill").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"backfill").exists() else []: merge_races(p,"post_result_retry")
-    issues=[];complete=0;recovered=[];official_checks=[]
+    issues=[];complete=0;recovered=[];official_checks=[];pending_results=[]
     race_ids=sorted(expected|actual)
     pending=[]
     for rid in race_ids:
@@ -146,6 +148,16 @@ def main():
                         recovered_fields.append(f"boat{boat}:{field}")
             # change_parts may legitimately be blank; only schema presence is required.
             if "change_parts" not in lr: miss.append(f"boat{boat}:change_parts_column")
+        # A race whose result is not due yet is not an acquisition failure.
+        # Use the morning program deadline, with a small post-race publication grace period.
+        # Never infer a result or a prediction from the scheduled time.
+        deadline=schedule.get(rid, "")
+        if rid in expected and rid not in actual and re.fullmatch(r"\d{2}:\d{2}",deadline):
+            due=datetime.strptime(f"{d} {deadline}","%Y%m%d %H:%M").replace(tzinfo=timezone(timedelta(hours=9)))
+            due+=timedelta(minutes=12)
+            if now_jst < due:
+                pending_results.append({"race_id":rid,"deadline_jst":deadline,"review_after_jst":due.isoformat(),"status":"AWAITING_RESULT"})
+                continue
         if recovered_fields: recovered.append({"race_id":rid,"fields":sorted(set(recovered_fields))})
         # まず手元データだけで候補を絞る。公式アクセスは候補だけを後段で並列実行する。
         if miss:
@@ -180,11 +192,12 @@ def main():
             issues.append({"race_id":rid,"missing":sorted(set(miss)),"quality_mark":"△","quality_label":"要確認"})
         else:
             complete+=1
-    status="PASS" if not issues else "INCOMPLETE"
+    status="INCOMPLETE" if issues else ("IN_PROGRESS" if pending_results else "PASS")
+    pending_ids={x["race_id"] for x in pending_results}
     original_complete=0
     recovered_complete=0
     for rid in race_ids:
-        if any(x["race_id"]==rid for x in issues): continue
+        if rid in pending_ids or any(x["race_id"]==rid for x in issues): continue
         used_retry=False
         for boat in map(str,range(1,7)):
             src=provenance.get((rid,boat),{})
@@ -195,7 +208,7 @@ def main():
             used_retry=True
         if used_retry: recovered_complete+=1
         else: original_complete+=1
-    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"needs_recollection":any(any(x.startswith(("race:", "boat1:", "boat2:", "boat3:", "boat4:", "boat5:", "boat6:")) for x in issue["missing"]) for issue in issues),"issues":issues,"recovered_after_result":recovered,"official_rechecks":official_checks,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"exhibition_exception":"is_miss=true boats may legitimately have blank exhibition fields","required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
+    report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"pending_races":len(pending_results),"pending_result_details":pending_results,"audit_asof_jst":now_jst.isoformat(),"needs_recollection":any(any(x.startswith(("race:", "boat1:", "boat2:", "boat3:", "boat4:", "boat5:", "boat6:")) for x in issue["missing"]) for issue in issues),"issues":issues,"recovered_after_result":recovered,"official_rechecks":official_checks,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"exhibition_exception":"is_miss=true boats may legitimately have blank exhibition fields","required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
     (out/f"completeness_{d}.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     with (out/f"missing_{d}.csv").open("w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=["race_id","missing"]);w.writeheader()
