@@ -1090,13 +1090,17 @@ def main():
         min-width: 0;
         min-height: 56px;
         box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        align-content: center;
+        display: block;
+        padding: 10px 12px;
+        line-height: 1.35;
+        border-radius: 24px;
+        font-size: clamp(11px, 3.15vw, 13px);
+        overflow-wrap: anywhere;
       }}
       .scores .chip .score-delta {{
-        margin-left: 6px;
+        display: inline-block;
+        margin-left: 4px;
+        white-space: nowrap;
       }}
     }}
 
