@@ -249,11 +249,89 @@ def detailed_signal_validation(backtest) -> str:
     return '<div class="table-wrap"><table><thead><tr><th>検証項目</th><th>率</th><th>該当R</th></tr></thead><tbody>'+body+'</tbody></table></div>'
 
 
+def high_dividend_report(data):
+    """Show same 5,000-yen high dividend definition on daily and cumulative."""
+    if not data:
+        return '<div class="empty">高配当分析データはまだありません。</div>'
+    daily = (data.get("per_date") or {}).get(data.get("latest_date")) or {}
+    blocks = [
+        ("直近完了日 " + str(data.get("latest_date") or ""), daily.get("high_analysis") or {}),
+        ("累計", ((data.get("cumulative") or {}).get("high_analysis") or {})),
+    ]
+    body = []
+    bands = [
+        ("1,000円未満","under_1000"),("1,000〜1,999円","1000_1999"),
+        ("2,000〜2,999円","2000_2999"),("3,000〜3,999円","3000_3999"),
+        ("4,000〜4,999円","4000_4999"),("5,000〜9,999円","5000_9999"),
+        ("10,000〜29,999円","10000_29999"),
+        ("30,000〜49,999円","30000_49999"),("50,000円以上","50000_plus"),
+    ]
+    for title, block in blocks:
+        yes = block.get("signal_active") or {}
+        no = block.get("signal_inactive") or {}
+        body.append('<h3>' + html.escape(title) + '</h3>')
+        body.append('<div class="table-wrap"><table><thead><tr><th>項目</th><th>シグナル発動</th><th>非発動</th></tr></thead><tbody>')
+        for label,key in [("評価R","races"),("5千円未満","under5000"),
+                          ("5千円以上","high5000"),("万舟以上","manshu")]:
+            body.append(f'<tr><td>{label}</td><td>{n(yes.get(key),0)}</td><td>{n(no.get(key),0)}</td></tr>')
+        for label,key in bands:
+            body.append(f'<tr><td>{label}</td><td>{n((yes.get("payout_bins") or {}).get(key),0)}</td><td>{n((no.get("payout_bins") or {}).get(key),0)}</td></tr>')
+        body.append('</tbody></table></div>')
+        body.append(
+            '<p class="note">5千円以上捕捉率：' + pct(block.get("high5000_capture_pct"))
+            + ' ／ 万舟捕捉率：' + pct(block.get("manshu_capture_pct"))
+            + '。発動後の5千円以上発生率：' + pct(yes.get("high5000_rate_pct"))
+            + ' ／ 非発動後：' + pct(no.get("high5000_rate_pct")) + '</p>'
+        )
+    return "".join(body)
+
+
+def cross_methods_report(data):
+    if not data:
+        return '<div class="empty">16組×4方式集計はまだありません。</div>'
+    periods = [
+        ("単日 " + str(data.get("latest_date") or ""),
+         ((data.get("per_date") or {}).get(data.get("latest_date")) or {}).get("combination_methods") or {}),
+        ("直近7日", (data.get("rolling7") or {}).get("combination_methods") or {}),
+        ("累計", (data.get("cumulative") or {}).get("combination_methods") or {}),
+    ]
+    labels = {
+        "formation":"通常フォーメーション",
+        "top3_box":"3艇BOX6点",
+        "normal_ai":"通常AI",
+        "signal_ai24":"シグナル専用AI24点",
+    }
+    parts = []
+    for title, combos in periods:
+        parts.append('<h3>' + html.escape(title) + '</h3>')
+        parts.append('<div class="table-wrap"><table><thead><tr><th>F×R</th><th>方式</th><th>R数</th><th>的中</th><th>的中率</th><th>点数</th><th>投資</th><th>払戻</th><th>損益</th><th>ROI</th></tr></thead><tbody>')
+        for f in range(4):
+            for r in range(4):
+                key = f"F{f}R{r}"
+                group = combos.get(key) or {}
+                methods = group.get("methods") or {}
+                for method,label in labels.items():
+                    m = methods.get(method) or {}
+                    if m.get("status") == "not_applicable":
+                        parts.append(f'<tr><td>{key}</td><td>{label}</td><td colspan="8">対象外（非発動）</td></tr>')
+                        continue
+                    parts.append(
+                        f'<tr><td>{key}</td><td>{label}</td>'
+                        f'<td>{n(m.get("races"),0)}</td><td>{n(m.get("hits"),0)}</td>'
+                        f'<td>{pct(m.get("hit_rate_pct"))}</td><td>{n(m.get("points"),0)}</td>'
+                        f'<td>{yen(m.get("investment"))}</td><td>{yen(m.get("returned"))}</td>'
+                        f'<td>{yen(m.get("profit"))}</td><td>{pct(m.get("roi_pct"))}</td></tr>'
+                    )
+        parts.append('</tbody></table></div>')
+    return "".join(parts)
+
+
 def build_page(root: Path) -> str:
     backtest = load_json(root / "fujin_raijin/latest/backtest_summary.json")
     buff = load_json(root / "fujin_raijin/buff_debuff/latest.json")
     points = load_json(root / "fujin_raijin/strength_points/latest.json")
     signal_ai = load_json(root / "signal_ai/latest/summary.json")
+    cross_pdca = load_json(root / "signal_pdca_cross/latest/summary.json")
 
     total = backtest.get("total") or {}
     presence = total.get("presence") or {}
@@ -303,10 +381,10 @@ def build_page(root: Path) -> str:
 <section class="card hero">
 <h2>第一段階の固定ルール</h2>
 <div class="rule">
-<div>風神0・雷神0<b>買わない（0点）</b><span class="note">通常予想が良くてもAI分析側では見送り</span></div>
-<div>どちらか発動<b>AI評価対象</b><span class="note">現時点は全シグナルで24候補を保存。買い/見送りは蓄積後に判定</span></div>
+<div>風神0・雷神0<b>専用AI対象外</b><span class="note">通常AIの計算・購入点数は独立</span></div>
+<div>どちらか発動<b>24点で仮想購入</b><span class="note">全シグナル上位24点・各100円を集計。将来の最適化は別検証</span></div>
 <div>計算対象<b>3連単120通り</b><span class="note">補正後の艇スコアから全順列を順位付け</span></div>
-<div>現在の保存点数<b>上位24点</b><span class="note">今後6/8/10/12/18/24点へ最適化</span></div>
+<div>現在の購入点数<b>24点／2,400円</b><span class="note">現行の専用AI収支は必ず24点で照合</span></div>
 </div>
 <p class="note" style="margin-bottom:0">6点は「120通りの上位6点」です。同一3艇の6順列が上位を占めた場合は結果として3艇BOXと同じ形になります。</p>
 </section>
@@ -322,8 +400,17 @@ def build_page(root: Path) -> str:
 
 <section class="card">
 <h2>風神 × 雷神 組み合わせ別</h2>
-<p class="note">発動率・5,000円以上率・万舟率・平均払戻を全16組み合わせで比較。5,000円以上を第一評価ラインとし、未発動はAI購入対象から除外します。</p>
+<p class="note">発動率・5,000円以上率・万舟率・平均払戻を全16組み合わせで比較。非発動時は専用AIの購入なし。</p>
 {combo_table(backtest)}
+</section>
+
+<section class="card"><h2>毎日必須・5,000円以上の高配当と万舟捕捉（単日／累計）</h2>
+<p class="note">5,000円未満も含む配当帯別の件数を、シグナル発動／非発動で完全分離。高配当捕捉率と発動後高配当率の分母を混同しません。</p>
+{high_dividend_report(cross_pdca)}
+</section>
+<section class="card"><h2>毎日必須・風神雷神16通り × 4買い方（単日／7日／累計）</h2>
+<p class="note">方式ごとの評価可能Rと購入点数・損益・回収率を表示。欠損レースは各方式の母数から除外、専用AIの非発動は対象外。</p>
+{cross_methods_report(cross_pdca)}
 </section>
 
 <section class="card">
