@@ -2369,14 +2369,22 @@ def all_scores_html(prediction, label, morning_scores=None):
     for boat in boats:
         b = normalize_boat(boat.get("boat"))
         score = safe_float(boat.get("score"))
+        name = str(
+            boat.get("racer_name")
+            or boat.get("name")
+            or boat.get("player_name")
+            or ""
+        ).replace("　", " ").strip()
         if b is not None and score is not None:
-            scored.append((b, score))
+            scored.append((b, score, name))
     if not scored:
         return ""
     scored.sort(key=lambda x: (-x[1], x[0]))
     chips = " ".join(
-        f'<span class="score-chip">{b}号艇 {score:.1f}{score_delta_html(b, score, morning_scores)}</span>'
-        for b, score in scored
+        f'<span class="score-chip">{b}号艇'
+        f'{(" " + esc(name)) if name else ""} '
+        f'{score:.1f}{score_delta_html(b, score, morning_scores)}</span>'
+        for b, score, name in scored
     )
     return f'<details class="all-scores"><summary>{esc(label)}・6艇すべてのスコア</summary><div class="score-chips">{chips}</div></details>'
 
