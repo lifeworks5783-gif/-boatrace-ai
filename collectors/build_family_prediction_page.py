@@ -1052,10 +1052,16 @@ def main():
       .scores .chip {{
         width: 100%;
         max-width: 100%;
+        min-width: 0;
+        min-height: 56px;
         box-sizing: border-box;
         display: flex;
         align-items: center;
-        min-width: 0;
+        flex-wrap: wrap;
+        align-content: center;
+      }}
+      .scores .chip .score-delta {{
+        margin-left: 6px;
       }}
     }}
 
