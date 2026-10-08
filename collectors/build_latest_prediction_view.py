@@ -1982,6 +1982,32 @@ def main():
         )
     )
 
+    # 復旧後に予測スコアを再生成しても、当時保存した買い目・シグナルAIの
+    # 結果を後出しで書き換えない。結果判明後の実行は当時の購入記録ではない。
+    original_formation = load_json(formation_json, required=False) if formation_json.is_file() else {}
+    previous_by_id = {
+        text(item.get("race_id")): item
+        for item in (original_formation.get("races") or [])
+        if isinstance(item, dict) and text(item.get("race_id"))
+    }
+    for row in all_rows:
+        source = live.get(text(row.get("race_id"))) or {}
+        source_quality = source.get("prediction_quality") or {}
+        if (
+            source_quality.get("status") == "recovered_observation"
+            and source_quality.get("provenance") == "post_result_official_beforeinfo"
+        ):
+            prior = previous_by_id.get(text(row.get("race_id")))
+            if prior:
+                for key in ("formation", "morning_formation", "ai_score_prediction",
+                            "morning_ai_score_prediction", "signal_ai_prediction",
+                            "up_signal", "down_signal"):
+                    if key in prior:
+                        row[key] = prior[key]
+                row["retrospective_score_recovery"] = True
+                row["historical_bet_preserved"] = True
+                print("事後復旧スコアのみ採用・当時の買い目保存:", row.get("race_id"))
+
     formation_json.write_text(
         json.dumps(
             {
