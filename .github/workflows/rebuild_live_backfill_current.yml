@@ -13,7 +13,7 @@ on:
       target_date:
         description: "対象日 YYYYMMDD"
         required: true
-        default: "20261008"
+        default: ""
       target_race_id:
         description: "1レース限定復旧用のレースID。空なら従来方式"
         required: false
@@ -38,13 +38,20 @@ jobs:
       - run: pip install -q requests beautifulsoup4 lhafile
       - name: 対象日設定
         run: |
-          D="${{ inputs.target_date || '20261008' }}"
+          TARGET_RACE="${{ inputs.target_race_id || '' }}"
+          if [ -z "$TARGET_RACE" ] && [ "${{ github.event_name }}" = "push" ]; then
+            TARGET_RACE=$(grep -oE '[0-9]{8}-[0-9]{2}-[0-9]{2}' config/run_live_backfill_rebuild_now.txt | head -n 1 || true)
+          fi
+          D="${{ inputs.target_date || '' }}"
+          if [ -z "$D" ]; then D=$(TZ=Asia/Tokyo date +%Y%m%d); fi
+          if [ -n "$TARGET_RACE" ]; then
+            [[ "$TARGET_RACE" =~ ^[0-9]{8}-[0-9]{2}-[0-9]{2}$ ]] || exit 1
+            D="${TARGET_RACE:0:8}"
+          fi
           echo "D=$D" >> "$GITHUB_ENV"
           echo "Y=${D:0:4}" >> "$GITHUB_ENV"
           echo "M=${D:4:2}" >> "$GITHUB_ENV"
           echo "DAY=${D:6:2}" >> "$GITHUB_ENV"
-          TARGET_RACE="${{ inputs.target_race_id || '' }}"
-          if [ -z "$TARGET_RACE" ] && [ "${{ github.event_name }}" = "push" ] && [ "$D" = "20261008" ]; then TARGET_RACE="20261008-20-11"; fi
           echo "TARGET_RACE=$TARGET_RACE" >> "$GITHUB_ENV"
       - name: 基本・復旧直前データを復元
         run: |
