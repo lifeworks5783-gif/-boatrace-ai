@@ -77,8 +77,8 @@ jobs:
             # 家族ページの「最新情報に更新」ボタンは応答性を優先する。
             # 1件でも取得済みなら待たずにその分を反映する。
             # まだ1件も取れていない場合だけ20秒後に1回再確認する。
-            if [ "$READY" -le 0 ] && [ "$UNREADY" -gt 0 ]; then
-              echo "ボタン更新: 直前情報がまだ未確定。20秒後に1回だけ再確認します"
+            if [ "$UNREADY" -gt 0 ]; then
+              echo "ボタン更新: 未取得レースあり。20秒後に再確認します"
               sleep 20
               python -u collectors/today_beforeinfo.py --mode live
               READY_NOW=$(read_validation_count new_ready_races)
