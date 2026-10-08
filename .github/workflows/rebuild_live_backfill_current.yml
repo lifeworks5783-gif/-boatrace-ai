@@ -1,0 +1,101 @@
+name: 当日欠損直前予測・復旧反映
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  push:
+    paths:
+      - "config/run_live_backfill_rebuild_now.txt"
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "対象日 YYYYMMDD"
+        required: true
+        default: "20261008"
+
+concurrency:
+  group: boatrace-main-writer
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests beautifulsoup4 lhafile
+      - name: 対象日設定
+        run: |
+          D="${{ inputs.target_date || '20261008' }}"
+          echo "D=$D" >> "$GITHUB_ENV"
+          echo "Y=${D:0:4}" >> "$GITHUB_ENV"
+          echo "M=${D:4:2}" >> "$GITHUB_ENV"
+          echo "DAY=${D:6:2}" >> "$GITHUB_ENV"
+      - name: 基本・復旧直前データを復元
+        run: |
+          mkdir -p data
+          BASE="daily_inputs/$Y/$M/$DAY/base"
+          BF="daily_inputs/$Y/$M/$DAY/live/backfill"
+          cp "$BASE/program_races_$D.csv" data/
+          cp "$BASE/program_entries_$D.csv" data/
+          cp "$BF/beforeinfo_races_$D.csv" data/
+          cp "$BF/beforeinfo_entries_$D.csv" data/
+          cp "$BF/beforeinfo_validation_$D.json" data/
+      - name: 直前入力を再構築
+        run: |
+          python -u collectors/build_prediction_input.py --date "$D" --stage live
+          python -u collectors/build_history_features.py --as-of "$D"
+          python -u collectors/enrich_prediction_input.py --date "$D" --stage live
+      - name: 正式直前予測を再計算
+        run: |
+          python -u collectors/build_live_prediction.py --date "$D" --historical-backfill
+      - name: 全体監査
+        run: |
+          python - <<'PY'
+          import json,os
+          d=os.environ["D"]
+          p=f"data/live_predictions_final_{d}.json"
+          x=json.load(open(p,encoding="utf-8"))
+          races=x.get("races") or x.get("predictions") or []
+          bad=[]
+          for r in races:
+            bs=r.get("boats") or []
+            if len(bs)!=6: bad.append((r.get("race_id"),"boats",len(bs))); continue
+            ds=[]
+            for b in bs:
+              try: ds.append(abs(float(b["score"])-float(b["morning_score_reference"])))
+              except: pass
+            if len(ds)==6 and max(ds)<0.05: bad.append((r.get("race_id"),"all_delta_zero"))
+          print({"live_races":len(races),"bad":bad})
+          if bad: raise SystemExit(f"直前予測監査FAIL {bad[:20]}")
+          PY
+      - name: 本番直前予測と表示を再生成
+        run: |
+          DEST="predictions/$Y/$M/$DAY/live"
+          mkdir -p "$DEST"
+          cp "data/live_predictions_final_$D.json" "$DEST/"
+          cp "data/live_predictions_final_$D.csv" "$DEST/"
+          NOW="$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M:%S%:z)"
+          python -u collectors/build_latest_prediction_view.py --date "$D" --now "$NOW"
+          python -u collectors/build_deadline_prediction_view.py --date "$D"
+      - name: 保存
+        run: |
+          git config user.name "boatrace-recovery-bot"
+          git config user.email "boatrace-recovery-bot@users.noreply.github.com"
+          git add "predictions/$Y/$M/$DAY/live" predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Repair live predictions from recovered beforeinfo $D"
+          git pull --rebase origin main
+          git push origin main
+      - name: 家族ページ更新
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run family_prediction_page.yml --ref main
