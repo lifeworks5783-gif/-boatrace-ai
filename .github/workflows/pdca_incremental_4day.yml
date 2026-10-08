@@ -136,6 +136,19 @@ jobs:
           test -s evaluations/signal_ai/latest/summary.json
           test -s evaluations/signal_ai/latest/details.csv
 
+      - name: Analyze every single score component for selected date
+        run: |
+          # 単体要素分析は表示有無と無関係に毎日の固定保存データとして生成する。
+          python -u collectors/prepare_live_analysis_input.py --date "$TARGET_DATE"
+          python -u collectors/analyze_score_components.py --date "$TARGET_DATE"
+          python -u collectors/analyze_live_factors.py --date "$TARGET_DATE"
+          EVAL_DIR="evaluations/$YEAR/$MONTH/$DAY"
+          test -s "$EVAL_DIR/score_component_analysis_${TARGET_DATE}.json"
+          test -s "$EVAL_DIR/score_component_analysis_${TARGET_DATE}.md"
+          test -s "$EVAL_DIR/score_answer_check_boats_${TARGET_DATE}.csv"
+          test -s "$EVAL_DIR/live_factor_analysis_${TARGET_DATE}.json"
+          echo "単体要素分析の全件保存: PASS"
+
       - name: Run expanding PDCA
         run: python -u collectors/evaluate_pdca_incremental_4day.py
       - run: |
