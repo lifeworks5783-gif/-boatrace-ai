@@ -1347,7 +1347,7 @@ def main():
 
           if (response.status !== 202) throw new Error("request_failed");
 
-          status.textContent = "更新を開始しました。約1分後に自動で再読み込みします。";
+          status.textContent = "更新指示を受け付けました。取得・予測・公開は別処理です。約1分後に再読み込みしますが、処理中や新しい直前情報が未確定の場合は表示が変わらないことがあります。";
           window.setTimeout(() => window.location.reload(), 65000);
         }} catch (error) {{
           status.textContent = "更新を開始できませんでした。少し時間をおいて再度お試しください。";
