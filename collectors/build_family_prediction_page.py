@@ -489,10 +489,10 @@ def build_ai_card(race, index):
             </table>
           </div>
           <details class="ai-combo-details">
-            <summary>シグナルAI予想・上位24点を見る</summary>
+            <summary>シグナルAI予想・購入24点（2,400円）を見る</summary>
             <div class="ai-combos">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
           </details>
-          <div class="ai-note">上位24通りは候補として必ず表示。購入点数の6〜24点最適化は今後のPDCAで別途検証します。</div>
+          <div class="ai-note">シグナル発動時は上位24点を各100円で仮想購入（合計2,400円）。収支・回収率も24点で評価します。6/8/12/18点はPDCA内で比較します。</div>
         </article>
         """
 
