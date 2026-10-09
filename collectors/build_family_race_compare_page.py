@@ -1845,10 +1845,39 @@ def build_race_rows(
             if live_stage in {"morning", "\u671d"}:
                 live = None
 
-        # Never present a copied morning/formation fallback as a reconstructed
-        # pre-race live score. Verified restored live records enter via
-        # load_recovered_live_predictions and are independently evaluated.
+        # A neutral morning-based LIVE placeholder is useful for displaying
+        # a score and its six ▲ warnings. NEVER count it as confirmed live
+        # prediction or an observed signal. The live metric stays None until
+        # official exhibition is replayed, while the card shows the fallback.
         live_display = live
+        if live_display is None and formation_prediction:
+            raw_formation = formation_prediction.get("raw") or {}
+            quality = raw_formation.get("prediction_quality") or {}
+            neutral_only = quality.get("signal_blocked") is True or (
+                quality.get("status") == "fallback"
+                and quality.get("fallback_source") == "saved_morning_prediction"
+                and not any(b.get("exhibition_time") is not None and
+                            b.get("exhibition_st") is not None
+                            for b in (raw_formation.get("boats") or []))
+            )
+            if neutral_only:
+                flagged_boats = []
+                for boat in raw_formation.get("boats") or []:
+                    item = dict(boat)
+                    item["score_fallback"] = True
+                    if not item.get("score_fallback_reasons"):
+                        item["score_fallback_reasons"] = [
+                            "exhibition_course", "exhibition_time", "exhibition_st"
+                        ]
+                    flagged_boats.append(item)
+                live_display = dict(formation_prediction)
+                live_display["boats"] = flagged_boats
+                live_display["raw"] = dict(raw_formation, boats=flagged_boats)
+                live_display["prediction_quality"] = dict(
+                    quality, status="fallback", recovery_needed=True,
+                    signal_blocked=True,
+                )
+                live_display["stage"] = "neutral_morning_fallback"
 
         odds_row = (
             odds.get(
@@ -2829,7 +2858,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {prediction_quality_warning(row.get("live_display"))}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
@@ -2885,12 +2914,12 @@ def render_html(
   <div class="prediction-row">
 
     <div class="label">
-      {("直前予測" if row["live"] else ("事前予測" if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
+      {("直前予測" if row["live"] else ("直前補完（朝スコア）" if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
     </div>
 
     <div>
       {prediction_html(row.get("live_display"), morning_reference_map(row["morning"], row.get("live_display")))}
-      {all_scores_html(row.get("live_display"), ("直前予測" if row["live"] else "事前予測"), morning_reference_map(row["morning"], row.get("live_display")))}
+      {all_scores_html(row.get("live_display"), ("直前予測" if row["live"] else "直前補完（朝スコア）"), morning_reference_map(row["morning"], row.get("live_display")))}
     </div>
 
     <div class="metrics">
