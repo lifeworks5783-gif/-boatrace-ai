@@ -58,6 +58,7 @@ jobs:
           PY
       - name: Old versus new live scores on the same prepared exhibition inputs
         run: |
+          mkdir -p .baseline_collectors
           for script in build_morning_prediction.py build_live_prediction.py; do
             curl --fail --silent --show-error --location --retry 3 "https://raw.githubusercontent.com/lifeworks5783-gif/-boatrace-ai/bf09ddae688628a6e24c481d24ea0ea92860be1b/collectors/$script" --output ".baseline_collectors/$script"
           done
