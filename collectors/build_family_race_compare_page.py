@@ -2384,6 +2384,30 @@ def evaluation_html(
 
 
 
+def signal_actual_combo_rank(signal_prediction, actual_trifecta):
+    """Observed finish rank in the FROZEN full signal-AI ordering.
+
+    Strictly require the complete saved 3-permutation ranking; do not mislabel
+    an available top-24 ticket list as '120 total'. No re-scoring after result.
+    Returns (rank, total) or (None, None) when unknown/unverifiable.
+    """
+    ai = signal_prediction or {}
+    rows = ai.get("all_120_combinations") or []
+    expected = safe_int(ai.get("valid_combination_count"))
+    if expected not in (24, 60, 120) or len(rows) != expected:
+        return None, None
+    names = [str(x.get("combination") or "") for x in rows if isinstance(x, dict)]
+    if len(names) != expected or len(set(names)) != expected:
+        return None, None
+    combo = str(actual_trifecta or "").strip()
+    if not combo:
+        return None, None
+    try:
+        return names.index(combo) + 1, expected
+    except ValueError:
+        return None, None
+
+
 def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
     """Use saved signal-only top 24 when active; do not modify normal AI."""
     prediction = prediction or {}
@@ -2437,13 +2461,26 @@ def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
     returned = payout if hit and payout is not None else 0
     profit = returned - investment
     status = '<span class="hit-status">的中</span>' if hit else '<span class="miss-status">不的中</span>'
+    if is_signal:
+        actual_rank, total_ranked = signal_actual_combo_rank(signal, trifecta)
+        rank_label = (f"実着{actual_rank}位／{total_ranked}通り"
+                      if actual_rank is not None else "実着順位未取得")
+        if hit:
+            closed_result = (f'<span class="signal-rank-hit" title="風神雷神AI購入上位24点に実着が含まれました">'
+                             f'✓ 的中・{esc(rank_label)}</span>')
+        else:
+            closed_result = (f'<span class="signal-rank-miss" title="購入24点の外でも実着のAI評価順位を確認できます">'
+                             f'不的中・{esc(rank_label)}</span>')
+    else:
+        closed_result = status
+
 
     return f"""
     <details class="simulation-box ai-result-box">
       <summary class="ai-result-summary">
         <span class="simulation-title">{label}を見る</span>
         <span class="ai-result-summary-meta">
-          購入{purchase_points}点 ／ {status} ／ 投資 <b>{investment:,}円</b> ／ 払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b>
+          購入{purchase_points}点 ／ {closed_result} ／ 投資 <b>{investment:,}円</b> ／ 払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b>
         </span>
       </summary>
       <div class="ai-result-body">
@@ -2752,6 +2789,8 @@ def render_html(
     # Never silently skip a flagged race when dedicated tickets are missing.
     signal24_rows = []
     signal24_missing = 0
+    signal24_actual_ranks = []
+    signal24_unranked = 0
     for record in race_rows:
         signal_info = record["_canonical_signal"]
         if not signal_info["signal_key"]:
@@ -2772,6 +2811,11 @@ def render_html(
             signal24_missing += 1
             continue
         hit_24 = actual_combo in bought_24
+        actual_rank, _rank_total = signal_actual_combo_rank(signal_pred, actual_combo)
+        if actual_rank is not None:
+            signal24_actual_ranks.append(actual_rank)
+        else:
+            signal24_unranked += 1
         signal24_rows.append({
             "hit": hit_24,
             "investment": 2400,
@@ -2783,6 +2827,10 @@ def render_html(
     signal24_paid = sum(x["returned"] for x in signal24_rows)
     signal24_profit = signal24_paid - signal24_invest
     signal24_roi = 100.0 * signal24_paid / signal24_invest if signal24_invest else None
+    signal24_mean_actual_rank = (
+        sum(signal24_actual_ranks) / len(signal24_actual_ranks)
+        if signal24_actual_ranks else None
+    )
 
 
     now = datetime.now(
@@ -3537,6 +3585,27 @@ details.all-scores summary {{
 .miss-status {{
   color:var(--muted);
 }}
+.signal-rank-hit {{
+  color:#067647;
+  background:#ecfdf3;
+  border:1px solid #a6f4c5;
+  border-radius:6px;
+  padding:2px 6px;
+  font-weight:900;
+}}
+.signal-rank-miss {{
+  color:var(--text);
+  font-weight:750;
+}}
+.signal-rank-daily {{
+  margin:6px 0;
+  font-size:13px;
+  line-height:1.6;
+}}
+.signal-rank-daily b {{
+  color:var(--blue);
+  font-size:18px;
+}}
 .ai-result-list {{
   display:grid;
   gap:6px;
@@ -3848,10 +3917,16 @@ details.all-scores summary {{
   <strong>
     {signal24_hits}/{signal24_races}R的中 ／ 回収率 {percent(signal24_roi)}
   </strong>
+  <div class="signal-rank-daily">
+    当日実着の平均AI順位：
+    <b>{f"{signal24_mean_actual_rank:.1f}位" if signal24_mean_actual_rank is not None else "—"}</b>
+    （{len(signal24_actual_ranks)}R、6艇は120通り・5艇は60通り）
+  </div>
   <span>
     購入{signal24_races * 24:,}点 ／ 投資{signal24_invest:,}円 ／
     払戻{signal24_paid:,}円 ／ 損益{signal24_profit:+,}円
     {f" ／ 未評価{signal24_missing}R" if signal24_missing else ""}
+    {f" ／ 実着順位未取得{signal24_unranked}R" if signal24_unranked else ""}
   </span>
 </div>
 
