@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import itertools
+import hashlib
 import json
 import re
 from collections import defaultdict
@@ -422,8 +423,10 @@ def build_down_signal(
 def load_signal_ai_config():
     if not SIGNAL_AI_CONFIG_PATH.is_file():
         raise RuntimeError(f"シグナルAI補正設定がありません: {SIGNAL_AI_CONFIG_PATH}")
-    config = json.loads(SIGNAL_AI_CONFIG_PATH.read_text(encoding="utf-8"))
-    config["_source"] = str(SIGNAL_AI_CONFIG_PATH)
+    config_bytes = SIGNAL_AI_CONFIG_PATH.read_bytes()
+    config = json.loads(config_bytes)
+    config["_source"] = str(SIGNAL_AI_CONFIG_PATH.relative_to(ROOT))
+    config["_sha256"] = hashlib.sha256(config_bytes).hexdigest()
     return config
 
 
@@ -531,6 +534,7 @@ def build_signal_ai_prediction(boats, up_signal, down_signal, config):
         "model_version": config.get("model_version") or SIGNAL_AI_MODEL_VERSION,
         "logic_effective_date": config.get("effective_date"),
         "logic_config_source": config.get("_source"),
+        "correction_config_sha256": config.get("_sha256"),
         "logic_identity": logic_identity(SIGNAL_LOGIC),
         "status": "active_signal_ai",
         "normal_prediction_unchanged": True,
@@ -1951,6 +1955,8 @@ def main():
             ),
             "signal_system_name": SIGNAL_SYSTEM_NAME,
             "signal_logic_identity": logic_identity(SIGNAL_LOGIC),
+            "morning_logic_identity": logic_identity(load_logic("morning")),
+            "live_logic_identity": logic_identity(load_logic("live")),
         }
 
         all_rows.append(
