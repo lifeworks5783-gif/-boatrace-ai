@@ -2387,6 +2387,26 @@ def score_delta_html(boat, score, morning_scores):
     return f'<span class="score-delta down">▼ {delta:.1f}</span>'
 
 
+def prediction_quality_warning(prediction):
+    if not prediction:
+        return ""
+    raw = prediction.get("raw") or {}
+    quality = prediction.get("prediction_quality") or raw.get("prediction_quality") or {}
+    status = str(quality.get("status") or "").strip()
+    if status == "recovered_observation":
+        if quality.get("pre_deadline_snapshot") or quality.get("provenance") == "saved_pre_deadline_official_beforeinfo":
+            return '<span class="quality-warning" title="締切前に公式展示6艇分を保存済み。こちらの直前予測の保存処理の不備で計算・表示に反映できなかったため、取得済みの締切前入力から通常ロジックで再計算。結果・払戻・着順は予測計算に不使用。">↻締切前データから直前予測を復旧</span>'
+        return '<span class="quality-warning" title="取得処理の不備で直前予測が未保存だったため、終了後に取得した公式の展示情報だけで再計算。結果・払戻・着順は予測計算に不使用。">↻公式展示情報から復旧（事後計算）</span>'
+    if quality.get("recovery_needed") or status == "fallback":
+        reasons = quality.get("reason") or []
+        reason_text = " / ".join(str(x).strip() for x in reasons if str(x).strip())
+        title = "正式な直前予測は未保存。朝予測ベースの参考表示であり、直前予測の成績には含めない"
+        if reason_text:
+            title += f"：{reason_text}"
+        return f'<span class="quality-warning" title="{esc(title)}">⚠直前未保存・参考値</span>'
+    return ""
+
+
 def prediction_html(prediction, morning_scores=None):
     if not prediction:
         return '<span class="missing">予測なし</span>'
@@ -2967,28 +2987,6 @@ def render_html(
                     f"{abs(minutes):g}分後"
                 )
 
-        # Display only genuine saved pre-result live predictions. Do not
-        # repeat morning scores as a pseudo-live row or print warning notes.
-        live_prediction_block = ""
-        if row.get("live"):
-            live_prediction_block = (
-                '<div class="prediction-row">'
-                '<div class="label">直前予測</div>'
-                "<div>"
-                + prediction_html(
-                    row["live"],
-                    morning_reference_map(row["morning"], row["live"]),
-                )
-                + all_scores_html(
-                    row["live"],
-                    "直前予測",
-                    morning_reference_map(row["morning"], row["live"]),
-                )
-                + "</div>"
-                + '<div class="metrics">'
-                + evaluation_html(row["live_eval"])
-                + "</div></div>"
-            )
         cards.append(
             f"""
 <article class="race-card">
@@ -3052,7 +3050,23 @@ def render_html(
   </div>
 
 
-  {live_prediction_block}
+  <div class="prediction-row">
+
+    <div class="label">
+      {("直前予測" if row["live"] else ("朝予測の参考表示（直前予測未保存）" if row.get("live_display") else "直前予測なし"))} 
+    </div>
+
+    <div>
+      {prediction_html(row.get("live_display"), morning_reference_map(row["morning"], row.get("live_display")))}
+      {all_scores_html(row.get("live_display"), ("直前予測" if row["live"] else "朝予測の参考表示"), morning_reference_map(row["morning"], row.get("live_display")))}
+    </div>
+
+    <div class="metrics">
+      {evaluation_html(row["live_eval"])}
+    </div>
+
+  </div>
+
 
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
