@@ -712,6 +712,11 @@ def main():
                 "label": "補完あり" if (fallback_info or neutral_boats) else "正常",
                 "recovery_needed": bool(neutral_boats or fallback_info),
                 "signal_blocked": bool(neutral_boats),
+                # is_miss originates from the official beforeinfo ingestion;
+                # unknown missing rows are never treated as a scratch.
+                "verified_scratched_boats": sorted(
+                    int(x["boat"]) for x in boats if is_miss_boat(x)
+                ),
                 "boat_fallbacks": neutral_boats,
                 "reason": ([f"{x['boat']}号艇:{','.join(x['reasons'])}" for x in neutral_boats]
                            + list((fallback_info or {}).get("reason") or [])),
