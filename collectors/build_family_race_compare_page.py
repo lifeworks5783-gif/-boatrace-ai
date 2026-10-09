@@ -2748,6 +2748,8 @@ def load_ai_evaluation(target_date):
 def final_ai_prediction(row):
     """終了済みレースのAI予測は、結果を使わず事前生成済みformation保存値を最優先で使う。"""
     formation = row.get("formation_prediction")
+    if formation and (formation.get("raw") or {}).get("canonical_signal_key"):
+        return formation
     if formation and (
         formation.get("ai_score_prediction")
         or (formation.get("raw") or {}).get("ai_score_prediction")
@@ -3065,7 +3067,7 @@ def render_html(
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
   <div class="label simulation-label">シグナル発動：専用AI24点／非発動：通常AIスコア予測</div>\n  <div class="simulation-meta">シグナル発動時は専用AI上位24点を各100円で照合し、投資・払戻・収支を計算</div>
-  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"]) if final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction")) else ai_eval_detail_html(row.get("ai_evaluation"))}
+  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"]) if final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("canonical_signal_key")) else ai_eval_detail_html(row.get("ai_evaluation"))}
 
   <div class="money-grid">
 
