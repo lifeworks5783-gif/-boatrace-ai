@@ -183,6 +183,25 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         print("OFFICIAL_MASK_ST_BACKTEST",{"races":n,"five_valid_and_one_neutral":n,
              "false_signal_activations":0,"real_official_signal_triggers":true_triggers})
 
+    def test_completed_view_renders_all_six_neutral_not_fake_live(self):
+        original=[{"boat":lane,"score":score,"racer_name":f"選手{lane}"} for lane,score in enumerate(ORIGINAL,1)]
+        raw={"race_id":"20261009-10-10","boats":original,"prediction_type":"直前",
+             "prediction_quality":{"status":"fallback","recovery_needed":True,
+                                   "signal_blocked":True,"fallback_source":"saved_morning_prediction"}}
+        item={"raw":raw,"boats":original,
+              "top3":[{"boat":b["boat"],"score":b["score"],"name":b["racer_name"]} for b in original[:3]]}
+        visible=compare.neutral_display_from_canonical(item)
+        self.assertIsNotNone(visible)
+        self.assertEqual(visible["stage"],"neutral_morning_fallback")
+        self.assertEqual(len(visible["boats"]),6)
+        self.assertTrue(all(compare.is_neutral_boat(b) for b in visible["boats"]))
+        self.assertIn("▲",compare.prediction_quality_warning(visible))
+        self.assertEqual(compare.all_scores_html(visible,"直前補完（朝スコア）").count('quality-warning'),6)
+        self.assertNotEqual(raw["boats"][0].get("score_fallback"), True)
+        # An official live observation must never go through this placeholder.
+        live_original=dict(raw,prediction_quality={"status":"normal"})
+        self.assertIsNone(compare.neutral_display_from_canonical(dict(item,raw=live_original)))
+
     def test_neutral_is_recovery_pending_and_provenance_retained(self):
         rows=[
             {"race_id":"20261009-10-10","boat":1,"score_fallback":"False"},
