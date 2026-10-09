@@ -95,12 +95,20 @@ jobs:
           test -s "evaluations/${YEAR}/${MONTH}/${DAY}/prediction_evaluation_${TARGET_DATE}.json"
           test -s "evaluations/${YEAR}/${MONTH}/${DAY}/ai_score_simulation_${TARGET_DATE}.json"
 
+      - name: 復元した風神雷神シグナルを日次・累積分析へ保存
+        if: env.RESULT_COUNT != '0'
+        run: |
+          # Confirmed 6-boat pre-race scores only; unknown races never count as Lv0.
+          python -u collectors/evaluate_fujin_raijin_history.py --date "${TARGET_DATE}"
+          test -s "evaluations/${YEAR}/${MONTH}/${DAY}/fujin_raijin_combo_${TARGET_DATE}.json"
+          test -s "evaluations/fujin_raijin/latest/backtest_details.csv"
+
       - name: 当日照合結果を保存
         if: env.RESULT_COUNT != '0'
         run: |
           git config user.name "boatrace-intraday-bot"
           git config user.email "boatrace-intraday-bot@users.noreply.github.com"
-          git add "evaluations/${YEAR}/${MONTH}/${DAY}" "archive/${YEAR}/${MONTH}/${DAY}"
+          git add "evaluations/${YEAR}/${MONTH}/${DAY}" "evaluations/fujin_raijin/latest" "archive/${YEAR}/${MONTH}/${DAY}"
           if git diff --cached --quiet; then
             echo "CHANGED=false" >> "$GITHUB_ENV"
             exit 0
