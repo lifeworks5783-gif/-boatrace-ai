@@ -80,7 +80,10 @@ def main():
     expected_rows = read_csv(program)
     expected = race_ids(expected_rows)
     original = race_ids(original_rows)
-    missing_before = sorted(expected - original)
+    # Recover only finished races; future races never count as an inactive signal.
+    result_path = Path("archive") / y / m / day / f"results_{d}_all.csv"
+    finished = (race_ids(read_csv(result_path)) & expected) if result_path.is_file() else set()
+    missing_before = sorted(finished - original)
 
     out_dir = Path("evaluations") / y / m / day / "recovery"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -88,64 +91,99 @@ def main():
     merged_csv = out_dir / f"merged_live_predictions_{d}.csv"
     manifest_path = out_dir / f"live_recovery_manifest_{d}.json"
 
-    # すでに復旧済みなら再取得せず再利用する。
-    if recovered_csv.is_file():
-        recovered_rows = read_csv(recovered_csv)
-    elif missing_before:
+    # Keep historical recovery across repeated button presses.
+    recovered_rows = read_csv(recovered_csv) if recovered_csv.is_file() else []
+    pending = sorted(set(missing_before) - race_ids(recovered_rows))
+    retry_errors = []
+
+    if pending:
         copy_base_if_needed(d)
-
-        # 結果・払戻はこの復旧入力には使わない。
-        # 欠損していたレースだけを BOAT RACE公式 beforeinfo から再取得する。
-        # 全144Rの再アクセスを避け、既知の収集不具合で欠けた対象だけを復旧する。
         import today_beforeinfo as tbi
+        from concurrent.futures import ThreadPoolExecutor
 
-        missing_set = set(missing_before)
+        pending_set = set(pending)
         target_bases = [
             row for row in expected_rows
-            if normalize_race_id(row.get("race_id")) in missing_set
+            if normalize_race_id(row.get("race_id")) in pending_set
         ]
+
+        # Reuse already saved official pre-race data first, never morning fallback.
+        live_root = Path("daily_inputs") / y / m / day / "live"
+        cached = {}
+        if live_root.exists():
+            for entries_path in sorted(live_root.glob("**/beforeinfo_entries_*.csv")):
+                races_path = entries_path.with_name(f"beforeinfo_races_{d}.csv")
+                if not races_path.is_file():
+                    continue
+                try:
+                    grouped = {}
+                    for row in read_csv(entries_path):
+                        rid = normalize_race_id(row.get("race_id"))
+                        if rid in pending_set:
+                            grouped.setdefault(rid, []).append(row)
+                    race_map = {
+                        normalize_race_id(row.get("race_id")): row
+                        for row in read_csv(races_path)
+                    }
+                    for rid, rows in grouped.items():
+                        if rid not in race_map or len(rows) != 6:
+                            continue
+                        if {str(row.get("boat", "")).strip() for row in rows} != {
+                            "1", "2", "3", "4", "5", "6"
+                        }:
+                            continue
+                        if all(
+                            str(row.get("is_miss", "")).lower() in ("true", "1", "yes")
+                            or all(str(row.get(k, "")).strip() for k in (
+                                "exhibition_course", "exhibition_time", "exhibition_st_raw"
+                            ))
+                            for row in rows
+                        ):
+                            cached[rid] = (race_map[rid], rows)
+                except Exception as exc:
+                    print(f"WARN: saved official beforeinfo read: {entries_path}: {exc}")
+
+        to_fetch = [
+            base for base in target_bases
+            if normalize_race_id(base.get("race_id")) not in cached
+        ]
+        fetched = {}
+        if to_fetch:
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                for result in pool.map(lambda base: tbi.fetch_one(base, d), to_fetch):
+                    rid = normalize_race_id(result["base"].get("race_id"))
+                    if result.get("parsed") is None:
+                        retry_errors.append({"race_id": rid, "error": result.get("error")})
+                    else:
+                        fetched[rid] = result["parsed"]
+
+        observed = {**cached, **fetched}
         race_rows = []
         entry_rows = []
-        retry_errors = []
         for base in target_bases:
-            result = tbi.fetch_one(base, d)
-            if result.get("parsed") is None:
-                retry_errors.append({
-                    "race_id": normalize_race_id(base.get("race_id")),
-                    "error": result.get("error"),
-                })
-                continue
-            race_row, entries = result["parsed"]
-            race_rows.append(race_row)
-            entry_rows.extend(entries)
+            rid = normalize_race_id(base.get("race_id"))
+            if rid in observed:
+                race_row, entries = observed[rid]
+                race_rows.append(race_row)
+                entry_rows.extend(entries)
 
         if retry_errors:
             print("official beforeinfo retry errors:", json.dumps(retry_errors, ensure_ascii=False))
-
-        tbi.write_csv(
-            Path("data") / f"beforeinfo_races_{d}.csv",
-            race_rows,
-            tbi.RACE_FIELDS,
-        )
-        tbi.write_csv(
-            Path("data") / f"beforeinfo_entries_{d}.csv",
-            entry_rows,
-            tbi.ENTRY_FIELDS,
-        )
+        tbi.write_csv(Path("data") / f"beforeinfo_races_{d}.csv", race_rows, tbi.RACE_FIELDS)
+        tbi.write_csv(Path("data") / f"beforeinfo_entries_{d}.csv", entry_rows, tbi.ENTRY_FIELDS)
         validation = {
-            "date": d,
-            "mode": "analysis_recovery",
+            "date": d, "mode": "completed_race_recovery",
             "requested_races": len(target_bases),
+            "cached_official_races": len(cached),
+            "new_official_races": len(fetched),
             "ready_races": len(race_rows),
             "entry_rows": len(entry_rows),
             "errors": retry_errors,
-            "provenance": "post_result_retry_due_known_live_collection_bug",
+            "provenance": "saved_beforeinfo_or_official_historical_retrieval",
         }
         (Path("data") / f"beforeinfo_validation_{d}.json").write_text(
-            json.dumps(validation, ensure_ascii=False, indent=2),
-            encoding="utf-8",
+            json.dumps(validation, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-
         for name in (
             f"beforeinfo_races_{d}.csv",
             f"beforeinfo_entries_{d}.csv",
@@ -155,30 +193,27 @@ def main():
             if src.is_file():
                 shutil.copy2(src, out_dir / f"official_retry_{name}")
 
-        # 過去結果特徴量は必ず対象日より前だけで作る。
-        run("collectors/build_prediction_input.py", "--date", d, "--stage", "live")
-        run("collectors/build_history_features.py", "--as-of", d)
-        run("collectors/enrich_prediction_input.py", "--date", d, "--stage", "live")
-        run(
-            "collectors/build_live_prediction.py",
-            "--date", d,
-            "--historical-backfill",
-            "--output-dir", "data",
-        )
+        if race_rows:
+            # As-of features only. Results and payouts are never prediction inputs.
+            run("collectors/build_prediction_input.py", "--date", d, "--stage", "live")
+            run("collectors/build_history_features.py", "--as-of", d)
+            run("collectors/enrich_prediction_input.py", "--date", d, "--stage", "live")
+            run("collectors/build_live_prediction.py", "--date", d, "--historical-backfill", "--output-dir", "data")
 
-        rebuilt = Path("data") / f"live_predictions_final_{d}.csv"
-        if not rebuilt.is_file():
-            raise RuntimeError(f"reconstructed live CSV missing: {rebuilt}")
-        rebuilt_rows = read_csv(rebuilt)
-        recovered_rows = [
-            row for row in rebuilt_rows
-            if normalize_race_id(row.get("race_id")) in set(missing_before)
-        ]
-        fields = list(rebuilt_rows[0].keys()) if rebuilt_rows else []
-        if fields:
-            write_csv(recovered_csv, recovered_rows, fields)
-    else:
-        recovered_rows = []
+            rebuilt = Path("data") / f"live_predictions_final_{d}.csv"
+            if rebuilt.is_file():
+                rebuilt_rows = read_csv(rebuilt)
+                by_key = {
+                    (normalize_race_id(row.get("race_id")), str(row.get("boat") or "")): row
+                    for row in recovered_rows
+                }
+                for row in rebuilt_rows:
+                    rid = normalize_race_id(row.get("race_id"))
+                    if rid in pending_set:
+                        by_key[(rid, str(row.get("boat") or ""))] = row
+                recovered_rows = list(by_key.values())
+                if recovered_rows:
+                    write_csv(recovered_csv, recovered_rows, list(recovered_rows[0].keys()))
 
     recovered_ids = race_ids(recovered_rows)
     merged_by_key = {}
@@ -207,7 +242,7 @@ def main():
     write_csv(merged_csv, merged_rows, fields)
 
     merged_ids = race_ids(merged_rows)
-    still_missing = sorted(expected - merged_ids)
+    still_missing = sorted(finished - merged_ids)
     recovered_target_ids = sorted(set(missing_before) & recovered_ids)
 
     manifest = {
@@ -220,6 +255,8 @@ def main():
         "recovery_input": "BOAT RACE official beforeinfo only; results/payouts are not prediction inputs",
         "provenance": "post_result_retry_due_known_live_collection_bug",
         "expected_races": len(expected),
+        "finished_races_targeted": len(finished),
+        "not_yet_finished_races": len(expected - finished),
         "production_live_races_before": len(original),
         "missing_before": missing_before,
         "recovered_races": recovered_target_ids,
@@ -234,10 +271,9 @@ def main():
     )
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
 
+    # Never collapse an uncollected race into a false "signal inactive".
     if still_missing:
-        raise RuntimeError(
-            "AI分析用の直前予測復旧が未完了: " + ",".join(still_missing)
-        )
+        print("RETRY_NEEDED (excluded from signal denominator):", ",".join(still_missing))
 
 
 if __name__ == "__main__":
