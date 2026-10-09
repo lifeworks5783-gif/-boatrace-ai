@@ -34,6 +34,13 @@ class SignalActualRankDisplayTests(unittest.TestCase):
         hit = ai_score_result_html({}, first, 4800, canonical)
         miss = ai_score_result_html({}, outside, 4800, canonical)
         self.assertIn("signal-rank-hit", hit.split("</summary>")[0])
+        self.assertNotIn("✓", hit.split("</summary>")[0])
+        source=(ROOT / "collectors/build_family_race_compare_page.py").read_text(encoding="utf-8")
+        hit_style=source.split(".signal-rank-hit {{",1)[1].split("}}",1)[0]
+        self.assertIn("color:#dc2626;",hit_style)
+        self.assertNotIn("background:",hit_style)
+        self.assertNotIn("border:",hit_style)
+        self.assertNotIn("padding:",hit_style)
         self.assertIn("的中・実着17位／120通り",hit.split("</summary>")[0])
         self.assertIn("signal-rank-miss",miss.split("</summary>")[0])
         self.assertIn("不的中・実着42位／120通り",miss.split("</summary>")[0])
