@@ -37,9 +37,12 @@ def decide_quality(boats, *, structural_fallback=False, assumed_scores=False):
             "exhibition_course", "exhibition_time", "exhibition_st",
         )):
             return None
-    return {"status": "provisional_structural_fallback" if structural_fallback else "normal",
-            "recovery_needed": structural_fallback,
-            "fallback_source": "saved_morning_structural_component" if structural_fallback else None}
+    # Signal eligibility and score provenance are SEPARATE axes:
+    # scorer/visible warning retains its original fallback=True, but the
+    # signal engine receives a separate decision about six-boat exhibition.
+    return {"status": "normal", "recovery_needed": False,
+            "exhibition_observation_verified": True,
+            "score_structural_fallback_used": structural_fallback}
 
 
 def main():
