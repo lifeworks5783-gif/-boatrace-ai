@@ -139,12 +139,13 @@ def boat_line(boat, mark="", morning_score_map=None):
         name += f" {racer}"
 
     delta_html = score_delta_html(boat, morning_score_map)
+    fallback_mark = neutral_boat_marker(boat)
 
     return (
         '<div class="pick">'
         f'<span class="mark">{esc(mark)}</span>'
         '<span class="pick-name-wrap">'
-        f'<span class="pick-name">{name}</span>'
+        f'<span class="pick-name">{name}{fallback_mark}</span>'
         f'{delta_html}'
         '</span>'
         f'<span class="score">{score}</span>'
@@ -159,6 +160,7 @@ def _prediction_body(boats, formation, label, morning_score_map=None):
         + esc(boat.get("boat")) + '号艇'
         + ((' ' + esc(boat.get("racer_name") or boat.get("name") or boat.get("player_name") or boat.get("racer"))) if text(boat.get("racer_name") or boat.get("name") or boat.get("player_name") or boat.get("racer")) else '')
         + ' ' + esc(score_label(boat.get("score")))
+        + neutral_boat_marker(boat)
         + score_delta_html(boat, morning_score_map)
         + '</span>'
         for boat in boats
@@ -235,15 +237,29 @@ def signal_marker(race):
         + bottom
         + "</span>"
     )
+def neutral_boat_marker(boat):
+    """▲ on each affected racer only; reasons are accessible by tap/tooltip."""
+    if not boat.get("score_fallback"):
+        return ""
+    reasons = boat.get("score_fallback_reasons") or []
+    if isinstance(reasons, str):
+        reasons = [x for x in reasons.split(",") if x]
+    details = " / ".join(str(x) for x in reasons)
+    title = "朝スコアを中立補完（朝比±0.0）。直前情報を後で再取得・復旧" + (": " + details if details else "")
+    return f'<span class="quality-warning boat-neutral" title="{esc(title)}"> ▲</span>'
+
+
 def quality_warning_marker(race):
     quality = race.get("prediction_quality") or {}
     if quality.get("recovery_needed") or text(quality.get("status")) == "fallback":
         reasons = quality.get("reason") or []
         reason_text = " / ".join(text(x) for x in reasons if text(x))
-        title = "補完値を使って生成した予測。締切前の正式データで再計算できる場合は復元対象"
+        pending = quality.get("signal_blocked") is True
+        title = ("艇別に朝スコアを中立補完。直前シグナル判定保留、後で公式情報から再判定"
+                 if pending else "基礎要素を補完。公式展示があれば直前シグナル判定は可能")
         if reason_text:
-            title += f"：{reason_text}"
-        return f' <span class="quality-warning" title="{esc(title)}">⚠補完あり</span>'
+            title += "：" + reason_text
+        return f' <span class="quality-warning" title="{esc(title)}">▲</span>'
     return ""
 
 
@@ -282,6 +298,7 @@ def build_card(race, index, is_completed=False):
     venue=text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
     prediction_type=text(race.get("prediction_type")) or "不明"
     badge_class="live" if prediction_type=="直前" else "morning"
+    badge_label=("直前・補完" if (race.get("prediction_quality") or {}).get("signal_blocked") else prediction_type)
     status_html='<div class="race-status completed">終了済み</div>' if is_completed else '<div class="race-status upcoming">締切前</div>'
     boats=race.get("boats") or []; formation=race.get("formation") or {}
     morning_boats=race.get("morning_boats") or []; morning_formation=race.get("morning_formation") or {}
@@ -299,7 +316,7 @@ def build_card(race, index, is_completed=False):
         <div class="race-order">{index}</div>
         <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div></div>
         {status_html}
-        <div class="badge-wrap">{live_data_marker(race)}<div class="badge {badge_class}">{esc(prediction_type)}</div></div>
+        <div class="badge-wrap">{live_data_marker(race)}<div class="badge {badge_class}">{esc(badge_label)}</div></div>
       </div>
       {switch}
       {morning}
