@@ -46,7 +46,18 @@ jobs:
                       declared_count=int(mean.group(2)) if mean else None
                       hit_titles=sum('signal-rank-hit' in h for h in headlines)
                       miss_titles=sum('signal-rank-miss' in h for h in headlines)
+                      raw_css=re.search(r'\\.signal-rank-hit\\s*\\{([^}]+)\\}',text,re.S)
+                      css=raw_css.group(1) if raw_css else ""
+                      red_plain=bool(
+                          'color:#dc2626;' in css
+                          and 'background:' not in css
+                          and 'border:' not in css
+                          and 'padding:' not in css
+                          and not any(re.search(r'✓\\s*的中',h) for h in headlines if 'signal-rank-hit' in h)
+                      )
                       report.update({
+                        "signal_hit_plain_red_without_background":red_plain,
+                        "signal_hit_style":css.strip().replace("\\n"," ")[:180],
                         "ranked_signal_races_in_collapsed_summaries":len(ranked),
                         "winning_signal_headers_colored":hit_titles,
                         "losing_signal_headers_with_rank":miss_titles,
@@ -59,6 +70,7 @@ jobs:
                           ranked and hit_titles>0 and miss_titles>0 and mean
                           and declared_count==len(ranked)
                           and round(got_mean,1)==shown_mean
+                          and red_plain
                       )
                       report["signal_rank_public_acceptance"]=rank_ok
                       if not rank_ok:errors.append("signal_rank_public_html")
