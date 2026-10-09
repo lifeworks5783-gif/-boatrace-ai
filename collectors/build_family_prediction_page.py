@@ -413,7 +413,7 @@ def build_ai_card(race, index):
         or []
     )
     normal_score_map = {
-        text(x.get("boat")): safe_float(x.get("score"))
+        text(x.get("boat")): to_float(x.get("score"))
         for x in normal_boats
         if isinstance(x, dict) and text(x.get("boat"))
     }
