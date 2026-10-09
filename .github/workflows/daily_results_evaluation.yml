@@ -128,5 +128,8 @@ jobs:
           fi
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Results and evaluation ${TARGET_DATE}"
+          # Generated working files outside the staged evaluation set must not block rebase.
+          git restore .
+          git clean -fd
           git pull --rebase origin main
           git push origin main
