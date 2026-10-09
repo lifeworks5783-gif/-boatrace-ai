@@ -36,6 +36,8 @@ jobs:
             collectors/build_latest_prediction_view.py \
             collectors/build_deadline_prediction_view.py \
             collectors/build_family_race_compare_page.py
+      - name: Prevent interrupted result and page runs when update button is pressed twice
+        run: python -m unittest discover -s tests -p test_workflow_queue_durability.py -v
       - name: Model parity and signal 24 contracts
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
       - name: Production immutable-history and numerical-config safety
