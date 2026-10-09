@@ -183,6 +183,21 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         print("OFFICIAL_MASK_ST_BACKTEST",{"races":n,"five_valid_and_one_neutral":n,
              "false_signal_activations":0,"real_official_signal_triggers":true_triggers})
 
+    def test_live_scoring_of_official_scratch_does_not_neutralise_five_starters(self):
+        race,morning,details=fixture(missing=(3,))
+        race["boats"][2]["beforeinfo"]["is_miss"]=True
+        valid_details={lane:val for lane,val in details.items() if lane!=3}
+        with patch.object(live.morning,"provisional_details",
+                          return_value=(valid_details,[])), \
+             patch.object(live,"personal_st_delta_score",return_value=.65):
+            scored=live.score_race(race,None,saved_morning_race=morning)
+        self.assertEqual({b["boat"] for b in scored},{1,2,4,5,6})
+        self.assertFalse(any(b["score_fallback"] for b in scored))
+        quality={"status":"normal","verified_scratched_boats":[3],
+                 "signal_blocked":False}
+        self.assertTrue(latest.build_up_signal(scored,quality)["available"])
+        self.assertTrue(latest.build_down_signal(scored,quality)["available"])
+
     def test_official_five_boat_scratch_can_signal_and_generate_24(self):
         from recovery_live_overlay import load_verified_recovered_live
         source=load_verified_recovered_live("20261009")
