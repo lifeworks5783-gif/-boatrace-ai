@@ -428,7 +428,15 @@ def signal_ai_24_metrics(root: Path, date: str) -> Dict[str, Any]:
     if not ledger.is_file():
         return {}
     with ledger.open(encoding="utf-8-sig", newline="") as f:
-        rows = [x for x in csv.DictReader(f) if str(x.get("date")) == date]
+        all_rows = list(csv.DictReader(f))
+    # During the racing day the normal results date may have already advanced,
+    # while signal-only evaluation is finalized only through the prior day.
+    available = sorted({str(x.get("date") or "") for x in all_rows
+                        if str(x.get("date") or "") <= date})
+    if not available:
+        return {}
+    signal_date = available[-1]
+    rows = [x for x in all_rows if str(x.get("date")) == signal_date]
     if not rows:
         return {}
     n = len(rows)
@@ -439,6 +447,7 @@ def signal_ai_24_metrics(root: Path, date: str) -> Dict[str, Any]:
     paid = sum(int(float(x.get("payout") or 0)) for x in wins)
     invested = n * 24 * 100
     return {
+        "source_date": signal_date,
         "races": n,
         "hits": len(wins),
         "points": n * 24,
@@ -495,7 +504,7 @@ def build_page(evaluation_root: Path) -> str:
         if signal_ai24:
             body_parts.insert(0, strategy_html(
                 "風神雷神専用AI・購入24点の結果成績",
-                "シグナル発動全レースを24点・各100円で仮想購入。保存済み買い目と実着を照合し、投資・払戻・損益・回収率を24点に統一。",
+                f"評価対象日{signal_ai24['source_date']}：シグナル発動全レースを24点・各100円で仮想購入。保存済み買い目と実着を照合。通常AIとは別会計。",
                 signal_ai24,
             ))
 
