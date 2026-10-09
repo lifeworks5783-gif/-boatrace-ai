@@ -1565,16 +1565,28 @@ def fujin_raijin_marker(raijin, fujin):
         + "</span>"
     )
 
-def signal_payout_badge(payout, raijin, fujin):
+def signal_payout_badge(payout, raijin, fujin, canonical_signal=None):
+    """Distinguish true non-trigger, unobservable inputs, and retrospective catch."""
     payout_value = safe_int(payout)
     if payout_value is None or payout_value < 5000:
         return ""
 
-    raijin_level = safe_int((raijin or {}).get("level")) or 0
-    fujin_level = safe_int((fujin or {}).get("level")) or 0
-    active = raijin_level > 0 or fujin_level > 0
+    raijin = raijin or {}
+    fujin = fujin or {}
+    canonical_signal = canonical_signal or {}
+    raijin_level = safe_int(raijin.get("level")) or 0
+    fujin_level = safe_int(fujin.get("level")) or 0
 
-    if active:
+    if raijin_level > 0 or fujin_level > 0:
+        # A historical replay is valid for backtest catch statistics but
+        # must not pretend a ticket or realtime alert existed at the deadline.
+        if canonical_signal.get("recovered_after_result") is True:
+            return (
+                '<span class="signal-payout-hit" '
+                'title="保存済み公式展示から事後にシグナルを再現（締切時のリアルタイム検知・実購入ではない）">'
+                '5千円以上・事後捕捉'
+                '</span>'
+            )
         return (
             '<span class="signal-payout-hit" '
             'title="風神または雷神が発動し、3連単払戻が5,000円以上">'
@@ -1582,13 +1594,26 @@ def signal_payout_badge(payout, raijin, fujin):
             '</span>'
         )
 
+    # The old badge incorrectly treated an UNKNOWN signal as a false signal.
+    # Not captured and not observable are different denominators in PDCA.
+    if (
+        raijin.get("available") is not True
+        or fujin.get("available") is not True
+        or canonical_signal.get("signal_ai_status")
+        in ("prediction_missing", "signal_not_yet_observable")
+    ):
+        return (
+            '<span class="signal-payout-miss" '
+            'title="風神・雷神の判定入力が未保存または復元待ち。未発動とは判定できない">'
+            '5千円以上・未判定'
+            '</span>'
+        )
     return (
         '<span class="signal-payout-miss" '
-        'title="3連単払戻が5,000円以上だが風神・雷神は未発動">'
+        'title="有効な直前入力で検証済みだが風神・雷神は未発動">'
         '5千円以上・未発動'
         '</span>'
     )
-
 
 def parse_trifecta_result(value):
     text = str(value or "").strip()
@@ -2772,7 +2797,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"))} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
