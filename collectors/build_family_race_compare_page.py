@@ -2388,24 +2388,12 @@ def score_delta_html(boat, score, morning_scores):
 
 
 def prediction_quality_warning(prediction):
-    if not prediction:
-        return ""
-    raw = prediction.get("raw") or {}
-    quality = prediction.get("prediction_quality") or raw.get("prediction_quality") or {}
-    status = str(quality.get("status") or "").strip()
-    if status == "recovered_observation":
-        if quality.get("pre_deadline_snapshot") or quality.get("provenance") == "saved_pre_deadline_official_beforeinfo":
-            return '<span class="quality-warning" title="締切前に公式展示6艇分を保存済み。こちらの直前予測の保存処理の不備で計算・表示に反映できなかったため、取得済みの締切前入力から通常ロジックで再計算。結果・払戻・着順は予測計算に不使用。">↻締切前データから直前予測を復旧</span>'
-        return '<span class="quality-warning" title="取得処理の不備で直前予測が未保存だったため、終了後に取得した公式の展示情報だけで再計算。結果・払戻・着順は予測計算に不使用。">↻公式展示情報から復旧（事後計算）</span>'
-    if quality.get("recovery_needed") or status == "fallback":
-        reasons = quality.get("reason") or []
-        reason_text = " / ".join(str(x).strip() for x in reasons if str(x).strip())
-        title = "正式な直前予測は未保存。朝予測ベースの参考表示であり、直前予測の成績には含めない"
-        if reason_text:
-            title += f"：{reason_text}"
-        return f'<span class="quality-warning" title="{esc(title)}">⚠直前未保存・参考値</span>'
-    return ""
+    """No caution badges in the user-facing race comparison.
 
+    Keep prediction provenance in saved data and continue to evaluate
+    confirmed live predictions separately from morning-only predictions.
+    """
+    return ""
 
 def prediction_html(prediction, morning_scores=None):
     if not prediction:
@@ -3053,12 +3041,12 @@ def render_html(
   <div class="prediction-row">
 
     <div class="label">
-      {("直前予測" if row["live"] else ("朝予測の参考表示（直前予測未保存）" if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
+      {("直前予測" if row["live"] else ("事前予測" if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
     </div>
 
     <div>
       {prediction_html(row.get("live_display"), morning_reference_map(row["morning"], row.get("live_display")))}
-      {all_scores_html(row.get("live_display"), ("直前予測" if row["live"] else "朝予測の参考表示"), morning_reference_map(row["morning"], row.get("live_display")))}
+      {all_scores_html(row.get("live_display"), ("直前予測" if row["live"] else "事前予測"), morning_reference_map(row["morning"], row.get("live_display")))}
     </div>
 
     <div class="metrics">
@@ -3878,23 +3866,7 @@ details.all-scores summary {{
 </nav>
 
 
-<div class="note">
 
-終了済みレースについて、
-朝予測・最終直前予測と
-実際の結果を照合します。
-
-TOP3整合率は、
-予測TOP3と実際のTOP3が
-順不同で3艇すべて一致したレースを1、
-1艇でも違うレースを0として集計します。
-
-完全一致は、
-予測した1着・2着・3着と
-実際の1着・2着・3着が
-着順まで一致した場合です。
-
-</div>
 
 
 <section class="summary">
