@@ -9,23 +9,35 @@ permissions:
 jobs:
   one-shot-public-http:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Read exact homepage and race comparison from public HTTPS
         run: |
           python - <<'PY'
-          import urllib.request as U, hashlib, json, re, sys
+          import urllib.request as U, hashlib, json, re, sys, time
           base="https://lifeworks5783-gif.github.io/boatrace-family-view"
           repo="lifeworks5783-gif/boatrace-family-view"
           errors=[]
           for page in ("index.html","race_compare.html","analysis.html"):
               try:
-                  with U.urlopen(U.Request(f"{base}/{page}?v=verify_pr12_once",headers={"User-Agent":"FamilySiteValidator/1.0"}),timeout=15) as r:
-                      content=r.read()
-                      status=r.status
                   with U.urlopen(f"https://raw.githubusercontent.com/{repo}/main/{page}",timeout=15) as r:
                       raw=r.read()
-                  text=content.decode("utf-8","replace")
+                  for attempt in range(1,17):
+                      with U.urlopen(U.Request(
+                          f"{base}/{page}?verified_red_pr14={int(time.time())}_{attempt}",
+                          headers={"User-Agent":"FamilySiteValidator/1.0","Cache-Control":"no-cache"}
+                      ),timeout=15) as r:
+                          content=r.read()
+                          status=r.status
+                      text=content.decode("utf-8","replace")
+                      html_matches=hashlib.sha256(content).digest()==hashlib.sha256(raw).digest()
+                      red_ready=(page!="race_compare.html" or
+                          bool(re.search(r'\.signal-rank-hit\s*\{[^}]*color:#dc2626;',text)))
+                      if html_matches and red_ready:
+                          break
+                      print("WAIT_PAGES_DEPLOYMENT",page,attempt,
+                            "sha_match",html_matches,"red_ready",red_ready,flush=True)
+                      time.sleep(8)
                   cards=re.findall(r'<article class="race-card">(.*?)</article>',text,re.S)
                   toki=next((x for x in cards if re.search(r"常滑\s*8R",x)),None)
                   report={"page":page,"http":status,"bytes":len(content),
