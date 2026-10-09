@@ -10,7 +10,7 @@ from race_prediction_store import audit_race, audit_canonical, signal_key, ticke
 from build_family_race_compare_page import ai_score_result_html, load_archive_result_fallback
 from build_latest_prediction_view import (
     build_up_signal, build_down_signal, build_signal_ai_prediction,
-    load_signal_ai_config,
+    load_signal_ai_config, build_formation,
 )
 
 
@@ -46,6 +46,28 @@ class LogicContractTest(unittest.TestCase):
             identity = logic_identity(config)
             self.assertEqual(len(identity["config_sha256"]), 64)
             self.assertTrue(identity["model_version"])
+
+    def test_formation_rules_are_versioned_and_numerically_unchanged(self):
+        formation = load_logic("formation")
+        self.assertEqual(formation["model_version"], "formation_gap_flow_v2")
+        self.assertEqual(formation["maximum_points"], {
+            "strong_first": 12, "semi_anchor": 8, "mixed": 12,
+        })
+        cases = [
+            ([80, 76, 60, 48, 40, 30], "1・2着折返し＋3着流し", 8),
+            ([75, 60, 45, 40, 35, 30], "1・2着固定＋3着流し", 4),
+            ([79, 66, 58, 54, 43, 31], "1着固定＋相手流し", 12),
+            ([80, 73, 70, 60, 50, 40], "準軸", 8),
+            ([80, 78, 75, 74, 70, 66], "混戦", 12),
+        ]
+        for scores, kind, count in cases:
+            with self.subTest(kind=kind):
+                boats = [{"boat": i, "score": v} for i, v in enumerate(scores, 1)]
+                predicted = build_formation(boats)
+                self.assertEqual(predicted["formation_type"], kind)
+                self.assertEqual(predicted["model_version"], formation["model_version"])
+                self.assertEqual(predicted["points"], count)
+                self.assertEqual(predicted["investment_100yen"], count * 100)
 
     def test_fujin_raijin_uses_same_live_scores_for_signal_and_tickets(self):
         boats = six_boats()
