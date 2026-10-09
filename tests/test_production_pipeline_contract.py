@@ -200,6 +200,31 @@ class CanonicalContract(unittest.TestCase):
         self.assertFalse(final["signal_ai_replay"]["original_ticket_record"])
         self.assertFalse(final["canonical_model_manifest"]["source_score_config_identified"])
 
+    def test_verified_five_boat_recovery_is_not_false_no_signal(self):
+        first = sample_race(active=False)
+        first["prediction_quality"] = {"status":"fallback","recovery_needed":True}
+        restored = sample_race(active=True)
+        restored["boats"] = [b for b in restored["boats"] if b["boat"] != 4]
+        restored["prediction_quality"] = {
+            "status":"recovered_observation",
+            "provenance":"post_result_official_beforeinfo",
+            "result_leakage":False
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            p=Path(folder)/"predictions/2026/10/09/live/live_predictions_final_20261009.json"
+            p.parent.mkdir(parents=True)
+            p.write_text(json.dumps({"target_date":"20261009","races":[restored]}),encoding="utf-8")
+            hydrated=hydrate_recovered_live(
+                [first],date="20261009",root=Path(folder),
+                signal_ai_config=latest.load_signal_ai_config()
+            )
+        result=self._canonical(hydrated)[0]
+        self.assertEqual(result["canonical_strategy"],"reduced_field_signal_not_evaluated")
+        self.assertEqual(result["prediction_quality"]["active_boat_count"],5)
+        self.assertEqual(result["prediction_quality"]["absent_boat_numbers"],[4])
+        self.assertTrue(result["historical_bet_preserved"])
+        self.assertIsNone(result["canonical_signal_key"])
+
     def test_unverified_restored_live_does_not_enter_canonical(self):
         first = sample_race(active=False)
         first["prediction_quality"] = {"status":"fallback","recovery_needed":True}
