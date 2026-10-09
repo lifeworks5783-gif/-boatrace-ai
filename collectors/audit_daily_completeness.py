@@ -93,6 +93,10 @@ def main():
     # Backfill is useful for completeness/audit, but it is never relabeled as genuine pre-race observation.
     backfill_paths=sorted((base/"live"/"backfill").glob("**/beforeinfo_entries_*.csv")) if (base/"live"/"backfill").exists() else []
     for p in backfill_paths: merge_live(p,"post_result_retry")
+    # Include official historical recovery but preserve its separate provenance.
+    recovery_dir=Path("evaluations")/y/m/day/"recovery"
+    recovery_entries=recovery_dir/f"official_retry_beforeinfo_entries_{d}.csv"
+    if recovery_entries.is_file(): merge_live(recovery_entries,"post_result_retry")
     # Older layouts: exclude retry_after_results because it was handled above.
     older=sorted((base/"live").glob("**/beforeinfo_entries_*.csv")) if (base/"live").exists() else []
     for p in older:
@@ -113,6 +117,8 @@ def main():
     for p in sorted((base/"live"/"raw").glob("*/beforeinfo_races_*.csv")) if (base/"live"/"raw").exists() else []: merge_races(p,"original_pre_race")
     for p in sorted((base/"live"/"retry_after_results").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"retry_after_results").exists() else []: merge_races(p,"post_result_retry")
     for p in sorted((base/"live"/"backfill").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"backfill").exists() else []: merge_races(p,"post_result_retry")
+    recovery_races=recovery_dir/f"official_retry_beforeinfo_races_{d}.csv"
+    if recovery_races.is_file(): merge_races(recovery_races,"post_result_retry")
     issues=[];complete=0;recovered=[];official_checks=[];pending_results=[]
     race_ids=sorted(expected|actual)
     pending=[]
