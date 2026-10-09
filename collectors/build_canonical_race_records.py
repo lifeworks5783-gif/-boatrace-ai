@@ -78,6 +78,9 @@ def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
                             "source": "saved_pre_result_scored_boats",
                             "replayed_at": datetime.now(JST).isoformat(),
                             "original_ticket_record": False,
+                            "replay_model_version": result.get("model_version"),
+                            "replay_logic_config": result.get("logic_config_source"),
+                            "replay_status": "retrospective_reconstruction_not_original_bet",
                         }
                     else:
                         flags.append("signal_ticket_replay_failed")
@@ -102,7 +105,17 @@ def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
                   else ("live_signal_pending_recovery"
                         if is_fallback and stage == "直前" else "normal_ai"))
         )
-        row["canonical_model_manifest"] = config_manifest
+        # The currently loaded config is NOT evidence of which weights
+        # produced an older score. Preserve original provenance separately.
+        original_logic = row.get("score_logic_config")
+        row["canonical_model_manifest"] = {
+            "read_model_current_configs": config_manifest,
+            "source_score_model_version": row.get("score_model_version"),
+            "source_score_logic_config": original_logic,
+            "source_score_config_identified": bool(
+                isinstance(original_logic, dict) and original_logic.get("sha256")
+            ),
+        }
         row["canonical_quality"] = {
             "stage": stage,
             "score_recovered": quality.get("status") == "recovered_observation",
