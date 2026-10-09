@@ -46,14 +46,14 @@ jobs:
                       declared_count=int(mean.group(2)) if mean else None
                       hit_titles=sum('signal-rank-hit' in h for h in headlines)
                       miss_titles=sum('signal-rank-miss' in h for h in headlines)
-                      raw_css=re.search(r'\\.signal-rank-hit\\s*\\{([^}]+)\\}',text,re.S)
+                      raw_css=re.search(r'\.signal-rank-hit\s*\{([^}]+)\}',text,re.S)
                       css=raw_css.group(1) if raw_css else ""
                       red_plain=bool(
                           'color:#dc2626;' in css
                           and 'background:' not in css
                           and 'border:' not in css
                           and 'padding:' not in css
-                          and not any(re.search(r'✓\\s*的中',h) for h in headlines if 'signal-rank-hit' in h)
+                          and not any(re.search(r'✓\s*的中',h) for h in headlines if 'signal-rank-hit' in h)
                       )
                       report.update({
                         "signal_hit_plain_red_without_background":red_plain,
