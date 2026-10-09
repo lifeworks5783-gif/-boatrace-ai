@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "model_version": "fujin_raijin_pipeline_v1_20261009",
+  "effective_date": "20261009",
+  "strategy": "signal_ai",
+  "detection": {
+    "raijin": {
+      "rule_version": "raijin_signal_v1_20261008",
+      "min_rise": 7.5,
+      "level2_rise": 10,
+      "level3_score": 50,
+      "outside_live_top3": true
+    },
+    "fujin": {
+      "rule_version": "down_signal_v0_20261007",
+      "rank1_drop": -5,
+      "top3_drop": -10,
+      "close_gap_rank1_drop": -3,
+      "close_gap_max": 5
+    }
+  },
+  "scoring": {
+    "correction_config_path": "config/signal_ai/signal_ai_corrections_v1_20261008.json",
+    "combination_position_weights": {
+      "first": 0.5,
+      "second": 0.3,
+      "third": 0.2
+    }
+  },
+  "purchase": {
+    "signal_points": 24,
+    "unit_yen": 100,
+    "non_signal_uses_normal_ai": true
+  },
+  "no_result_input": true,
+  "notes": "シグナル発動時のみ専用AIを計算。通常の朝・直前スコアを変更しない。既存の補正値表は独立ファイルをそのまま参照。"
+}
