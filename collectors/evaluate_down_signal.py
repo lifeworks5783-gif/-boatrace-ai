@@ -34,8 +34,15 @@ def recovery_paths(target_date):
 
 def resolve_analysis_live_path(target_date, production_live_path):
     merged_path, manifest_path = recovery_paths(target_date)
-    if merged_path.is_file():
-        return merged_path, manifest_path
+    if merged_path.is_file() and manifest_path.is_file():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            if (manifest.get("status") in ("complete", "partial")
+                    and manifest.get("treat_recovered_as_observation") is True
+                    and manifest.get("result_leakage") is False):
+                return merged_path, manifest_path
+        except (OSError, ValueError):
+            pass
 
     if recovery_requested(target_date):
         subprocess.run(
