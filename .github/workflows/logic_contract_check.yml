@@ -32,3 +32,23 @@ jobs:
             collectors/build_family_race_compare_page.py
       - name: Model parity and signal 24 contracts
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
+      - name: Render both views from the same saved 2026-10-08 prediction bundle
+        run: |
+          python -u collectors/build_deadline_prediction_view.py --date 20261008
+          python -u collectors/build_family_prediction_page.py \
+            --input predictions/latest_by_deadline.json --output-dir _contract_test
+          python -u collectors/build_family_race_compare_page.py \
+            --date 20261008 --predictions-root predictions --output-dir _contract_test
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, 'collectors')
+          from race_prediction_store import load_canonical, audit_canonical
+          data = load_canonical('20261008')
+          summary = audit_canonical(data)
+          assert summary['total'] > 0
+          assert summary['active_signals'] > 0, summary
+          for path in ('index.html', 'race_compare.html'):
+              assert (Path('_contract_test') / path).stat().st_size > 1000
+          print('CANONICAL_SMOKE', {k:v for k,v in summary.items() if k != 'details'})
+          PY
