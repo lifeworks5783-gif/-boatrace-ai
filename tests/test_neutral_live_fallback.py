@@ -201,6 +201,11 @@ class NeutralLiveFallbackTests(unittest.TestCase):
             down=latest.build_down_signal(boats,quality)
             self.assertTrue(up["available"],rid)
             self.assertTrue(down["available"],rid)
+            marker=family.live_data_marker({
+                "prediction_type":"直前","boats":boats,"prediction_quality":quality,
+            })
+            self.assertIn("↻",marker,rid)
+            self.assertNotIn("data-ng",marker,rid)
             if up["active"] or down["active"]:
                 triggered+=1
                 pred=latest.build_signal_ai_prediction(
