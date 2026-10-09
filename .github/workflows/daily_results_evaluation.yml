@@ -91,7 +91,7 @@ jobs:
           print({k:report.get(k) for k in ("status","audited_races","complete_races","incomplete_races","needs_recollection")})
           ok = report.get("status")=="PASS"
           with open(os.environ["GITHUB_ENV"],"a",encoding="utf-8") as f:
-              f.write(f"DATA_COMPLETE={str(ok).lower()}\\n")
+              print(f"DATA_COMPLETE={str(ok).lower()}", file=f)
           if not ok:
               print("監査結果はINCOMPLETE。監査記録を保存し、成績評価だけ保留します。")
           PY
@@ -122,7 +122,10 @@ jobs:
         run: |
           git config user.name "boatrace-data-bot"
           git config user.email "boatrace-data-bot@users.noreply.github.com"
-          git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}" "daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results" evaluations/all_candidate_single_factors evaluations/live_extra_factors_20260930_20261003 evaluations/environment_course_interactions_20260930_20261003 evaluations/f_hold_inventory_20260930_20261003 2>/dev/null || true
+          git add "archive/${YEAR}/${MONTH}/${DAY}" "evaluations/${YEAR}/${MONTH}/${DAY}" evaluations/all_candidate_single_factors evaluations/live_extra_factors_20260930_20261003 evaluations/environment_course_interactions_20260930_20261003 evaluations/f_hold_inventory_20260930_20261003
+          if [ -d "daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results" ]; then
+            git add "daily_inputs/${YEAR}/${MONTH}/${DAY}/live/retry_after_results"
+          fi
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Results and evaluation ${TARGET_DATE}"
           git pull --rebase origin main
