@@ -1301,11 +1301,10 @@ def load_archive_result_fallback(target_date):
     validation = read_json(validation_path) or {}
     # PARTIAL is expected during the race day; every archived completed
     # trifecta is independently parsed before it is added to the page.
-    if validation.get("status") not in {"PASS", "PARTIAL"}:
-        return {}
+    archive_valid = validation.get("status") in {"PASS", "PARTIAL"}
 
     results_by_race = {}
-    if result_path.is_file():
+    if archive_valid and result_path.is_file():
         with result_path.open("r", encoding="utf-8-sig", newline="") as f:
             for row in csv.DictReader(f):
                 race_code = extract_race_code(row, target_date)
@@ -1319,7 +1318,7 @@ def load_archive_result_fallback(target_date):
                     "actual_names": ["", "", ""],
                 }
 
-    if boat_path.is_file() and results_by_race:
+    if archive_valid and boat_path.is_file() and results_by_race:
         names_by_race = {}
         with boat_path.open("r", encoding="utf-8-sig", newline="") as f:
             for row in csv.DictReader(f):
