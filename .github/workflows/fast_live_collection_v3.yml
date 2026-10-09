@@ -127,6 +127,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run live_prediction_0930.yml --ref main -f raw_ready=true
 
+      - name: Publish latest saved information if no new exhibition is ready
+        if: env.HAS_READY_BEFOREINFO != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Manual refresh must not silently end before publishing.
+          # When official exhibition has not arrived, republish the latest
+          # saved predictions rather than pretending a new live score exists.
+          gh workflow run family_prediction_page.yml --ref main
+          echo "No new exhibition yet; public page refresh requested"
       - name: Start intraday result comparison
         env:
           GH_TOKEN: ${{ github.token }}
