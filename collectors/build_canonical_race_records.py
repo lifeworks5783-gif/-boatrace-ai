@@ -88,6 +88,8 @@ def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
         elif signal.get("signal_key"):
             flags.append("unexpected_signal_ticket_without_marker")
             row["signal_ai_prediction"] = None
+        if not key and is_fallback and stage == "直前":
+            flags.append("live_signal_pending_recovery")
 
         # Future and completed screens both read this exact decision. Neither
         # screen may independently calculate flags or change a 24-ticket signal
@@ -96,7 +98,9 @@ def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
         row["canonical_signal_key"] = key
         row["canonical_strategy"] = (
             "signal_ai_24" if key and _ticket_valid(row.get("signal_ai_prediction") or {}, key)
-            else ("signal_ai_unresolved" if key else "normal_ai")
+            else ("signal_ai_unresolved" if key
+                  else ("live_signal_pending_recovery"
+                        if is_fallback and stage == "直前" else "normal_ai"))
         )
         row["canonical_model_manifest"] = config_manifest
         row["canonical_quality"] = {
