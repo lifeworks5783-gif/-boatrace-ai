@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,6 +34,17 @@ def load_logic(kind: str) -> dict:
         raise LogicConfigurationError(f"Invalid logic schema: {path}")
     if not isinstance(config.get("model_version"), str) or not config["model_version"]:
         raise LogicConfigurationError(f"Missing model_version: {path}")
+    # Every adopted numerical model has a byte-for-byte archived original.
+    # The current pointer may advance, but an existing version must not mutate.
+    version = config["model_version"]
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", version):
+        raise LogicConfigurationError(f"Invalid model version path: {version!r}")
+    archive = LOGIC_DIR / "versions" / kind / f"{version}.json"
+    if not archive.is_file() or archive.read_bytes() != data_bytes:
+        raise LogicConfigurationError(
+            f"Immutable logic snapshot missing or changed: {archive}. "
+            "Create a NEW model_version and snapshot instead of changing an adopted model."
+        )
     if kind in {"morning", "live"}:
         weights = config.get("weights")
         if not isinstance(weights, dict) or not weights:
