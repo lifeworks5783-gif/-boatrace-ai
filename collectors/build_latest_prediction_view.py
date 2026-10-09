@@ -2041,12 +2041,18 @@ def main():
                             "morning_ai_score_prediction"):
                     if key in prior:
                         row[key] = prior[key]
-                assert (row.get("up_signal") or {}).get("available") is True, (
-                    "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("up_signal")
-                )
-                assert (row.get("down_signal") or {}).get("available") is True, (
-                    "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("down_signal")
-                )
+                if len(source.get("boats") or []) == 6:
+                    assert (row.get("up_signal") or {}).get("available") is True, (
+                        "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("up_signal")
+                    )
+                    assert (row.get("down_signal") or {}).get("available") is True, (
+                        "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("down_signal")
+                    )
+                else:
+                    # Legitimate official scratch: no fabricated six-boat
+                    # comparison signal is issued for a reduced-size field.
+                    assert not (row.get("up_signal") or {}).get("active")
+                    assert not (row.get("down_signal") or {}).get("active")
                 row["retrospective_score_recovery"] = True
                 row["retrospective_signal_recovery"] = True
                 row["signal_recovery_provenance"] = "official_beforeinfo_post_result_replay"
