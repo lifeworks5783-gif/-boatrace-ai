@@ -700,6 +700,8 @@ def main():
                 "race_name": race.get("race_name"),
                 "deadline": race.get("deadline"),
                 "generated_at": now.isoformat(),
+                "score_model_version": MODEL_VERSION,
+                "logic_config": LIVE_CONFIG_META,
                 "prediction_quality": prediction_quality,
                 "live_data_counts": {
                     "exhibition_course": course_count,
