@@ -44,6 +44,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_neutral_live_fallback.py -v
       - name: Karatsu 10R actual saved official data and display regressions
         run: python -m unittest discover -s tests -p test_karatsu10_signal_recovery.py -v
+      - name: Actual finished trifecta rank in every signal purchase header (120/60)
+        run: python -m unittest discover -s tests -p test_signal_actual_rank_display.py -v
       - name: Normal AI scores must match the shared six-boat canonical bundle
         run: python -m unittest discover -s tests -p test_family_ai_score_display.py -v
       - name: Recovered Edogawa 8R and all archived live scores must reach race comparison
@@ -66,6 +68,11 @@ jobs:
           assert summary['active_signals'] > 0, summary
           for path in ('index.html', 'race_compare.html'):
               assert (Path('_contract_test') / path).stat().st_size > 1000
+          html = (Path('_contract_test') / 'race_compare.html').read_text(encoding='utf-8')
+          assert '当日実着の平均AI順位' in html, 'daily mean rank missing'
+          assert '実着' in html and '通り' in html, 'completed signal result rank missing from HTML'
+          assert 'signal-rank-hit' in html or 'signal-rank-miss' in html, 'closed summary lacks rank label'
+          print('DAILY_SIGNAL_RANK_VISIBLE_IN_RENDERED_HTML_PASS')
           print('CANONICAL_SMOKE', {k:v for k,v in summary.items() if k != 'details'})
           from build_family_race_compare_page import load_predictions, build_race_rows
           morning, live, formation = load_predictions('predictions', '20261008')
