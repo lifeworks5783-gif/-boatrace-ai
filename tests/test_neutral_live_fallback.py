@@ -123,6 +123,66 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         self.assertEqual(cmp_html.count("quality-warning"),1)
         self.assertIn("3号艇",cmp_html)
 
+    def test_20261009_official_59_races_mask_one_st_and_recover(self):
+        # Genuine saved, official-beforeinfo-derived data, not invented race
+        # identifiers, results, finishing order, or payouts.
+        from recovery_live_overlay import load_verified_recovered_live
+        source=load_verified_recovered_live("20261009")
+        n=0
+        true_triggers=0
+        for rid,original in sorted(source.items()):
+            official=original["boats"]
+            if len(official)!=6:
+                continue   # official scratches are handled independently
+            by_boat={int(b["boat"]):b for b in official}
+            # Only one racer's exhibition ST is artificially erased. Keep the
+            # other five original official exhibition measurements intact.
+            raw=[]
+            for lane in range(1,7):
+                b=by_boat[lane]
+                raw.append({
+                    "boat":lane,
+                    "racer":{"name":b.get("racer_name"),"registration_no":b.get("registration_no")},
+                    "motor":{},"boat_machine":{},
+                    "beforeinfo":{
+                        "exhibition_course":b.get("exhibition_course"),
+                        "exhibition_time":b.get("exhibition_time"),
+                        "exhibition_st_raw":"" if lane==3 else b.get("exhibition_st"),
+                        "is_miss":False
+                    },
+                })
+            details={
+                lane:{"score":float(by_boat[lane]["morning_score_reference"]),
+                      **{k:.5 for k in COMPONENTS}}
+                for lane in range(1,7)
+            }
+            saved={"boats":[
+                {"boat":lane,"score":float(by_boat[lane]["morning_score_reference"]),
+                 "components":{k:{"raw_score_0_1":.5} for k in COMPONENTS}}
+                for lane in range(1,7)
+            ]}
+            race={"race_id":rid,"boats":raw}
+            with patch.object(live.morning,"provisional_details",return_value=(details,[])), \
+                 patch.object(live,"personal_st_delta_score",return_value=.65):
+                scored=live.score_race(race,None,saved_morning_race=saved)
+            missing=[b for b in scored if b["score_fallback"]]
+            self.assertEqual([b["boat"] for b in missing],[3],rid)
+            self.assertEqual(missing[0]["score"],by_boat[3]["morning_score_reference"],rid)
+            self.assertEqual(missing[0]["score_fallback_reasons"],["exhibition_st"],rid)
+            self.assertEqual(sum(not b["score_fallback"] for b in scored),5,rid)
+            quality={"status":"fallback","signal_blocked":True,"recovery_needed":True}
+            self.assertFalse(latest.build_up_signal(scored,quality)["available"],rid)
+            self.assertFalse(latest.build_down_signal(scored,quality)["available"],rid)
+            restored_up=latest.build_up_signal(official,original["prediction_quality"])
+            restored_down=latest.build_down_signal(official,original["prediction_quality"])
+            self.assertTrue(restored_up["available"] and restored_down["available"],rid)
+            true_triggers+=bool(restored_up["active"] or restored_down["active"])
+            n+=1
+        self.assertGreaterEqual(n,50)
+        self.assertGreater(true_triggers,0)
+        print("OFFICIAL_MASK_ST_BACKTEST",{"races":n,"five_valid_and_one_neutral":n,
+             "false_signal_activations":0,"real_official_signal_triggers":true_triggers})
+
     def test_neutral_is_recovery_pending_and_provenance_retained(self):
         rows=[
             {"race_id":"20261009-10-10","boat":1,"score_fallback":"False"},
