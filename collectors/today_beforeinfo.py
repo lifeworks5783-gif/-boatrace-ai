@@ -1152,6 +1152,25 @@ def merge_rows(
     return result
 
 
+def merge_official_beforeinfo_entries(old_rows, new_rows):
+    """Do not replace an already complete official row with a later partial."""
+    old_by_key = {
+        (str(x.get("race_id") or ""), str(x.get("boat") or "")): x
+        for x in old_rows
+    }
+    required = ("exhibition_course", "exhibition_time", "exhibition_st_raw")
+    def complete(x):
+        return str(x.get("is_miss") or "").lower() in ("true","1","yes") or all(
+            str(x.get(key) or "").strip() for key in required
+        )
+    accepted=[]
+    for row in new_rows:
+        key = (str(row.get("race_id") or ""), str(row.get("boat") or ""))
+        prior = old_by_key.get(key)
+        accepted.append(prior if prior is not None and complete(prior) and not complete(row) else row)
+    return merge_rows(old_rows, accepted, ("race_id", "boat"))
+
+
 def validate(
     race_rows: list[dict],
     entry_rows: list[dict],
@@ -1506,11 +1525,7 @@ def main():
         ("race_id",),
     )
 
-    merged_entries = merge_rows(
-        old_entries,
-        new_entries,
-        ("race_id", "boat"),
-    )
+    merged_entries = merge_official_beforeinfo_entries(old_entries, new_entries)
 
     write_csv(
         race_path,
