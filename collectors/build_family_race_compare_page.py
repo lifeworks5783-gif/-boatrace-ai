@@ -33,6 +33,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from race_prediction_store import canonical_path, audit_race
 
 
 JST = timezone(timedelta(hours=9))
@@ -800,6 +801,9 @@ def load_prediction_file(
             "stage": str(row.get("stage") or row.get("prediction_stage") or row.get("source_stage") or "").strip(),
             "prediction_quality": row.get("prediction_quality") or {},
             "ai_score_prediction": row.get("ai_score_prediction") or {},
+            "signal_ai_prediction": row.get("signal_ai_prediction") or {},
+            "up_signal": row.get("up_signal"),
+            "down_signal": row.get("down_signal"),
         }
 
     return output
@@ -1136,8 +1140,7 @@ def locate_live_file(
 
 
 def locate_formation_file(root, target_date):
-    yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
-    path = Path(root) / yyyy / mm / dd / "live" / f"formation_predictions_final_{target_date}.json"
+    path = canonical_path(target_date, root)
     return path if path.is_file() else None
 
 
@@ -2169,11 +2172,16 @@ def build_race_rows(
                 "ai_evaluation":
                     ai_details.get(race_code) or ai_details.get("".join(ch for ch in race_code if ch.isdigit())[:12]),
 
-                "up_signal":
-                    up_signal_info(morning, live, formation_prediction),
-
-                "down_signal":
-                    down_signal_info(morning, live, formation_prediction),
+                # The SAME saved record governs both pre- and post-race screens.
+                # Do not recompute a different signal after the race.
+                "up_signal": (
+                    (formation_prediction.get("raw") or {}).get("up_signal") or {}
+                    if formation_prediction is not None else {}
+                ),
+                "down_signal": (
+                    (formation_prediction.get("raw") or {}).get("down_signal") or {}
+                    if formation_prediction is not None else {}
+                ),
 
                 "morning_eval":
                     evaluate_top3(
@@ -2481,13 +2489,16 @@ def evaluation_html(
 
 
 
-def ai_score_result_html(prediction, trifecta, payout):
+def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
     """Use saved signal-only top 24 when active; do not modify normal AI."""
-    if not prediction:
-        return '<div class="simulation missing">AIスコア予測なし</div>'
+    prediction = prediction or {}
     raw = prediction.get("raw") or {}
-    signal = prediction.get("signal_ai_prediction") or raw.get("signal_ai_prediction") or {}
-    is_signal = bool(signal and signal.get("signal_key"))
+    canonical_signal = canonical_signal or {}
+    key = canonical_signal.get("signal_key")
+    is_signal = bool(key)
+    signal = canonical_signal.get("signal_ai_prediction") or {}
+    if is_signal and signal.get("signal_key") != key:
+        return '<div class="simulation missing">シグナル発動・専用AI24点の保存データを修復中（通常AI8点には切替不可）</div>'
     ai = signal if is_signal else (
         prediction.get("ai_score_prediction") or raw.get("ai_score_prediction") or {}
     )
@@ -2497,7 +2508,7 @@ def ai_score_result_html(prediction, trifecta, payout):
     display_points = 24 if is_signal else 12
     visible = all120[:display_points]
     if not visible:
-        return '<div class="simulation missing">AI予想の保存済み買い目なし</div>'
+        return '<div class="simulation missing">専用AI24点未保存（要修復）</div>' if is_signal else '<div class="simulation missing">AI予想の保存済み買い目なし</div>'
 
     bought_combos = [
         str(item.get("combination") or "") for item in all120[:purchase_points]
@@ -2784,6 +2795,16 @@ def render_html(
     race_rows,
 ):
 
+    # Canonical formation record is also the only signal/ticket source here.
+    for record in race_rows:
+        original = (record.get("formation_prediction") or {}).get("raw") or {}
+        checked = audit_race(original) if original else {
+            "signal_key": None, "signal_ai_status": "prediction_missing"
+        }
+        record["_canonical_signal"] = {
+            **checked, "signal_ai_prediction": original.get("signal_ai_prediction") or {}
+        }
+
     morning_summary = aggregate(
         race_rows,
         "morning_eval",
@@ -2832,20 +2853,15 @@ def render_html(
     final_formation_summary = hit_summary_from_rows(final_rows, "final_formation_hit")
     final_box_summary = hit_summary_from_rows(final_rows, "final_box_hit")
 
-    # Dedicated signal AI results: saved 24-point rankings only, never mix
-    # the normal AI score's separate 8-point purchases into this metric.
+    # Evaluate precisely the SAME signal/24 tickets as the visible race card.
+    # Never silently skip a flagged race when dedicated tickets are missing.
     signal24_rows = []
     signal24_missing = 0
     for record in race_rows:
-        formation_pred = record.get("formation_prediction") or {}
-        raw_pred = formation_pred.get("raw") or {}
-        signal_pred = (
-            formation_pred.get("signal_ai_prediction")
-            or raw_pred.get("signal_ai_prediction")
-            or {}
-        )
-        if not signal_pred.get("signal_key"):
+        signal_info = record["_canonical_signal"]
+        if not signal_info["signal_key"]:
             continue
+        signal_pred = signal_info["signal_ai_prediction"]
         ranked_combinations = (
             signal_pred.get("all_120_combinations")
             or signal_pred.get("combinations")
@@ -3044,7 +3060,7 @@ def render_html(
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
   <div class="label simulation-label">シグナル発動：専用AI24点／非発動：通常AIスコア予測</div>\n  <div class="simulation-meta">シグナル発動時は専用AI上位24点を各100円で照合し、投資・払戻・収支を計算</div>
-  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"]) if final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction")) else ai_eval_detail_html(row.get("ai_evaluation"))}
+  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"], row["_canonical_signal"]) if row["_canonical_signal"]["signal_key"] or (final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction"))) else ai_eval_detail_html(row.get("ai_evaluation"))}
 
   <div class="money-grid">
 
