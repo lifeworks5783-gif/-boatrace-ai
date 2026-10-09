@@ -2859,6 +2859,48 @@ def render_html(
     final_formation_summary = hit_summary_from_rows(final_rows, "final_formation_hit")
     final_box_summary = hit_summary_from_rows(final_rows, "final_box_hit")
 
+    # Dedicated signal AI results: saved 24-point rankings only, never mix
+    # the normal AI score's separate 8-point purchases into this metric.
+    signal24_rows = []
+    signal24_missing = 0
+    for record in race_rows:
+        formation_pred = record.get("formation_prediction") or {}
+        raw_pred = formation_pred.get("raw") or {}
+        signal_pred = (
+            formation_pred.get("signal_ai_prediction")
+            or raw_pred.get("signal_ai_prediction")
+            or {}
+        )
+        if not signal_pred.get("signal_key"):
+            continue
+        ranked_combinations = (
+            signal_pred.get("all_120_combinations")
+            or signal_pred.get("combinations")
+            or []
+        )
+        bought_24 = [
+            str(item.get("combination") or "")
+            for item in ranked_combinations[:24]
+        ]
+        actual_combo = record.get("trifecta")
+        actual_pay = record.get("payout")
+        if len(bought_24) != 24 or not actual_combo or actual_pay is None:
+            signal24_missing += 1
+            continue
+        hit_24 = actual_combo in bought_24
+        signal24_rows.append({
+            "hit": hit_24,
+            "investment": 2400,
+            "returned": actual_pay if hit_24 else 0,
+        })
+    signal24_races = len(signal24_rows)
+    signal24_hits = sum(int(x["hit"]) for x in signal24_rows)
+    signal24_invest = 2400 * signal24_races
+    signal24_paid = sum(x["returned"] for x in signal24_rows)
+    signal24_profit = signal24_paid - signal24_invest
+    signal24_roi = 100.0 * signal24_paid / signal24_invest if signal24_invest else None
+
+
     now = datetime.now(
         JST
     )
@@ -3928,11 +3970,22 @@ TOP3整合率は、
   </strong>
 
   <span>
-    {ai_summary["count"]}R
+    {ai_summary["count"]}R（通常AIのみ）
   </span>
 
 </div>
 
+<div class="summary-box">
+  <span>風神雷神専用AI24点の購入成績（通常AIとは別会計）</span>
+  <strong>
+    {signal24_hits}/{signal24_races}R的中 ／ 回収率 {percent(signal24_roi)}
+  </strong>
+  <span>
+    購入{signal24_races * 24:,}点 ／ 投資{signal24_invest:,}円 ／
+    払戻{signal24_paid:,}円 ／ 損益{signal24_profit:+,}円
+    {f" ／ 未評価{signal24_missing}R" if signal24_missing else ""}
+  </span>
+</div>
 
 </section>
 
