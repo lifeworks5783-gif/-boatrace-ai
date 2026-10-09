@@ -7,7 +7,7 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-from race_prediction_store import canonical_path
+from evaluate_down_signal import verified_signal_quality_by_race
 from build_latest_prediction_view import signal_field_is_verified
 
 CONFIG = Path("config/signal_ai/signal_ai_corrections_v1_20261008.json")
@@ -58,25 +58,6 @@ def load_live(date):
     for (rid,_),row in rows_by_key.items():
         grouped[rid].append(row)
     return grouped
-
-
-def verified_signal_quality_by_race(date):
-    """Use the common pre-result canonical record for official scratch proof.
-
-    No result/order/payout enters prediction logic. Historical rows without
-    a canonical signal record remain six-boat only, never fabricated scratch.
-    """
-    path = canonical_path(date)
-    if not path.is_file():
-        return {}
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if str(payload.get("target_date")) != date:
-        return {}
-    return {
-        norm_race_id(r.get("race_id")): r.get("prediction_quality") or {}
-        for r in payload.get("races") or []
-        if isinstance(r, dict)
-    }
 
 
 def _signal_inputs(ranked):
