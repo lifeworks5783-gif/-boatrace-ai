@@ -40,6 +40,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
       - name: Production immutable-history and numerical-config safety
         run: python -m unittest discover -s tests -p test_production_safety.py -v
+      - name: Neutral 0-delta provisional live scoring, signal block, two-page warnings and replay queue
+        run: python -m unittest discover -s tests -p test_neutral_live_fallback.py -v
       - name: Karatsu 10R actual saved official data and display regressions
         run: python -m unittest discover -s tests -p test_karatsu10_signal_recovery.py -v
       - name: Normal AI scores must match the shared six-boat canonical bundle
