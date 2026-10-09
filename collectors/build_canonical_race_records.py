@@ -13,7 +13,6 @@ import os
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from production_config import loaded_manifest
-from build_latest_prediction_view import build_signal_ai_prediction, load_signal_ai_config
 
 JST = timezone(timedelta(hours=9))
 
@@ -45,6 +44,7 @@ def _ticket_valid(signal, key):
 
 def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
     if signal_ai_config is None:
+        from build_latest_prediction_view import load_signal_ai_config
         signal_ai_config = load_signal_ai_config()
     final = []
     seen = set()
@@ -67,6 +67,7 @@ def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
                 # Reconstructed predictions are explicitly distinguishable
                 # from tickets actually persisted before the deadline.
                 if len(boats) == 6 and not is_fallback:
+                    from build_latest_prediction_view import build_signal_ai_prediction
                     result = build_signal_ai_prediction(
                         boats, row.get("up_signal"), row.get("down_signal"), signal_ai_config
                     ) or {}
