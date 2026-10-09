@@ -38,7 +38,7 @@ jobs:
       - name: Old versus new production morning scores (same 10/09 inputs)
         run: |
           mkdir -p /tmp/morning-old /tmp/morning-new
-          git show bf09ddae688628a6e24c481d24ea0ea92860be1b:collectors/build_morning_prediction.py > /tmp/build_morning_legacy.py
+          curl --fail --silent --show-error --location --retry 3 https://raw.githubusercontent.com/lifeworks5783-gif/-boatrace-ai/bf09ddae688628a6e24c481d24ea0ea92860be1b/collectors/build_morning_prediction.py --output /tmp/build_morning_legacy.py
           INPUT=daily_inputs/2026/10/09/prediction_input_enriched_morning_20261009.json
           test -s "$INPUT"
           python /tmp/build_morning_legacy.py --date 20261009 --input "$INPUT" --output-dir /tmp/morning-old
