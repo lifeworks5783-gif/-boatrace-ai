@@ -42,6 +42,107 @@ def _ticket_valid(signal, key):
             and len(set(tickets)) == 24 and all(len(x.split("-")) == 3 for x in tickets))
 
 
+def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=None):
+    """Attach recovered *pre-result observations* without rewriting old bets.
+
+    Recovery workflow intentionally leaves the original formation file alone.
+    This read-model merges only verified recovered live scores and replays the
+    associated F/R signals plus dedicated 24 tickets. Result/payout is NEVER
+    read here; normal formation and normal AI purchase remain frozen.
+    """
+    if signal_ai_config is None:
+        from build_latest_prediction_view import load_signal_ai_config
+        signal_ai_config = load_signal_ai_config()
+    source = (
+        Path(root) / "predictions" / date[:4] / date[4:6] / date[6:8]
+        / "live" / f"live_predictions_final_{date}.json"
+    )
+    if not source.is_file():
+        return list(originals)
+
+    from build_latest_prediction_view import (
+        ranked_boats, build_up_signal, build_down_signal,
+        build_signal_ai_prediction,
+    )
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    if str(payload.get("target_date")) != date:
+        raise ValueError("restored live prediction date mismatch")
+
+    candidates = {}
+    for race in payload.get("races") or []:
+        quality = race.get("prediction_quality") or {}
+        if quality.get("status") != "recovered_observation":
+            continue
+        if quality.get("result_leakage") is not False:
+            # Do not admit a recovery without an explicit leakage check.
+            continue
+        if quality.get("provenance") not in (
+            "post_result_official_beforeinfo",
+            "saved_pre_deadline_official_beforeinfo",
+        ):
+            continue
+        boats = ranked_boats(race)
+        if len(boats) != 6:
+            continue
+        if len({int(b.get("boat") or 0) for b in boats}) != 6:
+            continue
+        if not all(
+            b.get("score") is not None and b.get("morning_score_reference") is not None
+            for b in boats
+        ):
+            continue
+        if any(set(b) & {"result", "finish", "payout", "actual_st"} for b in boats):
+            continue
+        candidates[str(race.get("race_id") or "")] = (race, boats)
+
+    updated = []
+    for original in originals:
+        row = dict(original)
+        rid = str(row.get("race_id") or "")
+        if rid not in candidates:
+            updated.append(row)
+            continue
+        old_quality = row.get("prediction_quality") or {}
+        # A valid contemporaneous final live prediction must never be
+        # replaced by a subsequently recovered/scored version.
+        if row.get("prediction_type") == "直前" and not (
+            old_quality.get("recovery_needed")
+            or old_quality.get("status") in {"fallback", "recovered_observation"}
+        ):
+            updated.append(row)
+            continue
+
+        restored, boats = candidates[rid]
+        up = build_up_signal(boats, restored.get("prediction_quality"))
+        down = build_down_signal(boats, restored.get("prediction_quality"))
+        if not (up.get("available") and down.get("available")):
+            updated.append(row)
+            continue
+        row["boats"] = boats
+        row["prediction_type"] = "直前"
+        row["prediction_quality"] = restored["prediction_quality"]
+        row["up_signal"] = up
+        row["down_signal"] = down
+        row["signal_ai_prediction"] = build_signal_ai_prediction(
+            boats, up, down, signal_ai_config
+        )
+        row["score_model_version"] = (
+            restored.get("score_model_version") or payload.get("model_version")
+        )
+        row["score_logic_config"] = (
+            restored.get("logic_config") or payload.get("logic_config")
+        )
+        row["retrospective_signal_recovery"] = True
+        row["signal_detected_at_original_deadline"] = False
+        row["historical_bet_preserved"] = True
+        row["signal_recovery_provenance"] = (
+            restored["prediction_quality"]["provenance"]
+        )
+        print("公式直前予測復旧を共通レースへ統合（既存買い目は不変）:", rid)
+        updated.append(row)
+    return updated
+
+
 def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
     if signal_ai_config is None:
         from build_latest_prediction_view import load_signal_ai_config
@@ -138,7 +239,10 @@ def build(date, root=Path("."), *, fail_on_unresolved=False):
     originals = payload.get("races")
     if not isinstance(originals, list):
         raise ValueError("formation races must be a list")
-    rows = canonicalize(originals, target_date=date, config_manifest=loaded_manifest(root))
+    # Restore pre-result official live observations without changing original
+    # stored formation/normal AI; signal AI is an explicitly marked replay.
+    hydrated = hydrate_recovered_live(originals, date=date, root=root)
+    rows = canonicalize(hydrated, target_date=date, config_manifest=loaded_manifest(root))
     unresolved = [row["race_id"] for row in rows if row["canonical_strategy"] == "signal_ai_unresolved"]
     if fail_on_unresolved and unresolved:
         raise ValueError("unresolved signal AI records: " + ", ".join(unresolved[:10]))
