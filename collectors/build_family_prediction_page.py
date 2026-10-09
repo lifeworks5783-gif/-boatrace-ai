@@ -402,7 +402,16 @@ def build_ai_card(race, index):
 
     ai = race.get("ai_score_prediction") or {}
     normal_prediction = race.get("live_prediction") or race.get("morning_prediction") or race.get("prediction") or {}
-    normal_boats = normal_prediction.get("boats") or (normal_prediction.get("raw") or {}).get("boats") or []
+    # The common saved prediction schema keeps the six evaluated boats at
+    # race["boats"].  The optional nested prediction objects are legacy inputs.
+    # Use the same scores as the normal race card, rather than showing six
+    # misleading "未算出" values in the normal AI comparison table.
+    normal_boats = (
+        race.get("boats")
+        or normal_prediction.get("boats")
+        or (normal_prediction.get("raw") or {}).get("boats")
+        or []
+    )
     normal_score_map = {
         text(x.get("boat")): safe_float(x.get("score"))
         for x in normal_boats
