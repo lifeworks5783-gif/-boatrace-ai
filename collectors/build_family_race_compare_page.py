@@ -1293,10 +1293,12 @@ def load_archive_result_fallback(target_date):
     base = Path("archive") / yyyy / mm / dd
     result_path = base / f"results_{target_date}_all.csv"
     boat_path = base / f"boat_results_{target_date}_all.csv"
-    validation_path = base / f"validation_{target_date}.json"
+    validation_path = base / f"fast_results_validation_{target_date}.json"
 
     validation = read_json(validation_path) or {}
-    if validation.get("status") != "PASS":
+    # PARTIAL is expected during the race day; every archived completed
+    # trifecta is independently parsed before it is added to the page.
+    if validation.get("status") not in {"PASS", "PARTIAL"}:
         return {}
 
     results_by_race = {}
