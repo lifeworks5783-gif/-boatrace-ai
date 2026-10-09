@@ -129,9 +129,19 @@ jobs:
           done
           exit 1
 
-      - name: 家族共有ページを更新
+      - name: 復元済み直前スコアを共通予測正本に同期してから家族ページを公開
         if: env.RESULT_COUNT != '0'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run family_prediction_page.yml --repo "${GITHUB_REPOSITORY}" --ref main
+          # GitHub ActionsのGITHUB_TOKENでpushしたコミットは、
+          # 他のpushワークフローを自動起動しない。明示的にdispatchする。
+          RECOVERY="evaluations/${YEAR}/${MONTH}/${DAY}/recovery/live_recovery_manifest_${TARGET_DATE}.json"
+          if test -s "$RECOVERY"; then
+            gh workflow run canonical_recovery_reconcile.yml \
+              --repo "${GITHUB_REPOSITORY}" --ref main -f target_date="${TARGET_DATE}"
+            echo "公式復旧→共通正本→家族ページ（workflow_run）の順で更新を予約"
+          else
+            gh workflow run family_prediction_page.yml --repo "${GITHUB_REPOSITORY}" --ref main
+            echo "復旧記録なし：通常の家族ページ更新"
+          fi
