@@ -2467,7 +2467,7 @@ def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
                       if actual_rank is not None else "実着順位未取得")
         if hit:
             closed_result = (f'<span class="signal-rank-hit" title="風神雷神AI購入上位24点に実着が含まれました">'
-                             f'✓ 的中・{esc(rank_label)}</span>')
+                             f'的中・{esc(rank_label)}</span>')
         else:
             closed_result = (f'<span class="signal-rank-miss" title="購入24点の外でも実着のAI評価順位を確認できます">'
                              f'不的中・{esc(rank_label)}</span>')
@@ -3586,11 +3586,7 @@ details.all-scores summary {{
   color:var(--muted);
 }}
 .signal-rank-hit {{
-  color:#067647;
-  background:#ecfdf3;
-  border:1px solid #a6f4c5;
-  border-radius:6px;
-  padding:2px 6px;
+  color:#dc2626;
   font-weight:900;
 }}
 .signal-rank-miss {{
