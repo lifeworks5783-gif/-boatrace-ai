@@ -40,6 +40,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
       - name: Production immutable-history and numerical-config safety
         run: python -m unittest discover -s tests -p test_production_safety.py -v
+      - name: Karatsu 10R actual saved official data and display regressions
+        run: python -m unittest discover -s tests -p test_karatsu10_signal_recovery.py -v
       - name: Render both views from the same saved 2026-10-08 prediction bundle
         run: |
           python -u collectors/build_deadline_prediction_view.py --date 20261008
@@ -150,4 +152,22 @@ jobs:
           start=rendered.index('鳴門')
           print('NARUTO_F2R2_RECOVERY_PASS', audit, 'saved original buying choices unchanged')
           print('RENDERED_REPAIRED', '風神雷神専用AI予想' in rendered)
+          karatsu=next(x for x in data['races'] if x['race_id']=='20261009-23-10')
+          kcheck=audit_race(karatsu)
+          print('KARATSU10_REPLAY_AUDIT', {
+              'race_id': karatsu['race_id'],
+              'signal_key': kcheck['signal_key'],
+              'status': kcheck['signal_ai_status'],
+              'recovered_after_result': kcheck['recovered_after_result'],
+              'realtime_detected': kcheck['signal_detected_at_original_deadline'],
+          })
+          assert kcheck['signal_key']=='F0R1', kcheck
+          assert kcheck['signal_ai_status']=='ready', kcheck
+          assert kcheck['recovered_after_result'] is True
+          assert kcheck['signal_detected_at_original_deadline'] is False
+          assert [x['boat'] for x in karatsu['up_signal']['candidates']]==[5, 6]
+          assert len(karatsu['signal_ai_prediction']['combinations'])==24
+          assert '5千円以上・事後捕捉' in rendered, 'Retrospective catch badge absent'
+          assert '唐津' in rendered
+          print('KARATSU10_REPLAY_PASS', 'F0R1 / 5,6号艇 / 24点 / 事後捕捉表示')
           PY
