@@ -2020,32 +2020,10 @@ def build_race_rows(
             if live_stage in {"morning", "\u671d"}:
                 live = None
 
-        # live_predictions_final が存在しない場合でも、
-        # build_latest_prediction_view が「直前補完」として保存した
-        # formation側の予測は直前欄へ表示する。通常の朝fallbackは使わず、
-        # 明示的な品質フラグ付きのものだけを採用する。
+        # Never present a copied morning/formation fallback as a reconstructed
+        # pre-race live score. Verified restored live records enter via
+        # load_recovered_live_predictions and are independently evaluated.
         live_display = live
-        if live is None and formation_prediction:
-            formation_raw = formation_prediction.get("raw") or {}
-            formation_quality = (
-                formation_prediction.get("prediction_quality")
-                or formation_raw.get("prediction_quality")
-                or {}
-            )
-            formation_type = str(
-                formation_raw.get("prediction_type")
-                or ""
-            ).strip()
-            if (
-                formation_type == "直前"
-                and (
-                    formation_quality.get("recovery_needed")
-                    or str(formation_quality.get("status") or "").strip() == "fallback"
-                )
-            ):
-                # This is a display-only morning fallback, not an observed pre-race live prediction.
-                # Keep it out of live score accuracy, hit-rate and final score selection.
-                live_display = formation_prediction
 
         odds_row = (
             odds.get(
