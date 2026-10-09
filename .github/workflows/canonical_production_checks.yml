@@ -184,6 +184,25 @@ jobs:
           assert flagged>=100, ('too few signal cards',flagged)
           print('COMPLETED SCREEN 24-TICKET INTEGRATION PASS',len(cards),'completed',flagged,'signal')
           PY
+      - name: AI signal performance and analysis pages from canonical predictions
+        run: |
+          python collectors/evaluate_signal_ai_performance.py
+          python collectors/evaluate_signal_pdca_cross.py
+          mkdir -p /tmp/canonical-analysis
+          python collectors/build_family_results_page.py --evaluations-root evaluations --output-dir /tmp/canonical-analysis
+          python collectors/build_family_signal_analysis_page.py --evaluations-root evaluations --output-dir /tmp/canonical-analysis
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          rows=list(csv.DictReader(open('evaluations/signal_ai/latest/details.csv',encoding='utf-8')))
+          day=[r for r in rows if r.get('date')=='20261008']
+          assert len(day)>=100, ('too few signal-AI reconciliations',len(day))
+          assert all(str(r['signal_key']).startswith('F') for r in day)
+          assert Path('/tmp/canonical-analysis/results.html').stat().st_size>100
+          assert Path('/tmp/canonical-analysis/analysis.html').stat().st_size>100
+          cross=json.load(open('evaluations/signal_pdca_cross/latest/summary.json'))
+          print('AI ANALYSIS FROM CANONICAL PASS',len(day),'20261008 signal races',cross.get('total_races'))
+          PY
       - name: Smoke test using existing saved predictions (no network fetch)
         run: |
           python collectors/build_canonical_race_records.py --date 20261009
