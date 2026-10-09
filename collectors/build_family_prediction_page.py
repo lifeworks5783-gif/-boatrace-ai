@@ -496,6 +496,29 @@ def build_ai_card(race, index):
         </article>
         """
 
+    canonical_state = text(race.get("canonical_strategy"))
+    if canonical_state in {
+        "signal_ai_unresolved", "live_signal_pending_recovery",
+        "reduced_field_signal_not_evaluated"
+    }:
+        notice = {
+            "signal_ai_unresolved": "シグナル発動済み。専用AI24点の復旧・確認待ち（通常8点に振り替えません）",
+            "live_signal_pending_recovery": "公式直前情報の復旧待ち。シグナルの非発動とは判定しません",
+            "reduced_field_signal_not_evaluated": "5艇以下の有効出走。公式直前スコアは保存済みですが、6艇用シグナルは評価対象外です",
+        }[canonical_state]
+        return f"""
+        <article class="race-card">
+          <div class="race-head">
+            <div class="race-order">{index}</div>
+            <div class="race-main">
+              <div class="deadline">{esc(deadline)}</div>
+              <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>
+            </div>
+          </div>
+          <div class="ai-note">{esc(notice)}</div>
+        </article>
+        """
+
     ai = race.get("ai_score_prediction") or {}
     normal_prediction = race.get("live_prediction") or race.get("morning_prediction") or race.get("prediction") or {}
     normal_boats = normal_prediction.get("boats") or (normal_prediction.get("raw") or {}).get("boats") or []
