@@ -234,7 +234,10 @@ def signal_field_is_verified(boats, prediction_quality=None):
     quality = prediction_quality or {}
     if quality.get("signal_blocked") is True:
         return False
-    if any(b.get("score_fallback") for b in boats):
+    if any(
+        str(b.get("score_fallback") or "").strip().lower() in {"1", "true", "yes"}
+        for b in boats
+    ):
         return False
     count = len(boats)
     if count < 4 or count > 6:
