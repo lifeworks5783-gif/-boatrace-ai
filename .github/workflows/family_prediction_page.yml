@@ -100,7 +100,9 @@ jobs:
             fi
             FORMATION_PATH=$(find predictions -type f -name 'formation_predictions_final_????????.json' | sort | tail -1)
             test -s "$FORMATION_PATH" || { echo "過去日を含め共通予測正本が未生成"; exit 1; }
-            TARGET_DATE=$(basename "$FORMATION_PATH" | sed -E 's/formation_predictions_final_([0-9]{8})\\.json/\\1/')
+            TARGET_DATE=$(basename "$FORMATION_PATH")
+            TARGET_DATE="${TARGET_DATE#formation_predictions_final_}"
+            TARGET_DATE="${TARGET_DATE%.json}"
             echo "当日朝予測の取得前につき直近の保存済み予測を表示: $TARGET_DATE"
           fi
 
