@@ -2071,6 +2071,11 @@ def main():
         all_rows,
     )
 
+    # The completed and upcoming screens share one pre-result read model.
+    # Build it atomically immediately after the persisted formation output.
+    from build_canonical_race_records import build as build_canonical_races
+    build_canonical_races(target_date)
+
     upcoming_rows.sort(
         key=lambda item: (
             item[0]
