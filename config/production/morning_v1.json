@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "model_id": "morning_provisional_v4",
+  "original_model_version": "provisional_v4_20261006_morning_traceable_inputs",
+  "effective_date": "20261009",
+  "status": "exact_current_production_values",
+  "score_points_scale": 100,
+  "score_weights": {
+    "racer_course": 0.4,
+    "grade": 0.2,
+    "motor": 0.2,
+    "boat": 0.05,
+    "national_top2": 0.15
+  },
+  "racer_course_weights": {
+    "course_win": 0.4,
+    "course_top2": 0.2,
+    "course_top3": 0.3,
+    "course_avg_st": 0.1
+  },
+  "motor_weights": {
+    "motor_win": 0.4,
+    "motor_top3": 0.6
+  },
+  "boat_weights": {
+    "boat_top2": 0.5,
+    "boat_top3": 0.5
+  },
+  "grade_prior": {
+    "A1": 1,
+    "A2": 0.75,
+    "B1": 0.45,
+    "B2": 0.25
+  },
+  "course_policy": "morning_boat_number",
+  "missing_value_policy": "require_observed_or_documented_fallback",
+  "current_race_results_allowed": false
+}
