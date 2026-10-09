@@ -22,7 +22,7 @@ COMPONENTS=("racer_course","grade","motor","boat","national_top2")
 ORIGINAL=[76.8,63.2,61.2,48.7,44.3,5.8]
 
 
-def fixture(missing=(), all_missing=False):
+def fixture(missing=(), all_missing=False, missing_fields=("exhibition_course", "exhibition_time", "exhibition_st")):
     """Mock legitimate prior morning numeric records and partial official source."""
     boats=[]
     for lane in range(1,7):
@@ -30,9 +30,9 @@ def fixture(missing=(), all_missing=False):
         boats.append({
             "boat":lane,"racer":{"name":f"選手{lane}","registration_no":4000+lane},
             "motor":{},"boat_machine":{},
-            "beforeinfo":{"exhibition_course":None if neutral else lane,
-                          "exhibition_time":None if neutral else 6.70 + lane*.02,
-                          "exhibition_st_raw":"" if neutral else f".{10+lane:02d}",
+            "beforeinfo":{"exhibition_course":None if neutral and "exhibition_course" in missing_fields else lane,
+                          "exhibition_time":None if neutral and "exhibition_time" in missing_fields else 6.70 + lane*.02,
+                          "exhibition_st_raw":"" if neutral and "exhibition_st" in missing_fields else f".{10+lane:02d}",
                           "is_miss":False}
         })
     race={"race_id":"20261009-10-10","date":"20261009","venue_code":"10",
@@ -46,8 +46,8 @@ def fixture(missing=(), all_missing=False):
     return race,morning,details
 
 
-def score_with_fixture(missing=(), all_missing=False):
-    race,morning,details=fixture(missing,all_missing)
+def score_with_fixture(missing=(), all_missing=False, missing_fields=("exhibition_course", "exhibition_time", "exhibition_st")):
+    race,morning,details=fixture(missing,all_missing,missing_fields)
     with patch.object(live.morning,"provisional_details",return_value=(details,[])),\
          patch.object(live,"personal_st_delta_score",return_value=.65):
         scored=live.score_race(race, None, saved_morning_race=morning)
@@ -56,12 +56,12 @@ def score_with_fixture(missing=(), all_missing=False):
 
 class NeutralLiveFallbackTests(unittest.TestCase):
     def test_only_missing_st_entrant_is_neutral(self):
-        scored=score_with_fixture((3,))
+        scored=score_with_fixture((3,),missing_fields=("exhibition_st",))
         by={b["boat"]:b for b in scored}
         self.assertEqual(by[3]["score"],ORIGINAL[2])
         self.assertEqual(by[3]["morning_score_reference"],ORIGINAL[2])
         self.assertTrue(by[3]["score_fallback"])
-        self.assertEqual(by[3]["score_fallback_reasons"],["exhibition_course","exhibition_time","exhibition_st"])
+        self.assertEqual(by[3]["score_fallback_reasons"],["exhibition_st"])
         self.assertFalse(by[1]["score_fallback"])
         self.assertNotEqual(by[1]["score"],ORIGINAL[0])
         self.assertEqual(len(scored),6)
@@ -80,7 +80,7 @@ class NeutralLiveFallbackTests(unittest.TestCase):
             self.assertIsNotNone(b["exhibition_time"])
 
     def test_signal_is_never_false_nontrigger_on_neutral_scores(self):
-        scored=score_with_fixture((3,))
+        scored=score_with_fixture((3,),missing_fields=("exhibition_st",))
         quality={"status":"fallback","recovery_needed":True,"signal_blocked":True,
                  "boat_fallbacks":[{"boat":3,"reasons":["exhibition_st"]}]}
         up=latest.build_up_signal(scored,quality)
@@ -100,7 +100,7 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         self.assertTrue(latest.build_down_signal(restored,permitted)["available"])
 
     def test_each_display_has_race_triangle_and_only_affected_racer_marks(self):
-        scored=score_with_fixture((3,))
+        scored=score_with_fixture((3,),missing_fields=("exhibition_st",))
         row={"race_id":"20261009-10-10","venue_name":"三国","race":10,
              "deadline":"15:06","prediction_type":"直前",
              "prediction_quality":{"status":"fallback","recovery_needed":True,
