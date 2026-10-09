@@ -4,6 +4,7 @@ import argparse
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from race_prediction_store import canonical_path, load_canonical, audit_canonical
 
 
 JST = timezone(timedelta(hours=9))
@@ -135,32 +136,13 @@ def main():
         "%Y%m%d",
     )
 
-    source_path = Path(
-        "predictions"
-    ) / target_date[:4] / target_date[4:6] / target_date[6:8] / "live" / f"formation_predictions_final_{target_date}.json"
-
-    if not source_path.exists():
-        source_path = Path(
-            "predictions/latest.json"
-        )
-
-    if not source_path.exists():
-        raise RuntimeError(
-            "predictions/latest.json がありません"
-        )
-
-    payload = json.loads(
-        source_path.read_text(
-            encoding="utf-8"
-        )
-    )
-
-    if text(
-        payload.get("target_date")
-    ) != target_date:
-        raise RuntimeError(
-            "latest.json の対象日が一致しません"
-        )
+    # The latest page and race-comparison page read ONE authoritative
+    # pre-result prediction bundle, never different mirrors or fallbacks.
+    source_path = canonical_path(target_date)
+    payload = load_canonical(target_date)
+    integrity = audit_canonical(payload)
+    print("共通予測正本:", source_path, "シグナル:", integrity["active_signals"],
+          "専用24点未保存:", integrity["missing_signal_24"])
 
     races = payload.get("races") or []
 

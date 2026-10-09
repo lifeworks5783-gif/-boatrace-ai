@@ -1,0 +1,99 @@
+name: Race prediction contract tests
+
+on:
+  push:
+    branches:
+      - refactor/logic-registry-canonical-race-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependencies for existing prediction functions
+        run: python -m pip install requests beautifulsoup4
+      - name: Compile modified prediction and view components
+        run: |
+          python -m py_compile \
+            collectors/logic_registry.py \
+            collectors/race_prediction_store.py \
+            collectors/build_morning_prediction.py \
+            collectors/build_live_prediction.py \
+            collectors/build_latest_prediction_view.py \
+            collectors/build_deadline_prediction_view.py \
+            collectors/build_family_race_compare_page.py
+      - name: Model parity and signal 24 contracts
+        run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
+      - name: Render both views from the same saved 2026-10-08 prediction bundle
+        run: |
+          python -u collectors/build_deadline_prediction_view.py --date 20261008
+          python -u collectors/build_family_prediction_page.py \
+            --input predictions/latest_by_deadline.json --output-dir _contract_test
+          python -u collectors/build_family_race_compare_page.py \
+            --date 20261008 --predictions-root predictions --output-dir _contract_test
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, 'collectors')
+          from race_prediction_store import load_canonical, audit_canonical, audit_race
+          data = load_canonical('20261008')
+          summary = audit_canonical(data)
+          assert summary['total'] > 0
+          assert summary['active_signals'] > 0, summary
+          for path in ('index.html', 'race_compare.html'):
+              assert (Path('_contract_test') / path).stat().st_size > 1000
+          print('CANONICAL_SMOKE', {k:v for k,v in summary.items() if k != 'details'})
+          from build_family_race_compare_page import load_predictions, build_race_rows
+          morning, live, formation = load_predictions('predictions', '20261008')
+          finished = build_race_rows('20261008', morning, live, formation)
+          completed = {r['race_code'] for r in finished}
+          expected = {
+              ''.join(c for c in row['race_id'] if c.isdigit())[:12]: row
+              for row in data['races']
+          }
+          missing = [
+              {'race_id': code, 'deadline': row.get('deadline'),
+               'signal_key': (audit_canonical({
+                   'target_date': '20261008', 'races': [row]
+               })['details'][0]['signal_key'])}
+              for code, row in expected.items() if code not in completed
+          ]
+          print('CANONICAL_VS_RESULTS', {
+              'predictions': len(expected), 'results': len(completed),
+              'missing_result_keys': missing,
+              'signal_in_results': sum(
+                  bool((r.get('up_signal') or {}).get('level') or
+                       (r.get('down_signal') or {}).get('level'))
+                  for r in finished),
+              'missing_formation_for_results': [
+                  r['race_code'] for r in finished if not r.get('formation_prediction')
+              ],
+          })
+          assert not any(
+              audit_race((r.get('formation_prediction') or {}).get('raw') or {})['signal_ai_status'] == 'missing_or_invalid_signal_24'
+              for r in finished
+          ), 'Completed race has an active signal but no 24 tickets'
+          PY
+      - name: Rebuild signal results and both remaining public pages
+        run: |
+          python -u collectors/evaluate_signal_ai_performance.py
+          python -u collectors/evaluate_signal_pdca_cross.py
+          python -u collectors/build_family_results_page.py \
+            --evaluations-root evaluations --output-dir _contract_test
+          python -u collectors/build_family_signal_analysis_page.py \
+            --evaluations-root evaluations --output-dir _contract_test
+          python - <<'PY'
+          from pathlib import Path
+          for name in ('index.html', 'race_compare.html', 'results.html', 'analysis.html'):
+              p = Path('_contract_test') / name
+              assert p.is_file() and p.stat().st_size > 1000, name
+              print('FOUR_VIEW_PASS', name, p.stat().st_size)
+          PY

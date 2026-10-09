@@ -33,6 +33,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from race_prediction_store import canonical_path, audit_race
 
 
 JST = timezone(timedelta(hours=9))
@@ -800,6 +801,9 @@ def load_prediction_file(
             "stage": str(row.get("stage") or row.get("prediction_stage") or row.get("source_stage") or "").strip(),
             "prediction_quality": row.get("prediction_quality") or {},
             "ai_score_prediction": row.get("ai_score_prediction") or {},
+            "signal_ai_prediction": row.get("signal_ai_prediction") or {},
+            "up_signal": row.get("up_signal"),
+            "down_signal": row.get("down_signal"),
         }
 
     return output
@@ -1136,8 +1140,7 @@ def locate_live_file(
 
 
 def locate_formation_file(root, target_date):
-    yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
-    path = Path(root) / yyyy / mm / dd / "live" / f"formation_predictions_final_{target_date}.json"
+    path = canonical_path(target_date, root)
     return path if path.is_file() else None
 
 
@@ -1298,11 +1301,10 @@ def load_archive_result_fallback(target_date):
     validation = read_json(validation_path) or {}
     # PARTIAL is expected during the race day; every archived completed
     # trifecta is independently parsed before it is added to the page.
-    if validation.get("status") not in {"PASS", "PARTIAL"}:
-        return {}
+    archive_valid = validation.get("status") in {"PASS", "PARTIAL"}
 
     results_by_race = {}
-    if result_path.is_file():
+    if archive_valid and result_path.is_file():
         with result_path.open("r", encoding="utf-8-sig", newline="") as f:
             for row in csv.DictReader(f):
                 race_code = extract_race_code(row, target_date)
@@ -1316,7 +1318,7 @@ def load_archive_result_fallback(target_date):
                     "actual_names": ["", "", ""],
                 }
 
-    if boat_path.is_file() and results_by_race:
+    if archive_valid and boat_path.is_file() and results_by_race:
         names_by_race = {}
         with boat_path.open("r", encoding="utf-8-sig", newline="") as f:
             for row in csv.DictReader(f):
@@ -1332,6 +1334,34 @@ def load_archive_result_fallback(target_date):
             names = names_by_race.get(race_code, {})
             item["actual_names"] = [names.get(rank, "") for rank in (1, 2, 3)]
 
+    # Missing official trifectas can be restored from separately audited
+    # primary-source records. Never invent a third finisher for a race
+    # where the official 3連単 was not established.
+    verified_path = base / f"official_result_backfills_{target_date}.json"
+    verified = read_json(verified_path) if verified_path.is_file() else {}
+    for item in (verified or {}).get("verified_results", []):
+        if not isinstance(item, dict) or item.get("source_type") != "boatrace_official":
+            continue
+        if not str(item.get("source_url") or "").startswith(
+            "https://www.boatrace.jp/owpc/pc/race/raceresult?"
+        ):
+            continue
+        race_code = extract_race_code(item, target_date)
+        actual = parse_trifecta_result(item.get("trifecta"))
+        payout = safe_int(item.get("trifecta_pay"))
+        if not race_code or not race_code.startswith(target_date):
+            continue
+        if len(actual) != 3 or payout is None or payout <= 0:
+            continue
+        if race_code not in results_by_race:
+            results_by_race[race_code] = {
+                "actual": actual,
+                "payout": payout,
+                "technique": str(item.get("technique") or "").strip(),
+                "actual_names": ["", "", ""],
+                "result_source": "audited_official_result",
+            }
+            print("監査済み公式結果から3連単を補完:", race_code, item["source_url"])
     return results_by_race
 
 
@@ -1474,247 +1504,6 @@ def odds_minutes_before(
     except Exception:
         return None
 
-
-def _signal_source(morning, live, formation_prediction=None):
-    """Return pre-result live data for signal display only.
-
-    Primary source is saved live prediction. If it is unavailable/empty, use
-    the saved formation raw snapshot only when it was generated as a normal
-    pre-race live prediction. This fallback never creates a live evaluation.
-    """
-    if live:
-        raw = live.get("raw") or {}
-        boats = live.get("boats") or raw.get("boats") or []
-        quality = live.get("prediction_quality") or raw.get("prediction_quality") or {}
-        if boats:
-            return boats, quality, morning
-
-    formation = formation_prediction or {}
-    raw = formation.get("raw") or {}
-    prediction_type = str(
-        raw.get("prediction_type")
-        or formation.get("prediction_type")
-        or ""
-    ).strip()
-    quality = (
-        formation.get("prediction_quality")
-        or raw.get("prediction_quality")
-        or {}
-    )
-    boats = formation.get("boats") or raw.get("boats") or []
-    if (
-        prediction_type == "直前"
-        and boats
-        and not quality.get("recovery_needed")
-        and str(quality.get("status") or "").strip() != "fallback"
-    ):
-        morning_boats = raw.get("morning_boats") or []
-        if morning_boats:
-            morning = {
-                "boats": morning_boats,
-                "raw": {"boats": morning_boats},
-            }
-        return boats, quality, morning
-
-    return [], quality, morning
-
-
-def up_signal_info(morning, live, formation_prediction=None):
-    formation = formation_prediction or {}
-    raw_formation = formation.get("raw") or {}
-    stored = (
-        formation.get("up_signal")
-        or raw_formation.get("up_signal")
-        or {}
-    )
-    # A previously saved morning-fallback signal must not override reconstructed
-    # official pre-race scores for a recovered finished race.
-    recovered_live = (live or {}).get("prediction_quality", {}).get("status") == "recovered_observation"
-    if (
-        not recovered_live
-        and isinstance(stored, dict)
-        and "level" in stored
-        and stored.get("rule_version") == "raijin_signal_v1_20261008"
-    ):
-        return stored
-
-    live_boats, quality, morning_source = _signal_source(
-        morning,
-        live,
-        formation_prediction,
-    )
-    if (
-        not morning_source
-        or not live_boats
-        or quality.get("recovery_needed")
-        or str(quality.get("status") or "").strip() == "fallback"
-    ):
-        return {
-            "available": False,
-            "active": False,
-            "level": 0,
-            "candidates": [],
-        }
-
-    morning_scores = {
-        normalize_boat(x.get("boat")): safe_float(x.get("score"))
-        for x in (
-            morning_source.get("boats")
-            or (morning_source.get("raw") or {}).get("boats")
-            or []
-        )
-    }
-    ranked = sorted(
-        live_boats,
-        key=lambda x: safe_int(x.get("rank")) or 99,
-    )
-    candidates = []
-    for rank, boat in enumerate(ranked, 1):
-        boat_no = normalize_boat(boat.get("boat"))
-        live_score = safe_float(boat.get("score"))
-        base = morning_scores.get(boat_no)
-        if (
-            rank <= 3
-            or boat_no is None
-            or live_score is None
-            or base is None
-        ):
-            continue
-        rise = live_score - base
-        if rise >= 7.5:
-            candidates.append({
-                "boat": boat_no,
-                "rank": rank,
-                "rise": round(rise, 2),
-                "score": round(live_score, 2),
-            })
-
-    max_rise = max((x["rise"] for x in candidates), default=None)
-    has_score50 = any(
-        x.get("score") is not None and x["score"] >= 50.0
-        for x in candidates
-    )
-    if max_rise is None:
-        level = 0
-    elif has_score50:
-        level = 3
-    elif max_rise >= 10.0:
-        level = 2
-    else:
-        level = 1
-
-    return {
-        "available": True,
-        "active": level > 0,
-        "level": level,
-        "rule_version": "raijin_signal_v1_20261008",
-        "max_rise": max_rise,
-        "has_score50_candidate": has_score50,
-        "candidates": candidates,
-        "status": "provisional_analysis_only",
-        "ai_effect": False,
-        "formation_effect": False,
-    }
-
-
-def down_signal_info(morning, live, formation_prediction=None):
-    live_boats, quality, morning_source = _signal_source(
-        morning,
-        live,
-        formation_prediction,
-    )
-    if not morning_source or not live_boats:
-        return {
-            "available": False,
-            "active": False,
-            "level": 0,
-            "reasons": [],
-        }
-
-    if quality.get("recovery_needed") or str(quality.get("status") or "").strip() == "fallback":
-        return {
-            "available": False,
-            "active": False,
-            "level": 0,
-            "reasons": [],
-            "suppressed_reason": "fallback_prediction",
-        }
-
-    morning_scores = {
-        normalize_boat(x.get("boat")): safe_float(x.get("score"))
-        for x in (
-            morning_source.get("boats")
-            or (morning_source.get("raw") or {}).get("boats")
-            or []
-        )
-    }
-    ranked = sorted(
-        live_boats,
-        key=lambda x: safe_int(x.get("rank")) or 99,
-    )
-    if len(ranked) != 6 or len(morning_scores) < 6:
-        return {
-            "available": False,
-            "active": False,
-            "level": 0,
-            "reasons": [],
-        }
-
-    live_scores = []
-    deltas = []
-    for boat in ranked:
-        boat_no = normalize_boat(boat.get("boat"))
-        live_score = safe_float(boat.get("score"))
-        base = morning_scores.get(boat_no)
-        if boat_no is None or live_score is None or base is None:
-            return {
-                "available": False,
-                "active": False,
-                "level": 0,
-                "reasons": [],
-            }
-        live_scores.append(live_score)
-        deltas.append(live_score - base)
-
-    rank1_delta = deltas[0]
-    top3_delta_sum = sum(deltas[:3])
-    gap12 = live_scores[0] - live_scores[1]
-
-    criteria = [
-        {
-            "id": "rank1_drop_5",
-            "label": "直前1位が朝比-5点以下",
-            "met": rank1_delta <= -5.0,
-        },
-        {
-            "id": "top3_total_drop_10",
-            "label": "直前TOP3合計が朝比-10点以下",
-            "met": top3_delta_sum <= -10.0,
-        },
-        {
-            "id": "rank1_drop_close_gap",
-            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
-            "met": rank1_delta <= -3.0 and gap12 <= 5.0,
-        },
-    ]
-    reasons = [item["id"] for item in criteria if item["met"]]
-    level = min(3, len(reasons))
-
-    return {
-        "available": True,
-        "active": level > 0,
-        "level": level,
-        "reasons": reasons,
-        "criteria": criteria,
-        "metrics": {
-            "rank1_delta": round(rank1_delta, 2),
-            "top3_delta_sum": round(top3_delta_sum, 2),
-            "gap_1_2": round(gap12, 2),
-        },
-        "ai_effect": False,
-        "formation_effect": False,
-        "status": "provisional_analysis_only",
-    }
 
 def fujin_raijin_marker(raijin, fujin):
     raijin = raijin or {}
@@ -2169,11 +1958,16 @@ def build_race_rows(
                 "ai_evaluation":
                     ai_details.get(race_code) or ai_details.get("".join(ch for ch in race_code if ch.isdigit())[:12]),
 
-                "up_signal":
-                    up_signal_info(morning, live, formation_prediction),
-
-                "down_signal":
-                    down_signal_info(morning, live, formation_prediction),
+                # The SAME saved record governs both pre- and post-race screens.
+                # Do not recompute a different signal after the race.
+                "up_signal": (
+                    (formation_prediction.get("raw") or {}).get("up_signal") or {}
+                    if formation_prediction is not None else {}
+                ),
+                "down_signal": (
+                    (formation_prediction.get("raw") or {}).get("down_signal") or {}
+                    if formation_prediction is not None else {}
+                ),
 
                 "morning_eval":
                     evaluate_top3(
@@ -2481,13 +2275,16 @@ def evaluation_html(
 
 
 
-def ai_score_result_html(prediction, trifecta, payout):
+def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
     """Use saved signal-only top 24 when active; do not modify normal AI."""
-    if not prediction:
-        return '<div class="simulation missing">AIスコア予測なし</div>'
+    prediction = prediction or {}
     raw = prediction.get("raw") or {}
-    signal = prediction.get("signal_ai_prediction") or raw.get("signal_ai_prediction") or {}
-    is_signal = bool(signal and signal.get("signal_key"))
+    canonical_signal = canonical_signal or {}
+    key = canonical_signal.get("signal_key")
+    is_signal = bool(key)
+    signal = canonical_signal.get("signal_ai_prediction") or {}
+    if is_signal and signal.get("signal_key") != key:
+        return '<div class="simulation missing">シグナル発動・専用AI24点の保存データを修復中（通常AI8点には切替不可）</div>'
     ai = signal if is_signal else (
         prediction.get("ai_score_prediction") or raw.get("ai_score_prediction") or {}
     )
@@ -2497,7 +2294,7 @@ def ai_score_result_html(prediction, trifecta, payout):
     display_points = 24 if is_signal else 12
     visible = all120[:display_points]
     if not visible:
-        return '<div class="simulation missing">AI予想の保存済み買い目なし</div>'
+        return '<div class="simulation missing">専用AI24点未保存（要修復）</div>' if is_signal else '<div class="simulation missing">AI予想の保存済み買い目なし</div>'
 
     bought_combos = [
         str(item.get("combination") or "") for item in all120[:purchase_points]
@@ -2784,6 +2581,16 @@ def render_html(
     race_rows,
 ):
 
+    # Canonical formation record is also the only signal/ticket source here.
+    for record in race_rows:
+        original = (record.get("formation_prediction") or {}).get("raw") or {}
+        checked = audit_race(original) if original else {
+            "signal_key": None, "signal_ai_status": "prediction_missing"
+        }
+        record["_canonical_signal"] = {
+            **checked, "signal_ai_prediction": original.get("signal_ai_prediction") or {}
+        }
+
     morning_summary = aggregate(
         race_rows,
         "morning_eval",
@@ -2832,20 +2639,15 @@ def render_html(
     final_formation_summary = hit_summary_from_rows(final_rows, "final_formation_hit")
     final_box_summary = hit_summary_from_rows(final_rows, "final_box_hit")
 
-    # Dedicated signal AI results: saved 24-point rankings only, never mix
-    # the normal AI score's separate 8-point purchases into this metric.
+    # Evaluate precisely the SAME signal/24 tickets as the visible race card.
+    # Never silently skip a flagged race when dedicated tickets are missing.
     signal24_rows = []
     signal24_missing = 0
     for record in race_rows:
-        formation_pred = record.get("formation_prediction") or {}
-        raw_pred = formation_pred.get("raw") or {}
-        signal_pred = (
-            formation_pred.get("signal_ai_prediction")
-            or raw_pred.get("signal_ai_prediction")
-            or {}
-        )
-        if not signal_pred.get("signal_key"):
+        signal_info = record["_canonical_signal"]
+        if not signal_info["signal_key"]:
             continue
+        signal_pred = signal_info["signal_ai_prediction"]
         ranked_combinations = (
             signal_pred.get("all_120_combinations")
             or signal_pred.get("combinations")
@@ -3044,7 +2846,7 @@ def render_html(
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
   <div class="label simulation-label">シグナル発動：専用AI24点／非発動：通常AIスコア予測</div>\n  <div class="simulation-meta">シグナル発動時は専用AI上位24点を各100円で照合し、投資・払戻・収支を計算</div>
-  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"]) if final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction")) else ai_eval_detail_html(row.get("ai_evaluation"))}
+  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"], row["_canonical_signal"]) if row["_canonical_signal"]["signal_key"] or (final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction"))) else ai_eval_detail_html(row.get("ai_evaluation"))}
 
   <div class="money-grid">
 

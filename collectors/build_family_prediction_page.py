@@ -5,6 +5,7 @@ import html
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from race_prediction_store import audit_race
 
 
 JST = timezone(timedelta(hours=9))
@@ -177,123 +178,10 @@ def _prediction_body(boats, formation, label, morning_score_map=None):
     return f'<div class="race-prediction-view" data-view="{esc(label)}"><div class="top-picks">{top_html}</div><details><summary>{score_title}</summary><div class="scores">{chips}</div></details>{form}</div>'
 
 
-def _provisional_down_signal_from_race(race):
-    stored = race.get("down_signal")
-    if isinstance(stored, dict) and "level" in stored:
-        return stored
-
-    quality = race.get("prediction_quality") or {}
-    if quality.get("recovery_needed") or text(quality.get("status")) == "fallback":
-        return {"available": False, "active": False, "level": 0, "reasons": []}
-
-    boats = race.get("boats") or []
-    morning = {
-        text(x.get("boat")): to_float(x.get("score"))
-        for x in (race.get("morning_boats") or [])
-    }
-    if len(boats) != 6 or not morning:
-        return {"available": False, "active": False, "level": 0, "reasons": []}
-
-    live_scores = []
-    deltas = []
-    for boat in boats:
-        live = to_float(boat.get("score"))
-        base = morning.get(text(boat.get("boat")))
-        if live is None or base is None:
-            return {"available": False, "active": False, "level": 0, "reasons": []}
-        live_scores.append(live)
-        deltas.append(live - base)
-
-    rank1_delta = deltas[0]
-    top3_delta_sum = sum(deltas[:3])
-    gap12 = live_scores[0] - live_scores[1]
-    criteria = [
-        ("rank1_drop_5", rank1_delta <= -5.0),
-        ("top3_total_drop_10", top3_delta_sum <= -10.0),
-        ("rank1_drop_close_gap", rank1_delta <= -3.0 and gap12 <= 5.0),
-    ]
-    reasons = [name for name, met in criteria if met]
-    return {
-        "available": True,
-        "active": bool(reasons),
-        "level": min(3, len(reasons)),
-        "reasons": reasons,
-        "metrics": {
-            "rank1_delta": round(rank1_delta, 2),
-            "top3_delta_sum": round(top3_delta_sum, 2),
-            "gap_1_2": round(gap12, 2),
-        },
-        "status": "provisional_analysis_only",
-    }
-
-
-def _provisional_up_signal_from_race(race):
-    stored = race.get("up_signal")
-    if (
-        isinstance(stored, dict)
-        and "level" in stored
-        and stored.get("rule_version") == "raijin_signal_v1_20261008"
-    ):
-        return stored
-
-    quality = race.get("prediction_quality") or {}
-    if quality.get("recovery_needed") or text(quality.get("status")) == "fallback":
-        return {"available": False, "active": False, "level": 0, "candidates": []}
-
-    boats = race.get("boats") or []
-    morning = {
-        text(x.get("boat")): to_float(x.get("score"))
-        for x in (race.get("morning_boats") or [])
-    }
-    if len(boats) != 6 or not morning:
-        return {"available": False, "active": False, "level": 0, "candidates": []}
-
-    candidates = []
-    for rank, boat in enumerate(boats, 1):
-        live = to_float(boat.get("score"))
-        base = morning.get(text(boat.get("boat")))
-        if rank <= 3 or live is None or base is None:
-            continue
-        rise = live - base
-        if rise >= 7.5:
-            candidates.append({
-                "boat": text(boat.get("boat")),
-                "rank": rank,
-                "rise": round(rise, 2),
-                "score": round(live, 2),
-            })
-
-    max_rise = max((x["rise"] for x in candidates), default=None)
-    has_score50 = any(
-        x.get("score") is not None and x["score"] >= 50.0
-        for x in candidates
-    )
-    if max_rise is None:
-        level = 0
-    elif has_score50:
-        level = 3
-    elif max_rise >= 10.0:
-        level = 2
-    else:
-        level = 1
-
-    return {
-        "available": True,
-        "active": level > 0,
-        "level": level,
-        "rule_version": "raijin_signal_v1_20261008",
-        "max_rise": max_rise,
-        "has_score50_candidate": has_score50,
-        "candidates": candidates,
-        "status": "provisional_analysis_only",
-        "ai_effect": False,
-        "formation_effect": False,
-    }
-
-
 def signal_marker(race):
-    raijin = _provisional_up_signal_from_race(race)
-    fujin = _provisional_down_signal_from_race(race)
+    # The marker must be identical to the saved canonical signal used after result.
+    raijin = race.get("up_signal") or {}
+    fujin = race.get("down_signal") or {}
 
     raijin_level = int(raijin.get("level") or 0)
     fujin_level = int(fujin.get("level") or 0)
@@ -445,10 +333,26 @@ def _ai_boat_name_map(race):
 def build_ai_card(race, index):
     venue = text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
     deadline = time_label(race.get("deadline"))
+    integrity = audit_race(race)
     signal_ai = race.get("signal_ai_prediction") or {}
     ai_name_map = _ai_boat_name_map(race)
+    # An active signal with missing/mismatched tickets is never normal AI.
+    if integrity["signal_key"] and integrity["signal_ai_status"] != "ready":
+        return f"""
+        <article class="race-card">
+          <div class="race-head">
+            <div class="race-order">{index}</div>
+            <div class="race-main">
+              <div class="deadline">{esc(deadline)}</div>
+              <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}</div>
+            </div>
+          </div>
+          <div class="formation-title">風神雷神専用AI24点・データ修復対象</div>
+          <div class="ai-note">シグナル{esc(integrity["signal_key"])}発動。専用AI24点の保存データが不足しています。通常AI8点への自動切替は行いません。</div>
+        </article>
+        """
 
-    if signal_ai:
+    if integrity["signal_key"]:
         ai = signal_ai
         position = ai.get("boat_scores") or []
         combos = (ai.get("combinations") or [])[:24]
@@ -537,10 +441,10 @@ def build_ai_card(race, index):
           <div class="deadline">{esc(deadline)}</div>
           <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>
         </div>
-        <div class="badge live">シグナルAI</div>
+        <div class="badge live">通常AI</div>
       </div>
-      <div class="formation-title">6艇のシグナルAI再評価</div>
-      <div class="ai-note">通常予測は変更せず、シグナル補正対象外のレースは補正0.0で表示します。</div>
+      <div class="formation-title">通常AIスコア予測</div>
+      <div class="ai-note">風神雷神が非発動のときは、通常AIスコア予測を表示します。判定未観測のレースは発動有無を確定扱いしません。</div>
       <div class="ai-table-wrap">
         <table class="ai-table signal-ai-table">
           <thead><tr><th>艇</th><th>通常</th><th>補正</th><th>補正後</th><th>順位</th></tr></thead>

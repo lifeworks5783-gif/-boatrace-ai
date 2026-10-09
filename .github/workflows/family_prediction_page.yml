@@ -71,6 +71,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: 共通AI分析の依存パッケージ
+        run: python -m pip install requests beautifulsoup4
+
       - name: 家族共有フォルダを準備
         run: |
           rm -rf _family_site
@@ -83,10 +86,27 @@ jobs:
 
           # 最新情報は保存済みformationを正本に、毎回締切順JSONを再生成する。
           # これにより up_signal/down_signal を含む最新フィールドが表示側へ必ず同期される。
-          if test -s "$FORMATION_PATH"; then
-            python -u collectors/build_deadline_prediction_view.py \
-              --date "$TODAY_JST"
-          fi
+          # No stale previous-day fallback: both views require the same date
+          # and the same canonical saved pre-result prediction bundle.
+          test -s "$FORMATION_PATH" || {
+            echo "共通予測正本が未生成: $FORMATION_PATH"
+            exit 1
+          }
+          python -u collectors/build_deadline_prediction_view.py \
+            --date "$TODAY_JST"
+
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "collectors")
+          from race_prediction_store import load_canonical, audit_canonical
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          date = datetime.now(ZoneInfo("Asia/Tokyo")).strftime("%Y%m%d")
+          report = audit_canonical(load_canonical(date))
+          print("共通予測監査", {k:v for k,v in report.items() if k != "details"})
+          if report["missing_signal_24"]:
+              print("警告: 専用AI24点の未保存レースは通常AI8点に代替せず、照合画面で修復対象として表示します")
+          PY
 
           test -s predictions/latest_by_deadline.json
 

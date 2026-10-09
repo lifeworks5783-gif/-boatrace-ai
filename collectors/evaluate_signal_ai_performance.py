@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import csv
-import itertools
 import json
 import statistics
 from collections import defaultdict
@@ -58,101 +57,53 @@ def load_live(date):
     return grouped
 
 
+def _signal_inputs(ranked):
+    """Normalize history CSV to the identical six-boat interface as live."""
+    return [
+        {
+            **r,
+            "boat": inum(r.get("boat")),
+            "rank": index,
+            "score": fnum(r.get("score")),
+            "morning_score_reference": fnum(r.get("morning_score_reference")),
+        }
+        for index, r in enumerate(ranked, 1)
+    ]
+
+
 def derive_raijin(ranked):
-    candidates=[]
-    for rank,row in enumerate(ranked,1):
-        if rank <= 3:
-            continue
-        score=fnum(row.get("score"))
-        morning=fnum(row.get("morning_score_reference"))
-        boat=inum(row.get("boat"))
-        if score is None or morning is None or boat is None:
-            continue
-        rise=score-morning
-        if rise >= 7.5:
-            candidates.append({"boat":boat,"rank":rank,"rise":rise,"score":score})
-    max_rise=max((x["rise"] for x in candidates),default=None)
-    has50=any(x["score"]>=50 for x in candidates)
-    if max_rise is None:
-        level=0
-    elif has50:
-        level=3
-    elif max_rise >= 10:
-        level=2
-    else:
-        level=1
-    return level,candidates
+    from build_latest_prediction_view import build_up_signal
+    saved = build_up_signal(_signal_inputs(ranked))
+    return int(saved.get("level") or 0), saved.get("candidates") or []
 
 
 def derive_fujin(ranked):
-    if len(ranked) != 6:
-        return 0
-    scores=[fnum(x.get("score")) for x in ranked]
-    mornings=[fnum(x.get("morning_score_reference")) for x in ranked]
-    if any(x is None for x in scores+mornings):
-        return 0
-    ds=[a-b for a,b in zip(scores,mornings)]
-    gap=scores[0]-scores[1]
-    criteria=[
-        ds[0] <= -5.0,
-        sum(ds[:3]) <= -10.0,
-        ds[0] <= -3.0 and gap <= 5.0,
-    ]
-    return min(3,sum(criteria))
+    from build_latest_prediction_view import build_down_signal
+    saved = build_down_signal(_signal_inputs(ranked))
+    return int(saved.get("level") or 0)
 
 
 def apply_rule(ranked, flevel, rlevel, rcands, config):
-    key=f"F{flevel}R{rlevel}"
-    rule=(config.get("rules") or {}).get(key)
-    if not rule:
+    # Backtesting uses the SAME frozen scoring function as actual predictions.
+    # Result order and payout are never passed into this function.
+    from build_latest_prediction_view import build_signal_ai_prediction
+    model = build_signal_ai_prediction(
+        _signal_inputs(ranked),
+        {"level": rlevel, "candidates": rcands},
+        {"level": flevel},
+        config,
+    )
+    if not model:
         return None
-    profiles=config.get("level_profiles") or {}
-    attenuation=config.get("raijin_rank_attenuation") or {}
-    base={}
-    delta={}
-    order=[]
-    for rank,row in enumerate(ranked,1):
-        boat=inum(row.get("boat")); score=fnum(row.get("score")); morning=fnum(row.get("morning_score_reference"))
-        if boat is None or score is None:
-            continue
-        base[boat]=score
-        delta[boat]=score-morning if morning is not None else 0.0
-        order.append(boat)
-    if len(base) != 6:
-        return None
-    adjusted=dict(base)
-    fr=rule.get("fujin")
-    if flevel > 0 and fr:
-        lm=float((profiles.get(fr.get("level_profile")) or {}).get(str(flevel),1.0))
-        top3=order[:3]
-        target=fr.get("target")
-        if target=="rank1":
-            targets=top3[:1]
-        elif target=="negative_top3":
-            targets=[b for b in top3 if delta.get(b,0)<0]
-        else:
-            targets=top3
-        for boat in targets:
-            if fr.get("mode")=="drop_ratio":
-                penalty=max(0.0,-delta.get(boat,0.0))*float(fr.get("strength") or 0)*lm
-            else:
-                penalty=float(fr.get("strength") or 0)*lm
-            adjusted[boat]-=penalty
-    rr=rule.get("raijin")
-    if rlevel > 0 and rr:
-        lm=float((profiles.get(rr.get("level_profile")) or {}).get(str(rlevel),1.0))
-        att=attenuation.get(rr.get("rank_attenuation")) or {}
-        for c in rcands:
-            boat=inum(c.get("boat")); rise=fnum(c.get("rise")); rank=inum(c.get("rank"))
-            if boat not in adjusted or rise is None or rank is None:
-                continue
-            adjusted[boat]+=rise*float(rr.get("multiplier") or 0)*lm*float(att.get(str(rank),1.0))
-    combos=[]
-    for a,b,c in itertools.permutations(sorted(adjusted),3):
-        val=adjusted[a]*0.50+adjusted[b]*0.30+adjusted[c]*0.20
-        combos.append((val,f"{a}-{b}-{c}"))
-    combos.sort(key=lambda x:(-x[0],x[1]))
-    return key,rule,adjusted,combos
+    adjusted = {
+        item["boat"]: item["signal_ai_score"]
+        for item in model["signal_ai_ranking"]
+    }
+    combos = [
+        (item["score"], item["combination"])
+        for item in model["all_120_combinations"]
+    ]
+    return model["signal_key"], model["rule"], adjusted, combos
 
 
 def empty_bucket():

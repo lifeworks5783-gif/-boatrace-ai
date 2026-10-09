@@ -9,9 +9,13 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import build_morning_prediction as morning
+from logic_registry import load_logic, logic_identity
 
 JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "provisional_v5_20261007_live_saved_morning_fallback"
+LIVE_LOGIC = load_logic("live")
+MODEL_VERSION = LIVE_LOGIC["model_version"]
+LIVE_WEIGHTS = LIVE_LOGIC["weights"]
+EXST_LOGIC = LIVE_LOGIC["exhibition_st"]
 
 
 def parse_args():
@@ -232,7 +236,7 @@ def personal_st_delta_score(boat):
     st = get_exhibition_st(boat)
     is_f = get_exhibition_f(boat) or (st is not None and st < 0)
     if is_f:
-        return 0.4
+        return EXST_LOGIC["f_score"]
     racer = boat.get("racer") or {}
     reg = text(racer.get("registration_no"))
     st_map=racer_st90_map()
@@ -245,9 +249,9 @@ def personal_st_delta_score(boat):
         if favg is not None:
             samples,avg=fs,favg
     if st is None or avg is None:
-        return 0.5
+        return EXST_LOGIC["missing_score"]
     delta = st - avg
-    return max(0.0, min(1.0, 0.5 - delta / 0.12))
+    return max(0.0, min(1.0, 0.5 - delta / (EXST_LOGIC["delta_full_scale_seconds"] * 2)))
 
 
 def rank_exhibition_st(boats):
@@ -264,7 +268,7 @@ def rank_exhibition_st(boats):
 
 
 def component_exst(lane, boat, ranks):
-    weight = 14.0
+    weight = LIVE_WEIGHTS["exhibition_st"]
     st = get_exhibition_st(boat)
     is_f = get_exhibition_f(boat) or (st is not None and st < 0)
     raw = 0.0 if is_f else ranks.get(lane)
@@ -406,7 +410,7 @@ def score_race(race, public_store, feature_manifest=None, saved_morning_race=Non
         if lane not in st_delta_scores: st_delta_scores[lane]=0.5
     scored=[]
     for boat in boats:
-        lane=to_int(boat.get("boat")); live01=.80*(structural[lane]/100.0)+.06*time_ranks[lane]+.14*st_delta_scores[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
+        lane=to_int(boat.get("boat")); live01=(LIVE_WEIGHTS["structural"]*(structural[lane]/100.0)+LIVE_WEIGHTS["exhibition_time"]*time_ranks[lane]+LIVE_WEIGHTS["exhibition_st"]*st_delta_scores[lane])/100.0; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
         if lane not in structural_details:
             raise RuntimeError(f"直前基礎要素欠損: {race.get('race_id')} {lane}号艇")
         sd = structural_details[lane]
@@ -421,15 +425,15 @@ def score_race(race, public_store, feature_manifest=None, saved_morning_race=Non
             "change_parts":before.get("change_parts",""),
             "input_trace":{"history_feature_manifest":feature_manifest,"structural_course_fallback":structural_fallback,"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"racer_course":history.get("racer_course"),"beforeinfo":{"exhibition_course":get_exhibition_course(boat),"exhibition_time":get_exhibition_time(boat),"exhibition_st_raw":raw_exhibition_st_value(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"change_parts":before.get("change_parts","")},"weather_water":race_context(race),"official_f_count":racer.get("official_f_count"),"official_l_count":racer.get("official_l_count"),"official_avg_st":racer.get("official_avg_st"),"official_fl_available":racer.get("official_fl_available",False),"candidate_components":{"f_l_holdings":{"available":racer.get("official_fl_available",False),"f_count":racer.get("official_f_count"),"l_count":racer.get("official_l_count"),"active_in_score":False},"motor_30d":{"available":history.get("motor_30d_available",False),"features":history.get("motor_30d"),"active_in_score":False},"parts_exchange":{"available":before.get("change_parts") not in (None,""),"value":before.get("change_parts",""),"active_in_score":False},"weather_water":{"available":bool(race_context(race)),"value":race_context(race),"active_in_score":False}}},
             "components":{
-                "racer_course":{"weight":40.0,"raw_score_0_1":round(sd["racer_course"],6),"available":True},
-                "grade":{"weight":20.0,"raw_score_0_1":round(sd["grade"],6),"available":True},
-                "motor":{"weight":20.0,"raw_score_0_1":round(sd["motor"],6),"available":True},
-                "boat":{"weight":5.0,"raw_score_0_1":round(sd["boat"],6),"available":True},
-                "national_top2":{"weight":15.0,"raw_score_0_1":round(sd["national_top2"],6),"available":True},
-                "structural":{"weight":80.0,"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},
-                "exTime":{"weight":6.0,"raw_score_0_1":round(time_ranks[lane],6),"available":True},
-                "exST":{"weight":14.0,"raw_score_0_1":round(st_delta_scores[lane],6),"available":True,
-                        "method":"personal_d90_st_delta","delta_full_scale_seconds":0.06,"f_score":0.4}
+                "racer_course":{"weight":morning.MORNING_WEIGHTS["racer_course"],"raw_score_0_1":round(sd["racer_course"],6),"available":True},
+                "grade":{"weight":morning.MORNING_WEIGHTS["grade"],"raw_score_0_1":round(sd["grade"],6),"available":True},
+                "motor":{"weight":morning.MORNING_WEIGHTS["motor"],"raw_score_0_1":round(sd["motor"],6),"available":True},
+                "boat":{"weight":morning.MORNING_WEIGHTS["boat"],"raw_score_0_1":round(sd["boat"],6),"available":True},
+                "national_top2":{"weight":morning.MORNING_WEIGHTS["national_top2"],"raw_score_0_1":round(sd["national_top2"],6),"available":True},
+                "structural":{"weight":LIVE_WEIGHTS["structural"],"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},
+                "exTime":{"weight":LIVE_WEIGHTS["exhibition_time"],"raw_score_0_1":round(time_ranks[lane],6),"available":True},
+                "exST":{"weight":LIVE_WEIGHTS["exhibition_st"],"raw_score_0_1":round(st_delta_scores[lane],6),"available":True,
+                        "method":EXST_LOGIC["method"],"delta_full_scale_seconds":EXST_LOGIC["delta_full_scale_seconds"],"f_score":EXST_LOGIC["f_score"]}
             }
         })
     scored.sort(key=lambda x:(-x["score"],x["boat"]))
@@ -748,7 +752,7 @@ def main():
             "model_version": MODEL_VERSION,
             "target_date": target_date,
             "generated_at": now.isoformat(),
-            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": "included_in_exST", "environment": 0.0},
+            "weights": {**LIVE_WEIGHTS, "F": "included_in_exST", "environment": 0.0},
             "input_race_count": len(races),
             "prediction_race_count": len(predicted_races),
             "prediction_boat_count": len(csv_rows),
@@ -774,7 +778,7 @@ def main():
             "target_date": target_date,
             "prediction_stage": "live",
             "generated_at": now.isoformat(),
-            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
+            "weights": {**LIVE_WEIGHTS, "F": 0.0, "environment": 0.0},
             "live_policy": {
                 "course": "32点を展示進入コースへ差し替え",
                 "exhibition_st": "本人90日平均STとの差を14%評価。±0.06秒で最大補正、展示F=0.4、90日ST10走未満/欠損=0.5",
@@ -843,7 +847,7 @@ def main():
             "target_date": target_date,
             "prediction_stage": "live_final",
             "updated_at": now.isoformat(),
-            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
+            "weights": {**LIVE_WEIGHTS, "F": 0.0, "environment": 0.0},
             "race_count": len(final_races),
             "boat_count": len(final_rows),
             "selection_rule": (
