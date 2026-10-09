@@ -58,14 +58,14 @@ def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=
         Path(root) / "predictions" / date[:4] / date[4:6] / date[6:8]
         / "live" / f"live_predictions_final_{date}.json"
     )
-    if not source.is_file():
-        return list(originals)
-
     from build_latest_prediction_view import (
         ranked_boats, build_up_signal, build_down_signal,
         build_signal_ai_prediction,
     )
-    payload = json.loads(source.read_text(encoding="utf-8"))
+    payload = (
+        json.loads(source.read_text(encoding="utf-8"))
+        if source.is_file() else {"target_date": date, "races": []}
+    )
     if str(payload.get("target_date")) != date:
         raise ValueError("restored live prediction date mismatch")
 
