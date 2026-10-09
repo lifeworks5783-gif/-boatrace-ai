@@ -183,6 +183,19 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         print("OFFICIAL_MASK_ST_BACKTEST",{"races":n,"five_valid_and_one_neutral":n,
              "false_signal_activations":0,"real_official_signal_triggers":true_triggers})
 
+    def test_partial_live_score_does_not_pollute_official_accuracy(self):
+        partial=score_with_fixture((3,),missing_fields=("exhibition_st",))
+        q={"status":"fallback","recovery_needed":True,"signal_blocked":True,
+           "boat_fallbacks":[{"boat":3,"reasons":["exhibition_st"]}]}
+        display={"boats":partial,"prediction_quality":q}
+        verified,visible=compare.classify_live_for_pdca(display)
+        self.assertIsNone(verified)
+        self.assertIs(visible,display)
+        official={"boats":score_with_fixture(),"prediction_quality":{"status":"normal"}}
+        verified,visible=compare.classify_live_for_pdca(official)
+        self.assertIs(verified,official)
+        self.assertIs(visible,official)
+
     def test_completed_view_renders_all_six_neutral_not_fake_live(self):
         original=[{"boat":lane,"score":score,"racer_name":f"選手{lane}"} for lane,score in enumerate(ORIGINAL,1)]
         raw={"race_id":"20261009-10-10","boats":original,"prediction_type":"直前",
