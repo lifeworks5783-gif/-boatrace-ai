@@ -5,6 +5,7 @@ import html
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from race_prediction_store import audit_race
 
 
 JST = timezone(timedelta(hours=9))
@@ -332,10 +333,26 @@ def _ai_boat_name_map(race):
 def build_ai_card(race, index):
     venue = text(race.get("venue_name")) or text(race.get("venue_code")) or "会場不明"
     deadline = time_label(race.get("deadline"))
+    integrity = audit_race(race)
     signal_ai = race.get("signal_ai_prediction") or {}
     ai_name_map = _ai_boat_name_map(race)
+    # An active signal with missing/mismatched tickets is never normal AI.
+    if integrity["signal_key"] and integrity["signal_ai_status"] != "ready":
+        return f"""
+        <article class="race-card">
+          <div class="race-head">
+            <div class="race-order">{index}</div>
+            <div class="race-main">
+              <div class="deadline">{esc(deadline)}</div>
+              <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}</div>
+            </div>
+          </div>
+          <div class="formation-title">風神雷神専用AI24点・データ修復対象</div>
+          <div class="ai-note">シグナル{esc(integrity["signal_key"])}発動。専用AI24点の保存データが不足しています。通常AI8点への自動切替は行いません。</div>
+        </article>
+        """
 
-    if signal_ai:
+    if integrity["signal_key"]:
         ai = signal_ai
         position = ai.get("boat_scores") or []
         combos = (ai.get("combinations") or [])[:24]
@@ -424,10 +441,10 @@ def build_ai_card(race, index):
           <div class="deadline">{esc(deadline)}</div>
           <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>
         </div>
-        <div class="badge live">シグナルAI</div>
+        <div class="badge live">通常AI</div>
       </div>
-      <div class="formation-title">6艇のシグナルAI再評価</div>
-      <div class="ai-note">通常予測は変更せず、シグナル補正対象外のレースは補正0.0で表示します。</div>
+      <div class="formation-title">通常AIスコア予測</div>
+      <div class="ai-note">風神雷神が非発動のときは、通常AIスコア予測を表示します。判定未観測のレースは発動有無を確定扱いしません。</div>
       <div class="ai-table-wrap">
         <table class="ai-table signal-ai-table">
           <thead><tr><th>艇</th><th>通常</th><th>補正</th><th>補正後</th><th>順位</th></tr></thead>
