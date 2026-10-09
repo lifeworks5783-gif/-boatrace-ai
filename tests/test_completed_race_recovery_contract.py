@@ -1,4 +1,5 @@
 """Check canonical completed-race recovery across the race-comparison display."""
+import csv
 import json
 import re
 import sys
@@ -21,16 +22,37 @@ class CompletedRaceRecoveryContract(unittest.TestCase):
         morning, live, canonical = load_predictions(ROOT / "predictions", d)
         restored = manifest.get("recovered_races") or []
         self.assertGreater(len(restored), 0, "No completed-race recoveries were read")
+        # 5-starter races are valid only when the saved official pre-race
+        # snapshot marks the omitted boat as a scratch (is_miss=true).
+        official_misses = {}
+        miss_sources = list((ROOT / "daily_inputs/2026/10/09/live").glob(
+            "**/beforeinfo_entries_*.csv"
+        ))
+        miss_sources.append(
+            ROOT / "evaluations/2026/10/09/recovery/official_retry_beforeinfo_entries_20261009.csv"
+        )
+        for source in miss_sources:
+            if not source.is_file():
+                continue
+            with source.open(encoding="utf-8-sig", newline="") as stream:
+                for row in csv.DictReader(stream):
+                    if str(row.get("is_miss") or "").strip().lower() not in {"true", "1", "yes"}:
+                        continue
+                    code = re.sub(r"\\D", "", str(row.get("race_id") or ""))[:12]
+                    if code:
+                        official_misses.setdefault(code, set()).add(str(row.get("boat")))
         for race_id in restored:
             code = re.sub(r"\D", "", str(race_id))[:12]
             with self.subTest(race=code):
                 self.assertIn(code, live)
                 self.assertIn(code, canonical)
                 live_boats = live[code].get("boats") or []
-                self.assertEqual(len(live_boats), 6)
+                self.assertGreaterEqual(len(live_boats), 3)
+                scored = {str(b.get("boat")) for b in live_boats}
                 self.assertEqual(
-                    {str(b.get("boat")) for b in live_boats},
-                    {"1", "2", "3", "4", "5", "6"},
+                    {"1", "2", "3", "4", "5", "6"} - scored,
+                    official_misses.get(code, set()),
+                    f"Unverified omitted starter in {code}",
                 )
                 self.assertTrue(all(
                     float(b["score"]) == float(b["score"])
