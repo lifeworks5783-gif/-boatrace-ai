@@ -182,6 +182,26 @@ jobs:
           assert '風神雷神専用AI予想' in karatsu_card, karatsu_card[:800]
           assert '⚡' in karatsu_card, karatsu_card[:400]
           print('KARATSU10_REPLAY_PASS', 'F0R1 / 5,6号艇 / 24点 / 事後捕捉表示')
+          # Official Tokoname8 starter 3 was scratched. Unlike an
+          # unknown missing ST, official FIVE starters must still emit
+          # Raijin and all 24 independently evaluated tickets.
+          tokoname=next(x for x in data['races'] if x['race_id']=='20261009-08-08')
+          tcheck=audit_race(tokoname)
+          assert tokoname['prediction_quality']['verified_scratched_boats']==[3],tokoname['prediction_quality']
+          assert len(tokoname['boats'])==5,tokoname
+          assert tcheck['signal_key']=='F0R2',tcheck
+          assert tcheck['signal_ai_status']=='ready',tcheck
+          assert tokoname.get('retrospective_signal_recovery') is True
+          assert tokoname.get('signal_detected_at_original_deadline') is False
+          assert len(tokoname['signal_ai_prediction']['combinations'])==24
+          assert tokoname['signal_ai_prediction']['valid_combination_count']==60
+          assert len({x['combination'] for x in tokoname['signal_ai_prediction']['combinations']})==24
+          assert all('3' not in x['combination'].split('-') for x in tokoname['signal_ai_prediction']['combinations'])
+          card=next((x for x in cards if re.search(r'常滑\\s*8R', x)), None)
+          assert card, 'Tokoname8 card is missing'
+          assert ('雷神' in card or '⚡' in card), 'Tokoname8 signal missing in HTML'
+          assert '直前予測なし' not in card, 'Tokoname8 official live missing in HTML'
+          print('TOKONAME8_FIVE_BOAT_RAIJIN_LV2_24_POINTS_AND_HTML_PASS',tcheck)
           PY
       - name: Re-run after closing and preserve canonical signal and original ticket identities
         run: |
