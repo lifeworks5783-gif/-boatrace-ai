@@ -887,20 +887,29 @@ def load_recovered_live_predictions(target_date):
 
     official_misses = {}
     live_root = Path("daily_inputs") / yyyy / mm / dd / "live"
-    if live_root.exists():
-        for miss_path in sorted(live_root.glob("**/beforeinfo_entries_*.csv")):
-            try:
-                with miss_path.open("r", encoding="utf-8-sig", newline="") as f:
-                    for row in csv.DictReader(f):
-                        flag = str(row.get("is_miss") or "").strip().lower()
-                        if flag not in {"true", "1", "yes"}:
-                            continue
-                        race_code = extract_race_code(row, target_date)
-                        boat = safe_int(row.get("boat"))
-                        if race_code and boat is not None:
-                            official_misses.setdefault(race_code, set()).add(boat)
-            except Exception:
-                continue
+    miss_sources = (
+        sorted(live_root.glob("**/beforeinfo_entries_*.csv"))
+        if live_root.exists() else []
+    )
+    # Completed-race replays retain verified official scratch evidence under
+    # evaluations/recovery, not necessarily under the intraday live/raw folder.
+    # Without this source a legitimate five-starter race is discarded entirely.
+    retry_entries = recovery_dir / f"official_retry_beforeinfo_entries_{target_date}.csv"
+    if retry_entries.is_file():
+        miss_sources.append(retry_entries)
+    for miss_path in miss_sources:
+        try:
+            with miss_path.open("r", encoding="utf-8-sig", newline="") as f:
+                for row in csv.DictReader(f):
+                    flag = str(row.get("is_miss") or "").strip().lower()
+                    if flag not in {"true", "1", "yes"}:
+                        continue
+                    race_code = extract_race_code(row, target_date)
+                    boat = safe_int(row.get("boat"))
+                    if race_code and boat is not None:
+                        official_misses.setdefault(race_code, set()).add(boat)
+        except Exception as exc:
+            print(f"WARN: saved official scratch evidence unreadable: {miss_path}: {exc}")
 
     expected = safe_int(manifest.get("merged_analysis_races"))
     if expected is not None and len(grouped) != expected:

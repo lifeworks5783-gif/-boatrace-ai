@@ -44,6 +44,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_karatsu10_signal_recovery.py -v
       - name: Normal AI scores must match the shared six-boat canonical bundle
         run: python -m unittest discover -s tests -p test_family_ai_score_display.py -v
+      - name: Recovered Edogawa 8R and all archived live scores must reach race comparison
+        run: python -m unittest discover -s tests -p test_completed_race_recovery_contract.py -v
       - name: Render both views from the same saved 2026-10-08 prediction bundle
         run: |
           python -u collectors/build_deadline_prediction_view.py --date 20261008

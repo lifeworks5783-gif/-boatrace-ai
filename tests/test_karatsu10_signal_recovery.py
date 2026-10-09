@@ -78,10 +78,11 @@ class Karatsu10SignalRecoveryTest(unittest.TestCase):
         )
         self.assertIn("gh workflow run canonical_recovery_reconcile.yml", workflow)
         self.assertIn("target_date=", workflow)
-        family = (ROOT / ".github/workflows/family_prediction_page.yml").read_text(
+        canonical = (ROOT / ".github/workflows/canonical_recovery_reconcile.yml").read_text(
             encoding="utf-8"
         )
-        self.assertIn("公式直前復旧データを共通予測正本へ反映", family)
+        self.assertIn("gh workflow run family_prediction_page.yml", canonical)
+        self.assertIn("actions: write", canonical)
 
 
 if __name__ == "__main__":
