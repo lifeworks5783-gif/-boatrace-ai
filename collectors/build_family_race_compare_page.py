@@ -1137,6 +1137,9 @@ def locate_live_file(
 
 def locate_formation_file(root, target_date):
     yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
+    canonical = Path(root) / yyyy / mm / dd / "canonical" / f"race_predictions_{target_date}.json"
+    if canonical.is_file():
+        return canonical
     path = Path(root) / yyyy / mm / dd / "live" / f"formation_predictions_final_{target_date}.json"
     return path if path.is_file() else None
 
@@ -1527,6 +1530,10 @@ def up_signal_info(morning, live, formation_prediction=None):
         or raw_formation.get("up_signal")
         or {}
     )
+    # Canonical flags have already been resolved from the same pre-result
+    # record as the 24 dedicated AI tickets. Do not calculate them again.
+    if raw_formation.get("canonical_signal_source") and isinstance(stored, dict):
+        return stored
     # A previously saved morning-fallback signal must not override reconstructed
     # official pre-race scores for a recovered finished race.
     recovered_live = (live or {}).get("prediction_quality", {}).get("status") == "recovered_observation"
@@ -1618,6 +1625,11 @@ def up_signal_info(morning, live, formation_prediction=None):
 
 
 def down_signal_info(morning, live, formation_prediction=None):
+    formation_raw = (formation_prediction or {}).get("raw") or {}
+    if formation_raw.get("canonical_signal_source"):
+        stored = formation_raw.get("down_signal")
+        if isinstance(stored, dict):
+            return stored
     live_boats, quality, morning_source = _signal_source(
         morning,
         live,
@@ -2488,6 +2500,9 @@ def ai_score_result_html(prediction, trifecta, payout):
     raw = prediction.get("raw") or {}
     signal = prediction.get("signal_ai_prediction") or raw.get("signal_ai_prediction") or {}
     is_signal = bool(signal and signal.get("signal_key"))
+    canonical_key = raw.get("canonical_signal_key")
+    if canonical_key and (not is_signal or signal.get("signal_key") != canonical_key):
+        return '<div class="simulation missing">シグナル発動済み・専用AI24点の復元が必要です（通常AIでは判定しません）</div>'
     ai = signal if is_signal else (
         prediction.get("ai_score_prediction") or raw.get("ai_score_prediction") or {}
     )
@@ -2844,7 +2859,13 @@ def render_html(
             or raw_pred.get("signal_ai_prediction")
             or {}
         )
+        canonical_key = raw_pred.get("canonical_signal_key")
+        if canonical_key and signal_pred.get("signal_key") != canonical_key:
+            signal24_missing += 1
+            continue
         if not signal_pred.get("signal_key"):
+            if canonical_key:
+                signal24_missing += 1
             continue
         ranked_combinations = (
             signal_pred.get("all_120_combinations")
