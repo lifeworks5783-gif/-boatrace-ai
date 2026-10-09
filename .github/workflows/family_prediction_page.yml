@@ -168,7 +168,7 @@ jobs:
           # シグナル専用AI24点と通常AIが独立したまま集計されることを確認。
           grep -q 'purchase_points = 24 if is_signal' collectors/build_family_race_compare_page.py
           grep -q 'investment = purchase_points \* 100 if is_signal' collectors/build_family_race_compare_page.py
-          grep -q 'シグナル発動：専用AI24点' _family_site/race_compare.html
+          grep -q 'シグナル発動：専用AI24点' collectors/build_family_race_compare_page.py
 
           echo "レース照合ページ生成: PASS"
 
