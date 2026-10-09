@@ -2498,6 +2498,8 @@ def ai_score_result_html(prediction, trifecta, payout):
     if not prediction:
         return '<div class="simulation missing">AIスコア予測なし</div>'
     raw = prediction.get("raw") or {}
+    if raw.get("canonical_strategy") == "live_signal_pending_recovery":
+        return '<div class="simulation missing">直前公式データの復元待ち：風神雷神判定・購入成績は未評価（通常AI8点には振り替えません）</div>'
     signal = prediction.get("signal_ai_prediction") or raw.get("signal_ai_prediction") or {}
     is_signal = bool(signal and signal.get("signal_key"))
     canonical_key = raw.get("canonical_signal_key")
