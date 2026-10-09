@@ -1343,8 +1343,34 @@ def main():
 
           if (response.status !== 202) throw new Error("request_failed");
 
-          status.textContent = "更新指示を受け付けました。取得・予測・公開は別処理です。約1分後に再読み込みしますが、処理中や新しい直前情報が未確定の場合は表示が変わらないことがあります。";
-          window.setTimeout(() => window.location.reload(), 65000);
+          status.textContent = "更新を受け付けました。公開ページへの反映を確認しています…";
+          const initialPublishToken = document.body.dataset.publishToken || "";
+          let attempts = 0;
+          const polling = window.setInterval(async () => {{
+            attempts += 1;
+            try {{
+              const checkUrl = new URL(window.location.href);
+              checkUrl.searchParams.set("refresh_check", String(Date.now()));
+              const reply = await fetch(checkUrl.toString(), {{ cache: "no-store" }});
+              if (reply.ok) {{
+                const currentPage = await reply.text();
+                const marker = currentPage.match(/data-publish-token="([^"]+)"/);
+                if (marker && marker[1] !== initialPublishToken) {{
+                  window.clearInterval(polling);
+                  status.textContent = "公開反映を確認しました。最新ページを表示します。";
+                  window.location.replace(window.location.pathname + "?refreshed=" + Date.now());
+                  return;
+                }}
+              }}
+            }} catch (checkError) {{
+              // Only check the published page; never retry the trigger automatically.
+            }}
+            if (attempts >= 24) {{
+              window.clearInterval(polling);
+              button.disabled = false;
+              status.textContent = "更新の受付後、公開反映を確認できませんでした。ページ反映時刻をご確認ください。";
+            }}
+          }}, 10000);
         }} catch (error) {{
           status.textContent = "更新を開始できませんでした。少し時間をおいて再度お試しください。";
           button.disabled = false;
