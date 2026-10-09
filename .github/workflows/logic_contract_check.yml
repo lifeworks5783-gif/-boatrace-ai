@@ -121,7 +121,7 @@ jobs:
           },sort_keys=True),encoding='utf-8')
           print('BEFORE_NARUTO1', (row.get('up_signal') or {}).get('level'), (row.get('down_signal') or {}).get('level'))
           PY
-          python -u collectors/build_latest_prediction_view.py --date 20261009 --now 2026-10-09T12:00:00+09:00
+          python -u collectors/build_latest_prediction_view.py --date 20261009 --now 2026-10-09T14:30:00+09:00
           python -u collectors/build_deadline_prediction_view.py --date 20261009
           python -u collectors/build_family_prediction_page.py \
             --input predictions/latest_by_deadline.json --output-dir _recovery_test
@@ -167,7 +167,56 @@ jobs:
           assert kcheck['signal_detected_at_original_deadline'] is False
           assert [x['boat'] for x in karatsu['up_signal']['candidates']]==[5, 6]
           assert len(karatsu['signal_ai_prediction']['combinations'])==24
-          assert '5千円以上・事後捕捉' in rendered, 'Retrospective catch badge absent'
-          assert '唐津' in rendered
+          # Verify this ONE completed race card, not another race's badge.
+          import re
+          cards=re.findall(r'<article class="race-card">(.*?)</article>', rendered, flags=re.DOTALL)
+          karatsu_card=next((card for card in cards if re.search(r'唐津\\s*10R', card)), None)
+          assert karatsu_card, 'Karatsu 10R race card not rendered'
+          assert '5千円以上・事後捕捉' in karatsu_card, karatsu_card[:400]
+          assert '風神雷神専用AI予想' in karatsu_card, karatsu_card[:800]
+          assert '⚡' in karatsu_card, karatsu_card[:400]
           print('KARATSU10_REPLAY_PASS', 'F0R1 / 5,6号艇 / 24点 / 事後捕捉表示')
+          PY
+      - name: Re-run after closing and preserve canonical signal and original ticket identities
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('predictions/2026/10/09/live/formation_predictions_final_20261009.json')
+          rows=json.loads(p.read_text(encoding='utf-8'))['races']
+          picked={x['race_id']: {
+              'formation': x.get('formation'),
+              'ai_score_prediction': x.get('ai_score_prediction'),
+              'signal_ai_prediction': x.get('signal_ai_prediction'),
+              'up_signal': x.get('up_signal'),
+              'down_signal': x.get('down_signal'),
+          } for x in rows if x.get('retrospective_signal_recovery') and x.get('race_id') in
+          ('20261009-23-10','20261009-14-01')}
+          assert len(picked)==2, picked
+          Path('/tmp/repeat_recovery_sig.json').write_text(json.dumps(picked,sort_keys=True),encoding='utf-8')
+          PY
+          python -u collectors/build_latest_prediction_view.py --date 20261009 --now 2026-10-09T15:00:00+09:00
+          python -u collectors/build_deadline_prediction_view.py --date 20261009
+          python -u collectors/build_family_race_compare_page.py --date 20261009 --predictions-root predictions --output-dir _recovery_repeat
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'collectors')
+          from race_prediction_store import audit_canonical,load_canonical
+          p=Path('predictions/2026/10/09/live/formation_predictions_final_20261009.json')
+          rows=json.loads(p.read_text(encoding='utf-8'))['races']
+          expected=json.loads(Path('/tmp/repeat_recovery_sig.json').read_text(encoding='utf-8'))
+          for x in rows:
+              if x['race_id'] in expected:
+                  saved={key:x.get(key) for key in expected[x['race_id']]}
+                  assert saved==expected[x['race_id']], ('repeat mutated data',x['race_id'])
+          report=audit_canonical(load_canonical('20261009'))
+          assert report['missing_signal_24']==0, report
+          html=Path('_recovery_repeat/race_compare.html').read_text(encoding='utf-8')
+          assert '5千円以上・事後捕捉' in html
+          print('REPEAT_RECOVERY_PRESERVES_SIGNAL_AND_PURCHASE_PASS', {
+              'checked_races':list(expected), 'total':report['total'],
+              'active_signals':report['active_signals'],
+              'missing_signal_24':report['missing_signal_24'],
+          })
           PY
