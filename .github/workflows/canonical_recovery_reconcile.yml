@@ -68,14 +68,19 @@ jobs:
           from recovery_live_overlay import load_verified_recovered_live
           d=os.environ['TARGET_DATE']
           recovered=load_verified_recovered_live(d)
-          summary=audit_canonical(load_canonical(d))
+          canonical=load_canonical(d)
+          summary=audit_canonical(canonical)
           print('CANONICAL_RECOVERY_AUDIT', {k:v for k,v in summary.items() if k!='details'})
+          by_id={row['race_id']:row for row in canonical['races']}
           for race_id in recovered:
-              row=next((x for x in load_canonical(d)['races'] if x['race_id']==race_id),None)
+              row=by_id.get(race_id)
               if row is None: raise SystemExit(f'Recovered race absent in canonical: {race_id}')
-              quality=(row.get('prediction_quality') or {})
+              quality=row.get('prediction_quality') or {}
               if quality.get('status')!='recovered_observation':
-                  raise SystemExit(f'Recovered race not consumed: {race_id}')
+                  # A genuinely saved live prediction has higher precedence
+                  # than retrospective recovery; never downgrade it.
+                  if row.get('prediction_type')!='直前' or quality.get('status')=='fallback':
+                      raise SystemExit(f'Recovered race unprocessed and no saved live: {race_id}')
               from race_prediction_store import audit_race
               state=audit_race(row)
               if state['signal_key'] and state['signal_ai_status']!='ready':
