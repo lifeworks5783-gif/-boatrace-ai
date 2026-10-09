@@ -7,6 +7,9 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+from race_prediction_store import canonical_path
+from build_latest_prediction_view import signal_field_is_verified
+
 CONFIG = Path("config/signal_ai/signal_ai_corrections_v1_20261008.json")
 BACKTEST = Path("evaluations/fujin_raijin/latest/backtest_details.csv")
 OUT = Path("evaluations/signal_ai/latest")
@@ -57,6 +60,25 @@ def load_live(date):
     return grouped
 
 
+def verified_signal_quality_by_race(date):
+    """Use the common pre-result canonical record for official scratch proof.
+
+    No result/order/payout enters prediction logic. Historical rows without
+    a canonical signal record remain six-boat only, never fabricated scratch.
+    """
+    path = canonical_path(date)
+    if not path.is_file():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if str(payload.get("target_date")) != date:
+        return {}
+    return {
+        norm_race_id(r.get("race_id")): r.get("prediction_quality") or {}
+        for r in payload.get("races") or []
+        if isinstance(r, dict)
+    }
+
+
 def _signal_inputs(ranked):
     """Normalize history CSV to the identical six-boat interface as live."""
     return [
@@ -71,15 +93,15 @@ def _signal_inputs(ranked):
     ]
 
 
-def derive_raijin(ranked):
+def derive_raijin(ranked, quality=None):
     from build_latest_prediction_view import build_up_signal
-    saved = build_up_signal(_signal_inputs(ranked))
+    saved = build_up_signal(_signal_inputs(ranked), quality)
     return int(saved.get("level") or 0), saved.get("candidates") or []
 
 
-def derive_fujin(ranked):
+def derive_fujin(ranked, quality=None):
     from build_latest_prediction_view import build_down_signal
-    saved = build_down_signal(_signal_inputs(ranked))
+    saved = build_down_signal(_signal_inputs(ranked), quality)
     return int(saved.get("level") or 0)
 
 
@@ -158,17 +180,20 @@ def main():
     details=[]
     skipped=[]
 
+    quality_maps = {}
     for date,truth_rows in sorted(by_date.items()):
         live=load_live(date)
+        quality_maps[date]=verified_signal_quality_by_race(date)
         for truth in truth_rows:
             rid=norm_race_id(truth.get("race_id"))
             rows=live.get(rid) or []
-            if len(rows)!=6:
-                skipped.append({"date":date,"race_id":rid,"reason":f"live_rows_{len(rows)}"})
-                continue
             ranked=sorted(rows,key=lambda x:(inum(x.get("rank"),99),inum(x.get("boat"),99)))
-            flevel=derive_fujin(ranked)
-            rlevel,rcands=derive_raijin(ranked)
+            quality=quality_maps[date].get(rid) or {}
+            if not signal_field_is_verified(_signal_inputs(ranked), quality):
+                skipped.append({"date":date,"race_id":rid,"reason":f"unverified_live_starters_{len(rows)}"})
+                continue
+            flevel=derive_fujin(ranked,quality)
+            rlevel,rcands=derive_raijin(ranked,quality)
             if flevel<=0 and rlevel<=0:
                 continue
             applied=apply_rule(ranked,flevel,rlevel,rcands,config)
@@ -216,7 +241,11 @@ def main():
             continue
         actual=f"{inum(tr.get('actual_winner'))}-{inum(tr.get('actual_second'))}-{inum(tr.get('actual_third'))}"
         date=d["date"]; live=load_live(date); ranked=sorted(live.get(d["race_id"]) or [],key=lambda x:(inum(x.get("rank"),99),inum(x.get("boat"),99)))
-        fl=derive_fujin(ranked); rl,rc=derive_raijin(ranked); applied=apply_rule(ranked,fl,rl,rc,config)
+        quality=quality_maps.get(date,{}).get(d["race_id"]) or {}
+        if not signal_field_is_verified(_signal_inputs(ranked), quality):
+            skipped.append({"date":date,"race_id":d["race_id"],"reason":"canonical_official_starter_verification_changed"})
+            continue
+        fl=derive_fujin(ranked,quality); rl,rc=derive_raijin(ranked,quality); applied=apply_rule(ranked,fl,rl,rc,config)
         if not applied: continue
         key,rule,adjusted,combos=applied
         rank=next((i for i,(_,c) in enumerate(combos,1) if c==actual),None)
