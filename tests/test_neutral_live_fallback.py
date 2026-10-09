@@ -223,6 +223,18 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         self.assertIn("公式展示復旧後に再判定",html_text)
         self.assertIn("原因",html_text)
 
+    def test_repeat_collection_does_not_erase_confirmed_official_st(self):
+        from today_beforeinfo import merge_official_beforeinfo_entries
+        first={"race_id":"20261009-10-10","boat":"3",
+               "exhibition_st_raw":".15","exhibition_time":"6.72","exhibition_course":"3",
+               "is_miss":"False"}
+        incomplete={**first,"exhibition_st_raw":""}
+        kept=merge_official_beforeinfo_entries([first],[incomplete])
+        self.assertEqual(kept[0]["exhibition_st_raw"],".15")
+        corrected={**first,"exhibition_st_raw":".12"}
+        upgraded=merge_official_beforeinfo_entries([incomplete],[corrected])
+        self.assertEqual(upgraded[0]["exhibition_st_raw"],".12")
+
     def test_neutral_is_recovery_pending_and_provenance_retained(self):
         rows=[
             {"race_id":"20261009-10-10","boat":1,"score_fallback":"False"},
