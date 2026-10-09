@@ -197,7 +197,7 @@ jobs:
           assert tokoname['signal_ai_prediction']['valid_combination_count']==60
           assert len({x['combination'] for x in tokoname['signal_ai_prediction']['combinations']})==24
           assert all('3' not in x['combination'].split('-') for x in tokoname['signal_ai_prediction']['combinations'])
-          card=next((x for x in cards if re.search(r'常滑\\s*8R', x)), None)
+          card=next((x for x in cards if re.search(r'常滑\s*8R', x)), None)
           assert card, 'Tokoname8 card is missing'
           assert ('雷神' in card or '⚡' in card), 'Tokoname8 signal missing in HTML'
           assert '直前予測なし' not in card, 'Tokoname8 official live missing in HTML'
