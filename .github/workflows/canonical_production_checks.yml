@@ -1,0 +1,55 @@
+name: Canonical production pipeline checks
+on:
+  push:
+    branches:
+      - refactor/canonical-prediction-pipeline-20261009
+    paths:
+      - 'collectors/**'
+      - 'config/production/**'
+      - 'tests/test_production_pipeline_contract.py'
+      - '.github/workflows/canonical_production_checks.yml'
+  pull_request:
+    paths:
+      - 'collectors/**'
+      - 'config/production/**'
+      - 'tests/test_production_pipeline_contract.py'
+      - '.github/workflows/canonical_production_checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing collectors dependencies
+        run: python -m pip install -q requests beautifulsoup4
+      - name: Check Python modules
+        run: |
+          python -m py_compile collectors/production_config.py collectors/build_morning_prediction.py collectors/build_live_prediction.py collectors/build_latest_prediction_view.py collectors/build_canonical_race_records.py collectors/build_deadline_prediction_view.py collectors/build_family_race_compare_page.py
+      - name: Regression tests
+        run: python -m unittest discover -s tests -p 'test_production_pipeline_contract.py' -v
+      - name: Smoke test using existing saved predictions (no network fetch)
+        run: |
+          python collectors/build_canonical_race_records.py --date 20261009
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('predictions/2026/10/09/canonical/race_predictions_20261009.json')
+          data=json.loads(p.read_text(encoding='utf-8'))
+          assert data['race_count']==len(data['races'])
+          for race in data['races']:
+              key=race['canonical_signal_key']
+              if key:
+                  assert race['canonical_strategy']!='normal_ai', race['race_id']
+              else:
+                  assert race['canonical_strategy']=='normal_ai', race['race_id']
+              assert not {'actual_trifecta','payout','result'} & set(race.keys())
+          print('canonical smoke PASS',data['race_count'],data['signal_races'],data['signal_24_unresolved'])
+          PY
