@@ -1137,6 +1137,9 @@ def locate_live_file(
 
 def locate_formation_file(root, target_date):
     yyyy, mm, dd = target_date[:4], target_date[4:6], target_date[6:8]
+    canonical = Path(root) / yyyy / mm / dd / "canonical" / f"race_predictions_{target_date}.json"
+    if canonical.is_file():
+        return canonical
     path = Path(root) / yyyy / mm / dd / "live" / f"formation_predictions_final_{target_date}.json"
     return path if path.is_file() else None
 
@@ -1527,6 +1530,10 @@ def up_signal_info(morning, live, formation_prediction=None):
         or raw_formation.get("up_signal")
         or {}
     )
+    # Canonical flags have already been resolved from the same pre-result
+    # record as the 24 dedicated AI tickets. Do not calculate them again.
+    if raw_formation.get("canonical_signal_source") and isinstance(stored, dict):
+        return stored
     # A previously saved morning-fallback signal must not override reconstructed
     # official pre-race scores for a recovered finished race.
     recovered_live = (live or {}).get("prediction_quality", {}).get("status") == "recovered_observation"
@@ -1618,6 +1625,11 @@ def up_signal_info(morning, live, formation_prediction=None):
 
 
 def down_signal_info(morning, live, formation_prediction=None):
+    formation_raw = (formation_prediction or {}).get("raw") or {}
+    if formation_raw.get("canonical_signal_source"):
+        stored = formation_raw.get("down_signal")
+        if isinstance(stored, dict):
+            return stored
     live_boats, quality, morning_source = _signal_source(
         morning,
         live,
@@ -2486,8 +2498,15 @@ def ai_score_result_html(prediction, trifecta, payout):
     if not prediction:
         return '<div class="simulation missing">AIスコア予測なし</div>'
     raw = prediction.get("raw") or {}
+    if raw.get("canonical_strategy") == "live_signal_pending_recovery":
+        return '<div class="simulation missing">直前公式データの復元待ち：風神雷神判定・購入成績は未評価（通常AI8点には振り替えません）</div>'
+    if raw.get("canonical_strategy") == "reduced_field_signal_not_evaluated":
+        return '<div class="simulation missing">出走5艇以下：公式直前スコアは復元済み。風神雷神の6艇判定・専用24点は対象外（非発動とは区別）</div>'
     signal = prediction.get("signal_ai_prediction") or raw.get("signal_ai_prediction") or {}
     is_signal = bool(signal and signal.get("signal_key"))
+    canonical_key = raw.get("canonical_signal_key")
+    if canonical_key and (not is_signal or signal.get("signal_key") != canonical_key):
+        return '<div class="simulation missing">シグナル発動済み・専用AI24点の復元が必要です（通常AIでは判定しません）</div>'
     ai = signal if is_signal else (
         prediction.get("ai_score_prediction") or raw.get("ai_score_prediction") or {}
     )
@@ -2733,6 +2752,8 @@ def load_ai_evaluation(target_date):
 def final_ai_prediction(row):
     """終了済みレースのAI予測は、結果を使わず事前生成済みformation保存値を最優先で使う。"""
     formation = row.get("formation_prediction")
+    if formation and (formation.get("raw") or {}).get("canonical_signal_key"):
+        return formation
     if formation and (
         formation.get("ai_score_prediction")
         or (formation.get("raw") or {}).get("ai_score_prediction")
@@ -2844,7 +2865,13 @@ def render_html(
             or raw_pred.get("signal_ai_prediction")
             or {}
         )
+        canonical_key = raw_pred.get("canonical_signal_key")
+        if canonical_key and signal_pred.get("signal_key") != canonical_key:
+            signal24_missing += 1
+            continue
         if not signal_pred.get("signal_key"):
+            if canonical_key:
+                signal24_missing += 1
             continue
         ranked_combinations = (
             signal_pred.get("all_120_combinations")
@@ -3044,7 +3071,7 @@ def render_html(
   <div class="label simulation-label">最終予測の買い目・100円/点シミュレーション</div>
   {simulation_html(row["formation_prediction"] or row["live"] or row["morning"], row["trifecta"], row["payout"])}
   <div class="label simulation-label">シグナル発動：専用AI24点／非発動：通常AIスコア予測</div>\n  <div class="simulation-meta">シグナル発動時は専用AI上位24点を各100円で照合し、投資・払戻・収支を計算</div>
-  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"]) if final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction")) else ai_eval_detail_html(row.get("ai_evaluation"))}
+  {ai_score_result_html(final_ai_prediction(row), row["trifecta"], row["payout"]) if final_ai_prediction(row) and (final_ai_prediction(row).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("ai_score_prediction") or (final_ai_prediction(row).get("raw") or {}).get("canonical_signal_key")) else ai_eval_detail_html(row.get("ai_evaluation"))}
 
   <div class="money-grid">
 

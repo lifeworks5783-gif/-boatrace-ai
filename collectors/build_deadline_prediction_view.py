@@ -139,6 +139,14 @@ def main():
         "predictions"
     ) / target_date[:4] / target_date[4:6] / target_date[6:8] / "live" / f"formation_predictions_final_{target_date}.json"
 
+    # Both screens consume the canonical persisted pre-result record.
+    canonical_path = (
+        Path("predictions") / target_date[:4] / target_date[4:6]
+        / target_date[6:8] / "canonical" / f"race_predictions_{target_date}.json"
+    )
+    if canonical_path.is_file():
+        source_path = canonical_path
+
     if not source_path.exists():
         source_path = Path(
             "predictions/latest.json"

@@ -1,0 +1,247 @@
+name: Canonical production pipeline checks
+on:
+  push:
+    branches:
+      - refactor/canonical-prediction-pipeline-20261009
+    paths:
+      - 'collectors/**'
+      - 'config/production/**'
+      - 'tests/test_production_pipeline_contract.py'
+      - '.github/workflows/canonical_production_checks.yml'
+  pull_request:
+    paths:
+      - 'collectors/**'
+      - 'config/production/**'
+      - 'tests/test_production_pipeline_contract.py'
+      - '.github/workflows/canonical_production_checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing collectors dependencies
+        run: python -m pip install -q requests beautifulsoup4
+      - name: Check Python modules
+        run: |
+          python -m py_compile collectors/production_config.py collectors/build_morning_prediction.py collectors/build_live_prediction.py collectors/build_latest_prediction_view.py collectors/build_canonical_race_records.py collectors/build_deadline_prediction_view.py collectors/build_family_race_compare_page.py
+      - name: Regression tests
+        run: python -m unittest discover -s tests -p 'test_production_pipeline_contract.py' -v
+      - name: Old versus new production morning scores (same 10/09 inputs)
+        run: |
+          mkdir -p /tmp/morning-old /tmp/morning-new
+          curl --fail --silent --show-error --location --retry 3 https://raw.githubusercontent.com/lifeworks5783-gif/-boatrace-ai/bf09ddae688628a6e24c481d24ea0ea92860be1b/collectors/build_morning_prediction.py --output /tmp/build_morning_legacy.py
+          INPUT=daily_inputs/2026/10/09/prediction_input_enriched_morning_20261009.json
+          test -s "$INPUT"
+          python /tmp/build_morning_legacy.py --date 20261009 --input "$INPUT" --output-dir /tmp/morning-old
+          python collectors/build_morning_prediction.py --date 20261009 --input "$INPUT" --output-dir /tmp/morning-new
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d='20261009'
+          def extract(root):
+              data=json.loads((Path(root)/f'morning_predictions_{d}.json').read_text(encoding='utf-8'))
+              return {r['race_id']: [(b['boat'],b['score'],b['rank']) for b in r['boats']] for r in data['races']}
+          old,new=extract('/tmp/morning-old'),extract('/tmp/morning-new')
+          assert len(old)>0 and old.keys()==new.keys(), ('race set mismatch',len(old),len(new))
+          mismatches=[rid for rid in old if old[rid]!=new[rid]]
+          assert not mismatches, ('score or rank changed', mismatches[:10])
+          print('REAL INPUT MORNING PARITY PASS',len(old),'races',sum(len(v) for v in old.values()),'boats')
+          PY
+      - name: Old versus new live scores on the same prepared exhibition inputs
+        run: |
+          mkdir -p .baseline_collectors
+          for script in build_morning_prediction.py build_live_prediction.py; do
+            curl --fail --silent --show-error --location --retry 3 "https://raw.githubusercontent.com/lifeworks5783-gif/-boatrace-ai/bf09ddae688628a6e24c481d24ea0ea92860be1b/collectors/$script" --output ".baseline_collectors/$script"
+          done
+          cat > /tmp/compare_live_scores.py <<'PY'
+          import copy, importlib.util, json, sys
+          from pathlib import Path
+          source=Path('daily_inputs/2026/10/09/prediction_input_enriched_morning_20261009.json')
+          races=json.loads(source.read_text(encoding='utf-8'))['races']
+          module_dir=Path(sys.argv[1]).resolve()
+          sys.path.insert(0,str(module_dir))
+          import build_live_prediction as live
+          results={}
+          for race in races[:20]:
+              r=copy.deepcopy(race)
+              boats=r.get('boats') or []
+              if len(boats)!=6: continue
+              for row in boats:
+                  n=int(row['boat'])
+                  row['beforeinfo']={
+                      'exhibition_course': n,
+                      'exhibition_time': 6.7 + n * .02,
+                      'exhibition_st': .08 + n * .02,
+                      'exhibition_st_raw': .08 + n * .02,
+                  }
+              try:
+                  computed=live.score_race(r,None)
+              except RuntimeError:
+                  continue
+              results[r['race_id']]=[(x['boat'],x['score'],x['rank']) for x in computed]
+              if len(results)>=8: break
+          assert results, 'no comparable live races'
+          Path(sys.argv[2]).write_text(json.dumps(results),encoding='utf-8')
+          print('live sample',len(results))
+          PY
+          python /tmp/compare_live_scores.py .baseline_collectors /tmp/old-live-scores.json
+          python /tmp/compare_live_scores.py collectors /tmp/new-live-scores.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/old-live-scores.json'))
+          y=json.load(open('/tmp/new-live-scores.json'))
+          assert x.keys()==y.keys(), ('live input outcomes diverged',x.keys(),y.keys())
+          errors=[r for r in x if x[r]!=y[r]]
+          assert not errors, ('LIVE SCORE MISMATCH',errors[:10])
+          print('SAME INPUT LIVE PARITY PASS',len(x),'races')
+          PY
+      - name: Old versus new complete formation and signal AI for saved 10/09 races
+        run: |
+          mkdir -p .baseline_collectors
+          curl --fail --silent --show-error --location --retry 3 https://raw.githubusercontent.com/lifeworks5783-gif/-boatrace-ai/bf09ddae688628a6e24c481d24ea0ea92860be1b/collectors/build_latest_prediction_view.py --output .baseline_collectors/build_latest_prediction_view.py
+          cat > /tmp/compare_saved_models.py <<'PY'
+          import importlib.util, json, sys
+          from pathlib import Path
+          source=Path('predictions/2026/10/09/live/formation_predictions_final_20261009.json')
+          original=json.loads(source.read_text(encoding='utf-8'))['races']
+          source_file=Path(sys.argv[1])
+          sys.path.insert(0,str(source_file.parent.resolve()))
+          spec=importlib.util.spec_from_file_location('target_latest_module',source_file)
+          module=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          config=module.load_signal_ai_config()
+          result=[]
+          for row in original:
+              boats=module.ranked_boats(row)
+              if len(boats)<3: continue
+              formation=module.build_formation(boats)
+              if len(boats)==6:
+                  up=module.build_up_signal(boats,row.get('prediction_quality') or {})
+                  down=module.build_down_signal(boats,row.get('prediction_quality') or {})
+                  signal=module.build_signal_ai_prediction(boats,up,down,config)
+              else:
+                  up=down=signal=None
+              result.append({
+                  'race_id':row['race_id'],'formation':formation,
+                  'fujin':(down or {}).get('level',0),'raijin':(up or {}).get('level',0),
+                  'top24':[(x['combination'],x['score']) for x in ((signal or {}).get('combinations') or [])]
+              })
+          Path(sys.argv[2]).write_text(json.dumps(result,ensure_ascii=False),encoding='utf-8')
+          print('checked',len(result),'races')
+          PY
+          python /tmp/compare_saved_models.py .baseline_collectors/build_latest_prediction_view.py /tmp/baseline_combo.json
+          python /tmp/compare_saved_models.py collectors/build_latest_prediction_view.py /tmp/refactor_combo.json
+          python - <<'PY'
+          import json
+          a=json.load(open('/tmp/baseline_combo.json'))
+          b=json.load(open('/tmp/refactor_combo.json'))
+          mismatches=[(x['race_id'],y['race_id']) for x,y in zip(a,b) if x!=y]
+          assert len(a)==len(b) and len(a)>100 and not mismatches,(len(a),len(b),mismatches[:8])
+          print('COMPLETE FORMATION+SIGNAL PARITY PASS',len(a),'races')
+          PY
+      - name: Retrospective canonical replay on 10/08 saved races
+        run: |
+          python collectors/build_canonical_race_records.py --date 20261008
+          python - <<'PY'
+          import json
+          p='predictions/2026/10/08/canonical/race_predictions_20261008.json'
+          data=json.load(open(p,encoding='utf-8'))
+          assert data['race_count']>=100, data['race_count']
+          assert data['signal_races']==data['signal_24_ready']+data['signal_24_unresolved']
+          for row in data['races']:
+              assert not (row['canonical_signal_key'] and row['canonical_strategy']=='normal_ai')
+          print('HISTORICAL CANONICAL PASS',data['race_count'],data['signal_races'],data['signal_24_ready'],data['signal_24_unresolved'])
+          PY
+      - name: Completed race page signal and dedicated 24-point display integrity
+        run: |
+          mkdir -p /tmp/canonical-public
+          python collectors/build_family_race_compare_page.py --date 20261008 --output-dir /tmp/canonical-public
+          python - <<'PY'
+          from pathlib import Path
+          from bs4 import BeautifulSoup
+          html=Path('/tmp/canonical-public/race_compare.html').read_text(encoding='utf-8')
+          doc=BeautifulSoup(html,'html.parser')
+          cards=doc.select('article.race-card')
+          assert len(cards)>=100, ('too few completed races',len(cards))
+          flagged=0
+          for card in cards:
+              marker=card.select('.race-title .signal-row:not(.empty-signal)')
+              title=card.select_one('.ai-result-summary .simulation-title')
+              summary=card.select_one('.ai-result-summary-meta')
+              if marker:
+                  flagged+=1
+                  assert title is not None and '風神雷神専用AI予想' in title.get_text(), ('signal card missing AI24 title',card.get_text(' ',strip=True)[:150])
+                  assert summary is not None and '購入24点' in summary.get_text(' ',strip=True), 'signal card missing 24-ticket settlement'
+          assert flagged>=100, ('too few signal cards',flagged)
+          print('COMPLETED SCREEN 24-TICKET INTEGRATION PASS',len(cards),'completed',flagged,'signal')
+          PY
+      - name: AI signal performance and analysis pages from canonical predictions
+        run: |
+          python collectors/evaluate_signal_ai_performance.py
+          python collectors/evaluate_signal_pdca_cross.py
+          mkdir -p /tmp/canonical-analysis
+          python collectors/build_family_results_page.py --evaluations-root evaluations --output-dir /tmp/canonical-analysis
+          python collectors/build_family_signal_analysis_page.py --evaluations-root evaluations --output-dir /tmp/canonical-analysis
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          rows=list(csv.DictReader(open('evaluations/signal_ai/latest/details.csv',encoding='utf-8')))
+          day=[r for r in rows if r.get('date')=='20261008']
+          assert len(day)>=100, ('too few signal-AI reconciliations',len(day))
+          assert all(str(r['signal_key']).startswith('F') for r in day)
+          assert Path('/tmp/canonical-analysis/results.html').stat().st_size>100
+          assert Path('/tmp/canonical-analysis/analysis.html').stat().st_size>100
+          cross=json.load(open('evaluations/signal_pdca_cross/latest/summary.json'))
+          print('AI ANALYSIS FROM CANONICAL PASS',len(day),'20261008 signal races',cross.get('total_races'))
+          PY
+      - name: Smoke test using existing saved predictions (no network fetch)
+        run: |
+          python collectors/build_canonical_race_records.py --date 20261009
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('predictions/2026/10/09/canonical/race_predictions_20261009.json')
+          data=json.loads(p.read_text(encoding='utf-8'))
+          assert data['race_count']==len(data['races'])
+          for race in data['races']:
+              key=race['canonical_signal_key']
+              if key:
+                  assert race['canonical_strategy']!='normal_ai', race['race_id']
+              else:
+                  assert race['canonical_strategy'] in ('normal_ai','live_signal_pending_recovery','reduced_field_signal_not_evaluated'), race['race_id']
+              assert not {'actual_trifecta','payout','result'} & set(race.keys())
+          from pathlib import Path
+          manifest=json.loads(Path('evaluations/2026/10/09/recovery/live_recovery_manifest_20261009.json').read_text(encoding='utf-8'))
+          recovered=[r for r in data['races'] if r.get('retrospective_signal_recovery')]
+          reduced=[r for r in recovered if r['canonical_strategy']=='reduced_field_signal_not_evaluated']
+          assert len(recovered)==len(manifest['recovered_races']), (
+              'recovered races still missing',len(recovered),len(manifest['recovered_races']))
+          assert len(reduced)==1, [('unexpected reduced fields',r['race_id']) for r in reduced]
+          print('canonical smoke PASS',data['race_count'],data['signal_races'],data['signal_24_unresolved'],
+                'recovered',len(recovered),'reduced',len(reduced))
+          PY
+      - name: Latest page uses the same canonical race source
+        run: |
+          python collectors/build_deadline_prediction_view.py --date 20261009
+          mkdir -p /tmp/canonical-latest
+          python collectors/build_family_prediction_page.py --input predictions/latest_by_deadline.json --output-dir /tmp/canonical-latest
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.load(open('predictions/latest_by_deadline.json'))
+          assert p['race_count']>=100
+          assert all(r.get('canonical_signal_source') is True for r in p['races'])
+          signal=sum(bool(r.get('canonical_signal_key')) for r in p['races'])
+          html=Path('/tmp/canonical-latest/index.html').read_text(encoding='utf-8')
+          assert len(html)>10000
+          print('LATEST CANONICAL PAGE PASS',p['race_count'],'races,',signal,'signals')
+          PY

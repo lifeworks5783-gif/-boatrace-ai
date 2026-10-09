@@ -13,6 +13,10 @@ from urllib.request import Request, urlopen
 
 import requests
 from bs4 import BeautifulSoup
+from production_config import load_config
+
+SIGNAL_RULES, SIGNAL_RULES_META = load_config("signal")
+PURCHASE_RULES, PURCHASE_RULES_META = load_config("purchase")
 
 
 JST = timezone(timedelta(hours=9))
@@ -267,7 +271,7 @@ def build_up_signal(
         ):
             continue
         rise = live_score - morning_score
-        if rise >= 7.5:
+        if rise >= SIGNAL_RULES["raijin"]["rise_min"]:
             candidates.append({
                 "boat": boat,
                 "rank": live_rank,
@@ -281,7 +285,7 @@ def build_up_signal(
     )
     has_score50 = any(
         item.get("score") is not None
-        and item["score"] >= 50.0
+        and item["score"] >= SIGNAL_RULES["raijin"]["level3_score_min"]
         for item in candidates
     )
     if max_rise is None:
@@ -289,7 +293,7 @@ def build_up_signal(
     elif has_score50:
         # Lv3: 通常予測スコア50以上まで浮上した雷神対象艇がいる。
         level = 3
-    elif max_rise >= 10.0:
+    elif max_rise >= SIGNAL_RULES["raijin"]["level2_rise_min"]:
         # Lv2: +10以上。Lv3条件に該当しない限り上限なし。
         level = 2
     else:
@@ -303,12 +307,12 @@ def build_up_signal(
         "system_name": SIGNAL_SYSTEM_NAME,
         "signal_name": "雷神",
         "thresholds": {
-            "level1_rise_min": 7.5,
-            "level1_rise_max_exclusive": 10.0,
-            "level2_rise_min": 10.0,
+            "level1_rise_min": SIGNAL_RULES["raijin"]["rise_min"],
+            "level1_rise_max_exclusive": SIGNAL_RULES["raijin"]["level2_rise_min"],
+            "level2_rise_min": SIGNAL_RULES["raijin"]["level2_rise_min"],
             "level2_rise_max": None,
-            "level3_candidate_score_min": 50.0,
-            "level3_candidate_rise_min": 7.5,
+            "level3_candidate_score_min": SIGNAL_RULES["raijin"]["level3_score_min"],
+            "level3_candidate_rise_min": SIGNAL_RULES["raijin"]["rise_min"],
             "outside_live_top3": True,
             "level3_priority": True,
         },
@@ -376,17 +380,17 @@ def build_down_signal(
         {
             "id": "rank1_drop_5",
             "label": "直前1位が朝比-5点以下",
-            "met": rank1_delta <= -5.0,
+            "met": rank1_delta <= SIGNAL_RULES["fujin"]["conditions"]["rank1_drop_5"],
         },
         {
             "id": "top3_total_drop_10",
             "label": "直前TOP3合計が朝比-10点以下",
-            "met": top3_delta_sum <= -10.0,
+            "met": top3_delta_sum <= SIGNAL_RULES["fujin"]["conditions"]["top3_total_drop_10"],
         },
         {
             "id": "rank1_drop_close_gap",
             "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
-            "met": rank1_delta <= -3.0 and gap12 <= 5.0,
+            "met": rank1_delta <= SIGNAL_RULES["fujin"]["conditions"]["rank1_drop_close_gap"]["max_drop"] and gap12 <= SIGNAL_RULES["fujin"]["conditions"]["rank1_drop_close_gap"]["max_gap"],
         },
     ]
     reasons = [
@@ -394,7 +398,7 @@ def build_down_signal(
         for item in criteria
         if item["met"]
     ]
-    level = min(3, len(reasons))
+    level = min(SIGNAL_RULES["fujin"]["level_cap"], len(reasons))
 
     return {
         "available": True,
@@ -509,18 +513,24 @@ def build_signal_ai_prediction(boats, up_signal, down_signal, config):
     combos = []
     boats_available = sorted(adjusted)
     for first, second, third in itertools.permutations(boats_available, 3):
-        score = adjusted[first] * 0.50 + adjusted[second] * 0.30 + adjusted[third] * 0.20
+        purchase_weights = PURCHASE_RULES["signal_ai"]["ranking_formula"]
+        score = adjusted[first] * purchase_weights["first"] + adjusted[second] * purchase_weights["second"] + adjusted[third] * purchase_weights["third"]
         combos.append({
             "combination": f"{first}-{second}-{third}",
             "score": round(score, 3),
         })
     combos.sort(key=lambda x: (-x["score"], x["combination"]))
 
-    candidate_points = min(int(config.get("candidate_points") or 24), len(combos))
+    required_points = int(PURCHASE_RULES["signal_ai"]["purchase_points"])
+    if int(config.get("candidate_points") or 0) != required_points:
+        raise RuntimeError("シグナルAIの補正設定と購入点数設定が一致しません")
+    candidate_points = min(required_points, len(combos))
     return {
         "model_version": config.get("model_version") or SIGNAL_AI_MODEL_VERSION,
         "logic_effective_date": config.get("effective_date"),
         "logic_config_source": config.get("_source"),
+        "signal_rules_config": SIGNAL_RULES_META,
+        "purchase_rules_config": PURCHASE_RULES_META,
         "status": "active_signal_ai",
         "normal_prediction_unchanged": True,
         "signal_key": rule_key,
@@ -1003,16 +1013,11 @@ def combo_strength(
 ):
     first, second, third = combo
 
+    weights = PURCHASE_RULES["normal_formation"]["ranking_formula"]
     return (
-        score_by_boat[
-            first
-        ] * 0.50
-        + score_by_boat[
-            second
-        ] * 0.30
-        + score_by_boat[
-            third
-        ] * 0.20
+        score_by_boat[first] * weights["first"]
+        + score_by_boat[second] * weights["second"]
+        + score_by_boat[third] * weights["third"]
     )
 
 
@@ -1094,12 +1099,17 @@ def build_formation(
     gap12 = scores[0] - scores[1]
     gap23 = scores[1] - scores[2]
     gap34 = scores[2] - scores[3] if len(scores) >= 4 else None
+    thresholds = PURCHASE_RULES["normal_formation"]["thresholds"]
+    maxima = PURCHASE_RULES["normal_formation"]["max_points"]
+    close = thresholds["close_gap_max_exclusive"]
+    strong = thresholds["strong_gap_min"]
+    semi = thresholds["semi_anchor_gap_min"]
 
     # 流しルール:
     # 1) 1・2位が接近し、3位以下と明確な差 -> 1・2着折返し＋3着流し
     # 2) 1位が強く、2位も3位以下と明確な差 -> 1着・2着固定＋3着流し
     # 3) 1位だけ強い -> 1着固定＋2・3着相手流し
-    if gap12 < 5.0 and gap23 >= 10.0:
+    if gap12 < close and gap23 >= strong:
         formation_type = "1・2着折返し＋3着流し"
         top1, top2 = order[0], order[1]
         tail = order[2:]
@@ -1112,7 +1122,7 @@ def build_formation(
         second_candidates = [top1, top2]
         third_candidates = tail
 
-    elif gap12 >= 10.0 and gap23 >= 10.0:
+    elif gap12 >= strong and gap23 >= strong:
         formation_type = "1・2着固定＋3着流し"
         top1, top2 = order[0], order[1]
         tail = order[2:]
@@ -1121,7 +1131,7 @@ def build_formation(
         second_candidates = [top2]
         third_candidates = tail
 
-    elif gap12 >= 10.0:
+    elif gap12 >= strong:
         formation_type = "1着固定＋相手流し"
         top1 = order[0]
         tail = order[1:]
@@ -1138,12 +1148,12 @@ def build_formation(
             )
         )
         # 点数過多を避けつつ従来4点より広げる
-        combinations = combinations[:12]
+        combinations = combinations[:maxima["single_anchor"]]
         first_candidates = [top1]
         second_candidates = tail
         third_candidates = tail
 
-    elif gap12 >= 5.0:
+    elif gap12 >= semi:
         formation_type = "準軸"
         first_candidates = order[:2]
         second_candidates = order[:3]
@@ -1159,7 +1169,7 @@ def build_formation(
                 combo,
             )
         )
-        combinations = combinations[:8]
+        combinations = combinations[:maxima["semi_anchor"]]
 
     else:
         formation_type = "混戦"
@@ -1177,7 +1187,7 @@ def build_formation(
                 combo,
             )
         )
-        combinations = combinations[:12]
+        combinations = combinations[:maxima["chaos"]]
 
     return {
         "model_version": FORMATION_MODEL,
@@ -1900,6 +1910,16 @@ def main():
             "prediction_type": (
                 prediction_type
             ),
+            # Source model is the one that actually created these saved
+            # scores, not the version currently active at page-render time.
+            "score_model_version": (
+                race.get("score_model_version")
+                or (live_payload if race_id in live else morning_payload).get("model_version")
+            ),
+            "score_logic_config": (
+                race.get("logic_config")
+                or (live_payload if race_id in live else morning_payload).get("logic_config")
+            ),
             "prediction_quality": (
                 prediction_quality
             ),
@@ -2060,6 +2080,11 @@ def main():
         formation_csv,
         all_rows,
     )
+
+    # The completed and upcoming screens share one pre-result read model.
+    # Build it atomically immediately after the persisted formation output.
+    from build_canonical_race_records import build as build_canonical_races
+    build_canonical_races(target_date)
 
     upcoming_rows.sort(
         key=lambda item: (

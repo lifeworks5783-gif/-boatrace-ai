@@ -22,6 +22,9 @@ on:
       - "collectors/build_family_prediction_page.py"
       - "predictions/**"
       - "collectors/build_latest_prediction_view.py"
+      - "collectors/build_canonical_race_records.py"
+      - "collectors/production_config.py"
+      - "config/production/**"
       - "collectors/build_deadline_prediction_view.py"
       - "collectors/build_family_race_compare_page.py"
       - "collectors/build_family_results_page.py"
@@ -71,6 +74,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: 共通予測モデルの読み込み依存を準備
+        run: python -m pip install -q requests beautifulsoup4
+
       - name: 家族共有フォルダを準備
         run: |
           rm -rf _family_site
@@ -84,6 +90,7 @@ jobs:
           # 最新情報は保存済みformationを正本に、毎回締切順JSONを再生成する。
           # これにより up_signal/down_signal を含む最新フィールドが表示側へ必ず同期される。
           if test -s "$FORMATION_PATH"; then
+            python -u collectors/build_canonical_race_records.py --date "$TODAY_JST"
             python -u collectors/build_deadline_prediction_view.py \
               --date "$TODAY_JST"
           fi
@@ -157,6 +164,13 @@ jobs:
           test -n "${TARGET_DATE}"
 
           echo "レース照合対象日: ${TARGET_DATE}"
+
+          TARGET_CANONICAL="predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/canonical/race_predictions_${TARGET_DATE}.json"
+          TARGET_FORMATION="predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/live/formation_predictions_final_${TARGET_DATE}.json"
+          if test -s "$TARGET_FORMATION"; then
+            python -u collectors/build_canonical_race_records.py --date "$TARGET_DATE"
+            test -s "$TARGET_CANONICAL"
+          fi
 
           python -u collectors/build_family_race_compare_page.py \
             --date "${TARGET_DATE}" \

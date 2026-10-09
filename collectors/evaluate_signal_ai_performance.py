@@ -52,6 +52,29 @@ def load_live(date):
             boat=inum(row.get("boat"))
             if rid and boat is not None:
                 rows_by_key[(rid,boat)] = row
+    # Whenever a canonical pre-result race record exists, use its stored
+    # scored boats, signal flags and signal-AI tickets instead of independently
+    # recomputing this date from a differently sourced live CSV.
+    canonical=Path("predictions")/y/m/d/"canonical"/f"race_predictions_{date}.json"
+    if canonical.is_file():
+        payload=json.loads(canonical.read_text(encoding="utf-8"))
+        for race in payload.get("races") or []:
+            if race.get("prediction_type") != "直前":
+                continue
+            rid=norm_race_id(race.get("race_id"))
+            boats=race.get("boats") or []
+            if len(boats)!=6 or not rid:
+                continue
+            for boat in boats:
+                number=inum(boat.get("boat"))
+                if number is None: continue
+                rows_by_key[(rid,number)]={
+                    **boat,
+                    "_canonical_up":race.get("up_signal") or {},
+                    "_canonical_down":race.get("down_signal") or {},
+                    "_canonical_signal_ai":race.get("signal_ai_prediction") or {},
+                    "_canonical_signal_key":race.get("canonical_signal_key"),
+                }
     grouped=defaultdict(list)
     for (rid,_),row in rows_by_key.items():
         grouped[rid].append(row)
@@ -59,6 +82,9 @@ def load_live(date):
 
 
 def derive_raijin(ranked):
+    if ranked and "_canonical_up" in ranked[0]:
+        stored=ranked[0]["_canonical_up"]
+        return inum(stored.get("level"),0), stored.get("candidates") or []
     candidates=[]
     for rank,row in enumerate(ranked,1):
         if rank <= 3:
@@ -85,6 +111,8 @@ def derive_raijin(ranked):
 
 
 def derive_fujin(ranked):
+    if ranked and "_canonical_down" in ranked[0]:
+        return inum(ranked[0]["_canonical_down"].get("level"),0)
     if len(ranked) != 6:
         return 0
     scores=[fnum(x.get("score")) for x in ranked]
@@ -103,6 +131,18 @@ def derive_fujin(ranked):
 
 def apply_rule(ranked, flevel, rlevel, rcands, config):
     key=f"F{flevel}R{rlevel}"
+    if ranked and "_canonical_signal_key" in ranked[0]:
+        saved=ranked[0].get("_canonical_signal_ai") or {}
+        combos=saved.get("all_120_combinations") or saved.get("combinations") or []
+        if saved.get("signal_key") != key or len(combos)<24:
+            return None
+        ranked_tickets=[(fnum(row.get("score"),0.0), str(row.get("combination") or "")) for row in combos]
+        scores={
+            inum(boat.get("boat")):fnum(boat.get("signal_ai_score"))
+            for boat in saved.get("boat_scores") or []
+        }
+        rule=saved.get("rule") or (config.get("rules") or {}).get(key) or {}
+        return key,rule,scores,ranked_tickets
     rule=(config.get("rules") or {}).get(key)
     if not rule:
         return None

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "model_id": "fujin_raijin_signal_v1",
+  "effective_date": "20261009",
+  "status": "exact_current_production_values",
+  "raijin": {
+    "rule_version": "raijin_signal_v1_20261008",
+    "eligible_live_ranks": [
+      4,
+      5,
+      6
+    ],
+    "rise_min": 7.5,
+    "level2_rise_min": 10,
+    "level3_score_min": 50,
+    "level3_priority": true
+  },
+  "fujin": {
+    "rule_version": "down_signal_v0_20261007",
+    "level_cap": 3,
+    "conditions": {
+      "rank1_drop_5": -5,
+      "top3_total_drop_10": -10,
+      "rank1_drop_close_gap": {
+        "max_drop": -3,
+        "max_gap": 5
+      }
+    }
+  },
+  "ai_corrections_config": "config/signal_ai/signal_ai_corrections_v1_20261008.json",
+  "no_signal_key": "F0R0",
+  "result_input_prohibited": true
+}

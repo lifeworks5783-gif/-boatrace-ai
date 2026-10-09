@@ -9,6 +9,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import build_morning_prediction as morning
+from production_config import load_config
+
+LIVE_CONFIG, LIVE_CONFIG_META = load_config("live")
+LIVE_WEIGHTS = LIVE_CONFIG["score_weights"]
 
 JST = timezone(timedelta(hours=9))
 MODEL_VERSION = "provisional_v5_20261007_live_saved_morning_fallback"
@@ -232,22 +236,22 @@ def personal_st_delta_score(boat):
     st = get_exhibition_st(boat)
     is_f = get_exhibition_f(boat) or (st is not None and st < 0)
     if is_f:
-        return 0.4
+        return LIVE_CONFIG["st_exhibition_f_value"]
     racer = boat.get("racer") or {}
     reg = text(racer.get("registration_no"))
     st_map=racer_st90_map()
     samples, avg = st_map.get(reg, (0, None))
     # 90日STが使えない場合は、展示進入コースに対応する保存済み長期実績を参照する。
     # 長期履歴は標本10走未満でも「実データ」として使い、欠損時の中立0.5より優先する。
-    if avg is None or samples < 10:
+    if avg is None or samples < LIVE_CONFIG["st_min_races"]:
         course=text(get_exhibition_course(boat) or boat.get("boat"))
         fs, favg=st_map.get((reg,course),(0,None))
         if favg is not None:
             samples,avg=fs,favg
     if st is None or avg is None:
-        return 0.5
+        return LIVE_CONFIG["st_neutral"]
     delta = st - avg
-    return max(0.0, min(1.0, 0.5 - delta / 0.12))
+    return max(0.0, min(1.0, LIVE_CONFIG["st_neutral"] - delta / LIVE_CONFIG["st_delta_denominator_seconds"]))
 
 
 def rank_exhibition_st(boats):
@@ -264,7 +268,7 @@ def rank_exhibition_st(boats):
 
 
 def component_exst(lane, boat, ranks):
-    weight = 14.0
+    weight = LIVE_WEIGHTS["exhibition_st"] * 100.0
     st = get_exhibition_st(boat)
     is_f = get_exhibition_f(boat) or (st is not None and st < 0)
     raw = 0.0 if is_f else ranks.get(lane)
@@ -406,7 +410,7 @@ def score_race(race, public_store, feature_manifest=None, saved_morning_race=Non
         if lane not in st_delta_scores: st_delta_scores[lane]=0.5
     scored=[]
     for boat in boats:
-        lane=to_int(boat.get("boat")); live01=.80*(structural[lane]/100.0)+.06*time_ranks[lane]+.14*st_delta_scores[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
+        lane=to_int(boat.get("boat")); live01=LIVE_WEIGHTS["structural"]*(structural[lane]/100.0)+LIVE_WEIGHTS["exhibition_time"]*time_ranks[lane]+LIVE_WEIGHTS["exhibition_st"]*st_delta_scores[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
         if lane not in structural_details:
             raise RuntimeError(f"直前基礎要素欠損: {race.get('race_id')} {lane}号艇")
         sd = structural_details[lane]
@@ -426,10 +430,10 @@ def score_race(race, public_store, feature_manifest=None, saved_morning_race=Non
                 "motor":{"weight":20.0,"raw_score_0_1":round(sd["motor"],6),"available":True},
                 "boat":{"weight":5.0,"raw_score_0_1":round(sd["boat"],6),"available":True},
                 "national_top2":{"weight":15.0,"raw_score_0_1":round(sd["national_top2"],6),"available":True},
-                "structural":{"weight":80.0,"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},
-                "exTime":{"weight":6.0,"raw_score_0_1":round(time_ranks[lane],6),"available":True},
-                "exST":{"weight":14.0,"raw_score_0_1":round(st_delta_scores[lane],6),"available":True,
-                        "method":"personal_d90_st_delta","delta_full_scale_seconds":0.06,"f_score":0.4}
+                "structural":{"weight":LIVE_WEIGHTS["structural"]*100.0,"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},
+                "exTime":{"weight":LIVE_WEIGHTS["exhibition_time"]*100.0,"raw_score_0_1":round(time_ranks[lane],6),"available":True},
+                "exST":{"weight":LIVE_WEIGHTS["exhibition_st"]*100.0,"raw_score_0_1":round(st_delta_scores[lane],6),"available":True,
+                        "method":"personal_d90_st_delta","delta_full_scale_seconds":LIVE_CONFIG["st_delta_denominator_seconds"]/2,"f_score":LIVE_CONFIG["st_exhibition_f_value"]}
             }
         })
     scored.sort(key=lambda x:(-x["score"],x["boat"]))
@@ -696,6 +700,8 @@ def main():
                 "race_name": race.get("race_name"),
                 "deadline": race.get("deadline"),
                 "generated_at": now.isoformat(),
+                "score_model_version": MODEL_VERSION,
+                "logic_config": LIVE_CONFIG_META,
                 "prediction_quality": prediction_quality,
                 "live_data_counts": {
                     "exhibition_course": course_count,
@@ -748,7 +754,7 @@ def main():
             "model_version": MODEL_VERSION,
             "target_date": target_date,
             "generated_at": now.isoformat(),
-            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": "included_in_exST", "environment": 0.0},
+            "weights": {"structural": LIVE_WEIGHTS["structural"]*100.0, "exhibition_time": LIVE_WEIGHTS["exhibition_time"]*100.0, "exhibition_st": LIVE_WEIGHTS["exhibition_st"]*100.0, "F": "included_in_exST", "environment": 0.0},
             "input_race_count": len(races),
             "prediction_race_count": len(predicted_races),
             "prediction_boat_count": len(csv_rows),
@@ -774,7 +780,7 @@ def main():
             "target_date": target_date,
             "prediction_stage": "live",
             "generated_at": now.isoformat(),
-            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
+            "weights": {"structural": LIVE_WEIGHTS["structural"]*100.0, "exhibition_time": LIVE_WEIGHTS["exhibition_time"]*100.0, "exhibition_st": LIVE_WEIGHTS["exhibition_st"]*100.0, "F": 0.0, "environment": 0.0},
             "live_policy": {
                 "course": "32点を展示進入コースへ差し替え",
                 "exhibition_st": "本人90日平均STとの差を14%評価。±0.06秒で最大補正、展示F=0.4、90日ST10走未満/欠損=0.5",
@@ -843,7 +849,7 @@ def main():
             "target_date": target_date,
             "prediction_stage": "live_final",
             "updated_at": now.isoformat(),
-            "weights": {"structural": 80.0, "exhibition_time": 6.0, "exhibition_st": 14.0, "F": 0.0, "environment": 0.0},
+            "weights": {"structural": LIVE_WEIGHTS["structural"]*100.0, "exhibition_time": LIVE_WEIGHTS["exhibition_time"]*100.0, "exhibition_st": LIVE_WEIGHTS["exhibition_st"]*100.0, "F": 0.0, "environment": 0.0},
             "race_count": len(final_races),
             "boat_count": len(final_rows),
             "selection_rule": (

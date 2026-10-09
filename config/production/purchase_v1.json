@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "model_id": "purchase_policy_v1",
+  "effective_date": "20261009",
+  "status": "exact_current_production_values",
+  "stake_yen_per_ticket": 100,
+  "signal_ai": {
+    "enabled_when": "fujin_level>0 or raijin_level>0",
+    "purchase_points": 24,
+    "candidate_pool": "pre_result_all_120_combinations",
+    "ranking_formula": {
+      "first": 0.5,
+      "second": 0.3,
+      "third": 0.2
+    },
+    "when_incomplete": "error_no_normal_ai_fallback"
+  },
+  "normal_ai": {
+    "purchase_points_source": "config/ai_score/20261005.json",
+    "default_points": 8,
+    "independent_accounting": true
+  },
+  "normal_formation": {
+    "rules": [
+      {
+        "name": "1・2着折返し＋3着流し",
+        "when": "gap12 < 5 and gap23 >= 10",
+        "points": "2*(boats-2)"
+      },
+      {
+        "name": "1・2着固定＋3着流し",
+        "when": "gap12 >= 10 and gap23 >= 10",
+        "points": "boats-2"
+      },
+      {
+        "name": "1着固定＋相手流し",
+        "when": "gap12 >= 10",
+        "max_points": 12
+      },
+      {
+        "name": "準軸",
+        "when": "gap12 >= 5",
+        "max_points": 8
+      },
+      {
+        "name": "混戦",
+        "when": "otherwise",
+        "max_points": 12
+      }
+    ],
+    "thresholds": {
+      "close_gap_max_exclusive": 5,
+      "strong_gap_min": 10,
+      "semi_anchor_gap_min": 5
+    },
+    "ranking_formula": {
+      "first": 0.5,
+      "second": 0.3,
+      "third": 0.2
+    },
+    "max_points": {
+      "single_anchor": 12,
+      "semi_anchor": 8,
+      "chaos": 12
+    }
+  },
+  "settlement": "never_edit_predictions_using_result_or_payout"
+}

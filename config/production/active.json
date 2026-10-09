@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "status": "staged_do_not_retroactively_overwrite_history",
+  "models": {
+    "morning": "config/production/morning_v1.json",
+    "live": "config/production/live_v1.json",
+    "signal": "config/production/signal_v1.json",
+    "purchase": "config/production/purchase_v1.json"
+  },
+  "historical_policy": "Persist active config IDs and SHA-256 with each prediction; never use today's active values to silently recompute historical predictions.",
+  "rules": [
+    "No results or payout in model input",
+    "Each race has exactly one canonical ID",
+    "Signal source is a scored live observation, never result-derived",
+    "F0R0 has no signal AI purchase",
+    "Active signal requires 24 pre-result ticket combinations",
+    "Normal prediction and signal purchases remain separate ledgers"
+  ]
+}
