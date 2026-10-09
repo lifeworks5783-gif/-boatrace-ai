@@ -66,6 +66,14 @@ jobs:
           echo "RESULT_COUNT=${RESULT_COUNT}" >> "$GITHUB_ENV"
           echo "終了済み結果: ${RESULT_COUNT}R"
 
+      - name: 復旧・照合のPython構文検証
+        run: |
+          python -m py_compile collectors/recover_missing_live_for_analysis.py
+          python -m py_compile collectors/build_family_race_compare_page.py
+          python -m py_compile collectors/evaluate_predictions.py
+          python -m py_compile collectors/evaluate_down_signal.py
+          python -m py_compile collectors/audit_daily_completeness.py
+
       - name: 終了済みレースの直前スコアとシグナル評価元データを復元
         if: env.RESULT_COUNT != '0'
         run: |
