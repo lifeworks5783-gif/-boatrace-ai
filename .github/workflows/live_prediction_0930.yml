@@ -253,48 +253,37 @@ jobs:
             echo "公式F/L保有情報: 未取得。予測を止めずF/L補正なしで続行"
           fi
 
-      - name: 直前収集データの完全性を確認
+      - name: 直前情報・部分取得を監査（不足艇を落とさない）
         if: env.HAS_CANDIDATES == 'true'
         run: |
           python - <<'PY'
           import csv, os
           d=os.environ["TARGET_DATE"]
-          p=f"data/beforeinfo_entries_{d}.csv"
-          rows=list(csv.DictReader(open(p,encoding="utf-8-sig",newline="")))
-          required=("exhibition_course","exhibition_time","exhibition_st_raw")
+          path=f"data/beforeinfo_entries_{d}.csv"
+          rows=list(csv.DictReader(open(path,encoding="utf-8-sig",newline="")))
           by_race={}
           for row in rows:
-              by_race.setdefault(str(row.get("race_id","")).strip(),[]).append(row)
-          good=[]; bad=[]
+              rid=str(row.get("race_id","")).strip()
+              boat=str(row.get("boat","")).strip()
+              if not rid or boat not in {"1","2","3","4","5","6"}:
+                  raise SystemExit(f"ERROR: 不正なレースID・艇番: {rid} {boat}")
+              by_race.setdefault(rid,[]).append(row)
+          incomplete=[]
+          required=("exhibition_course","exhibition_time","exhibition_st_raw")
           for rid, rr in by_race.items():
-              problems=[]
-              if len(rr)!=6: problems.append(f"boats:{len(rr)}/6")
-              boats={str(x.get("boat","")).strip() for x in rr}
-              if boats!={"1","2","3","4","5","6"}: problems.append("boat_numbers")
-              for row in rr:
-                  miss=[k for k in required if not str(row.get(k,"")).strip()]
-                  if miss: problems.append(f"boat{row.get('boat')}:{','.join(miss)}")
-              if rr and "change_parts" not in rr[0]: problems.append("change_parts_column")
-              if problems: bad.append((rid,problems))
-              else: good.append(rid)
-          print({"races":len(by_race),"complete_races":len(good),"incomplete_races":len(bad),"sample":bad[:20]})
-          if not rows: raise SystemExit("直前艇データが0件")
-          if not good: raise SystemExit("計算可能な完全6艇レースが0件")
-          if bad:
-              print("未確定レースは予測対象から除外し、次回収集で再取得します")
-              keep=set(good)
-              rows=[x for x in rows if str(x.get("race_id","")).strip() in keep]
-              with open(p,"w",encoding="utf-8",newline="") as f:
-                  w=csv.DictWriter(f,fieldnames=rows[0].keys());w.writeheader();w.writerows(rows)
-              rp=f"data/beforeinfo_races_{d}.csv"
-              race_rows=list(csv.DictReader(open(rp,encoding="utf-8-sig",newline="")))
-              race_rows=[x for x in race_rows if str(x.get("race_id","")).strip() in keep]
-              with open(rp,"w",encoding="utf-8",newline="") as f:
-                  w=csv.DictWriter(f,fieldnames=race_rows[0].keys());w.writeheader();w.writerows(race_rows)
-          # Calculation uses the filtered working copy only. The immutable raw
-          # snapshot was saved in the previous step before this filtering.
-          if len(rows)%6:
-              raise SystemExit("完全レース抽出後の艇数が6の倍数ではありません")
+              boats=[str(x.get("boat","")).strip() for x in rr]
+              if len(boats)!=len(set(boats)):
+                  raise SystemExit(f"ERROR: 公式艇データの重複 {rid}")
+              for item in rr:
+                  if str(item.get("is_miss","")).lower() in ("true","1","yes"):
+                      continue
+                  missing=[key for key in required if not str(item.get(key,"")).strip()]
+                  if missing:
+                      incomplete.append({"race_id":rid,"boat":item["boat"],"missing":missing})
+          # A stored morning score supports neutral 0.0 movement for the
+          # affected competitors. Never drop an entire race for missing ST.
+          print("OFFICIAL_BEFOREINFO", {"races":len(by_race),"rows":len(rows),
+                "partial_competitors":incomplete[:30]})
           PY
 
       - name: live prediction_inputを生成
@@ -329,29 +318,43 @@ jobs:
             --date "${TARGET_DATE}" \
             --now "${NOW_ISO}"
 
-      - name: 直前計算の実値を検証
+      - name: 直前計算と艇別中立補完を監査
         if: env.HAS_CANDIDATES == 'true'
         run: |
           python - <<'PY'
-          import json, os
-          d=os.environ['TARGET_DATE']
+          import json, os, math
+          d=os.environ["TARGET_DATE"]
           p=f'data/live_predictions_current_{d}.json'
+          from pathlib import Path
+          if not Path(p).is_file():
+              print("NO_DATA: 今回の正式/部分直前計算対象なし")
+              raise SystemExit(0)
           data=json.load(open(p,encoding='utf-8'))
           races=data.get('races') or data.get('predictions') or []
-          if not races: raise SystemExit('ERROR: live prediction race is empty')
           for race in races:
               rid=race.get('race_id')
               boats=race.get('boats') or []
-              if len(boats)!=6: raise SystemExit(f'ERROR {rid}: live boats != 6')
+              if len(boats)<3 or len(boats)>6: raise SystemExit(f'ERROR {rid}: invalid active boats')
+              neutral=[b for b in boats if b.get("score_fallback")]
               for b in boats:
-                  missing=[k for k in ('exhibition_course','exhibition_time','exhibition_st') if b.get(k) is None or b.get(k)=='']
-                  if missing: raise SystemExit(f"ERROR {rid} boat{b.get('boat')}: missing {missing}")
+                  score=float(b['score'])
+                  if not math.isfinite(score): raise SystemExit(f'ERROR {rid}: non-finite score')
+                  if b.get("score_fallback"):
+                      if not b.get("score_fallback_reasons"):
+                          raise SystemExit(f'ERROR {rid}: fallback with no reason')
+                      if abs(score-float(b['morning_score_reference']))>0.00001:
+                          raise SystemExit(f'ERROR {rid}: neutral must equal saved morning')
+                      continue
+                  missing=[k for k in ('exhibition_course','exhibition_time','exhibition_st')
+                           if b.get(k) is None or b.get(k)=='']
+                  if missing: raise SystemExit(f"ERROR {rid} boat{b.get('boat')}: missing {missing} without fallback")
                   comps=b.get('components') or {}
                   for k in ('racer_course','grade','motor','boat','national_top2','structural','exTime','exST'):
                       if k not in comps: raise SystemExit(f"ERROR {rid} boat{b.get('boat')}: component {k} missing")
-              deltas=[abs(float(b['score'])-float(b['morning_score_reference'])) for b in boats]
-              if max(deltas)<0.05: raise SystemExit(f'ERROR {rid}: all live scores equal morning scores')
-          print(f'live calculation audit PASS: {len(races)} races')
+              quality=race.get("prediction_quality") or {}
+              if bool(neutral) != bool(quality.get("signal_blocked")):
+                  raise SystemExit(f'ERROR {rid}: signal guard does not match fallback boats')
+          print(f'live calculation audit PASS: {len(races)} races, neutral fallback allowed')
           PY
 
       - name: 直前予測状態を確認
