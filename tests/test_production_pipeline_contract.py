@@ -117,6 +117,22 @@ class CanonicalContract(unittest.TestCase):
         self.assertEqual(result["canonical_strategy"], "live_signal_pending_recovery")
         self.assertIn("live_signal_pending_recovery", result["canonical_quality"]["flags"])
 
+    def test_legacy_score_provenance_is_not_guessed(self):
+        race = sample_race(stored=True)
+        race["score_model_version"] = "previous_saved_live_model"
+        can = self._canonical([race])[0]
+        provenance = can["canonical_model_manifest"]
+        self.assertEqual(provenance["source_score_model_version"], "previous_saved_live_model")
+        self.assertFalse(provenance["source_score_config_identified"])
+        self.assertIsNone(provenance["source_score_logic_config"])
+
+    def test_original_score_config_is_preserved(self):
+        race = sample_race(stored=True)
+        race["score_logic_config"] = {"model_id":"live_v1","sha256":"012345"}
+        can = self._canonical([race])[0]
+        self.assertTrue(can["canonical_model_manifest"]["source_score_config_identified"])
+        self.assertEqual(can["canonical_model_manifest"]["source_score_logic_config"],race["score_logic_config"])
+
     def test_duplicate_ids_rejected(self):
         r = sample_race()
         with self.assertRaises(ValueError):
