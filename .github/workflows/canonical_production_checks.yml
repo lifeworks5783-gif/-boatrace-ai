@@ -217,9 +217,17 @@ jobs:
               if key:
                   assert race['canonical_strategy']!='normal_ai', race['race_id']
               else:
-                  assert race['canonical_strategy'] in ('normal_ai','live_signal_pending_recovery'), race['race_id']
+                  assert race['canonical_strategy'] in ('normal_ai','live_signal_pending_recovery','reduced_field_signal_not_evaluated'), race['race_id']
               assert not {'actual_trifecta','payout','result'} & set(race.keys())
-          print('canonical smoke PASS',data['race_count'],data['signal_races'],data['signal_24_unresolved'])
+          from pathlib import Path
+          manifest=json.loads(Path('evaluations/2026/10/09/recovery/live_recovery_manifest_20261009.json').read_text(encoding='utf-8'))
+          recovered=[r for r in data['races'] if r.get('retrospective_signal_recovery')]
+          reduced=[r for r in recovered if r['canonical_strategy']=='reduced_field_signal_not_evaluated']
+          assert len(recovered)==len(manifest['recovered_races']), (
+              'recovered races still missing',len(recovered),len(manifest['recovered_races']))
+          assert len(reduced)==1, [('unexpected reduced fields',r['race_id']) for r in reduced]
+          print('canonical smoke PASS',data['race_count'],data['signal_races'],data['signal_24_unresolved'],
+                'recovered',len(recovered),'reduced',len(reduced))
           PY
       - name: Latest page uses the same canonical race source
         run: |
