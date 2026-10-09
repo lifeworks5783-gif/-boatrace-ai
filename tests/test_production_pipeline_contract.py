@@ -159,6 +159,47 @@ class CanonicalContract(unittest.TestCase):
         self.assertTrue(final["historical_bet_preserved"])
         self.assertEqual(final["score_model_version"],"verified_historical_recovery_model")
 
+    def test_recovery_manifest_csv_replays_signal_without_touching_normal_bet(self):
+        first = sample_race(active=False)
+        first["prediction_quality"] = {"status":"fallback","recovery_needed":True}
+        first["formation"] = {"points":8,"combinations":["1-2-3"]}
+        observations = sample_race(active=True)["boats"]
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)/"evaluations/2026/10/09/recovery"
+            base.mkdir(parents=True)
+            (base/"live_recovery_manifest_20261009.json").write_text(json.dumps({
+                "date":"20261009", "status":"partial",
+                "treat_recovered_as_observation":True,
+                "result_leakage":False,
+                "recovered_races":["202610090101"]
+            }),encoding="utf-8")
+            import csv
+            with (base/"merged_live_predictions_20261009.csv").open("w",newline="",encoding="utf-8") as fh:
+                writer=csv.DictWriter(fh,fieldnames=[
+                    "race_id","boat","rank","score","morning_score_reference","racer_name"
+                ])
+                writer.writeheader()
+                for o in observations:
+                    writer.writerow({
+                        "race_id":"20261009-01-01",
+                        "boat":o["boat"],
+                        "rank":o["rank"],
+                        "score":o["score"],
+                        "morning_score_reference":o["morning_score_reference"],
+                        "racer_name":"保存済み選手",
+                    })
+            hydrated=hydrate_recovered_live(
+                [first],date="20261009",root=Path(folder),
+                signal_ai_config=latest.load_signal_ai_config()
+            )
+        final=self._canonical(hydrated)[0]
+        self.assertEqual(final["canonical_strategy"],"signal_ai_24")
+        self.assertTrue(final["historical_bet_preserved"])
+        self.assertEqual(final["formation"],first["formation"])
+        self.assertEqual(final["ai_score_prediction"],first["ai_score_prediction"])
+        self.assertFalse(final["signal_ai_replay"]["original_ticket_record"])
+        self.assertFalse(final["canonical_model_manifest"]["source_score_config_identified"])
+
     def test_unverified_restored_live_does_not_enter_canonical(self):
         first = sample_race(active=False)
         first["prediction_quality"] = {"status":"fallback","recovery_needed":True}
