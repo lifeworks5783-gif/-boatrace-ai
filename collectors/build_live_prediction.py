@@ -708,7 +708,7 @@ def main():
             ]
             prediction_quality = {
                 "status": "fallback" if (fallback_info or neutral_boats) else "normal",
-                "mark": "▲" if (fallback_info or neutral_boats) else "",
+                "mark": "⚠" if (fallback_info or neutral_boats) else "",
                 "label": "補完あり" if (fallback_info or neutral_boats) else "正常",
                 "recovery_needed": bool(neutral_boats or fallback_info),
                 "signal_blocked": bool(neutral_boats),
