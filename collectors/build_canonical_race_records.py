@@ -126,6 +126,14 @@ def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=
         row["signal_ai_prediction"] = build_signal_ai_prediction(
             boats, up, down, signal_ai_config
         )
+        if row["signal_ai_prediction"]:
+            row["signal_ai_replay"] = {
+                "source": "official_beforeinfo_restored_live_scores",
+                "replay_model_version": row["signal_ai_prediction"].get("model_version"),
+                "original_ticket_record": False,
+                "replay_status": "retrospective_reconstruction_not_original_bet",
+                "replayed_at": datetime.now(JST).isoformat(),
+            }
         row["score_model_version"] = (
             restored.get("score_model_version") or payload.get("model_version")
         )
