@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "collectors"))
 import production_config
-from build_canonical_race_records import canonicalize, signal_key
+from build_canonical_race_records import canonicalize, signal_key, hydrate_recovered_live
 import build_latest_prediction_view as latest
 import build_family_race_compare_page as comparison
 
@@ -125,6 +125,59 @@ class CanonicalContract(unittest.TestCase):
         self.assertEqual(provenance["source_score_model_version"], "previous_saved_live_model")
         self.assertFalse(provenance["source_score_config_identified"])
         self.assertIsNone(provenance["source_score_logic_config"])
+
+    def test_restored_official_live_replays_signal_but_preserves_normal_bet(self):
+        first = sample_race(active=False)
+        first["prediction_quality"] = {"status":"fallback","recovery_needed":True}
+        first["formation"] = {"points":8,"combinations":["1-2-3"]}
+        before_bet = json.dumps(first["formation"],sort_keys=True)
+        before_normal = json.dumps(first["ai_score_prediction"],sort_keys=True)
+        recovered = sample_race(active=True)
+        recovered["prediction_quality"] = {
+            "status":"recovered_observation",
+            "provenance":"post_result_official_beforeinfo",
+            "result_leakage":False
+        }
+        with tempfile.TemporaryDirectory() as d:
+            fp = Path(d)/"predictions/2026/10/09/live/live_predictions_final_20261009.json"
+            fp.parent.mkdir(parents=True)
+            fp.write_text(json.dumps({
+                "target_date":"20261009",
+                "model_version":"verified_historical_recovery_model",
+                "races":[recovered]
+            }),encoding="utf-8")
+            hydrated = hydrate_recovered_live(
+                [first],date="20261009",root=Path(d),
+                signal_ai_config=latest.load_signal_ai_config()
+            )
+        final = self._canonical(hydrated)[0]
+        self.assertEqual(final["canonical_strategy"],"signal_ai_24")
+        self.assertEqual(len(final["signal_ai_prediction"]["combinations"]),24)
+        self.assertEqual(json.dumps(final["formation"],sort_keys=True),before_bet)
+        self.assertEqual(json.dumps(final["ai_score_prediction"],sort_keys=True),before_normal)
+        self.assertFalse(final["signal_ai_replay"]["original_ticket_record"])
+        self.assertTrue(final["historical_bet_preserved"])
+        self.assertEqual(final["score_model_version"],"verified_historical_recovery_model")
+
+    def test_unverified_restored_live_does_not_enter_canonical(self):
+        first = sample_race(active=False)
+        first["prediction_quality"] = {"status":"fallback","recovery_needed":True}
+        recovered = sample_race(active=True)
+        recovered["prediction_quality"] = {
+            "status":"recovered_observation",
+            "provenance":"post_result_official_beforeinfo",
+            "result_leakage":True
+        }
+        with tempfile.TemporaryDirectory() as d:
+            fp = Path(d)/"predictions/2026/10/09/live/live_predictions_final_20261009.json"
+            fp.parent.mkdir(parents=True)
+            fp.write_text(json.dumps({"target_date":"20261009","races":[recovered]}),encoding="utf-8")
+            hydrated = hydrate_recovered_live(
+                [first],date="20261009",root=Path(d),
+                signal_ai_config=latest.load_signal_ai_config()
+            )
+        self.assertEqual(self._canonical(hydrated)[0]["canonical_strategy"],
+                         "live_signal_pending_recovery")
 
     def test_original_score_config_is_preserved(self):
         race = sample_race(stored=True)
