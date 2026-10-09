@@ -82,3 +82,18 @@ jobs:
               for r in finished
           ), 'Completed race has an active signal but no 24 tickets'
           PY
+      - name: Rebuild signal results and both remaining public pages
+        run: |
+          python -u collectors/evaluate_signal_ai_performance.py
+          python -u collectors/evaluate_signal_pdca_cross.py
+          python -u collectors/build_family_results_page.py \
+            --evaluations-root evaluations --output-dir _contract_test
+          python -u collectors/build_family_signal_analysis_page.py \
+            --evaluations-root evaluations --output-dir _contract_test
+          python - <<'PY'
+          from pathlib import Path
+          for name in ('index.html', 'race_compare.html', 'results.html', 'analysis.html'):
+              p = Path('_contract_test') / name
+              assert p.is_file() and p.stat().st_size > 1000, name
+              print('FOUR_VIEW_PASS', name, p.stat().st_size)
+          PY
