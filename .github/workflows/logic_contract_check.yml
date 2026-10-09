@@ -203,6 +203,31 @@ jobs:
           assert '直前予測なし' not in card, 'Tokoname8 official live missing in HTML'
           print('TOKONAME8_FIVE_BOAT_RAIJIN_LV2_24_POINTS_AND_HTML_PASS',tcheck)
           PY
+      - name: Five-starter official scratch must reach PDCA and AI-24 analytics
+        run: |
+          python -u collectors/evaluate_fujin_raijin_history.py --date 20261009
+          python -u collectors/evaluate_fujin_deep_metrics.py --date 20261009
+          python -u collectors/evaluate_signal_ai_performance.py
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+          targets=[
+              ("evaluations/fujin_raijin/latest/backtest_details.csv","raijin_level"),
+              ("evaluations/fujin_deep/latest/details.csv","raijin_level"),
+              ("evaluations/signal_ai/latest/details.csv","signal_key"),
+          ]
+          rid="202610090808"
+          for file,field in targets:
+              path=Path(file)
+              assert path.is_file(),file
+              with path.open(encoding="utf-8-sig",newline="") as handle:
+                  rows=list(csv.DictReader(handle))
+              row=next((x for x in rows if "".join(ch for ch in str(x.get("race_id") or "") if ch.isdigit())[:12]==rid),None)
+              assert row, f"{file}: Tokoname8 absent from PDCA"
+              expected="F0R2" if field=="signal_key" else "2"
+              assert str(row.get(field))==expected, (file,field,row)
+              print("TOKONAME8_SCRATCH_INCLUDED_IN_PDCA",file,row.get(field))
+          PY
       - name: Re-run after closing and preserve canonical signal and original ticket identities
         run: |
           python - <<'PY'
