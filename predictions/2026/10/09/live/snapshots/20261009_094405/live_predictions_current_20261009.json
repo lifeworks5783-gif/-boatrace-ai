@@ -1,0 +1,2142 @@
+{
+  "schema_version": "1.0",
+  "model_version": "provisional_v5_20261007_live_saved_morning_fallback",
+  "target_date": "20261009",
+  "prediction_stage": "live",
+  "generated_at": "2026-10-09T09:44:05+09:00",
+  "weights": {
+    "structural": 80.0,
+    "exhibition_time": 6.0,
+    "exhibition_st": 14.0,
+    "F": 0.0,
+    "environment": 0.0
+  },
+  "live_policy": {
+    "course": "32点を展示進入コースへ差し替え",
+    "exhibition_st": "本人90日平均STとの差を14%評価。±0.06秒で最大補正、展示F=0.4、90日ST10走未満/欠損=0.5",
+    "exhibition_time": "6%。レース内展示タイム順位で評価",
+    "missing_course_history": "直前コース履歴欠損時のみ、当日朝の保存済み本番スコアを構造80%へ使用。欠損値の0点・架空補完はしない"
+  },
+  "race_count": 1,
+  "boat_count": 6,
+  "races": [
+    {
+      "race_id": "20261009-14-04",
+      "date": "20261009",
+      "venue_code": "14",
+      "venue_name": "鳴門",
+      "race": 4,
+      "race_name": "一般",
+      "deadline": "09:53",
+      "generated_at": "2026-10-09T09:44:05+09:00",
+      "prediction_quality": {
+        "status": "normal",
+        "mark": "",
+        "label": "正常",
+        "recovery_needed": false,
+        "reason": [],
+        "fallback_source": null,
+        "request_started_before_deadline": true,
+        "request_grace_used": false,
+        "recorded_at": "2026-10-09T09:44:05+09:00"
+      },
+      "live_data_counts": {
+        "exhibition_course": 6,
+        "exhibition_time": 6,
+        "exhibition_st": 6,
+        "miss": 0,
+        "active_boats": 6
+      },
+      "weather_water": {
+        "weather": {
+          "weather": "晴",
+          "air_temperature_c": 21.0,
+          "water_temperature_c": 23.0,
+          "wind_speed_mps": 1.0,
+          "wind_direction_code": 11,
+          "wind_direction": "南西",
+          "wave_height_cm": 1.0,
+          "stabilizer": false
+        },
+        "fixed_course": false
+      },
+      "live_order": [
+        2,
+        1,
+        4,
+        3,
+        5,
+        6
+      ],
+      "top3_boats": [
+        2,
+        1,
+        4
+      ],
+      "strength": {
+        "top1_top2_gap": 4.96,
+        "top1_top3_gap": 14.8
+      },
+      "boats": [
+        {
+          "boat": 2,
+          "registration_no": 4934,
+          "racer_name": "佐々木翔",
+          "grade": "A2",
+          "motor_no": 16,
+          "boat_no": 22,
+          "score": 70.32,
+          "morning_score_reference": 65.9,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 2,
+          "exhibition_time": 6.71,
+          "exhibition_st": 0.01,
+          "exhibition_f": false,
+          "tilt": -0.5,
+          "change_parts": "",
+          "input_trace": {
+            "history_feature_manifest": {
+              "as_of_date": "20261009",
+              "history_min_date": "20260621",
+              "history_max_date": "20261008",
+              "history_stale_days": 0,
+              "leakage_guard": "Only rows with result date < as_of_date are used."
+            },
+            "structural_course_fallback": null,
+            "racer_30d": {
+              "starts": 24,
+              "finish_samples": 24,
+              "avg_finish": 3.125,
+              "win_rate": 0.20833,
+              "top2_rate": 0.45833,
+              "top3_rate": 0.66667,
+              "st_samples": 18,
+              "avg_st": 0.17889,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 18,
+              "avg_exhibition": 6.86222
+            },
+            "racer_90d": {
+              "starts": 65,
+              "finish_samples": 63,
+              "avg_finish": 3.26984,
+              "win_rate": 0.16923,
+              "top2_rate": 0.38462,
+              "top3_rate": 0.55385,
+              "st_samples": 58,
+              "avg_st": 0.16862,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 58,
+              "avg_exhibition": 6.87586
+            },
+            "motor_30d": {
+              "unique_racers": 3,
+              "starts": 17,
+              "finish_samples": 17,
+              "avg_finish": 4.11765,
+              "win_rate": 0.05882,
+              "top2_rate": 0.41176,
+              "top3_rate": 0.41176,
+              "st_samples": 17,
+              "avg_st": 0.10765,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 17,
+              "avg_exhibition": 6.84706
+            },
+            "motor_90d": {
+              "unique_racers": 6,
+              "starts": 44,
+              "finish_samples": 44,
+              "avg_finish": 3.93182,
+              "win_rate": 0.06818,
+              "top2_rate": 0.36364,
+              "top3_rate": 0.43182,
+              "st_samples": 44,
+              "avg_st": 0.13659,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 44,
+              "avg_exhibition": 6.84864
+            },
+            "boat_30d": {
+              "unique_racers": 3,
+              "starts": 17,
+              "finish_samples": 17,
+              "avg_finish": 3.0,
+              "win_rate": 0.17647,
+              "top2_rate": 0.47059,
+              "top3_rate": 0.58824,
+              "st_samples": 12,
+              "avg_st": 0.12167,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 12,
+              "avg_exhibition": 6.85167
+            },
+            "boat_90d": {
+              "unique_racers": 6,
+              "starts": 46,
+              "finish_samples": 46,
+              "avg_finish": 3.5,
+              "win_rate": 0.13043,
+              "top2_rate": 0.34783,
+              "top3_rate": 0.5,
+              "st_samples": 41,
+              "avg_st": 0.13976,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 41,
+              "avg_exhibition": 6.86976
+            },
+            "racer_venue": {
+              "available": true,
+              "venue_code": "14",
+              "features": {
+                "d30": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.6,
+                  "win_rate": 0.2,
+                  "top2_rate": 0.4,
+                  "top3_rate": 0.6,
+                  "st_samples": 3,
+                  "avg_st": 0.06,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.85333
+                },
+                "d90": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.6,
+                  "win_rate": 0.2,
+                  "top2_rate": 0.4,
+                  "top3_rate": 0.6,
+                  "st_samples": 3,
+                  "avg_st": 0.06,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.85333
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": 0.0,
+                  "avg_st_30v90": 0.0,
+                  "avg_exhibition_30v90": 0.0
+                }
+              }
+            },
+            "racer_course": {
+              "available": true,
+              "current_course": 2,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 2,
+                  "finish_samples": 2,
+                  "avg_finish": 4.0,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.5,
+                  "st_samples": 2,
+                  "avg_st": 0.175,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 2,
+                  "avg_exhibition": 6.785
+                },
+                "d90": {
+                  "starts": 11,
+                  "finish_samples": 11,
+                  "avg_finish": 3.45455,
+                  "win_rate": 0.18182,
+                  "top2_rate": 0.27273,
+                  "top3_rate": 0.54545,
+                  "st_samples": 11,
+                  "avg_st": 0.16545,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 11,
+                  "avg_exhibition": 6.87273
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": -0.18182,
+                  "top2_rate_30v90": -0.27273,
+                  "top3_rate_30v90": -0.04545,
+                  "avg_finish_30v90": 0.54545,
+                  "avg_st_30v90": 0.00955,
+                  "avg_exhibition_30v90": -0.08773
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 2,
+              "exhibition_time": 6.71,
+              "exhibition_st_raw": ".01",
+              "exhibition_st": 0.01,
+              "exhibition_f": false,
+              "tilt": -0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 23.0,
+                "wind_speed_mps": 1.0,
+                "wind_direction_code": 11,
+                "wind_direction": "南西",
+                "wave_height_cm": 1.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
+            "official_f_count": null,
+            "official_l_count": null,
+            "official_avg_st": null,
+            "official_fl_available": false,
+            "candidate_components": {
+              "f_l_holdings": {
+                "available": false,
+                "f_count": null,
+                "l_count": null,
+                "active_in_score": false
+              },
+              "motor_30d": {
+                "available": true,
+                "features": {
+                  "unique_racers": 3,
+                  "starts": 17,
+                  "finish_samples": 17,
+                  "avg_finish": 4.11765,
+                  "win_rate": 0.05882,
+                  "top2_rate": 0.41176,
+                  "top3_rate": 0.41176,
+                  "st_samples": 17,
+                  "avg_st": 0.10765,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 17,
+                  "avg_exhibition": 6.84706
+                },
+                "active_in_score": false
+              },
+              "parts_exchange": {
+                "available": false,
+                "value": "",
+                "active_in_score": false
+              },
+              "weather_water": {
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 23.0,
+                    "wind_speed_mps": 1.0,
+                    "wind_direction_code": 11,
+                    "wind_direction": "南西",
+                    "wave_height_cm": 1.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
+                "active_in_score": false
+              }
+            }
+          },
+          "components": {
+            "racer_course": {
+              "weight": 40.0,
+              "raw_score_0_1": 0.64,
+              "available": true
+            },
+            "grade": {
+              "weight": 20.0,
+              "raw_score_0_1": 1.0,
+              "available": true
+            },
+            "motor": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.24,
+              "available": true
+            },
+            "boat": {
+              "weight": 5.0,
+              "raw_score_0_1": 0.7,
+              "available": true
+            },
+            "national_top2": {
+              "weight": 15.0,
+              "raw_score_0_1": 0.8,
+              "available": true
+            },
+            "structural": {
+              "weight": 80.0,
+              "raw_score_0_1": 0.659,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6.0,
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "exST": {
+              "weight": 14.0,
+              "raw_score_0_1": 1.0,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
+            }
+          },
+          "rank": 1
+        },
+        {
+          "boat": 1,
+          "registration_no": 5133,
+          "racer_name": "堀越雄貴",
+          "grade": "B1",
+          "motor_no": 10,
+          "boat_no": 54,
+          "score": 65.36,
+          "morning_score_reference": 67.2,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 1,
+          "exhibition_time": 6.68,
+          "exhibition_st": -0.03,
+          "exhibition_f": true,
+          "tilt": 0.0,
+          "change_parts": "",
+          "input_trace": {
+            "history_feature_manifest": {
+              "as_of_date": "20261009",
+              "history_min_date": "20260621",
+              "history_max_date": "20261008",
+              "history_stale_days": 0,
+              "leakage_guard": "Only rows with result date < as_of_date are used."
+            },
+            "structural_course_fallback": null,
+            "racer_30d": {
+              "starts": 8,
+              "finish_samples": 7,
+              "avg_finish": 4.0,
+              "win_rate": 0.125,
+              "top2_rate": 0.25,
+              "top3_rate": 0.25,
+              "st_samples": 6,
+              "avg_st": 0.19667,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 6,
+              "avg_exhibition": 6.87
+            },
+            "racer_90d": {
+              "starts": 34,
+              "finish_samples": 33,
+              "avg_finish": 3.42424,
+              "win_rate": 0.11765,
+              "top2_rate": 0.35294,
+              "top3_rate": 0.47059,
+              "st_samples": 32,
+              "avg_st": 0.19187,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 32,
+              "avg_exhibition": 6.88844
+            },
+            "motor_30d": {
+              "unique_racers": 3,
+              "starts": 17,
+              "finish_samples": 17,
+              "avg_finish": 4.05882,
+              "win_rate": 0.0,
+              "top2_rate": 0.17647,
+              "top3_rate": 0.23529,
+              "st_samples": 17,
+              "avg_st": 0.17647,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 17,
+              "avg_exhibition": 6.84235
+            },
+            "motor_90d": {
+              "unique_racers": 7,
+              "starts": 50,
+              "finish_samples": 50,
+              "avg_finish": 3.86,
+              "win_rate": 0.12,
+              "top2_rate": 0.22,
+              "top3_rate": 0.32,
+              "st_samples": 50,
+              "avg_st": 0.1426,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 50,
+              "avg_exhibition": 6.8584
+            },
+            "boat_30d": {
+              "unique_racers": 3,
+              "starts": 18,
+              "finish_samples": 18,
+              "avg_finish": 3.55556,
+              "win_rate": 0.05556,
+              "top2_rate": 0.44444,
+              "top3_rate": 0.5,
+              "st_samples": 13,
+              "avg_st": 0.20231,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 13,
+              "avg_exhibition": 6.84077
+            },
+            "boat_90d": {
+              "unique_racers": 7,
+              "starts": 50,
+              "finish_samples": 48,
+              "avg_finish": 3.5,
+              "win_rate": 0.18,
+              "top2_rate": 0.38,
+              "top3_rate": 0.48,
+              "st_samples": 44,
+              "avg_st": 0.16295,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 44,
+              "avg_exhibition": 6.84159
+            },
+            "racer_venue": {
+              "available": true,
+              "venue_code": "14",
+              "features": {
+                "d30": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.4,
+                  "win_rate": 0.2,
+                  "top2_rate": 0.4,
+                  "top3_rate": 0.4,
+                  "st_samples": 3,
+                  "avg_st": 0.19333,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.75333
+                },
+                "d90": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.4,
+                  "win_rate": 0.2,
+                  "top2_rate": 0.4,
+                  "top3_rate": 0.4,
+                  "st_samples": 3,
+                  "avg_st": 0.19333,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.75333
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": 0.0,
+                  "avg_st_30v90": 0.0,
+                  "avg_exhibition_30v90": 0.0
+                }
+              }
+            },
+            "racer_course": {
+              "available": true,
+              "current_course": 1,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 0,
+                  "finish_samples": 0,
+                  "avg_finish": null,
+                  "win_rate": null,
+                  "top2_rate": null,
+                  "top3_rate": null,
+                  "st_samples": 0,
+                  "avg_st": null,
+                  "f_count": 0,
+                  "f_rate": null,
+                  "l_count": 0,
+                  "l_rate": null,
+                  "exhibition_samples": 0,
+                  "avg_exhibition": null
+                },
+                "d90": {
+                  "starts": 4,
+                  "finish_samples": 4,
+                  "avg_finish": 2.25,
+                  "win_rate": 0.25,
+                  "top2_rate": 0.75,
+                  "top3_rate": 0.75,
+                  "st_samples": 4,
+                  "avg_st": 0.2,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 4,
+                  "avg_exhibition": 6.8775
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": null,
+                  "top2_rate_30v90": null,
+                  "top3_rate_30v90": null,
+                  "avg_finish_30v90": null,
+                  "avg_st_30v90": null,
+                  "avg_exhibition_30v90": null
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 1,
+              "exhibition_time": 6.68,
+              "exhibition_st_raw": "F.03",
+              "exhibition_st": -0.03,
+              "exhibition_f": true,
+              "tilt": 0.0,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 23.0,
+                "wind_speed_mps": 1.0,
+                "wind_direction_code": 11,
+                "wind_direction": "南西",
+                "wave_height_cm": 1.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
+            "official_f_count": null,
+            "official_l_count": null,
+            "official_avg_st": null,
+            "official_fl_available": false,
+            "candidate_components": {
+              "f_l_holdings": {
+                "available": false,
+                "f_count": null,
+                "l_count": null,
+                "active_in_score": false
+              },
+              "motor_30d": {
+                "available": true,
+                "features": {
+                  "unique_racers": 3,
+                  "starts": 17,
+                  "finish_samples": 17,
+                  "avg_finish": 4.05882,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.17647,
+                  "top3_rate": 0.23529,
+                  "st_samples": 17,
+                  "avg_st": 0.17647,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 17,
+                  "avg_exhibition": 6.84235
+                },
+                "active_in_score": false
+              },
+              "parts_exchange": {
+                "available": false,
+                "value": "",
+                "active_in_score": false
+              },
+              "weather_water": {
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 23.0,
+                    "wind_speed_mps": 1.0,
+                    "wind_direction_code": 11,
+                    "wind_direction": "南西",
+                    "wave_height_cm": 1.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
+                "active_in_score": false
+              }
+            }
+          },
+          "components": {
+            "racer_course": {
+              "weight": 40.0,
+              "raw_score_0_1": 0.9,
+              "available": true
+            },
+            "grade": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "motor": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.36,
+              "available": true
+            },
+            "boat": {
+              "weight": 5.0,
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "national_top2": {
+              "weight": 15.0,
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "structural": {
+              "weight": 80.0,
+              "raw_score_0_1": 0.672,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6.0,
+              "raw_score_0_1": 1.0,
+              "available": true
+            },
+            "exST": {
+              "weight": 14.0,
+              "raw_score_0_1": 0.4,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
+            }
+          },
+          "rank": 2
+        },
+        {
+          "boat": 4,
+          "registration_no": 4917,
+          "racer_name": "岩橋裕馬",
+          "grade": "B1",
+          "motor_no": 30,
+          "boat_no": 61,
+          "score": 55.52,
+          "morning_score_reference": 62.4,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 4,
+          "exhibition_time": 6.8,
+          "exhibition_st": -0.02,
+          "exhibition_f": true,
+          "tilt": 0.0,
+          "change_parts": "",
+          "input_trace": {
+            "history_feature_manifest": {
+              "as_of_date": "20261009",
+              "history_min_date": "20260621",
+              "history_max_date": "20261008",
+              "history_stale_days": 0,
+              "leakage_guard": "Only rows with result date < as_of_date are used."
+            },
+            "structural_course_fallback": null,
+            "racer_30d": {
+              "starts": 15,
+              "finish_samples": 15,
+              "avg_finish": 2.8,
+              "win_rate": 0.2,
+              "top2_rate": 0.46667,
+              "top3_rate": 0.66667,
+              "st_samples": 14,
+              "avg_st": 0.13429,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 14,
+              "avg_exhibition": 6.67357
+            },
+            "racer_90d": {
+              "starts": 45,
+              "finish_samples": 44,
+              "avg_finish": 3.18182,
+              "win_rate": 0.15556,
+              "top2_rate": 0.4,
+              "top3_rate": 0.53333,
+              "st_samples": 44,
+              "avg_st": 0.12477,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 44,
+              "avg_exhibition": 6.75432
+            },
+            "motor_30d": {
+              "unique_racers": 3,
+              "starts": 17,
+              "finish_samples": 17,
+              "avg_finish": 4.35294,
+              "win_rate": 0.05882,
+              "top2_rate": 0.29412,
+              "top3_rate": 0.35294,
+              "st_samples": 13,
+              "avg_st": 0.16615,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 13,
+              "avg_exhibition": 6.85692
+            },
+            "motor_90d": {
+              "unique_racers": 6,
+              "starts": 46,
+              "finish_samples": 45,
+              "avg_finish": 3.77778,
+              "win_rate": 0.08696,
+              "top2_rate": 0.28261,
+              "top3_rate": 0.43478,
+              "st_samples": 42,
+              "avg_st": 0.15071,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 42,
+              "avg_exhibition": 6.85405
+            },
+            "boat_30d": {
+              "unique_racers": 3,
+              "starts": 19,
+              "finish_samples": 19,
+              "avg_finish": 3.42105,
+              "win_rate": 0.10526,
+              "top2_rate": 0.36842,
+              "top3_rate": 0.52632,
+              "st_samples": 14,
+              "avg_st": 0.14929,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 14,
+              "avg_exhibition": 6.82571
+            },
+            "boat_90d": {
+              "unique_racers": 7,
+              "starts": 47,
+              "finish_samples": 47,
+              "avg_finish": 3.23404,
+              "win_rate": 0.08511,
+              "top2_rate": 0.38298,
+              "top3_rate": 0.55319,
+              "st_samples": 42,
+              "avg_st": 0.14214,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 42,
+              "avg_exhibition": 6.84619
+            },
+            "racer_venue": {
+              "available": true,
+              "venue_code": "14",
+              "features": {
+                "d30": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.0,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.6,
+                  "top3_rate": 0.6,
+                  "st_samples": 4,
+                  "avg_st": 0.165,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 4,
+                  "avg_exhibition": 6.79
+                },
+                "d90": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.0,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.6,
+                  "top3_rate": 0.6,
+                  "st_samples": 4,
+                  "avg_st": 0.165,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 4,
+                  "avg_exhibition": 6.79
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": 0.0,
+                  "avg_st_30v90": 0.0,
+                  "avg_exhibition_30v90": 0.0
+                }
+              }
+            },
+            "racer_course": {
+              "available": true,
+              "current_course": 4,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 4,
+                  "finish_samples": 4,
+                  "avg_finish": 2.0,
+                  "win_rate": 0.5,
+                  "top2_rate": 0.75,
+                  "top3_rate": 0.75,
+                  "st_samples": 4,
+                  "avg_st": 0.0975,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 4,
+                  "avg_exhibition": 6.6975
+                },
+                "d90": {
+                  "starts": 10,
+                  "finish_samples": 9,
+                  "avg_finish": 3.44444,
+                  "win_rate": 0.2,
+                  "top2_rate": 0.3,
+                  "top3_rate": 0.3,
+                  "st_samples": 10,
+                  "avg_st": 0.111,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 10,
+                  "avg_exhibition": 6.772
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.3,
+                  "top2_rate_30v90": 0.45,
+                  "top3_rate_30v90": 0.45,
+                  "avg_finish_30v90": -1.44444,
+                  "avg_st_30v90": -0.0135,
+                  "avg_exhibition_30v90": -0.0745
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 4,
+              "exhibition_time": 6.8,
+              "exhibition_st_raw": "F.02",
+              "exhibition_st": -0.02,
+              "exhibition_f": true,
+              "tilt": 0.0,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 23.0,
+                "wind_speed_mps": 1.0,
+                "wind_direction_code": 11,
+                "wind_direction": "南西",
+                "wave_height_cm": 1.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
+            "official_f_count": null,
+            "official_l_count": null,
+            "official_avg_st": null,
+            "official_fl_available": false,
+            "candidate_components": {
+              "f_l_holdings": {
+                "available": false,
+                "f_count": null,
+                "l_count": null,
+                "active_in_score": false
+              },
+              "motor_30d": {
+                "available": true,
+                "features": {
+                  "unique_racers": 3,
+                  "starts": 17,
+                  "finish_samples": 17,
+                  "avg_finish": 4.35294,
+                  "win_rate": 0.05882,
+                  "top2_rate": 0.29412,
+                  "top3_rate": 0.35294,
+                  "st_samples": 13,
+                  "avg_st": 0.16615,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 13,
+                  "avg_exhibition": 6.85692
+                },
+                "active_in_score": false
+              },
+              "parts_exchange": {
+                "available": false,
+                "value": "",
+                "active_in_score": false
+              },
+              "weather_water": {
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 23.0,
+                    "wind_speed_mps": 1.0,
+                    "wind_direction_code": 11,
+                    "wind_direction": "南西",
+                    "wave_height_cm": 1.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
+                "active_in_score": false
+              }
+            }
+          },
+          "components": {
+            "racer_course": {
+              "weight": 40.0,
+              "raw_score_0_1": 0.7,
+              "available": true
+            },
+            "grade": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.2,
+              "available": true
+            },
+            "motor": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.52,
+              "available": true
+            },
+            "boat": {
+              "weight": 5.0,
+              "raw_score_0_1": 1.0,
+              "available": true
+            },
+            "national_top2": {
+              "weight": 15.0,
+              "raw_score_0_1": 1.0,
+              "available": true
+            },
+            "structural": {
+              "weight": 80.0,
+              "raw_score_0_1": 0.624,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6.0,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "exST": {
+              "weight": 14.0,
+              "raw_score_0_1": 0.4,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
+            }
+          },
+          "rank": 3
+        },
+        {
+          "boat": 3,
+          "registration_no": 5044,
+          "racer_name": "渡邉健",
+          "grade": "B1",
+          "motor_no": 14,
+          "boat_no": 83,
+          "score": 51.44,
+          "morning_score_reference": 45.3,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 3,
+          "exhibition_time": 6.8,
+          "exhibition_st": 0.06,
+          "exhibition_f": false,
+          "tilt": 0.0,
+          "change_parts": "リング×１",
+          "input_trace": {
+            "history_feature_manifest": {
+              "as_of_date": "20261009",
+              "history_min_date": "20260621",
+              "history_max_date": "20261008",
+              "history_stale_days": 0,
+              "leakage_guard": "Only rows with result date < as_of_date are used."
+            },
+            "structural_course_fallback": null,
+            "racer_30d": {
+              "starts": 13,
+              "finish_samples": 13,
+              "avg_finish": 3.76923,
+              "win_rate": 0.07692,
+              "top2_rate": 0.30769,
+              "top3_rate": 0.46154,
+              "st_samples": 11,
+              "avg_st": 0.09455,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 11,
+              "avg_exhibition": 6.83364
+            },
+            "racer_90d": {
+              "starts": 47,
+              "finish_samples": 47,
+              "avg_finish": 4.44681,
+              "win_rate": 0.04255,
+              "top2_rate": 0.12766,
+              "top3_rate": 0.23404,
+              "st_samples": 45,
+              "avg_st": 0.12533,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 45,
+              "avg_exhibition": 6.85533
+            },
+            "motor_30d": {
+              "unique_racers": 3,
+              "starts": 23,
+              "finish_samples": 22,
+              "avg_finish": 3.22727,
+              "win_rate": 0.26087,
+              "top2_rate": 0.43478,
+              "top3_rate": 0.52174,
+              "st_samples": 17,
+              "avg_st": 0.12,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 17,
+              "avg_exhibition": 6.83176
+            },
+            "motor_90d": {
+              "unique_racers": 6,
+              "starts": 51,
+              "finish_samples": 50,
+              "avg_finish": 3.54,
+              "win_rate": 0.21569,
+              "top2_rate": 0.35294,
+              "top3_rate": 0.45098,
+              "st_samples": 45,
+              "avg_st": 0.13022,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 45,
+              "avg_exhibition": 6.83867
+            },
+            "boat_30d": {
+              "unique_racers": 3,
+              "starts": 16,
+              "finish_samples": 16,
+              "avg_finish": 4.0,
+              "win_rate": 0.1875,
+              "top2_rate": 0.25,
+              "top3_rate": 0.3125,
+              "st_samples": 11,
+              "avg_st": 0.13,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 11,
+              "avg_exhibition": 6.86
+            },
+            "boat_90d": {
+              "unique_racers": 7,
+              "starts": 52,
+              "finish_samples": 51,
+              "avg_finish": 3.52941,
+              "win_rate": 0.26923,
+              "top2_rate": 0.30769,
+              "top3_rate": 0.44231,
+              "st_samples": 46,
+              "avg_st": 0.1537,
+              "f_count": 1,
+              "f_rate": 0.01923,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 47,
+              "avg_exhibition": 6.8683
+            },
+            "racer_venue": {
+              "available": true,
+              "venue_code": "14",
+              "features": {
+                "d30": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.0,
+                  "win_rate": 0.2,
+                  "top2_rate": 0.6,
+                  "top3_rate": 0.6,
+                  "st_samples": 3,
+                  "avg_st": 0.08,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.77667
+                },
+                "d90": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.0,
+                  "win_rate": 0.2,
+                  "top2_rate": 0.6,
+                  "top3_rate": 0.6,
+                  "st_samples": 3,
+                  "avg_st": 0.08,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.77667
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": 0.0,
+                  "avg_st_30v90": 0.0,
+                  "avg_exhibition_30v90": 0.0
+                }
+              }
+            },
+            "racer_course": {
+              "available": true,
+              "current_course": 3,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 2,
+                  "finish_samples": 2,
+                  "avg_finish": 4.5,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.5,
+                  "st_samples": 2,
+                  "avg_st": 0.1,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 2,
+                  "avg_exhibition": 6.88
+                },
+                "d90": {
+                  "starts": 9,
+                  "finish_samples": 9,
+                  "avg_finish": 4.88889,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.11111,
+                  "st_samples": 9,
+                  "avg_st": 0.11556,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 9,
+                  "avg_exhibition": 6.89333
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.38889,
+                  "avg_finish_30v90": -0.38889,
+                  "avg_st_30v90": -0.01556,
+                  "avg_exhibition_30v90": -0.01333
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 3,
+              "exhibition_time": 6.8,
+              "exhibition_st_raw": ".06",
+              "exhibition_st": 0.06,
+              "exhibition_f": false,
+              "tilt": 0.0,
+              "change_parts": "リング×１"
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 23.0,
+                "wind_speed_mps": 1.0,
+                "wind_direction_code": 11,
+                "wind_direction": "南西",
+                "wave_height_cm": 1.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
+            "official_f_count": null,
+            "official_l_count": null,
+            "official_avg_st": null,
+            "official_fl_available": false,
+            "candidate_components": {
+              "f_l_holdings": {
+                "available": false,
+                "f_count": null,
+                "l_count": null,
+                "active_in_score": false
+              },
+              "motor_30d": {
+                "available": true,
+                "features": {
+                  "unique_racers": 3,
+                  "starts": 23,
+                  "finish_samples": 22,
+                  "avg_finish": 3.22727,
+                  "win_rate": 0.26087,
+                  "top2_rate": 0.43478,
+                  "top3_rate": 0.52174,
+                  "st_samples": 17,
+                  "avg_st": 0.12,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 17,
+                  "avg_exhibition": 6.83176
+                },
+                "active_in_score": false
+              },
+              "parts_exchange": {
+                "available": true,
+                "value": "リング×１",
+                "active_in_score": false
+              },
+              "weather_water": {
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 23.0,
+                    "wind_speed_mps": 1.0,
+                    "wind_direction_code": 11,
+                    "wind_direction": "南西",
+                    "wave_height_cm": 1.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
+                "active_in_score": false
+              }
+            }
+          },
+          "components": {
+            "racer_course": {
+              "weight": 40.0,
+              "raw_score_0_1": 0.38,
+              "available": true
+            },
+            "grade": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.4,
+              "available": true
+            },
+            "motor": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.88,
+              "available": true
+            },
+            "boat": {
+              "weight": 5.0,
+              "raw_score_0_1": 0.3,
+              "available": true
+            },
+            "national_top2": {
+              "weight": 15.0,
+              "raw_score_0_1": 0.2,
+              "available": true
+            },
+            "structural": {
+              "weight": 80.0,
+              "raw_score_0_1": 0.453,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6.0,
+              "raw_score_0_1": 0.2,
+              "available": true
+            },
+            "exST": {
+              "weight": 14.0,
+              "raw_score_0_1": 1.0,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
+            }
+          },
+          "rank": 4
+        },
+        {
+          "boat": 5,
+          "registration_no": 4607,
+          "racer_name": "鶴田勇雄",
+          "grade": "A2",
+          "motor_no": 56,
+          "boat_no": 16,
+          "score": 40.37,
+          "morning_score_reference": 38.0,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 5,
+          "exhibition_time": 6.76,
+          "exhibition_st": 0.15,
+          "exhibition_f": false,
+          "tilt": 0.5,
+          "change_parts": "",
+          "input_trace": {
+            "history_feature_manifest": {
+              "as_of_date": "20261009",
+              "history_min_date": "20260621",
+              "history_max_date": "20261008",
+              "history_stale_days": 0,
+              "leakage_guard": "Only rows with result date < as_of_date are used."
+            },
+            "structural_course_fallback": null,
+            "racer_30d": {
+              "starts": 26,
+              "finish_samples": 26,
+              "avg_finish": 3.5,
+              "win_rate": 0.07692,
+              "top2_rate": 0.30769,
+              "top3_rate": 0.61538,
+              "st_samples": 24,
+              "avg_st": 0.17375,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 24,
+              "avg_exhibition": 6.79667
+            },
+            "racer_90d": {
+              "starts": 65,
+              "finish_samples": 65,
+              "avg_finish": 3.43077,
+              "win_rate": 0.15385,
+              "top2_rate": 0.33846,
+              "top3_rate": 0.53846,
+              "st_samples": 63,
+              "avg_st": 0.15492,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 63,
+              "avg_exhibition": 6.84698
+            },
+            "motor_30d": {
+              "unique_racers": 3,
+              "starts": 17,
+              "finish_samples": 17,
+              "avg_finish": 3.94118,
+              "win_rate": 0.11765,
+              "top2_rate": 0.35294,
+              "top3_rate": 0.35294,
+              "st_samples": 17,
+              "avg_st": 0.16529,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 17,
+              "avg_exhibition": 6.85118
+            },
+            "motor_90d": {
+              "unique_racers": 6,
+              "starts": 41,
+              "finish_samples": 40,
+              "avg_finish": 4.2,
+              "win_rate": 0.07317,
+              "top2_rate": 0.21951,
+              "top3_rate": 0.2439,
+              "st_samples": 40,
+              "avg_st": 0.16925,
+              "f_count": 1,
+              "f_rate": 0.02439,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 41,
+              "avg_exhibition": 6.86439
+            },
+            "boat_30d": {
+              "unique_racers": 3,
+              "starts": 22,
+              "finish_samples": 22,
+              "avg_finish": 4.18182,
+              "win_rate": 0.04545,
+              "top2_rate": 0.13636,
+              "top3_rate": 0.31818,
+              "st_samples": 17,
+              "avg_st": 0.17824,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 17,
+              "avg_exhibition": 6.83706
+            },
+            "boat_90d": {
+              "unique_racers": 7,
+              "starts": 51,
+              "finish_samples": 51,
+              "avg_finish": 3.96078,
+              "win_rate": 0.07843,
+              "top2_rate": 0.21569,
+              "top3_rate": 0.41176,
+              "st_samples": 46,
+              "avg_st": 0.17543,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 46,
+              "avg_exhibition": 6.84348
+            },
+            "racer_venue": {
+              "available": true,
+              "venue_code": "14",
+              "features": {
+                "d30": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.8,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.4,
+                  "top3_rate": 0.4,
+                  "st_samples": 3,
+                  "avg_st": 0.23,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.73667
+                },
+                "d90": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.8,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.4,
+                  "top3_rate": 0.4,
+                  "st_samples": 3,
+                  "avg_st": 0.23,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.73667
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": 0.0,
+                  "avg_st_30v90": 0.0,
+                  "avg_exhibition_30v90": 0.0
+                }
+              }
+            },
+            "racer_course": {
+              "available": true,
+              "current_course": 5,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 4,
+                  "finish_samples": 4,
+                  "avg_finish": 3.75,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.75,
+                  "st_samples": 4,
+                  "avg_st": 0.165,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 4,
+                  "avg_exhibition": 6.845
+                },
+                "d90": {
+                  "starts": 8,
+                  "finish_samples": 8,
+                  "avg_finish": 4.0,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.5,
+                  "st_samples": 8,
+                  "avg_st": 0.165,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 8,
+                  "avg_exhibition": 6.86625
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.25,
+                  "avg_finish_30v90": -0.25,
+                  "avg_st_30v90": 0.0,
+                  "avg_exhibition_30v90": -0.02125
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 5,
+              "exhibition_time": 6.76,
+              "exhibition_st_raw": ".15",
+              "exhibition_st": 0.15,
+              "exhibition_f": false,
+              "tilt": 0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 23.0,
+                "wind_speed_mps": 1.0,
+                "wind_direction_code": 11,
+                "wind_direction": "南西",
+                "wave_height_cm": 1.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
+            "official_f_count": null,
+            "official_l_count": null,
+            "official_avg_st": null,
+            "official_fl_available": false,
+            "candidate_components": {
+              "f_l_holdings": {
+                "available": false,
+                "f_count": null,
+                "l_count": null,
+                "active_in_score": false
+              },
+              "motor_30d": {
+                "available": true,
+                "features": {
+                  "unique_racers": 3,
+                  "starts": 17,
+                  "finish_samples": 17,
+                  "avg_finish": 3.94118,
+                  "win_rate": 0.11765,
+                  "top2_rate": 0.35294,
+                  "top3_rate": 0.35294,
+                  "st_samples": 17,
+                  "avg_st": 0.16529,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 17,
+                  "avg_exhibition": 6.85118
+                },
+                "active_in_score": false
+              },
+              "parts_exchange": {
+                "available": false,
+                "value": "",
+                "active_in_score": false
+              },
+              "weather_water": {
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 23.0,
+                    "wind_speed_mps": 1.0,
+                    "wind_direction_code": 11,
+                    "wind_direction": "南西",
+                    "wave_height_cm": 1.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
+                "active_in_score": false
+              }
+            }
+          },
+          "components": {
+            "racer_course": {
+              "weight": 40.0,
+              "raw_score_0_1": 0.36,
+              "available": true
+            },
+            "grade": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.8,
+              "available": true
+            },
+            "motor": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.08,
+              "available": true
+            },
+            "boat": {
+              "weight": 5.0,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "national_top2": {
+              "weight": 15.0,
+              "raw_score_0_1": 0.4,
+              "available": true
+            },
+            "structural": {
+              "weight": 80.0,
+              "raw_score_0_1": 0.38,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6.0,
+              "raw_score_0_1": 0.4,
+              "available": true
+            },
+            "exST": {
+              "weight": 14.0,
+              "raw_score_0_1": 0.541,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
+            }
+          },
+          "rank": 5
+        },
+        {
+          "boat": 6,
+          "registration_no": 5452,
+          "racer_name": "上馬場風",
+          "grade": "B2",
+          "motor_no": 82,
+          "boat_no": 81,
+          "score": 35.76,
+          "morning_score_reference": 21.2,
+          "data_coverage_pct": 100.0,
+          "exhibition_course": 6,
+          "exhibition_time": 6.7,
+          "exhibition_st": 0.1,
+          "exhibition_f": false,
+          "tilt": 0.0,
+          "change_parts": "",
+          "input_trace": {
+            "history_feature_manifest": {
+              "as_of_date": "20261009",
+              "history_min_date": "20260621",
+              "history_max_date": "20261008",
+              "history_stale_days": 0,
+              "leakage_guard": "Only rows with result date < as_of_date are used."
+            },
+            "structural_course_fallback": null,
+            "racer_30d": {
+              "starts": 11,
+              "finish_samples": 10,
+              "avg_finish": 5.6,
+              "win_rate": 0.0,
+              "top2_rate": 0.0,
+              "top3_rate": 0.0,
+              "st_samples": 9,
+              "avg_st": 0.15667,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 9,
+              "avg_exhibition": 6.79889
+            },
+            "racer_90d": {
+              "starts": 30,
+              "finish_samples": 29,
+              "avg_finish": 5.7931,
+              "win_rate": 0.0,
+              "top2_rate": 0.0,
+              "top3_rate": 0.0,
+              "st_samples": 28,
+              "avg_st": 0.17429,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 28,
+              "avg_exhibition": 6.85464
+            },
+            "motor_30d": {
+              "unique_racers": 3,
+              "starts": 20,
+              "finish_samples": 19,
+              "avg_finish": 3.68421,
+              "win_rate": 0.2,
+              "top2_rate": 0.3,
+              "top3_rate": 0.4,
+              "st_samples": 15,
+              "avg_st": 0.14867,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 15,
+              "avg_exhibition": 6.778
+            },
+            "motor_90d": {
+              "unique_racers": 7,
+              "starts": 51,
+              "finish_samples": 50,
+              "avg_finish": 2.98,
+              "win_rate": 0.21569,
+              "top2_rate": 0.39216,
+              "top3_rate": 0.66667,
+              "st_samples": 46,
+              "avg_st": 0.13174,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 46,
+              "avg_exhibition": 6.79304
+            },
+            "boat_30d": {
+              "unique_racers": 2,
+              "starts": 11,
+              "finish_samples": 11,
+              "avg_finish": 4.18182,
+              "win_rate": 0.0,
+              "top2_rate": 0.18182,
+              "top3_rate": 0.27273,
+              "st_samples": 11,
+              "avg_st": 0.15455,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 11,
+              "avg_exhibition": 6.83455
+            },
+            "boat_90d": {
+              "unique_racers": 6,
+              "starts": 43,
+              "finish_samples": 43,
+              "avg_finish": 3.81395,
+              "win_rate": 0.13953,
+              "top2_rate": 0.30233,
+              "top3_rate": 0.48837,
+              "st_samples": 43,
+              "avg_st": 0.14047,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 43,
+              "avg_exhibition": 6.8414
+            },
+            "racer_venue": {
+              "available": true,
+              "venue_code": "14",
+              "features": {
+                "d30": {
+                  "starts": 4,
+                  "finish_samples": 4,
+                  "avg_finish": 5.5,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 2,
+                  "avg_st": 0.14,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 2,
+                  "avg_exhibition": 6.81
+                },
+                "d90": {
+                  "starts": 4,
+                  "finish_samples": 4,
+                  "avg_finish": 5.5,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 2,
+                  "avg_st": 0.14,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 2,
+                  "avg_exhibition": 6.81
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": 0.0,
+                  "avg_st_30v90": 0.0,
+                  "avg_exhibition_30v90": 0.0
+                }
+              }
+            },
+            "racer_course": {
+              "available": true,
+              "current_course": 6,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 9,
+                  "finish_samples": 8,
+                  "avg_finish": 5.625,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 9,
+                  "avg_st": 0.15667,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 9,
+                  "avg_exhibition": 6.79889
+                },
+                "d90": {
+                  "starts": 28,
+                  "finish_samples": 27,
+                  "avg_finish": 5.81481,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 28,
+                  "avg_st": 0.17429,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 28,
+                  "avg_exhibition": 6.85464
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": -0.18981,
+                  "avg_st_30v90": -0.01762,
+                  "avg_exhibition_30v90": -0.05575
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 6,
+              "exhibition_time": 6.7,
+              "exhibition_st_raw": ".10",
+              "exhibition_st": 0.1,
+              "exhibition_f": false,
+              "tilt": 0.0,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 23.0,
+                "wind_speed_mps": 1.0,
+                "wind_direction_code": 11,
+                "wind_direction": "南西",
+                "wave_height_cm": 1.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
+            "official_f_count": null,
+            "official_l_count": null,
+            "official_avg_st": null,
+            "official_fl_available": false,
+            "candidate_components": {
+              "f_l_holdings": {
+                "available": false,
+                "f_count": null,
+                "l_count": null,
+                "active_in_score": false
+              },
+              "motor_30d": {
+                "available": true,
+                "features": {
+                  "unique_racers": 3,
+                  "starts": 20,
+                  "finish_samples": 19,
+                  "avg_finish": 3.68421,
+                  "win_rate": 0.2,
+                  "top2_rate": 0.3,
+                  "top3_rate": 0.4,
+                  "st_samples": 15,
+                  "avg_st": 0.14867,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 15,
+                  "avg_exhibition": 6.778
+                },
+                "active_in_score": false
+              },
+              "parts_exchange": {
+                "available": false,
+                "value": "",
+                "active_in_score": false
+              },
+              "weather_water": {
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 23.0,
+                    "wind_speed_mps": 1.0,
+                    "wind_direction_code": 11,
+                    "wind_direction": "南西",
+                    "wave_height_cm": 1.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
+                "active_in_score": false
+              }
+            }
+          },
+          "components": {
+            "racer_course": {
+              "weight": 40.0,
+              "raw_score_0_1": 0.02,
+              "available": true
+            },
+            "grade": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "motor": {
+              "weight": 20.0,
+              "raw_score_0_1": 0.92,
+              "available": true
+            },
+            "boat": {
+              "weight": 5.0,
+              "raw_score_0_1": 0.4,
+              "available": true
+            },
+            "national_top2": {
+              "weight": 15.0,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "structural": {
+              "weight": 80.0,
+              "raw_score_0_1": 0.212,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6.0,
+              "raw_score_0_1": 0.8,
+              "available": true
+            },
+            "exST": {
+              "weight": 14.0,
+              "raw_score_0_1": 1.0,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
+            }
+          },
+          "rank": 6
+        }
+      ]
+    }
+  ]
+}
