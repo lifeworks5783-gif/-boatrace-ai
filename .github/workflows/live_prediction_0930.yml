@@ -486,6 +486,15 @@ jobs:
                   raise SystemExit(f"ERROR: {rid} 補完マークがformationで消失")
               if rid not in deadline_flags:
                   raise SystemExit(f"ERROR: {rid} 補完マークがlatest_by_deadlineで消失")
+              if q.get("signal_blocked"):
+                  for name,payload in (("live",live),("formation",formation),("deadline",deadline)):
+                      record=next((r for r in payload.get("races") or [] if r.get("race_id")==rid),None)
+                      if record is None:
+                          raise SystemExit(f"ERROR: {rid} {name} に予測が無い")
+                      if not any(b.get("score_fallback") for b in record.get("boats") or []):
+                          raise SystemExit(f"ERROR: {rid} {name} の艇別▲が消失")
+                      if (record.get("up_signal") or {}).get("active") or (record.get("down_signal") or {}).get("active"):
+                          raise SystemExit(f"ERROR: {rid} {name} で仮データからシグナル誤発動")
 
           print(f"補完マーク永続化 PASS: {len(live_flags)}R")
           PY
