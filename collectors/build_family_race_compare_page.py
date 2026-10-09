@@ -2500,6 +2500,8 @@ def ai_score_result_html(prediction, trifecta, payout):
     raw = prediction.get("raw") or {}
     if raw.get("canonical_strategy") == "live_signal_pending_recovery":
         return '<div class="simulation missing">直前公式データの復元待ち：風神雷神判定・購入成績は未評価（通常AI8点には振り替えません）</div>'
+    if raw.get("canonical_strategy") == "reduced_field_signal_not_evaluated":
+        return '<div class="simulation missing">出走5艇以下：公式直前スコアは復元済み。風神雷神の6艇判定・専用24点は対象外（非発動とは区別）</div>'
     signal = prediction.get("signal_ai_prediction") or raw.get("signal_ai_prediction") or {}
     is_signal = bool(signal and signal.get("signal_key"))
     canonical_key = raw.get("canonical_signal_key")
