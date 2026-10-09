@@ -98,10 +98,18 @@ def main():
     expected_rows = read_csv(program)
     expected = race_ids(expected_rows)
     original = race_ids(original_rows)
+    # Saved neutral scores are NOT verified official live observations.
+    # Keep them in the recovery queue until complete original exhibition
+    # evidence is obtained; a stored 0-delta placeholder is not success.
+    partial_ids = {
+        normalize_race_id(row.get("race_id")) for row in original_rows
+        if str(row.get("score_fallback") or "").strip().lower() in {"true", "yes", "1"}
+    }
+    verified_original = original - partial_ids
     # Recover only finished races; future races never count as an inactive signal.
     result_path = Path("archive") / y / m / day / f"results_{d}_all.csv"
     finished = (race_ids(read_csv(result_path)) & expected) if result_path.is_file() else set()
-    missing_before = sorted(finished - original)
+    missing_before = sorted(finished - verified_original)
 
     out_dir = Path("evaluations") / y / m / day / "recovery"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -241,9 +249,20 @@ def main():
                     (normalize_race_id(row.get("race_id")), str(row.get("boat") or "")): row
                     for row in recovered_rows
                 }
+                rebuilt_by_race = {}
                 for row in rebuilt_rows:
                     rid = normalize_race_id(row.get("race_id"))
-                    if rid in pending_set:
+                    rebuilt_by_race.setdefault(rid, []).append(row)
+                for rid, rows in rebuilt_by_race.items():
+                    if rid not in pending_set:
+                        continue
+                    # Recovery may NOT certify a new neutral placeholder as
+                    # official data. Leave the race pending for a later retry.
+                    if any(str(x.get("score_fallback") or "").strip().lower() in {"true", "yes", "1"}
+                           for x in rows):
+                        retry_errors.append({"race_id": rid, "error": "official beforeinfo still partial; neutral score pending"})
+                        continue
+                    for row in rows:
                         by_key[(rid, str(row.get("boat") or ""))] = row
                 recovered_rows = list(by_key.values())
                 if recovered_rows:
@@ -276,7 +295,7 @@ def main():
     write_csv(merged_csv, merged_rows, fields)
 
     merged_ids = race_ids(merged_rows)
-    still_missing = sorted(finished - merged_ids)
+    still_missing = sorted(finished - (verified_original | recovered_ids))
     recovered_target_ids = sorted(set(missing_before) & recovered_ids)
 
     manifest = {
@@ -293,6 +312,8 @@ def main():
         "not_yet_finished_races": len(expected - finished),
         "production_live_races_before": len(original),
         "missing_before": missing_before,
+        "neutral_live_rows_pending_recovery": sorted(partial_ids & finished),
+        "official_retry_errors": retry_errors,
         "recovered_races": recovered_target_ids,
         "merged_analysis_races": len(merged_ids),
         "still_missing": still_missing,
