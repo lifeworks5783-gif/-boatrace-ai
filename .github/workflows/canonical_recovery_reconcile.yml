@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: canonical-recovery-reconcile
@@ -106,3 +107,14 @@ jobs:
           done
           echo "Push conflict: no unverified result was published" >&2
           exit 1
+
+      - name: 共通正本同期の成功後に家族4画面を明示更新
+        if: steps.date.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Bot-pushed commits do not fire ordinary push workflows. This explicit
+          # dispatch follows verified canonical save and also covers no-op reruns.
+          gh workflow run family_prediction_page.yml \\
+            --repo "${GITHUB_REPOSITORY}" --ref main
+          echo "公式復旧の保存後に家族4画面の公開を予約: PASS"
