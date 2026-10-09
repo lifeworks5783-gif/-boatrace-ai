@@ -1864,10 +1864,17 @@ def main():
             if len(morning_boats) == 6:
                 morning_formation = build_formation(morning_boats)
 
-        ai_score_prediction = build_ai_score_prediction(
-            boats,
-            ai_score_config,
-        )
+        # Retrospective recovered boat snapshots contain official live scores,
+        # not all original component traces. Never synthesize those traces,
+        # and never overwrite the historically saved normal AI purchase.
+        # The original normal AI/formation is restored from prior JSON below.
+        if prediction_quality.get("status") == "recovered_observation":
+            ai_score_prediction = morning_ai_score_prediction or {}
+        else:
+            ai_score_prediction = build_ai_score_prediction(
+                boats,
+                ai_score_config,
+            )
 
         # 風神雷神は通常予測・通常formation・既存AIスコアを変更しない。
         # シグナル専用の別レイヤーで6艇を再評価し、上位24通りを保存する。
