@@ -1335,6 +1335,34 @@ def load_archive_result_fallback(target_date):
             names = names_by_race.get(race_code, {})
             item["actual_names"] = [names.get(rank, "") for rank in (1, 2, 3)]
 
+    # Missing official trifectas can be restored from separately audited
+    # primary-source records. Never invent a third finisher for a race
+    # where the official 3連単 was not established.
+    verified_path = base / f"official_result_backfills_{target_date}.json"
+    verified = read_json(verified_path) if verified_path.is_file() else {}
+    for item in (verified or {}).get("verified_results", []):
+        if not isinstance(item, dict) or item.get("source_type") != "boatrace_official":
+            continue
+        if not str(item.get("source_url") or "").startswith(
+            "https://www.boatrace.jp/owpc/pc/race/raceresult?"
+        ):
+            continue
+        race_code = extract_race_code(item, target_date)
+        actual = parse_trifecta_result(item.get("trifecta"))
+        payout = safe_int(item.get("trifecta_pay"))
+        if not race_code or not race_code.startswith(target_date):
+            continue
+        if len(actual) != 3 or payout is None or payout <= 0:
+            continue
+        if race_code not in results_by_race:
+            results_by_race[race_code] = {
+                "actual": actual,
+                "payout": payout,
+                "technique": str(item.get("technique") or "").strip(),
+                "actual_names": ["", "", ""],
+                "result_source": "audited_official_result",
+            }
+            print("監査済み公式結果から3連単を補完:", race_code, item["source_url"])
     return results_by_race
 
 
