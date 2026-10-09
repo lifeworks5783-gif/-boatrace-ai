@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - refactor/logic-registry-canonical-race-v1
+      - fix/recovered-live-canonical-signal-24
   workflow_dispatch:
 
 permissions:
@@ -25,6 +26,7 @@ jobs:
           python -m py_compile \
             collectors/logic_registry.py \
             collectors/race_prediction_store.py \
+            collectors/recovery_live_overlay.py \
             collectors/build_morning_prediction.py \
             collectors/build_live_prediction.py \
             collectors/build_latest_prediction_view.py \
@@ -96,4 +98,50 @@ jobs:
               p = Path('_contract_test') / name
               assert p.is_file() and p.stat().st_size > 1000, name
               print('FOUR_VIEW_PASS', name, p.stat().st_size)
+          PY
+      - name: Replay 2026-10-09 official beforeinfo recovery into canonical predictions
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('predictions/2026/10/09/live/formation_predictions_final_20261009.json')
+          rows=json.loads(p.read_text(encoding='utf-8'))['races']
+          row=next(x for x in rows if x['race_id']=='20261009-14-01')
+          Path('/tmp/normal_ai_before.json').write_text(json.dumps({
+              'formation':row.get('formation'),
+              'ai_score_prediction':row.get('ai_score_prediction')
+          },sort_keys=True),encoding='utf-8')
+          print('BEFORE_NARUTO1', (row.get('up_signal') or {}).get('level'), (row.get('down_signal') or {}).get('level'))
+          PY
+          python -u collectors/build_latest_prediction_view.py --date 20261009 --now 2026-10-09T12:00:00+09:00
+          python -u collectors/build_deadline_prediction_view.py --date 20261009
+          python -u collectors/build_family_prediction_page.py \
+            --input predictions/latest_by_deadline.json --output-dir _recovery_test
+          python -u collectors/build_family_race_compare_page.py \
+            --date 20261009 --predictions-root predictions --output-dir _recovery_test
+          python - <<'PY'
+          from pathlib import Path
+          import json, sys
+          sys.path.insert(0, 'collectors')
+          from race_prediction_store import load_canonical, audit_race
+          from recovery_live_overlay import load_verified_recovered_live
+          overlay=load_verified_recovered_live('20261009')
+          assert '20261009-14-01' in overlay, list(overlay)
+          data=load_canonical('20261009')
+          row=next(x for x in data['races'] if x['race_id']=='20261009-14-01')
+          audit=audit_race(row)
+          assert audit['signal_key']=='F2R2', audit
+          assert audit['signal_ai_status']=='ready', audit
+          assert row.get('retrospective_signal_recovery') is True, row
+          assert row.get('signal_detected_at_original_deadline') is False, row
+          assert len(row['signal_ai_prediction']['combinations'])==24
+          saved=json.loads(Path('/tmp/normal_ai_before.json').read_text())
+          assert json.dumps({
+              'formation': row.get('formation'),
+              'ai_score_prediction': row.get('ai_score_prediction')
+          }, sort_keys=True)==json.dumps(saved,sort_keys=True)
+          rendered=Path('_recovery_test/race_compare.html').read_text(encoding='utf-8')
+          start=rendered.index('鳴門')
+          print('NARUTO_F2R2_RECOVERY_PASS', audit, 'saved original buying choices unchanged')
+          print('RENDERED_REPAIRED', '風神雷神専用AI予想' in rendered)
           PY

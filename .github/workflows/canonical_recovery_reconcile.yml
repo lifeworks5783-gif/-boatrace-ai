@@ -1,0 +1,103 @@
+name: 公式直前復旧データを共通予測正本へ反映
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "evaluations/**/recovery/merged_live_predictions_*.csv"
+      - "evaluations/**/recovery/live_recovery_manifest_*.json"
+      - ".github/workflows/canonical_recovery_reconcile.yml"
+      - "config/run_reconcile_live_now.txt"
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "対象日 YYYYMMDD（省略時はJST当日）"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: canonical-recovery-reconcile
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 予測計算依存を準備
+        run: python -m pip install requests beautifulsoup4
+      - name: 対象日・保存済み公式復旧記録を検証
+        id: date
+        env:
+          INPUT_DATE: ${{ inputs.target_date }}
+        run: |
+          TARGET_DATE="${INPUT_DATE:-$(TZ=Asia/Tokyo date +%Y%m%d)}"
+          if ! [[ "$TARGET_DATE" =~ ^[0-9]{8}$ ]]; then
+            echo "Invalid TARGET_DATE" >&2
+            exit 1
+          fi
+          DAY_PATH="evaluations/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/recovery"
+          if ! test -s "$DAY_PATH/live_recovery_manifest_${TARGET_DATE}.json"; then
+            echo "当日復旧manifestは未作成。予測と買い目には変更しません。"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "date=$TARGET_DATE" >> "$GITHUB_OUTPUT"
+          echo "run=true" >> "$GITHUB_OUTPUT"
+      - name: 復旧スコアを共通予測正本へ統合して保存
+        if: steps.date.outputs.run == 'true'
+        env:
+          TARGET_DATE: ${{ steps.date.outputs.date }}
+        run: |
+          python -u collectors/build_latest_prediction_view.py --date "$TARGET_DATE"
+          python -u collectors/build_deadline_prediction_view.py --date "$TARGET_DATE"
+          python - <<'PY'
+          import os,sys
+          sys.path.insert(0,'collectors')
+          from race_prediction_store import load_canonical, audit_canonical
+          from recovery_live_overlay import load_verified_recovered_live
+          d=os.environ['TARGET_DATE']
+          recovered=load_verified_recovered_live(d)
+          summary=audit_canonical(load_canonical(d))
+          print('CANONICAL_RECOVERY_AUDIT', {k:v for k,v in summary.items() if k!='details'})
+          for race_id in recovered:
+              row=next((x for x in load_canonical(d)['races'] if x['race_id']==race_id),None)
+              if row is None: raise SystemExit(f'Recovered race absent in canonical: {race_id}')
+              quality=(row.get('prediction_quality') or {})
+              if quality.get('status')!='recovered_observation':
+                  raise SystemExit(f'Recovered race not consumed: {race_id}')
+              from race_prediction_store import audit_race
+              state=audit_race(row)
+              if state['signal_key'] and state['signal_ai_status']!='ready':
+                  raise SystemExit(f'Active signal lacks 24 tickets: {race_id}, {state}')
+          PY
+          git config user.name boatrace-recovery-bot
+          git config user.email boatrace-recovery-bot@users.noreply.github.com
+          git add "predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/live/formation_predictions_final_${TARGET_DATE}.json"
+          git add "predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/live/formation_predictions_final_${TARGET_DATE}.csv"
+          git add predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
+          if git diff --cached --quiet; then
+            echo "共通正本はすでに最新"
+            exit 0
+          fi
+          git commit -m "Sync verified official live recovery into canonical signal predictions for $TARGET_DATE"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "公式直前復旧の共通正本保存: PASS"
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo "Push conflict: no unverified result was published" >&2
+          exit 1

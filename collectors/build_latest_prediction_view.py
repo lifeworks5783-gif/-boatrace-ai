@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 
 
 from logic_registry import load_logic, logic_identity, ROOT
+from recovery_live_overlay import join_verified_recovery
 
 JST = timezone(timedelta(hours=9))
 SIGNAL_LOGIC = load_logic("fujin_raijin")
@@ -1679,6 +1680,14 @@ def main():
         live_payload
     )
 
+    # The persisted original live prediction may omit races that were restored
+    # from official pre-result beforeinfo AFTER a known collection failure.
+    # Join the verified six-boat recovery before signal classification so
+    # both latest and completed comparison use ONE stored signal and 24 picks.
+    live, recovered_ids = join_verified_recovery(live, target_date)
+    if recovered_ids:
+        print("公式直前情報・事後復旧を共通予測正本へ統合:", len(recovered_ids), "R")
+
     program_deadlines = (
         load_program_deadlines(
             target_date
@@ -1855,10 +1864,17 @@ def main():
             if len(morning_boats) == 6:
                 morning_formation = build_formation(morning_boats)
 
-        ai_score_prediction = build_ai_score_prediction(
-            boats,
-            ai_score_config,
-        )
+        # Retrospective recovered boat snapshots contain official live scores,
+        # not all original component traces. Never synthesize those traces,
+        # and never overwrite the historically saved normal AI purchase.
+        # The original normal AI/formation is restored from prior JSON below.
+        if prediction_quality.get("status") == "recovered_observation":
+            ai_score_prediction = morning_ai_score_prediction or {}
+        else:
+            ai_score_prediction = build_ai_score_prediction(
+                boats,
+                ai_score_config,
+            )
 
         # 風神雷神は通常予測・通常formation・既存AIスコアを変更しない。
         # シグナル専用の別レイヤーで6艇を再評価し、上位24通りを保存する。
@@ -2025,12 +2041,18 @@ def main():
                             "morning_ai_score_prediction"):
                     if key in prior:
                         row[key] = prior[key]
-                assert (row.get("up_signal") or {}).get("available") is True, (
-                    "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("up_signal")
-                )
-                assert (row.get("down_signal") or {}).get("available") is True, (
-                    "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("down_signal")
-                )
+                if len(source.get("boats") or []) == 6:
+                    assert (row.get("up_signal") or {}).get("available") is True, (
+                        "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("up_signal")
+                    )
+                    assert (row.get("down_signal") or {}).get("available") is True, (
+                        "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("down_signal")
+                    )
+                else:
+                    # Legitimate official scratch: no fabricated six-boat
+                    # comparison signal is issued for a reduced-size field.
+                    assert not (row.get("up_signal") or {}).get("active")
+                    assert not (row.get("down_signal") or {}).get("active")
                 row["retrospective_score_recovery"] = True
                 row["retrospective_signal_recovery"] = True
                 row["signal_recovery_provenance"] = "official_beforeinfo_post_result_replay"
