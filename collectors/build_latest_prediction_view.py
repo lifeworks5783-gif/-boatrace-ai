@@ -15,14 +15,20 @@ import requests
 from bs4 import BeautifulSoup
 
 
+from logic_registry import load_logic, logic_identity, ROOT
+
 JST = timezone(timedelta(hours=9))
+SIGNAL_LOGIC = load_logic("fujin_raijin")
+SIGNAL_RAIJIN = SIGNAL_LOGIC["detection"]["raijin"]
+SIGNAL_FUJIN = SIGNAL_LOGIC["detection"]["fujin"]
+SIGNAL_TICKET_WEIGHTS = SIGNAL_LOGIC["scoring"]["combination_position_weights"]
 
 FORMATION_MODEL = "formation_gap_flow_v2"
 
-DOWN_SIGNAL_RULE_VERSION = "down_signal_v0_20261007"
-UP_SIGNAL_RULE_VERSION = "raijin_signal_v1_20261008"
+DOWN_SIGNAL_RULE_VERSION = SIGNAL_FUJIN["rule_version"]
+UP_SIGNAL_RULE_VERSION = SIGNAL_RAIJIN["rule_version"]
 SIGNAL_SYSTEM_NAME = "風神雷神シグナル"
-SIGNAL_AI_CONFIG_PATH = Path("config/signal_ai/signal_ai_corrections_v1_20261008.json")
+SIGNAL_AI_CONFIG_PATH = ROOT / SIGNAL_LOGIC["scoring"]["correction_config_path"]
 SIGNAL_AI_MODEL_VERSION = "signal_ai_revalue_v1_20261008"
 
 
@@ -267,7 +273,7 @@ def build_up_signal(
         ):
             continue
         rise = live_score - morning_score
-        if rise >= 7.5:
+        if rise >= SIGNAL_RAIJIN["min_rise"]:
             candidates.append({
                 "boat": boat,
                 "rank": live_rank,
@@ -281,7 +287,7 @@ def build_up_signal(
     )
     has_score50 = any(
         item.get("score") is not None
-        and item["score"] >= 50.0
+        and item["score"] >= SIGNAL_RAIJIN["level3_score"]
         for item in candidates
     )
     if max_rise is None:
@@ -289,7 +295,7 @@ def build_up_signal(
     elif has_score50:
         # Lv3: 通常予測スコア50以上まで浮上した雷神対象艇がいる。
         level = 3
-    elif max_rise >= 10.0:
+    elif max_rise >= SIGNAL_RAIJIN["level2_rise"]:
         # Lv2: +10以上。Lv3条件に該当しない限り上限なし。
         level = 2
     else:
@@ -303,12 +309,12 @@ def build_up_signal(
         "system_name": SIGNAL_SYSTEM_NAME,
         "signal_name": "雷神",
         "thresholds": {
-            "level1_rise_min": 7.5,
-            "level1_rise_max_exclusive": 10.0,
-            "level2_rise_min": 10.0,
+            "level1_rise_min": SIGNAL_RAIJIN["min_rise"],
+            "level1_rise_max_exclusive": SIGNAL_RAIJIN["level2_rise"],
+            "level2_rise_min": SIGNAL_RAIJIN["level2_rise"],
             "level2_rise_max": None,
-            "level3_candidate_score_min": 50.0,
-            "level3_candidate_rise_min": 7.5,
+            "level3_candidate_score_min": SIGNAL_RAIJIN["level3_score"],
+            "level3_candidate_rise_min": SIGNAL_RAIJIN["min_rise"],
             "outside_live_top3": True,
             "level3_priority": True,
         },
@@ -376,17 +382,17 @@ def build_down_signal(
         {
             "id": "rank1_drop_5",
             "label": "直前1位が朝比-5点以下",
-            "met": rank1_delta <= -5.0,
+            "met": rank1_delta <= SIGNAL_FUJIN["rank1_drop"],
         },
         {
             "id": "top3_total_drop_10",
             "label": "直前TOP3合計が朝比-10点以下",
-            "met": top3_delta_sum <= -10.0,
+            "met": top3_delta_sum <= SIGNAL_FUJIN["top3_drop"],
         },
         {
             "id": "rank1_drop_close_gap",
             "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
-            "met": rank1_delta <= -3.0 and gap12 <= 5.0,
+            "met": rank1_delta <= SIGNAL_FUJIN["close_gap_rank1_drop"] and gap12 <= SIGNAL_FUJIN["close_gap_max"],
         },
     ]
     reasons = [
@@ -509,18 +515,23 @@ def build_signal_ai_prediction(boats, up_signal, down_signal, config):
     combos = []
     boats_available = sorted(adjusted)
     for first, second, third in itertools.permutations(boats_available, 3):
-        score = adjusted[first] * 0.50 + adjusted[second] * 0.30 + adjusted[third] * 0.20
+        score = (adjusted[first] * SIGNAL_TICKET_WEIGHTS["first"]
+                 + adjusted[second] * SIGNAL_TICKET_WEIGHTS["second"]
+                 + adjusted[third] * SIGNAL_TICKET_WEIGHTS["third"])
         combos.append({
             "combination": f"{first}-{second}-{third}",
             "score": round(score, 3),
         })
     combos.sort(key=lambda x: (-x["score"], x["combination"]))
 
-    candidate_points = min(int(config.get("candidate_points") or 24), len(combos))
+    candidate_points = min(int(SIGNAL_LOGIC["purchase"]["signal_points"]), len(combos))
+    if int(config.get("candidate_points") or 24) != candidate_points:
+        raise ValueError("シグナル補正設定と購入点数設定が一致しません")
     return {
         "model_version": config.get("model_version") or SIGNAL_AI_MODEL_VERSION,
         "logic_effective_date": config.get("effective_date"),
         "logic_config_source": config.get("_source"),
+        "logic_identity": logic_identity(SIGNAL_LOGIC),
         "status": "active_signal_ai",
         "normal_prediction_unchanged": True,
         "signal_key": rule_key,
@@ -1939,6 +1950,7 @@ def main():
                 down_signal
             ),
             "signal_system_name": SIGNAL_SYSTEM_NAME,
+            "signal_logic_identity": logic_identity(SIGNAL_LOGIC),
         }
 
         all_rows.append(
