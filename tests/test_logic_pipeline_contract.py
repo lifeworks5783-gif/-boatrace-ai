@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "collectors"))
 
 from logic_registry import load_logic, logic_identity, LogicConfigurationError
 from race_prediction_store import audit_race, audit_canonical, signal_key, tickets24
-from build_family_race_compare_page import ai_score_result_html
+from build_family_race_compare_page import ai_score_result_html, load_archive_result_fallback
 from build_latest_prediction_view import (
     build_up_signal, build_down_signal, build_signal_ai_prediction,
     load_signal_ai_config,
@@ -106,6 +106,14 @@ class LogicContractTest(unittest.TestCase):
         )
         self.assertIn("修復中", markup)
         self.assertNotIn("購入8点", markup)
+
+    def test_official_result_backfill_preserves_invalid_trifecta(self):
+        restored = load_archive_result_fallback("20261008")
+        # Wakamatsu 12R: the actual official 3連単 was 1-3-2, 1,130円.
+        self.assertEqual(restored["202610082012"]["actual"], [1, 3, 2])
+        self.assertEqual(restored["202610082012"]["payout"], 1130)
+        # Naruto 5R: only two legal finishers; 3連単 is 不成立.
+        self.assertNotIn("202610081405", restored)
 
     def test_audit_counts_all_signals_not_only_saved_tickets(self):
         r1 = {"race_id": "a", "up_signal": {"level": 2}, "down_signal": {"level": 0}}
