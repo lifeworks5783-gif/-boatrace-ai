@@ -39,8 +39,8 @@ jobs:
                   if page=="race_compare.html":
                       headlines=re.findall(r'<summary class="ai-result-summary">(.*?)</summary>',text,re.S)
                       ranked=[(int(n),int(size)) for h in headlines
-                              for n,size in re.findall(r'実着(\\d+)位／(120|60)通り',h)]
-                      mean=re.search(r'当日実着の平均AI順位：\\s*<b>([0-9.]+)位</b>\\s*（(\\d+)R',text)
+                              for n,size in re.findall(r'実着(\d+)位／(120|60)通り',h)]
+                      mean=re.search(r'当日実着の平均AI順位：\s*<b>([0-9.]+)位</b>\s*（(\d+)R',text)
                       got_mean=sum(n for n,_ in ranked)/len(ranked) if ranked else None
                       shown_mean=float(mean.group(1)) if mean else None
                       declared_count=int(mean.group(2)) if mean else None
