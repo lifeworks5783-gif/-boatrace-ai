@@ -1661,6 +1661,19 @@ def prediction_name_map(*predictions):
 # レースデータ統合
 # =========================================================
 
+def classify_live_for_pdca(prediction):
+    """Return (verified_live, display): neutral is visible but not a real sample."""
+    if not prediction:
+        return None, None
+    quality = prediction.get("prediction_quality") or (prediction.get("raw") or {}).get("prediction_quality") or {}
+    boats = prediction.get("boats") or (prediction.get("raw") or {}).get("boats") or []
+    pending = quality.get("signal_blocked") is True or any(
+        str(boat.get("score_fallback") or "").strip().lower() in {"true", "yes", "1"}
+        for boat in boats if isinstance(boat, dict)
+    )
+    return (None, prediction) if pending else (prediction, prediction)
+
+
 def neutral_display_from_canonical(formation_prediction):
     """Display (but DO NOT score as official LIVE) a saved morning-neutral record.
 
@@ -1883,11 +1896,9 @@ def build_race_rows(
             if live_stage in {"morning", "\u671d"}:
                 live = None
 
-        # A neutral morning-based LIVE placeholder is useful for displaying
-        # a score and its six ▲ warnings. NEVER count it as confirmed live
-        # prediction or an observed signal. The live metric stays None until
-        # official exhibition is replayed, while the card shows the fallback.
-        live_display = live
+        # Partial live scores stay visible, but are not eligible for
+        # official-LIVE accuracy or betting evaluation until fully verified.
+        live, live_display = classify_live_for_pdca(live)
         if live_display is None:
             live_display = neutral_display_from_canonical(formation_prediction)
 
@@ -2926,7 +2937,7 @@ def render_html(
   <div class="prediction-row">
 
     <div class="label">
-      {("直前予測" if row["live"] else ("直前補完（朝スコア）" if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
+      {("直前予測" if row["live"] else (("直前補完（朝スコア）" if (row.get("live_display") or {}).get("stage") == "neutral_morning_fallback" else "直前予測（一部朝スコア補完）") if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
     </div>
 
     <div>
