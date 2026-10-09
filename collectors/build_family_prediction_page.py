@@ -653,11 +653,6 @@ def main():
     content="noindex,nofollow"
   >
 
-  <meta
-    http-equiv="refresh"
-    content="60"
-  >
-
   <title>
     ボートレースAI 最新予想
   </title>
@@ -1202,7 +1197,7 @@ def main():
 
 </head>
 
-<body>
+<body data-publish-token="{esc(now_jst.isoformat())}">
 
   <div class="wrap">
 
@@ -1215,8 +1210,9 @@ def main():
       <div class="meta">
 
         <span>
-          最終更新 {esc(updated)} JST
+          予測更新 {esc(updated)} JST
         </span>
+        <span>ページ反映 {now_jst.strftime("%H:%M")} JST</span>
 
         <span>
           締切前 {len(upcoming_races)}レース
@@ -1268,7 +1264,7 @@ def main():
 
     <footer>
 
-      このページは自動更新されます。
+      最新情報の取得と予測更新は、上の更新ボタンから実行します。
 
       予測は結果を保証するものではありません。
 
