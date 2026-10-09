@@ -1604,7 +1604,7 @@ def signal_payout_badge(payout, raijin, fujin, canonical_signal=None):
     ):
         return (
             '<span class="signal-payout-miss" '
-            'title="風神・雷神の判定入力が未保存または復元待ち。未発動とは判定できない">'
+            'title="風神・雷神の判定入力が未保存または復元待ちで判定不可">'
             '5千円以上・未判定'
             '</span>'
         )
