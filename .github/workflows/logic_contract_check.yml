@@ -3,9 +3,12 @@ name: Race prediction contract tests
 on:
   push:
     branches:
+      - main
       - refactor/logic-registry-canonical-race-v1
       - fix/recovered-live-canonical-signal-24
       - fix/recovery-signal24-current-main
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -35,6 +38,8 @@ jobs:
             collectors/build_family_race_compare_page.py
       - name: Model parity and signal 24 contracts
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
+      - name: Production immutable-history and numerical-config safety
+        run: python -m unittest discover -s tests -p test_production_safety.py -v
       - name: Render both views from the same saved 2026-10-08 prediction bundle
         run: |
           python -u collectors/build_deadline_prediction_view.py --date 20261008
