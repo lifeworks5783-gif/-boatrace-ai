@@ -26,7 +26,8 @@ SIGNAL_RAIJIN = SIGNAL_LOGIC["detection"]["raijin"]
 SIGNAL_FUJIN = SIGNAL_LOGIC["detection"]["fujin"]
 SIGNAL_TICKET_WEIGHTS = SIGNAL_LOGIC["scoring"]["combination_position_weights"]
 
-FORMATION_MODEL = "formation_gap_flow_v2"
+FORMATION_LOGIC = load_logic("formation")
+FORMATION_MODEL = FORMATION_LOGIC["model_version"]
 
 DOWN_SIGNAL_RULE_VERSION = SIGNAL_FUJIN["rule_version"]
 UP_SIGNAL_RULE_VERSION = SIGNAL_RAIJIN["rule_version"]
@@ -1148,11 +1149,14 @@ def build_formation(
     gap23 = scores[1] - scores[2]
     gap34 = scores[2] - scores[3] if len(scores) >= 4 else None
 
+    gaps = FORMATION_LOGIC["thresholds"]
+    limits = FORMATION_LOGIC["maximum_points"]
+
     # 流しルール:
     # 1) 1・2位が接近し、3位以下と明確な差 -> 1・2着折返し＋3着流し
     # 2) 1位が強く、2位も3位以下と明確な差 -> 1着・2着固定＋3着流し
     # 3) 1位だけ強い -> 1着固定＋2・3着相手流し
-    if gap12 < 5.0 and gap23 >= 10.0:
+    if gap12 < gaps["close_first_gap_lt"] and gap23 >= gaps["strong_second_gap_gte"]:
         formation_type = "1・2着折返し＋3着流し"
         top1, top2 = order[0], order[1]
         tail = order[2:]
@@ -1165,7 +1169,7 @@ def build_formation(
         second_candidates = [top1, top2]
         third_candidates = tail
 
-    elif gap12 >= 10.0 and gap23 >= 10.0:
+    elif gap12 >= gaps["strong_first_gap_gte"] and gap23 >= gaps["strong_second_gap_gte"]:
         formation_type = "1・2着固定＋3着流し"
         top1, top2 = order[0], order[1]
         tail = order[2:]
@@ -1174,7 +1178,7 @@ def build_formation(
         second_candidates = [top2]
         third_candidates = tail
 
-    elif gap12 >= 10.0:
+    elif gap12 >= gaps["strong_first_gap_gte"]:
         formation_type = "1着固定＋相手流し"
         top1 = order[0]
         tail = order[1:]
@@ -1191,12 +1195,12 @@ def build_formation(
             )
         )
         # 点数過多を避けつつ従来4点より広げる
-        combinations = combinations[:12]
+        combinations = combinations[:limits["strong_first"]]
         first_candidates = [top1]
         second_candidates = tail
         third_candidates = tail
 
-    elif gap12 >= 5.0:
+    elif gap12 >= gaps["semi_anchor_gap_gte"]:
         formation_type = "準軸"
         first_candidates = order[:2]
         second_candidates = order[:3]
@@ -1212,7 +1216,7 @@ def build_formation(
                 combo,
             )
         )
-        combinations = combinations[:8]
+        combinations = combinations[:limits["semi_anchor"]]
 
     else:
         formation_type = "混戦"
@@ -1230,7 +1234,7 @@ def build_formation(
                 combo,
             )
         )
-        combinations = combinations[:12]
+        combinations = combinations[:limits["mixed"]]
 
     return {
         "model_version": FORMATION_MODEL,
@@ -1245,7 +1249,7 @@ def build_formation(
             f"{a}-{b}-{c}" for a, b, c in combinations
         ],
         "points": len(combinations),
-        "investment_100yen": len(combinations) * 100,
+        "investment_100yen": len(combinations) * FORMATION_LOGIC["unit_yen"],
     }
 
 
