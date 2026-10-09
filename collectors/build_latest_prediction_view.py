@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 
 from logic_registry import load_logic, logic_identity, ROOT
 from recovery_live_overlay import join_verified_recovery
+from prediction_history_guard import preserve_closed_prediction
 
 JST = timezone(timedelta(hours=9))
 SIGNAL_LOGIC = load_logic("fujin_raijin")
@@ -2024,7 +2025,13 @@ def main():
         for item in (original_formation.get("races") or [])
         if isinstance(item, dict) and text(item.get("race_id"))
     }
-    for row in all_rows:
+    for row_index, row in enumerate(all_rows):
+        prior = previous_by_id.get(text(row.get("race_id")))
+        if prior:
+            # Never re-score an already saved pre-deadline race just because
+            # current model numbers, collection time or page generation changed.
+            row = preserve_closed_prediction(prior, row, now)
+            all_rows[row_index] = row
         source = live.get(text(row.get("race_id"))) or {}
         source_quality = source.get("prediction_quality") or {}
         if (
