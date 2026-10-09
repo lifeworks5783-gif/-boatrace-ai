@@ -1,0 +1,100 @@
+name: Verify actual public family site after button
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/run_public_verify_now.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-http-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: GET public GitHub Pages and cross-check real hosted HTML
+        env:
+          SITE_BASE: https://lifeworks5783-gif.github.io/boatrace-family-view
+          SITE_REPO: lifeworks5783-gif/boatrace-family-view
+          BASELINE_COMMIT: c0b0232c0bcbef493e88d51cdbc647d3728dc64c
+        run: |
+          python - <<'PY'
+          from urllib.request import urlopen, Request
+          from urllib.parse import quote
+          from urllib.error import HTTPError
+          import json, time, re, hashlib, os, sys, datetime
+          base=os.environ["SITE_BASE"]
+          repo=os.environ["SITE_REPO"]
+          baseline=os.environ["BASELINE_COMMIT"]
+          started=datetime.datetime.now(datetime.timezone.utc).isoformat()
+          print("DIRECT_HTTP_VERIFY_START",started,flush=True)
+          last={}
+          def fetch(url):
+              with urlopen(Request(url,headers={
+                  "User-Agent":"Boatrace-Public-Site-Verification/20261009",
+                  "Cache-Control":"no-cache",
+                  "Pragma":"no-cache",
+              }),timeout=18) as stream:
+                  return stream.status, stream.read(),dict(stream.headers)
+          for attempt in range(1,29):
+              try:
+                  _,raw,_=fetch(f"https://api.github.com/repos/{repo}/commits/main")
+                  current=json.loads(raw)["sha"]
+                  # Only pass when site repository *changed after* the
+                  # known pre-button publication.
+                  if current==baseline:
+                      last={"stage":"waiting_new_published_commit","attempt":attempt,"current":current}
+                      print("WAIT_PUBLICATION",last,flush=True)
+                      time.sleep(20);continue
+                  responses={}
+                  for page in ("index.html","race_compare.html","analysis.html"):
+                      status,public,hdr=fetch(f"{base}/{page}?verification={attempt}_{int(time.time())}")
+                      _,raw_version,_=fetch(f"https://raw.githubusercontent.com/{repo}/main/{page}?v={attempt}")
+                      same=hashlib.sha256(public).digest()==hashlib.sha256(raw_version).digest()
+                      text=public.decode("utf-8","replace")
+                      responses[page]={"status":status,"bytes":len(public),
+                          "sha256":hashlib.sha256(public).hexdigest(),
+                          "matches_repo_main":same,"html":text}
+                  compare=responses["race_compare.html"]["html"]
+                  # Observed official Tokoname 8R, not a mocked race.
+                  cards=re.findall(r'<article class="race-card">(.*?)</article>',compare,re.S)
+                  tokoname=next((s for s in cards if re.search(r'常滑\s*8R',s)),None)
+                  tokoname_ok=bool(tokoname and
+                      ("雷神" in tokoname or "⚡" in tokoname)
+                      and "直前予測なし" not in tokoname
+                      and ("24点" in tokoname or "24" in tokoname))
+                  index=responses["index.html"]["html"]
+                  analysis=responses["analysis.html"]["html"]
+                  criteria={
+                      "changed_publisher_commit_after_button":current!=baseline,
+                      "real_public_GET_status_200_all":all(x["status"]==200 for x in responses.values()),
+                      "real_public_html_bytes_match_repository":all(x["matches_repo_main"] for x in responses.values()),
+                      "actual_tokoname_8r_card_has_raijin_signal_and_24pts":tokoname_ok,
+                      "homepage_has_predictions":("ボートレースAI" in index and ("スコア" in index or "予想" in index)),
+                      "analysis_has_pdca":("風神雷神" in analysis and ("直前中立補完・公式復旧の監査" in analysis)),
+                  }
+                  print("DIRECT_PUBLIC_HTTP_PAGE_DETAILS",json.dumps({
+                      k:{field:v for field,v in val.items() if field!="html"}
+                      for k,val in responses.items()},ensure_ascii=False),flush=True)
+                  print("DIRECT_PUBLIC_HTTP_ASSERTIONS",json.dumps({
+                      "attempt":attempt,"publisher_commit":current,
+                      "checks":criteria,"tokoname_card_chars":len(tokoname or ""),
+                      "touched_after_button_baseline":current!=baseline,
+                  },ensure_ascii=False),flush=True)
+                  if all(criteria.values()):
+                      print("PUBLIC_SITE_DIRECT_HTTP_VERIFIED",current,flush=True)
+                      sys.exit(0)
+                  last={"stage":"waiting_content_or_sync","attempt":attempt,"checks":criteria,"publisher_commit":current}
+              except Exception as ex:
+                  last={"stage":"http_error","attempt":attempt,"reason":str(ex)}
+                  print("HTTP_RETRY",last,flush=True)
+              time.sleep(20)
+          print("DIRECT_HTTP_VERIFICATION_FAILED",json.dumps(last,ensure_ascii=False),flush=True)
+          sys.exit(1)
+          PY
