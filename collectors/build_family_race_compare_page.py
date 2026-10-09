@@ -2200,12 +2200,30 @@ def score_delta_html(boat, score, morning_scores):
     return f'<span class="score-delta down">▼ {delta:.1f}</span>'
 
 
-def prediction_quality_warning(prediction):
-    """No caution badges in the user-facing race comparison.
+def is_neutral_boat(boat):
+    return str(boat.get("score_fallback") or "").strip().lower() in {"1", "true", "yes"}
 
-    Keep prediction provenance in saved data and continue to evaluate
-    confirmed live predictions separately from morning-only predictions.
-    """
+
+def neutral_boat_marker(boat):
+    if not is_neutral_boat(boat):
+        return ""
+    reasons = boat.get("score_fallback_reasons") or []
+    if isinstance(reasons, str):
+        reasons = [reason for reason in reasons.split(",") if reason]
+    label = "朝のスコアを中立補完（±0.0）。公式直前データ復旧待ち"
+    if reasons:
+        label += "：" + " / ".join(str(x) for x in reasons)
+    return f'<span class="quality-warning" title="{esc(label)}"> ▲</span>'
+
+
+def prediction_quality_warning(prediction):
+    if not prediction:
+        return ""
+    quality = prediction.get("prediction_quality") or (prediction.get("raw") or {}).get("prediction_quality") or {}
+    if quality.get("recovery_needed") or quality.get("status") == "fallback":
+        reasons = quality.get("reason") or []
+        label = "補完した直前予測・復旧対象：" + " / ".join(str(x) for x in reasons)
+        return f'<span class="quality-warning" title="{esc(label)}">▲</span>'
     return ""
 
 def prediction_html(prediction, morning_scores=None):
@@ -2215,6 +2233,11 @@ def prediction_html(prediction, morning_scores=None):
     if len(picks) < 3:
         return '<span class="missing">予測なし</span>'
     output = []
+    fallback_boats = {
+        normalize_boat(item.get("boat")): item
+        for item in (prediction.get("boats") or (prediction.get("raw") or {}).get("boats") or [])
+        if isinstance(item, dict)
+    }
     for pick in picks[:3]:
         boat = normalize_boat(pick.get("boat"))
         name = esc(pick.get("name", ""))
@@ -2222,7 +2245,7 @@ def prediction_html(prediction, morning_scores=None):
         score_html = ""
         if score is not None:
             score_html = f'<small>{score:.1f}</small>{score_delta_html(boat, score, morning_scores)}'
-        output.append(f'<span class="boat"><b>{boat}</b>号艇 {name}{score_html}</span>')
+        output.append(f'<span class="boat"><b>{boat}</b>号艇 {name}{neutral_boat_marker(fallback_boats.get(boat) or {})}{score_html}</span>')
     return '<span class="arrow"> → </span>'.join(output)
 
 
@@ -2241,15 +2264,15 @@ def all_scores_html(prediction, label, morning_scores=None):
             or ""
         ).replace("　", " ").strip()
         if b is not None and score is not None:
-            scored.append((b, score, name))
+            scored.append((b, score, name, boat))
     if not scored:
         return ""
     scored.sort(key=lambda x: (-x[1], x[0]))
     chips = " ".join(
         f'<span class="score-chip">{b}号艇'
         f'{(" " + esc(name)) if name else ""} '
-        f'{score:.1f}{score_delta_html(b, score, morning_scores)}</span>'
-        for b, score, name in scored
+        f'{score:.1f}{neutral_boat_marker(source)}{score_delta_html(b, score, morning_scores)}</span>'
+        for b, score, name, source in scored
     )
     score_title = "6艇すべてのスコア" if len(scored) == 6 else f"取得済み{len(scored)}艇のスコア"
     return f'<details class="all-scores"><summary>{esc(label)}・{score_title}</summary><div class="score-chips">{chips}</div></details>'
