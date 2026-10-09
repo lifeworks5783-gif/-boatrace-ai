@@ -170,7 +170,7 @@ jobs:
           # Verify this ONE completed race card, not another race's badge.
           import re
           cards=re.findall(r'<article class="race-card">(.*?)</article>', rendered, flags=re.DOTALL)
-          karatsu_card=next((card for card in cards if re.search(r'唐津\\s*10R', card)), None)
+          karatsu_card=next((card for card in cards if re.search(r'唐津\s*10R', card)), None)
           assert karatsu_card, 'Karatsu 10R race card not rendered'
           assert '5千円以上・事後捕捉' in karatsu_card, karatsu_card[:400]
           assert '風神雷神専用AI予想' in karatsu_card, karatsu_card[:800]
