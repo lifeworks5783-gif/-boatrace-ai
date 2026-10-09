@@ -115,6 +115,5 @@ jobs:
         run: |
           # Bot-pushed commits do not fire ordinary push workflows. This explicit
           # dispatch follows verified canonical save and also covers no-op reruns.
-          gh workflow run family_prediction_page.yml \\
-            --repo "${GITHUB_REPOSITORY}" --ref main
+          gh workflow run family_prediction_page.yml --repo "${GITHUB_REPOSITORY}" --ref main
           echo "公式復旧の保存後に家族4画面の公開を予約: PASS"
