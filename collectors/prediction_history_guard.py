@@ -31,7 +31,14 @@ def preserve_closed_prediction(previous: dict, proposed: dict, now: datetime) ->
         return proposed
     status = (proposed.get("prediction_quality") or {}).get("status")
     if status == "recovered_observation":
-        # Caller must preserve original normal tickets and tag retrospective data.
+        # Once a verified retrospective event has been saved with complete
+        # 24-ticket evaluation, keep it tied to its original model version.
+        # Known missing/invalid recovery may be repaired explicitly.
+        if previous.get("retrospective_signal_recovery"):
+            from race_prediction_store import audit_race
+            state = audit_race(previous)["signal_ai_status"]
+            if state == "ready":
+                return previous
         return proposed
     proposed_time = _time(proposed.get("generated_at"))
     if (
