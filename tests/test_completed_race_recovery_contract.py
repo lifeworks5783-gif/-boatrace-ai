@@ -38,7 +38,7 @@ class CompletedRaceRecoveryContract(unittest.TestCase):
                 for row in csv.DictReader(stream):
                     if str(row.get("is_miss") or "").strip().lower() not in {"true", "1", "yes"}:
                         continue
-                    code = re.sub(r"\\D", "", str(row.get("race_id") or ""))[:12]
+                    code = re.sub(r"\D", "", str(row.get("race_id") or ""))[:12]
                     if code:
                         official_misses.setdefault(code, set()).add(str(row.get("boat")))
         for race_id in restored:
