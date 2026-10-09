@@ -16,7 +16,7 @@ concurrency:
 jobs:
   compare:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,6 +65,15 @@ jobs:
           )
           echo "RESULT_COUNT=${RESULT_COUNT}" >> "$GITHUB_ENV"
           echo "終了済み結果: ${RESULT_COUNT}R"
+
+      - name: 終了済みレースの直前スコアとシグナル評価元データを復元
+        if: env.RESULT_COUNT != '0'
+        run: |
+          # Saved official beforeinfo wins; fetch only still missing finished races.
+          # Never label morning fallback as an inactive signal.
+          python -u collectors/recover_missing_live_for_analysis.py --date "${TARGET_DATE}"
+          test -s "evaluations/${YEAR}/${MONTH}/${DAY}/recovery/merged_live_predictions_${TARGET_DATE}.csv"
+          test -s "evaluations/${YEAR}/${MONTH}/${DAY}/recovery/live_recovery_manifest_${TARGET_DATE}.json"
 
       - name: 保存対象の結果で完全性監査を更新
         if: env.RESULT_COUNT != '0'
