@@ -40,6 +40,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
       - name: Production immutable-history and numerical-config safety
         run: python -m unittest discover -s tests -p test_production_safety.py -v
+      - name: Neutral 0-delta provisional live scoring, signal block, two-page warnings and replay queue
+        run: python -m unittest discover -s tests -p test_neutral_live_fallback.py -v
       - name: Karatsu 10R actual saved official data and display regressions
         run: python -m unittest discover -s tests -p test_karatsu10_signal_recovery.py -v
       - name: Normal AI scores must match the shared six-boat canonical bundle
@@ -180,6 +182,51 @@ jobs:
           assert '風神雷神専用AI予想' in karatsu_card, karatsu_card[:800]
           assert '⚡' in karatsu_card, karatsu_card[:400]
           print('KARATSU10_REPLAY_PASS', 'F0R1 / 5,6号艇 / 24点 / 事後捕捉表示')
+          # Official Tokoname8 starter 3 was scratched. Unlike an
+          # unknown missing ST, official FIVE starters must still emit
+          # Raijin and all 24 independently evaluated tickets.
+          tokoname=next(x for x in data['races'] if x['race_id']=='20261009-08-08')
+          tcheck=audit_race(tokoname)
+          assert tokoname['prediction_quality']['verified_scratched_boats']==[3],tokoname['prediction_quality']
+          assert len(tokoname['boats'])==5,tokoname
+          assert tcheck['signal_key']=='F0R2',tcheck
+          assert tcheck['signal_ai_status']=='ready',tcheck
+          assert tokoname.get('retrospective_signal_recovery') is True
+          assert tokoname.get('signal_detected_at_original_deadline') is False
+          assert len(tokoname['signal_ai_prediction']['combinations'])==24
+          assert tokoname['signal_ai_prediction']['valid_combination_count']==60
+          assert len({x['combination'] for x in tokoname['signal_ai_prediction']['combinations']})==24
+          assert all('3' not in x['combination'].split('-') for x in tokoname['signal_ai_prediction']['combinations'])
+          card=next((x for x in cards if re.search(r'常滑\s*8R', x)), None)
+          assert card, 'Tokoname8 card is missing'
+          assert ('雷神' in card or '⚡' in card), 'Tokoname8 signal missing in HTML'
+          assert '直前予測なし' not in card, 'Tokoname8 official live missing in HTML'
+          print('TOKONAME8_FIVE_BOAT_RAIJIN_LV2_24_POINTS_AND_HTML_PASS',tcheck)
+          PY
+      - name: Five-starter official scratch must reach PDCA and AI-24 analytics
+        run: |
+          python -u collectors/evaluate_fujin_raijin_history.py --date 20261009
+          python -u collectors/evaluate_fujin_deep_metrics.py --date 20261009
+          python -u collectors/evaluate_signal_ai_performance.py
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+          targets=[
+              ("evaluations/fujin_raijin/latest/backtest_details.csv","raijin_level"),
+              ("evaluations/fujin_deep/latest/details.csv","raijin_level"),
+              ("evaluations/signal_ai/latest/details.csv","signal_key"),
+          ]
+          rid="202610090808"
+          for file,field in targets:
+              path=Path(file)
+              assert path.is_file(),file
+              with path.open(encoding="utf-8-sig",newline="") as handle:
+                  rows=list(csv.DictReader(handle))
+              row=next((x for x in rows if "".join(ch for ch in str(x.get("race_id") or "") if ch.isdigit())[:12]==rid),None)
+              assert row, f"{file}: Tokoname8 absent from PDCA"
+              expected="F0R2" if field=="signal_key" else "2"
+              assert str(row.get(field))==expected, (file,field,row)
+              print("TOKONAME8_SCRATCH_INCLUDED_IN_PDCA",file,row.get(field))
           PY
       - name: Re-run after closing and preserve canonical signal and original ticket identities
         run: |

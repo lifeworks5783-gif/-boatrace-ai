@@ -3027,6 +3027,74 @@ def current_pdca_html(root: Path) -> str:
  parts.append("</section>")
  return "".join(parts)
 
+def neutral_recovery_pdca_html(root: Path) -> str:
+    """Human-readable causes for neutral 0-delta fallback and later repair.
+
+    Reads ONLY saved prediction / official replay audit records. No result is
+    used to alter a score or calculate a signal.
+    """
+    prediction_root = root.parent / "predictions"
+    records = sorted(prediction_root.glob(
+        "20??/??/??/live/formation_predictions_final_*.json"
+    ))
+    if not records:
+        return ""
+    path = records[-1]
+    payload = load_json(path)
+    day = str(payload.get("target_date") or "")
+    if len(day) != 8:
+        return ""
+    manifest = load_json(root / day[:4] / day[4:6] / day[6:8]
+                         / "recovery" / f"live_recovery_manifest_{day}.json")
+    rows = []
+    pending = 0
+    restored = 0
+    for race in payload.get("races") or []:
+        quality = race.get("prediction_quality") or {}
+        neutral = (quality.get("signal_blocked") is True
+                   or bool(quality.get("boat_fallbacks"))
+                   or (quality.get("status") == "fallback"
+                       and quality.get("signal_blocked") is None
+                       and quality.get("fallback_source") == "saved_morning_prediction"
+                       and not any(
+                           x.get("exhibition_time") is not None and x.get("exhibition_st") is not None
+                           for x in (race.get("boats") or [])
+                       )))
+        is_restored = bool(race.get("retrospective_score_recovery"))
+        if not neutral and not is_restored:
+            continue
+        pending += int(neutral and not is_restored)
+        restored += int(is_restored)
+        affected = quality.get("boat_fallbacks") or []
+        affected_desc = "; ".join(
+            f"{item.get('boat')}号艇: {', '.join(str(x) for x in (item.get('reasons') or []))}"
+            for item in affected if isinstance(item, dict)
+        )
+        if not affected_desc and neutral:
+            affected_desc = "朝スコアを中立補完／艇別詳細未保存"
+        label = "事後復旧済" if is_restored else "▲ 未解決・公式データ再取得対象"
+        evidence = quality.get("source") or quality.get("fallback_source") or "収集履歴を要確認"
+        rows.append([
+            html.escape(str(race.get("venue_name") or race.get("venue_code") or "会場不明")),
+            html.escape(str(race.get("race") or "?")) + "R",
+            html.escape(affected_desc or "復旧済"),
+            html.escape(label),
+            html.escape(str(evidence)),
+        ])
+    missing = list(manifest.get("still_missing") or [])
+    reason = (f"現在{len(rows)}件の補完・復旧履歴。"
+              f"未解決{pending}R／事後復旧{restored}R。"
+              f"終了済み復旧残{len(missing)}R。")
+    source = ("原因・使用補完値・再取得状況を保存して追跡します。"
+              "朝スコアの中立補完はシグナル未発動とみなさず、公式展示復旧後に再判定します。")
+    body = table(["会場", "レース", "中立補完の対象・理由", "照合状態", "取得元／原因"], rows[:80]) if rows else (
+        '<div class="empty">現在の予測正本に艇別補完・復旧の記録はありません。</div>'
+    )
+    return ('<section class="section-card"><h2>直前中立補完・公式復旧の監査／PDCA</h2>'
+            f'<p class="section-note">{html.escape(reason)} {html.escape(source)}</p>'
+            + body + '</section>')
+
+
 def build_page(
 
     root: Path,
@@ -3386,7 +3454,7 @@ def build_page(
     </section>
     """
 
-    content = action_panel + "".join(
+    content = action_panel + neutral_recovery_pdca_html(root) + "".join(
 
         body
 

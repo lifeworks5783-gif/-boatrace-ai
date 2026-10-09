@@ -1661,6 +1661,57 @@ def prediction_name_map(*predictions):
 # レースデータ統合
 # =========================================================
 
+def classify_live_for_pdca(prediction):
+    """Return (verified_live, display): neutral is visible but not a real sample."""
+    if not prediction:
+        return None, None
+    quality = prediction.get("prediction_quality") or (prediction.get("raw") or {}).get("prediction_quality") or {}
+    boats = prediction.get("boats") or (prediction.get("raw") or {}).get("boats") or []
+    pending = quality.get("signal_blocked") is True or any(
+        str(boat.get("score_fallback") or "").strip().lower() in {"true", "yes", "1"}
+        for boat in boats if isinstance(boat, dict)
+    )
+    return (None, prediction) if pending else (prediction, prediction)
+
+
+def neutral_display_from_canonical(formation_prediction):
+    """Display (but DO NOT score as official LIVE) a saved morning-neutral record.
+
+    This is a view-only representation; all real-time signal/ROI evaluation
+    continues to require verified official exhibition.
+    """
+    if not formation_prediction:
+        return None
+    raw = formation_prediction.get("raw") or {}
+    quality = raw.get("prediction_quality") or {}
+    neutral_only = quality.get("signal_blocked") is True or (
+        quality.get("status") == "fallback"
+        and quality.get("fallback_source") == "saved_morning_prediction"
+        and not any(b.get("exhibition_time") is not None and
+                    b.get("exhibition_st") is not None
+                    for b in (raw.get("boats") or []))
+    )
+    if not neutral_only:
+        return None
+    flagged = []
+    for boat in raw.get("boats") or []:
+        item = dict(boat)
+        item["score_fallback"] = True
+        if not item.get("score_fallback_reasons"):
+            item["score_fallback_reasons"] = [
+                "exhibition_course", "exhibition_time", "exhibition_st"
+            ]
+        flagged.append(item)
+    view = dict(formation_prediction)
+    view["boats"] = flagged
+    view["raw"] = dict(raw, boats=flagged)
+    view["prediction_quality"] = dict(
+        quality, status="fallback", recovery_needed=True, signal_blocked=True
+    )
+    view["stage"] = "neutral_morning_fallback"
+    return view
+
+
 def build_race_rows(
     target_date,
     morning_predictions,
@@ -1845,10 +1896,11 @@ def build_race_rows(
             if live_stage in {"morning", "\u671d"}:
                 live = None
 
-        # Never present a copied morning/formation fallback as a reconstructed
-        # pre-race live score. Verified restored live records enter via
-        # load_recovered_live_predictions and are independently evaluated.
-        live_display = live
+        # Partial live scores stay visible, but are not eligible for
+        # official-LIVE accuracy or betting evaluation until fully verified.
+        live, live_display = classify_live_for_pdca(live)
+        if live_display is None:
+            live_display = neutral_display_from_canonical(formation_prediction)
 
         odds_row = (
             odds.get(
@@ -2200,12 +2252,30 @@ def score_delta_html(boat, score, morning_scores):
     return f'<span class="score-delta down">▼ {delta:.1f}</span>'
 
 
-def prediction_quality_warning(prediction):
-    """No caution badges in the user-facing race comparison.
+def is_neutral_boat(boat):
+    return str(boat.get("score_fallback") or "").strip().lower() in {"1", "true", "yes"}
 
-    Keep prediction provenance in saved data and continue to evaluate
-    confirmed live predictions separately from morning-only predictions.
-    """
+
+def neutral_boat_marker(boat):
+    if not is_neutral_boat(boat):
+        return ""
+    reasons = boat.get("score_fallback_reasons") or []
+    if isinstance(reasons, str):
+        reasons = [reason for reason in reasons.split(",") if reason]
+    label = "朝のスコアを中立補完（±0.0）。公式直前データ復旧待ち"
+    if reasons:
+        label += "：" + " / ".join(str(x) for x in reasons)
+    return f'<span class="quality-warning" title="{esc(label)}"> ▲</span>'
+
+
+def prediction_quality_warning(prediction):
+    if not prediction:
+        return ""
+    quality = prediction.get("prediction_quality") or (prediction.get("raw") or {}).get("prediction_quality") or {}
+    if quality.get("recovery_needed") or quality.get("status") == "fallback":
+        reasons = quality.get("reason") or []
+        label = "補完した直前予測・復旧対象：" + " / ".join(str(x) for x in reasons)
+        return f'<span class="quality-warning" title="{esc(label)}">▲</span>'
     return ""
 
 def prediction_html(prediction, morning_scores=None):
@@ -2215,6 +2285,11 @@ def prediction_html(prediction, morning_scores=None):
     if len(picks) < 3:
         return '<span class="missing">予測なし</span>'
     output = []
+    fallback_boats = {
+        normalize_boat(item.get("boat")): item
+        for item in (prediction.get("boats") or (prediction.get("raw") or {}).get("boats") or [])
+        if isinstance(item, dict)
+    }
     for pick in picks[:3]:
         boat = normalize_boat(pick.get("boat"))
         name = esc(pick.get("name", ""))
@@ -2222,7 +2297,7 @@ def prediction_html(prediction, morning_scores=None):
         score_html = ""
         if score is not None:
             score_html = f'<small>{score:.1f}</small>{score_delta_html(boat, score, morning_scores)}'
-        output.append(f'<span class="boat"><b>{boat}</b>号艇 {name}{score_html}</span>')
+        output.append(f'<span class="boat"><b>{boat}</b>号艇 {name}{neutral_boat_marker(fallback_boats.get(boat) or {})}{score_html}</span>')
     return '<span class="arrow"> → </span>'.join(output)
 
 
@@ -2241,15 +2316,15 @@ def all_scores_html(prediction, label, morning_scores=None):
             or ""
         ).replace("　", " ").strip()
         if b is not None and score is not None:
-            scored.append((b, score, name))
+            scored.append((b, score, name, boat))
     if not scored:
         return ""
     scored.sort(key=lambda x: (-x[1], x[0]))
     chips = " ".join(
         f'<span class="score-chip">{b}号艇'
         f'{(" " + esc(name)) if name else ""} '
-        f'{score:.1f}{score_delta_html(b, score, morning_scores)}</span>'
-        for b, score, name in scored
+        f'{score:.1f}{neutral_boat_marker(source)}{score_delta_html(b, score, morning_scores)}</span>'
+        for b, score, name, source in scored
     )
     score_title = "6艇すべてのスコア" if len(scored) == 6 else f"取得済み{len(scored)}艇のスコア"
     return f'<details class="all-scores"><summary>{esc(label)}・{score_title}</summary><div class="score-chips">{chips}</div></details>'
@@ -2806,7 +2881,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {prediction_quality_warning(row.get("live_display"))}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
@@ -2862,12 +2937,12 @@ def render_html(
   <div class="prediction-row">
 
     <div class="label">
-      {("直前予測" if row["live"] else ("事前予測" if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
+      {("直前予測" if row["live"] else (("直前補完（朝スコア）" if (row.get("live_display") or {}).get("stage") == "neutral_morning_fallback" else "直前予測（一部朝スコア補完）") if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
     </div>
 
     <div>
       {prediction_html(row.get("live_display"), morning_reference_map(row["morning"], row.get("live_display")))}
-      {all_scores_html(row.get("live_display"), ("直前予測" if row["live"] else "事前予測"), morning_reference_map(row["morning"], row.get("live_display")))}
+      {all_scores_html(row.get("live_display"), ("直前予測" if row["live"] else "直前補完（朝スコア）"), morning_reference_map(row["morning"], row.get("live_display")))}
     </div>
 
     <div class="metrics">

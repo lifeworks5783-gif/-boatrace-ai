@@ -411,6 +411,22 @@ def score_race(race, public_store, feature_manifest=None, saved_morning_race=Non
     scored=[]
     for boat in boats:
         lane=to_int(boat.get("boat")); live01=(LIVE_WEIGHTS["structural"]*(structural[lane]/100.0)+LIVE_WEIGHTS["exhibition_time"]*time_ranks[lane]+LIVE_WEIGHTS["exhibition_st"]*st_delta_scores[lane])/100.0; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
+        # A missing official exhibition element means neutral overall movement for
+        # THIS boat, never a fabricated ST or exhibition score. Other verified
+        # boats keep their original LIVE calculation.
+        missing = [
+            label for label, value in (
+                ("exhibition_course", get_exhibition_course(boat)),
+                ("exhibition_time", get_exhibition_time(boat)),
+                ("exhibition_st", get_exhibition_st(boat)),
+            ) if value is None
+        ]
+        if missing and saved_bundle is None:
+            raise RuntimeError(
+                f"朝スコアが保存されておらず中立補完不可: {race.get('race_id')} {lane}号艇 {missing}"
+            )
+        neutral = bool(missing)
+        final_score = morning_scores[lane] if neutral else round(live01 * 100, 2)
         if lane not in structural_details:
             raise RuntimeError(f"直前基礎要素欠損: {race.get('race_id')} {lane}号艇")
         sd = structural_details[lane]
@@ -419,8 +435,11 @@ def score_race(race, public_store, feature_manifest=None, saved_morning_race=Non
         scored.append({
             "boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),
             "grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),
-            "score":round(live01*100,2),"morning_score_reference":round(morning_scores.get(lane,0.0),2),
-            "data_coverage_pct":100.0,"exhibition_course":overrides[lane],"exhibition_time":get_exhibition_time(boat),
+            "score":final_score,"morning_score_reference":round(morning_scores[lane],2),
+            "score_fallback":neutral, "score_fallback_source":"saved_morning_prediction" if neutral else None,
+            "score_fallback_reasons":missing,
+            "data_coverage_pct":0.0 if neutral else 100.0,
+            "exhibition_course":get_exhibition_course(boat),"exhibition_time":get_exhibition_time(boat),
             "exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),
             "change_parts":before.get("change_parts",""),
             "input_trace":{"history_feature_manifest":feature_manifest,"structural_course_fallback":structural_fallback,"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"racer_course":history.get("racer_course"),"beforeinfo":{"exhibition_course":get_exhibition_course(boat),"exhibition_time":get_exhibition_time(boat),"exhibition_st_raw":raw_exhibition_st_value(boat),"exhibition_st":get_exhibition_st(boat),"exhibition_f":bool(get_exhibition_f(boat)),"tilt":get_tilt(boat),"change_parts":before.get("change_parts","")},"weather_water":race_context(race),"official_f_count":racer.get("official_f_count"),"official_l_count":racer.get("official_l_count"),"official_avg_st":racer.get("official_avg_st"),"official_fl_available":racer.get("official_fl_available",False),"candidate_components":{"f_l_holdings":{"available":racer.get("official_fl_available",False),"f_count":racer.get("official_f_count"),"l_count":racer.get("official_l_count"),"active_in_score":False},"motor_30d":{"available":history.get("motor_30d_available",False),"features":history.get("motor_30d"),"active_in_score":False},"parts_exchange":{"available":before.get("change_parts") not in (None,""),"value":before.get("change_parts",""),"active_in_score":False},"weather_water":{"available":bool(race_context(race)),"value":race_context(race),"active_in_score":False}}},
@@ -431,8 +450,8 @@ def score_race(race, public_store, feature_manifest=None, saved_morning_race=Non
                 "boat":{"weight":morning.MORNING_WEIGHTS["boat"],"raw_score_0_1":round(sd["boat"],6),"available":True},
                 "national_top2":{"weight":morning.MORNING_WEIGHTS["national_top2"],"raw_score_0_1":round(sd["national_top2"],6),"available":True},
                 "structural":{"weight":LIVE_WEIGHTS["structural"],"raw_score_0_1":round(structural[lane]/100.0,6),"available":True},
-                "exTime":{"weight":LIVE_WEIGHTS["exhibition_time"],"raw_score_0_1":round(time_ranks[lane],6),"available":True},
-                "exST":{"weight":LIVE_WEIGHTS["exhibition_st"],"raw_score_0_1":round(st_delta_scores[lane],6),"available":True,
+                "exTime":{"weight":LIVE_WEIGHTS["exhibition_time"],"raw_score_0_1":round(time_ranks[lane],6) if not neutral else None,"available":not neutral},
+                "exST":{"weight":LIVE_WEIGHTS["exhibition_st"],"raw_score_0_1":round(st_delta_scores[lane],6) if not neutral else None,"available":not neutral,
                         "method":EXST_LOGIC["method"],"delta_full_scale_seconds":EXST_LOGIC["delta_full_scale_seconds"],"f_score":EXST_LOGIC["f_score"]}
             }
         })
@@ -492,6 +511,7 @@ def write_csv(path, rows):
         "score",
         "morning_score_reference",
         "data_coverage_pct",
+        "score_fallback", "score_fallback_source", "score_fallback_reasons",
         "exhibition_course",
         "exhibition_time",
         "exhibition_st",
@@ -584,6 +604,7 @@ def main():
         skipped_no_live_data = []
         skipped_score_error = []
         structural_fallback_races = []
+        neutral_fallback_races = []
         saved_morning_races = load_saved_morning_race_map(target_date)
 
         for race in races:
@@ -645,7 +666,10 @@ def main():
 
             # 暫定Ver.1: 展示進入・展示タイム・展示STが6艇分揃ってから更新。
             required_count = len(active_boats)
-            if required_count < 3 or course_count < required_count or time_count < required_count or st_count < required_count:
+            # Partial official beforeinfo is still useful: valid boats are
+            # calculated, affected boats use their exact saved morning score.
+            # All-empty races remain morning-only until a real collection occurs.
+            if required_count < 3 or not (course_count or time_count or st_count):
                 skipped_no_live_data.append(race_id)
                 continue
 
@@ -677,13 +701,27 @@ def main():
                     **fallback_info,
                 })
 
+            neutral_boats = [
+                {"boat": item["boat"], "reasons": item["score_fallback_reasons"],
+                 "source": item["score_fallback_source"]}
+                for item in scored if item.get("score_fallback")
+            ]
             prediction_quality = {
-                "status": "fallback" if fallback_info else "normal",
-                "mark": "⚠" if fallback_info else "",
-                "label": "補完あり" if fallback_info else "正常",
-                "recovery_needed": bool(fallback_info),
-                "reason": (fallback_info or {}).get("reason") if fallback_info else [],
-                "fallback_source": (fallback_info or {}).get("source") if fallback_info else None,
+                "status": "fallback" if (fallback_info or neutral_boats) else "normal",
+                "mark": "⚠" if (fallback_info or neutral_boats) else "",
+                "label": "補完あり" if (fallback_info or neutral_boats) else "正常",
+                "recovery_needed": bool(neutral_boats or fallback_info),
+                "signal_blocked": bool(neutral_boats),
+                # is_miss originates from the official beforeinfo ingestion;
+                # unknown missing rows are never treated as a scratch.
+                "verified_scratched_boats": sorted(
+                    int(x["boat"]) for x in boats if is_miss_boat(x)
+                ),
+                "boat_fallbacks": neutral_boats,
+                "reason": ([f"{x['boat']}号艇:{','.join(x['reasons'])}" for x in neutral_boats]
+                           + list((fallback_info or {}).get("reason") or [])),
+                "fallback_source": ("saved_morning_prediction" if neutral_boats
+                                    else (fallback_info or {}).get("source")),
                 "request_started_before_deadline": bool(
                     requested_at is not None and deadline is not None and requested_at < deadline
                 ),
@@ -691,6 +729,8 @@ def main():
                 "recorded_at": now.isoformat(),
             }
 
+            if neutral_boats:
+                neutral_fallback_races.append({"race_id": race_id, "boats": neutral_boats})
             pred = {
                 "race_id": race_id,
                 "date": race.get("date"),
@@ -738,6 +778,9 @@ def main():
                             "morning_score_reference"
                         ],
                         "data_coverage_pct": row["data_coverage_pct"],
+                        "score_fallback": row.get("score_fallback", False),
+                        "score_fallback_source": row.get("score_fallback_source"),
+                        "score_fallback_reasons": ",".join(row.get("score_fallback_reasons") or []),
                         "exhibition_course": row["exhibition_course"],
                         "exhibition_time": row["exhibition_time"],
                         "exhibition_st": row["exhibition_st"],
@@ -760,6 +803,7 @@ def main():
             "skipped_no_live_data": skipped_no_live_data,
             "skipped_score_error": skipped_score_error,
             "structural_fallback_races": structural_fallback_races,
+            "neutral_fallback_races": neutral_fallback_races,
             "current_day_result_leakage": 0,
             "errors": skipped_score_error,
         }

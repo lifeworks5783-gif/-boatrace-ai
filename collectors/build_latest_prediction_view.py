@@ -224,16 +224,52 @@ def ranked_boats(race):
 
 
 
+def signal_field_is_verified(boats, prediction_quality=None):
+    """6 starters or official-confirmed scratches with >=4 active starters.
+
+    A missing row is NOT a scratch. The official 'is_miss' evidence must
+    already have been validated and carried as verified_scratched_boats.
+    For fewer than four starters, the fixed 24-ticket product is impossible.
+    """
+    quality = prediction_quality or {}
+    if quality.get("signal_blocked") is True:
+        return False
+    if any(
+        str(b.get("score_fallback") or "").strip().lower() in {"1", "true", "yes"}
+        for b in boats
+    ):
+        return False
+    count = len(boats)
+    if count < 4 or count > 6:
+        return False
+    active = [boat_number(b) for b in boats]
+    if any(b is None or b not in range(1, 7) for b in active):
+        return False
+    if len(active) != len(set(active)):
+        return False
+    if count == 6:
+        return True
+    scratched = quality.get("verified_scratched_boats") or []
+    try:
+        confirmed = {int(b) for b in scratched}
+    except (TypeError, ValueError):
+        return False
+    return (
+        len(confirmed) == 6 - count
+        and confirmed == set(range(1, 7)) - set(active)
+    )
+
+
 def build_up_signal(
     boats,
     prediction_quality=None,
 ):
     """Raijin display signal. Save/analyze only; never changes AI or formation."""
     quality = prediction_quality or {}
-    if (
+    if quality.get("signal_blocked", (
         quality.get("recovery_needed")
         or text(quality.get("status")) == "fallback"
-    ):
+    )):
         return {
             "available": False,
             "active": False,
@@ -248,7 +284,7 @@ def build_up_signal(
             "suppressed_reason": "fallback_prediction",
         }
 
-    if len(boats) != 6:
+    if not signal_field_is_verified(boats, quality):
         return {
             "available": False,
             "active": False,
@@ -336,10 +372,10 @@ def build_down_signal(
 ):
     """Provisional decline signal. Display/save only; never changes AI or formation."""
     quality = prediction_quality or {}
-    if (
+    if quality.get("signal_blocked", (
         quality.get("recovery_needed")
         or text(quality.get("status")) == "fallback"
-    ):
+    )):
         return {
             "available": False,
             "active": False,
@@ -349,7 +385,7 @@ def build_down_signal(
             "suppressed_reason": "fallback_prediction",
         }
 
-    if len(boats) != 6:
+    if not signal_field_is_verified(boats, quality):
         return {
             "available": False,
             "active": False,
@@ -1778,6 +1814,12 @@ def main():
                     "recovery_needed": True,
                     "reason": ["締切前の直前情報が未確定または未保存"],
                     "fallback_source": "saved_morning_prediction",
+                    "signal_blocked": True,
+                    "boat_fallbacks": [
+                        {"boat": boat_number(b), "reasons": ["exhibition_course", "exhibition_time", "exhibition_st"],
+                         "source": "saved_morning_prediction"}
+                        for b in boats
+                    ],
                     "recorded_at": now.isoformat(),
                 }
 
@@ -1810,7 +1852,21 @@ def main():
                             boat
                         )
                     ),
-                    "morning_score_reference": boat.get("morning_score_reference"),
+                    "morning_score_reference": (
+                        boat.get("morning_score_reference")
+                        if boat.get("morning_score_reference") is not None
+                        else (boat_score(boat) if prediction_quality.get("fallback_source") == "saved_morning_prediction" else None)
+                    ),
+                    "score_fallback": bool(
+                        boat.get("score_fallback")
+                        or any(to_int(x.get("boat")) == boat_number(boat)
+                               for x in (prediction_quality.get("boat_fallbacks") or []))
+                    ),
+                    "score_fallback_reasons": (
+                        boat.get("score_fallback_reasons")
+                        or next((x.get("reasons") for x in (prediction_quality.get("boat_fallbacks") or [])
+                                 if to_int(x.get("boat")) == boat_number(boat)), [])
+                    ),
                     "grade": boat.get("grade"),
                     "registration_no": boat.get("registration_no"),
                     "motor_no": boat.get("motor_no"),
@@ -2039,7 +2095,7 @@ def main():
                             "morning_ai_score_prediction"):
                     if key in prior:
                         row[key] = prior[key]
-                if len(source.get("boats") or []) == 6:
+                if signal_field_is_verified(source.get("boats") or [], source_quality):
                     assert (row.get("up_signal") or {}).get("available") is True, (
                         "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("up_signal")
                     )
@@ -2047,8 +2103,8 @@ def main():
                         "復旧シグナルの通常再判定に失敗", row.get("race_id"), row.get("down_signal")
                     )
                 else:
-                    # Legitimate official scratch: no fabricated six-boat
-                    # comparison signal is issued for a reduced-size field.
+                    # Unconfirmed absent boat or a field too small for 24
+                    # candidates must not become a fabricated signal.
                     assert not (row.get("up_signal") or {}).get("active")
                     assert not (row.get("down_signal") or {}).get("active")
                 row["retrospective_score_recovery"] = True

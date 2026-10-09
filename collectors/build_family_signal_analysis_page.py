@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
+from build_family_analysis_page import neutral_recovery_pdca_html
+
 
 def load_json(path: Path) -> Dict[str, Any]:
     if not path.is_file():
@@ -348,6 +350,11 @@ def build_page(root: Path) -> str:
         + card("5千円以上捕捉率", pct(p5.get("signal_capture_rate_of_all_5000plus_pct")), "全5千円以上Rのうちシグナル発動")
     )
 
+    # Use the same provenance ledger on the ACTUAL published AI analysis page.
+    fallback_audit = neutral_recovery_pdca_html(root).replace(
+        'class="section-card"', 'class="card"'
+    )
+
     search = points.get("search_space") or {}
     search_text = (
         f"バフ/デバフ候補 {n(search.get('buff_variants'),0)} × "
@@ -425,6 +432,8 @@ def build_page(root: Path) -> str:
 <p class="note">{html.escape(search_text)}</p>
 {point_policy(points)}
 </section>
+
+{fallback_audit}
 
 {legacy_analysis_sections(root)}
 
