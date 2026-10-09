@@ -6,6 +6,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from race_prediction_store import audit_race
+from build_latest_prediction_view import signal_field_is_verified
 
 
 JST = timezone(timedelta(hours=9))
@@ -269,8 +270,12 @@ def live_data_marker(race):
     if text(race.get("prediction_type")) != "直前":
         return ""
     boats = race.get("boats") or []
+    quality = race.get("prediction_quality") or {}
+    official_field = signal_field_is_verified(boats, quality)
+    if official_field and quality.get("status") == "recovered_observation":
+        return '<span class="data-ok" title="公式の直前展示データを保存履歴から事後復旧。元の取得時刻・事後復元は別記録">↻</span>'
     active_required = ("racer_course", "grade", "motor", "boat", "national_top2", "structural", "exTime", "exST")
-    complete = len(boats) == 6
+    complete = official_field
     for boat in boats:
         if any(boat.get(k) in (None, "") for k in ("exhibition_course", "exhibition_time", "exhibition_st")):
             complete = False
