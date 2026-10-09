@@ -863,10 +863,9 @@ def load_recovered_live_predictions(target_date):
 
     manifest = read_json(manifest_path) or {}
     safe_recovery = (
-        manifest.get("status") == "complete"
+        manifest.get("status") in {"complete", "partial"}
         and manifest.get("treat_recovered_as_observation") is True
         and manifest.get("result_leakage") is False
-        and not (manifest.get("still_missing") or [])
     )
     if not safe_recovery:
         return {}
@@ -926,9 +925,11 @@ def load_recovered_live_predictions(target_date):
         missing_boats = sorted(set(range(1, 7)) - present_boats)
         allowed_missing = official_misses.get(race_code, set())
         if len(boats) < 3 or any(boat not in allowed_missing for boat in missing_boats):
-            return {}
+            print("WARN: recovery row incomplete (excluded):", race_code)
+            continue
         if len(boats) + len(missing_boats) != 6:
-            return {}
+            print("WARN: recovery boat-count mismatch (excluded):", race_code)
+            continue
 
         top3 = []
         for row in boats[:3]:
@@ -1524,8 +1525,12 @@ def up_signal_info(morning, live, formation_prediction=None):
         or raw_formation.get("up_signal")
         or {}
     )
+    # A previously saved morning-fallback signal must not override reconstructed
+    # official pre-race scores for a recovered finished race.
+    recovered_live = (live or {}).get("prediction_quality", {}).get("status") == "recovered_observation"
     if (
-        isinstance(stored, dict)
+        not recovered_live
+        and isinstance(stored, dict)
         and "level" in stored
         and stored.get("rule_version") == "raijin_signal_v1_20261008"
     ):
