@@ -1,0 +1,48 @@
+name: One-shot actual public HTML GET diagnostics
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/run_public_once_now.txt"
+permissions:
+  contents: read
+jobs:
+  one-shot-public-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read exact homepage and race comparison from public HTTPS
+        run: |
+          python - <<'PY'
+          import urllib.request as U, hashlib, json, re, sys
+          base="https://lifeworks5783-gif.github.io/boatrace-family-view"
+          repo="lifeworks5783-gif/boatrace-family-view"
+          errors=[]
+          for page in ("index.html","race_compare.html","analysis.html"):
+              try:
+                  with U.urlopen(U.Request(f"{base}/{page}?v=verify_pr12_once",headers={"User-Agent":"FamilySiteValidator/1.0"}),timeout=15) as r:
+                      content=r.read()
+                      status=r.status
+                  with U.urlopen(f"https://raw.githubusercontent.com/{repo}/main/{page}",timeout=15) as r:
+                      raw=r.read()
+                  text=content.decode("utf-8","replace")
+                  cards=re.findall(r'<article class="race-card">(.*?)</article>',text,re.S)
+                  toki=next((x for x in cards if re.search(r"常滑\s*8R",x)),None)
+                  report={"page":page,"http":status,"bytes":len(content),
+                          "matches_main":hashlib.sha256(content).digest()==hashlib.sha256(raw).digest(),
+                          "has_ai_title":"ボートレースAI" in text,
+                          "has_neutral_pdca":"直前中立補完・公式復旧の監査" in text,
+                          "tokoname_card_present":bool(toki),
+                          "tokoname_signal":bool(toki and ("雷神" in toki or "⚡" in toki)),
+                          "tokoname_24":bool(toki and ("24点" in toki or "専用AI" in toki)),
+                          "tokoname_card_preview":re.sub("<[^>]*>"," ",toki or "")[:700]}
+                  print("REAL_PUBLIC_HTML_DIAGNOSTIC",json.dumps(report,ensure_ascii=False),flush=True)
+                  if status!=200 or len(content)<1000 or not report["matches_main"]:errors.append(page)
+              except Exception as ex:
+                  print("PUBLIC_HTTP_ERROR",page,repr(ex),flush=True)
+                  errors.append(page)
+          if errors:
+              print("REAL_PUBLIC_HTML_MISMATCH",errors,flush=True)
+              sys.exit(1)
+          print("REAL_PUBLIC_HTML_BYTE_MATCH_ALL_3",flush=True)
+          PY
