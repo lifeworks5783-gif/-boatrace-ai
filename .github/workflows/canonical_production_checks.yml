@@ -56,6 +56,50 @@ jobs:
           assert not mismatches, ('score or rank changed', mismatches[:10])
           print('REAL INPUT MORNING PARITY PASS',len(old),'races',sum(len(v) for v in old.values()),'boats')
           PY
+      - name: Old versus new complete formation and signal AI for saved 10/09 races
+        run: |
+          mkdir -p .baseline_collectors
+          curl --fail --silent --show-error --location --retry 3 https://raw.githubusercontent.com/lifeworks5783-gif/-boatrace-ai/bf09ddae688628a6e24c481d24ea0ea92860be1b/collectors/build_latest_prediction_view.py --output .baseline_collectors/build_latest_prediction_view.py
+          cat > /tmp/compare_saved_models.py <<'PY'
+          import importlib.util, json, sys
+          from pathlib import Path
+          source=Path('predictions/2026/10/09/live/formation_predictions_final_20261009.json')
+          original=json.loads(source.read_text(encoding='utf-8'))['races']
+          source_file=Path(sys.argv[1])
+          sys.path.insert(0,str(source_file.parent.resolve()))
+          spec=importlib.util.spec_from_file_location('target_latest_module',source_file)
+          module=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          config=module.load_signal_ai_config()
+          result=[]
+          for row in original:
+              boats=module.ranked_boats(row)
+              if len(boats)<3: continue
+              formation=module.build_formation(boats)
+              if len(boats)==6:
+                  up=module.build_up_signal(boats,row.get('prediction_quality') or {})
+                  down=module.build_down_signal(boats,row.get('prediction_quality') or {})
+                  signal=module.build_signal_ai_prediction(boats,up,down,config)
+              else:
+                  up=down=signal=None
+              result.append({
+                  'race_id':row['race_id'],'formation':formation,
+                  'fujin':(down or {}).get('level',0),'raijin':(up or {}).get('level',0),
+                  'top24':[(x['combination'],x['score']) for x in ((signal or {}).get('combinations') or [])]
+              })
+          Path(sys.argv[2]).write_text(json.dumps(result,ensure_ascii=False),encoding='utf-8')
+          print('checked',len(result),'races')
+          PY
+          python /tmp/compare_saved_models.py .baseline_collectors/build_latest_prediction_view.py /tmp/baseline_combo.json
+          python /tmp/compare_saved_models.py collectors/build_latest_prediction_view.py /tmp/refactor_combo.json
+          python - <<'PY'
+          import json
+          a=json.load(open('/tmp/baseline_combo.json'))
+          b=json.load(open('/tmp/refactor_combo.json'))
+          mismatches=[(x['race_id'],y['race_id']) for x,y in zip(a,b) if x!=y]
+          assert len(a)==len(b) and len(a)>100 and not mismatches,(len(a),len(b),mismatches[:8])
+          print('COMPLETE FORMATION+SIGNAL PARITY PASS',len(a),'races')
+          PY
       - name: Smoke test using existing saved predictions (no network fetch)
         run: |
           python collectors/build_canonical_race_records.py --date 20261009
