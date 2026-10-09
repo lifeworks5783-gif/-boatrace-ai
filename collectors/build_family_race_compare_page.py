@@ -1661,6 +1661,44 @@ def prediction_name_map(*predictions):
 # レースデータ統合
 # =========================================================
 
+def neutral_display_from_canonical(formation_prediction):
+    """Display (but DO NOT score as official LIVE) a saved morning-neutral record.
+
+    This is a view-only representation; all real-time signal/ROI evaluation
+    continues to require verified official exhibition.
+    """
+    if not formation_prediction:
+        return None
+    raw = formation_prediction.get("raw") or {}
+    quality = raw.get("prediction_quality") or {}
+    neutral_only = quality.get("signal_blocked") is True or (
+        quality.get("status") == "fallback"
+        and quality.get("fallback_source") == "saved_morning_prediction"
+        and not any(b.get("exhibition_time") is not None and
+                    b.get("exhibition_st") is not None
+                    for b in (raw.get("boats") or []))
+    )
+    if not neutral_only:
+        return None
+    flagged = []
+    for boat in raw.get("boats") or []:
+        item = dict(boat)
+        item["score_fallback"] = True
+        if not item.get("score_fallback_reasons"):
+            item["score_fallback_reasons"] = [
+                "exhibition_course", "exhibition_time", "exhibition_st"
+            ]
+        flagged.append(item)
+    view = dict(formation_prediction)
+    view["boats"] = flagged
+    view["raw"] = dict(raw, boats=flagged)
+    view["prediction_quality"] = dict(
+        quality, status="fallback", recovery_needed=True, signal_blocked=True
+    )
+    view["stage"] = "neutral_morning_fallback"
+    return view
+
+
 def build_race_rows(
     target_date,
     morning_predictions,
@@ -1850,34 +1888,8 @@ def build_race_rows(
         # prediction or an observed signal. The live metric stays None until
         # official exhibition is replayed, while the card shows the fallback.
         live_display = live
-        if live_display is None and formation_prediction:
-            raw_formation = formation_prediction.get("raw") or {}
-            quality = raw_formation.get("prediction_quality") or {}
-            neutral_only = quality.get("signal_blocked") is True or (
-                quality.get("status") == "fallback"
-                and quality.get("fallback_source") == "saved_morning_prediction"
-                and not any(b.get("exhibition_time") is not None and
-                            b.get("exhibition_st") is not None
-                            for b in (raw_formation.get("boats") or []))
-            )
-            if neutral_only:
-                flagged_boats = []
-                for boat in raw_formation.get("boats") or []:
-                    item = dict(boat)
-                    item["score_fallback"] = True
-                    if not item.get("score_fallback_reasons"):
-                        item["score_fallback_reasons"] = [
-                            "exhibition_course", "exhibition_time", "exhibition_st"
-                        ]
-                    flagged_boats.append(item)
-                live_display = dict(formation_prediction)
-                live_display["boats"] = flagged_boats
-                live_display["raw"] = dict(raw_formation, boats=flagged_boats)
-                live_display["prediction_quality"] = dict(
-                    quality, status="fallback", recovery_needed=True,
-                    signal_blocked=True,
-                )
-                live_display["stage"] = "neutral_morning_fallback"
+        if live_display is None:
+            live_display = neutral_display_from_canonical(formation_prediction)
 
         odds_row = (
             odds.get(
