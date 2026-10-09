@@ -160,6 +160,29 @@ jobs:
               assert not (row['canonical_signal_key'] and row['canonical_strategy']=='normal_ai')
           print('HISTORICAL CANONICAL PASS',data['race_count'],data['signal_races'],data['signal_24_ready'],data['signal_24_unresolved'])
           PY
+      - name: Completed race page signal and dedicated 24-point display integrity
+        run: |
+          mkdir -p /tmp/canonical-public
+          python collectors/build_family_race_compare_page.py --date 20261008 --output-dir /tmp/canonical-public
+          python - <<'PY'
+          from pathlib import Path
+          from bs4 import BeautifulSoup
+          html=Path('/tmp/canonical-public/race_compare.html').read_text(encoding='utf-8')
+          doc=BeautifulSoup(html,'html.parser')
+          cards=doc.select('article.race-card')
+          assert len(cards)>=100, ('too few completed races',len(cards))
+          flagged=0
+          for card in cards:
+              marker=card.select('.race-title .signal-row:not(.empty-signal)')
+              title=card.select_one('.ai-result-summary .simulation-title')
+              summary=card.select_one('.ai-result-summary-meta')
+              if marker:
+                  flagged+=1
+                  assert title is not None and '風神雷神専用AI予想' in title.get_text(), ('signal card missing AI24 title',card.get_text(' ',strip=True)[:150])
+                  assert summary is not None and '購入24点' in summary.get_text(' ',strip=True), 'signal card missing 24-ticket settlement'
+          assert flagged>=100, ('too few signal cards',flagged)
+          print('COMPLETED SCREEN 24-TICKET INTEGRATION PASS',len(cards),'completed',flagged,'signal')
+          PY
       - name: Smoke test using existing saved predictions (no network fetch)
         run: |
           python collectors/build_canonical_race_records.py --date 20261009
