@@ -56,6 +56,53 @@ jobs:
           assert not mismatches, ('score or rank changed', mismatches[:10])
           print('REAL INPUT MORNING PARITY PASS',len(old),'races',sum(len(v) for v in old.values()),'boats')
           PY
+      - name: Old versus new live scores on the same prepared exhibition inputs
+        run: |
+          for script in build_morning_prediction.py build_live_prediction.py; do
+            curl --fail --silent --show-error --location --retry 3 "https://raw.githubusercontent.com/lifeworks5783-gif/-boatrace-ai/bf09ddae688628a6e24c481d24ea0ea92860be1b/collectors/$script" --output ".baseline_collectors/$script"
+          done
+          cat > /tmp/compare_live_scores.py <<'PY'
+          import copy, importlib.util, json, sys
+          from pathlib import Path
+          source=Path('daily_inputs/2026/10/09/prediction_input_enriched_morning_20261009.json')
+          races=json.loads(source.read_text(encoding='utf-8'))['races']
+          module_dir=Path(sys.argv[1]).resolve()
+          sys.path.insert(0,str(module_dir))
+          import build_live_prediction as live
+          results={}
+          for race in races[:20]:
+              r=copy.deepcopy(race)
+              boats=r.get('boats') or []
+              if len(boats)!=6: continue
+              for row in boats:
+                  n=int(row['boat'])
+                  row['beforeinfo']={
+                      'exhibition_course': n,
+                      'exhibition_time': 6.7 + n * .02,
+                      'exhibition_st': .08 + n * .02,
+                      'exhibition_st_raw': .08 + n * .02,
+                  }
+              try:
+                  computed=live.score_race(r,None)
+              except RuntimeError:
+                  continue
+              results[r['race_id']]=[(x['boat'],x['score'],x['rank']) for x in computed]
+              if len(results)>=8: break
+          assert results, 'no comparable live races'
+          Path(sys.argv[2]).write_text(json.dumps(results),encoding='utf-8')
+          print('live sample',len(results))
+          PY
+          python /tmp/compare_live_scores.py .baseline_collectors /tmp/old-live-scores.json
+          python /tmp/compare_live_scores.py collectors /tmp/new-live-scores.json
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/old-live-scores.json'))
+          y=json.load(open('/tmp/new-live-scores.json'))
+          assert x.keys()==y.keys(), ('live input outcomes diverged',x.keys(),y.keys())
+          errors=[r for r in x if x[r]!=y[r]]
+          assert not errors, ('LIVE SCORE MISMATCH',errors[:10])
+          print('SAME INPUT LIVE PARITY PASS',len(x),'races')
+          PY
       - name: Old versus new complete formation and signal AI for saved 10/09 races
         run: |
           mkdir -p .baseline_collectors
