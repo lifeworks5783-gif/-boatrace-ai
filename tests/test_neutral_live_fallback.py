@@ -183,6 +183,64 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         print("OFFICIAL_MASK_ST_BACKTEST",{"races":n,"five_valid_and_one_neutral":n,
              "false_signal_activations":0,"real_official_signal_triggers":true_triggers})
 
+    def test_official_five_boat_scratch_can_signal_and_generate_24(self):
+        from recovery_live_overlay import load_verified_recovered_live
+        source=load_verified_recovered_live("20261009")
+        count=0
+        triggered=0
+        for rid,recovered in source.items():
+            boats=recovered["boats"]
+            if len(boats)!=5:
+                continue
+            count+=1
+            quality=recovered["prediction_quality"]
+            scratched=quality.get("verified_scratched_boats")
+            self.assertEqual(len(scratched),1,rid)
+            self.assertTrue(latest.signal_field_is_verified(boats,quality),rid)
+            up=latest.build_up_signal(boats,quality)
+            down=latest.build_down_signal(boats,quality)
+            self.assertTrue(up["available"],rid)
+            self.assertTrue(down["available"],rid)
+            if up["active"] or down["active"]:
+                triggered+=1
+                pred=latest.build_signal_ai_prediction(
+                    boats,up,down,latest.load_signal_ai_config())
+                self.assertEqual(pred["points"],24,rid)
+                self.assertEqual(len(pred["combinations"]),24,rid)
+                self.assertEqual(pred["valid_combination_count"],60,rid)
+                self.assertEqual(len(set(x["combination"] for x in pred["combinations"])),24,rid)
+                all_names={b["boat"] for b in boats}
+                for ticket in pred["combinations"]:
+                    self.assertTrue(all(int(n) in all_names for n in ticket["combination"].split("-")),rid)
+            print("OFFICIAL_FIVE_BOAT_SCRATCH",rid,
+                  {"scratched":scratched,"raijin":up["level"],"fujin":down["level"],
+                   "triggered":bool(up["active"] or down["active"])})
+        self.assertGreaterEqual(count,1)
+        print("FIVE_BOAT_SCRATCH_BACKTEST",
+              {"official_five_boat_races":count,"signal_triggered":triggered})
+
+    def test_one_missing_boat_unverified_must_never_signal(self):
+        from recovery_live_overlay import load_verified_recovered_live
+        source=load_verified_recovered_live("20261009")
+        original=next(item for item in source.values() if len(item["boats"])==6)
+        five=original["boats"][:5]
+        expected_miss=next(iter(set(range(1,7))-{b["boat"] for b in five}))
+        unconfirmed={"status":"normal","signal_blocked":False}
+        self.assertFalse(latest.signal_field_is_verified(five,unconfirmed))
+        self.assertFalse(latest.build_up_signal(five,unconfirmed)["available"])
+        self.assertFalse(latest.build_down_signal(five,unconfirmed)["available"])
+        # A lie in the official scratch list is not accepted.
+        wrong=next(i for i in range(1,7) if i!=expected_miss)
+        mismatch={"status":"normal","verified_scratched_boats":[wrong],
+                  "signal_blocked":False}
+        self.assertFalse(latest.signal_field_is_verified(five,mismatch))
+        # The precise official omitted boat allows normal calculation.
+        confirmed={"status":"normal","verified_scratched_boats":[expected_miss],
+                   "signal_blocked":False}
+        self.assertTrue(latest.signal_field_is_verified(five,confirmed))
+        self.assertTrue(latest.build_up_signal(five,confirmed)["available"])
+        self.assertTrue(latest.build_down_signal(five,confirmed)["available"])
+
     def test_partial_live_score_does_not_pollute_official_accuracy(self):
         partial=score_with_fixture((3,),missing_fields=("exhibition_st",))
         q={"status":"fallback","recovery_needed":True,"signal_blocked":True,
