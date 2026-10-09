@@ -1,0 +1,121 @@
+{
+  "status": "PASS",
+  "target_date": "20261009",
+  "generated_at": "2026-10-09T09:35:36.500041+09:00",
+  "actual_races_available": 5,
+  "analysis_live_source": "production_live_json",
+  "recovery_manifest": null,
+  "morning": {
+    "stage": "morning",
+    "prediction_races_in_file": 144,
+    "evaluated_races": 5,
+    "top1_win_rate": 1.0,
+    "winner_in_top2_rate": 1.0,
+    "winner_in_top3_rate": 1.0,
+    "average_winner_prediction_rank": 1.0
+  },
+  "live": {
+    "stage": "live",
+    "prediction_races_in_file": 0,
+    "evaluated_races": 0
+  },
+  "morning_vs_live": {
+    "compared_races": 0,
+    "winner_rank_improved": 0,
+    "winner_rank_worsened": 0,
+    "winner_rank_same": 0,
+    "improved_rate": null
+  },
+  "formation_simulation": {
+    "model_version": "formation_gap_flow_v2",
+    "overall": {
+      "races": 5,
+      "hits": 3,
+      "points": 48,
+      "investment": 4800,
+      "return": 6370,
+      "hit_rate": 0.6,
+      "average_points_per_race": 9.6,
+      "profit": 1570,
+      "recovery_rate_pct": 132.71
+    },
+    "by_formation_type": {
+      "1着固定＋相手流し": {
+        "races": 3,
+        "hits": 3,
+        "points": 36,
+        "investment": 3600,
+        "return": 6370,
+        "hit_rate": 1.0,
+        "average_points_per_race": 12.0,
+        "profit": 2770,
+        "recovery_rate_pct": 176.94
+      },
+      "準軸": {
+        "races": 1,
+        "hits": 0,
+        "points": 8,
+        "investment": 800,
+        "return": 0,
+        "hit_rate": 0.0,
+        "average_points_per_race": 8.0,
+        "profit": -800,
+        "recovery_rate_pct": 0.0
+      },
+      "1・2着固定＋3着流し": {
+        "races": 1,
+        "hits": 0,
+        "points": 4,
+        "investment": 400,
+        "return": 0,
+        "hit_rate": 0.0,
+        "average_points_per_race": 4.0,
+        "profit": -400,
+        "recovery_rate_pct": 0.0
+      }
+    },
+    "by_prediction_type": {
+      "朝": {
+        "races": 5,
+        "hits": 3,
+        "points": 48,
+        "investment": 4800,
+        "return": 6370,
+        "hit_rate": 0.6,
+        "average_points_per_race": 9.6,
+        "profit": 1570,
+        "recovery_rate_pct": 132.71
+      }
+    }
+  },
+  "top3_box_simulation": {
+    "strategy": "top3_trifecta_box",
+    "selection_rule": "フォーメーションと同じレースを対象に、そのレースで採用した予測段階（直前優先、無ければ朝）のAI順位上位3艇を3連単6点BOXで各100円購入",
+    "points_per_race": 6,
+    "overall": {
+      "races": 5,
+      "hits": 1,
+      "points": 30,
+      "investment": 3000,
+      "return": 1970,
+      "hit_rate": 0.2,
+      "average_points_per_race": 6.0,
+      "profit": -1030,
+      "recovery_rate_pct": 65.67
+    },
+    "by_prediction_type": {
+      "morning": {
+        "races": 5,
+        "hits": 1,
+        "points": 30,
+        "investment": 3000,
+        "return": 1970,
+        "hit_rate": 0.2,
+        "average_points_per_race": 6.0,
+        "profit": -1030,
+        "recovery_rate_pct": 65.67
+      }
+    }
+  },
+  "note": "フォーメーション戦略と上位3艇BOX戦略は完全に別会計。両方を同時購入した収支ではない。各買い目100円固定。"
+}
