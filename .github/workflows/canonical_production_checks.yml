@@ -100,6 +100,19 @@ jobs:
           assert len(a)==len(b) and len(a)>100 and not mismatches,(len(a),len(b),mismatches[:8])
           print('COMPLETE FORMATION+SIGNAL PARITY PASS',len(a),'races')
           PY
+      - name: Retrospective canonical replay on 10/08 saved races
+        run: |
+          python collectors/build_canonical_race_records.py --date 20261008
+          python - <<'PY'
+          import json
+          p='predictions/2026/10/08/canonical/race_predictions_20261008.json'
+          data=json.load(open(p,encoding='utf-8'))
+          assert data['race_count']>=100, data['race_count']
+          assert data['signal_races']==data['signal_24_ready']+data['signal_24_unresolved']
+          for row in data['races']:
+              assert not (row['canonical_signal_key'] and row['canonical_strategy']=='normal_ai')
+          print('HISTORICAL CANONICAL PASS',data['race_count'],data['signal_races'],data['signal_24_ready'],data['signal_24_unresolved'])
+          PY
       - name: Smoke test using existing saved predictions (no network fetch)
         run: |
           python collectors/build_canonical_race_records.py --date 20261009
