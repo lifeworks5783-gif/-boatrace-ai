@@ -8,6 +8,9 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from race_prediction_store import canonical_path
+from build_latest_prediction_view import signal_field_is_verified
+
 
 RULE_VERSION = "down_signal_v1_20261008"
 
@@ -125,9 +128,24 @@ def payout_value(row):
     return 0
 
 
-def signal_from_rows(rows):
+def verified_signal_quality_by_race(date):
+    """Official starter/scratch evidence shared by all PDCA signal analyses."""
+    path = canonical_path(date)
+    if not path.is_file():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if str(payload.get("target_date")) != date:
+        return {}
+    return {
+        normalize_race_id(r.get("race_id")): r.get("prediction_quality") or {}
+        for r in payload.get("races") or []
+        if isinstance(r, dict)
+    }
+
+
+def signal_from_rows(rows, quality=None):
     ranked = sorted(rows, key=lambda x: to_int(x.get("rank")) or 99)
-    if len(ranked) != 6:
+    if not signal_field_is_verified(ranked, quality):
         return None
 
     live_scores = []
@@ -155,11 +173,11 @@ def signal_from_rows(rows):
 
     up10 = any(
         (idx + 1) > 3 and deltas[idx] >= 10.0
-        for idx in range(6)
+        for idx in range(len(ranked))
     )
     up75 = any(
         (idx + 1) > 3 and deltas[idx] >= 7.5
-        for idx in range(6)
+        for idx in range(len(ranked))
     )
     raijin_candidates = [
         {
@@ -168,7 +186,7 @@ def signal_from_rows(rows):
             "rise": round(deltas[idx], 2),
             "score": round(live_scores[idx], 2),
         }
-        for idx in range(6)
+        for idx in range(len(ranked))
         if (idx + 1) > 3 and deltas[idx] >= 7.5
     ]
     raijin_max_rise = max(
@@ -367,11 +385,12 @@ def main():
 
     details = []
     skipped = []
+    qualities = verified_signal_quality_by_race(d)
     for race_id, rows in sorted(grouped.items()):
         result = results.get(race_id)
         if result is None:
             continue
-        sig = signal_from_rows(rows)
+        sig = signal_from_rows(rows, qualities.get(race_id))
         if sig is None:
             skipped.append(race_id)
             continue
