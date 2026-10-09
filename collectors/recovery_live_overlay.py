@@ -83,12 +83,23 @@ def load_verified_recovered_live(date: str, root: Path = ROOT) -> dict:
     # omitted number is explicitly marked is_miss in the saved official
     # beforeinfo entries; never turn an unobserved boat into an assumed scratch.
     official_entries = folder / f"official_retry_beforeinfo_entries_{date}.csv"
+    snapshot_dir = root / "daily_inputs" / date[:4] / date[4:6] / date[6:8] / "live"
+    # The latest 'official retry' contains ONLY the newly targeted races.
+    # Earlier official beforeinfo snapshots remain authoritative for an
+    # already-finished/scratched race: consult ALL saved capture paths.
+    evidence_files = ([official_entries] if official_entries.is_file() else [])
+    if snapshot_dir.is_dir():
+        evidence_files += list(snapshot_dir.rglob(f"beforeinfo_entries_{date}.csv"))
     verified_scratches = defaultdict(set)
-    if official_entries.is_file():
-        with official_entries.open(encoding="utf-8-sig", newline="") as stream:
+    for evidence in evidence_files:
+        with evidence.open(encoding="utf-8-sig", newline="") as stream:
             for item in csv.DictReader(stream):
                 code = str(item.get("race_id") or "")
-                if str(item.get("is_miss") or "").lower() == "true":
+                source = str(item.get("source_url") or "")
+                if (
+                    str(item.get("is_miss") or "").lower() == "true"
+                    and source.startswith("https://www.boatrace.jp/owpc/pc/race/beforeinfo?")
+                ):
                     number = int(item.get("boat") or 0)
                     if number in range(1, 7):
                         verified_scratches[code].add(number)
