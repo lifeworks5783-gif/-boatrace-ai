@@ -119,10 +119,9 @@ def load_analysis_live_payload(target_date, production_payload):
         return production_payload, "production_live_json", None
 
     safe_recovery = (
-        manifest.get("status") == "complete"
+        manifest.get("status") in {"complete", "partial"}
         and manifest.get("treat_recovered_as_observation") is True
         and manifest.get("result_leakage") is False
-        and not (manifest.get("still_missing") or [])
     )
     if not safe_recovery:
         return production_payload, "production_live_json", manifest
@@ -161,9 +160,11 @@ def load_analysis_live_payload(target_date, production_payload):
         # 通常は6艇必須。5艇以下を認めるのは、締切前beforeinfoで
         # is_miss=True と記録された欠場艇だけ。
         if len(boat_rows) < 3 or any(boat not in allowed_missing for boat in missing_boats):
-            return production_payload, "production_live_json", manifest
+            print("WARN: incomplete reconstructed live race excluded:", race_key)
+            continue
         if len(boat_rows) + len(missing_boats) != 6:
-            return production_payload, "production_live_json", manifest
+            print("WARN: invalid reconstructed boat count excluded:", race_key)
+            continue
 
         first = boat_rows[0]
         races.append(
