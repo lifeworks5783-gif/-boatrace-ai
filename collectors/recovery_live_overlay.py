@@ -79,14 +79,31 @@ def load_verified_recovered_live(date: str, root: Path = ROOT) -> dict:
                 "exhibition_st": safe_float(row.get("exhibition_st")),
                 "exhibition_f": str(row.get("exhibition_f")).strip().lower() == "true",
             })
+    # A race can legitimately have fewer than six ACTIVE boats. Verify each
+    # omitted number is explicitly marked is_miss in the saved official
+    # beforeinfo entries; never turn an unobserved boat into an assumed scratch.
+    official_entries = folder / f"official_retry_beforeinfo_entries_{date}.csv"
+    verified_scratches = defaultdict(set)
+    if official_entries.is_file():
+        with official_entries.open(encoding="utf-8-sig", newline="") as stream:
+            for item in csv.DictReader(stream):
+                code = str(item.get("race_id") or "")
+                if str(item.get("is_miss") or "").lower() == "true":
+                    number = int(item.get("boat") or 0)
+                    if number in range(1, 7):
+                        verified_scratches[code].add(number)
     result = {}
     for race_id, boats in grouped.items():
+        n = len(boats)
+        active = {x["boat"] for x in boats}
+        missing = set(range(1,7)) - active
         if (
-            len(boats) != 6
-            or {x["rank"] for x in boats} != set(range(1, 7))
-            or {x["boat"] for x in boats} != set(range(1, 7))
+            n < 3 or n > 6
+            or {x["rank"] for x in boats} != set(range(1, n + 1))
+            or len(active) != n
+            or (missing and missing != verified_scratches.get(race_id, set()))
         ):
-            raise RecoverySafetyError(f"Incomplete/duplicate recovered boat scores: {race_id}")
+            raise RecoverySafetyError(f"Unverified missing/duplicate boat scores: {race_id}")
         boats.sort(key=lambda x: x["rank"])
         result[race_id] = {
             "race_id": race_id,
@@ -101,6 +118,7 @@ def load_verified_recovered_live(date: str, root: Path = ROOT) -> dict:
                 "retrospective_simulation_only": True,
                 "recovery_needed": False,
                 "mark": "↻",
+                "verified_scratched_boats": sorted(missing),
             },
         }
     expected_missed = expected_ids - {
