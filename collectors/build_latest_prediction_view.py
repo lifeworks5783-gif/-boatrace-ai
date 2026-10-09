@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 
 
 from logic_registry import load_logic, logic_identity, ROOT
+from recovery_live_overlay import join_verified_recovery
 
 JST = timezone(timedelta(hours=9))
 SIGNAL_LOGIC = load_logic("fujin_raijin")
@@ -1678,6 +1679,14 @@ def main():
     live = prediction_map(
         live_payload
     )
+
+    # The persisted original live prediction may omit races that were restored
+    # from official pre-result beforeinfo AFTER a known collection failure.
+    # Join the verified six-boat recovery before signal classification so
+    # both latest and completed comparison use ONE stored signal and 24 picks.
+    live, recovered_ids = join_verified_recovery(live, target_date)
+    if recovered_ids:
+        print("公式直前情報・事後復旧を共通予測正本へ統合:", len(recovered_ids), "R")
 
     program_deadlines = (
         load_program_deadlines(
