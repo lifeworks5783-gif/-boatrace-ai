@@ -110,6 +110,13 @@ class CanonicalContract(unittest.TestCase):
         self.assertIsNone(result["canonical_signal_key"])
         self.assertEqual(result["canonical_strategy"], "normal_ai")
 
+    def test_missing_live_signal_is_pending_not_normal_ai(self):
+        race = sample_race(active=False)
+        race["prediction_quality"] = {"status": "fallback", "recovery_needed": True}
+        result = self._canonical([race])[0]
+        self.assertEqual(result["canonical_strategy"], "live_signal_pending_recovery")
+        self.assertIn("live_signal_pending_recovery", result["canonical_quality"]["flags"])
+
     def test_duplicate_ids_rejected(self):
         r = sample_race()
         with self.assertRaises(ValueError):
