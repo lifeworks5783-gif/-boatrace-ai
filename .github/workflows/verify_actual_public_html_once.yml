@@ -36,6 +36,32 @@ jobs:
                           "tokoname_signal":bool(toki and ("雷神" in toki or "⚡" in toki)),
                           "tokoname_24":bool(toki and ("24点" in toki or "専用AI" in toki)),
                           "tokoname_card_preview":re.sub("<[^>]*>"," ",toki or "")[:700]}
+                  if page=="race_compare.html":
+                      headlines=re.findall(r'<summary class="ai-result-summary">(.*?)</summary>',text,re.S)
+                      ranked=[(int(n),int(size)) for h in headlines
+                              for n,size in re.findall(r'実着(\\d+)位／(120|60)通り',h)]
+                      mean=re.search(r'当日実着の平均AI順位：\\s*<b>([0-9.]+)位</b>\\s*（(\\d+)R',text)
+                      got_mean=sum(n for n,_ in ranked)/len(ranked) if ranked else None
+                      shown_mean=float(mean.group(1)) if mean else None
+                      declared_count=int(mean.group(2)) if mean else None
+                      hit_titles=sum('signal-rank-hit' in h for h in headlines)
+                      miss_titles=sum('signal-rank-miss' in h for h in headlines)
+                      report.update({
+                        "ranked_signal_races_in_collapsed_summaries":len(ranked),
+                        "winning_signal_headers_colored":hit_titles,
+                        "losing_signal_headers_with_rank":miss_titles,
+                        "daily_mean_rank_shown":shown_mean,
+                        "daily_rank_sample_count":declared_count,
+                        "daily_mean_recomputed_from_html":round(got_mean,1) if got_mean is not None else None,
+                        "rank_sample":ranked[:10],
+                      })
+                      rank_ok=bool(
+                          ranked and hit_titles>0 and miss_titles>0 and mean
+                          and declared_count==len(ranked)
+                          and round(got_mean,1)==shown_mean
+                      )
+                      report["signal_rank_public_acceptance"]=rank_ok
+                      if not rank_ok:errors.append("signal_rank_public_html")
                   print("REAL_PUBLIC_HTML_DIAGNOSTIC",json.dumps(report,ensure_ascii=False),flush=True)
                   if status!=200 or len(content)<1000 or not report["matches_main"]:errors.append(page)
               except Exception as ex:
