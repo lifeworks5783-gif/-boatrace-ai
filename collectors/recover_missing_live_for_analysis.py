@@ -58,6 +58,24 @@ def write_csv(path: Path, rows, fieldnames):
             w.writerow({key: row.get(key, "") for key in fieldnames})
 
 
+def merge_official_snapshots(previous, incoming, *, boat_key=False):
+    """Keep prior official retry evidence when only NEW races are fetched.
+
+    Race-ID + boat is immutable for one day's original official exhibition;
+    a later retry must not erase an earlier verified scratched starter.
+    """
+    merged = {}
+    for row in [*previous, *incoming]:
+        rid = normalize_race_id(row.get("race_id"))
+        if not rid:
+            continue
+        number = str(row.get("boat") or "").strip() if boat_key else ""
+        if boat_key and number not in {"1", "2", "3", "4", "5", "6"}:
+            raise ValueError(f"Invalid official boat in {rid}: {number!r}")
+        merged[(rid, number)] = row
+    return [merged[key] for key in sorted(merged)]
+
+
 def main():
     p = argparse.ArgumentParser(
         description="既知の当日収集不具合で欠けた直前予測を、公式beforeinfoだけからAI分析用に復旧"
@@ -190,8 +208,24 @@ def main():
             f"beforeinfo_validation_{d}.json",
         ):
             src = Path("data") / name
-            if src.is_file():
-                shutil.copy2(src, out_dir / f"official_retry_{name}")
+            if not src.is_file():
+                continue
+            dst = out_dir / f"official_retry_{name}"
+            if name.startswith("beforeinfo_entries_"):
+                merged = merge_official_snapshots(
+                    read_csv(dst) if dst.is_file() else [],
+                    read_csv(src),
+                    boat_key=True,
+                )
+                write_csv(dst, merged, tbi.ENTRY_FIELDS)
+            elif name.startswith("beforeinfo_races_"):
+                merged = merge_official_snapshots(
+                    read_csv(dst) if dst.is_file() else [],
+                    read_csv(src),
+                )
+                write_csv(dst, merged, tbi.RACE_FIELDS)
+            else:
+                shutil.copy2(src, dst)
 
         if race_rows:
             # As-of features only. Results and payouts are never prediction inputs.
