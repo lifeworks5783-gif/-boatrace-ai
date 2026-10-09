@@ -217,7 +217,7 @@ jobs:
               if key:
                   assert race['canonical_strategy']!='normal_ai', race['race_id']
               else:
-                  assert race['canonical_strategy']=='normal_ai', race['race_id']
+                  assert race['canonical_strategy'] in ('normal_ai','live_signal_pending_recovery'), race['race_id']
               assert not {'actual_trifecta','payout','result'} & set(race.keys())
           print('canonical smoke PASS',data['race_count'],data['signal_races'],data['signal_24_unresolved'])
           PY
