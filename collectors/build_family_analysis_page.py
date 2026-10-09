@@ -3054,7 +3054,12 @@ def neutral_recovery_pdca_html(root: Path) -> str:
         neutral = (quality.get("signal_blocked") is True
                    or bool(quality.get("boat_fallbacks"))
                    or (quality.get("status") == "fallback"
-                       and quality.get("fallback_source") == "saved_morning_prediction"))
+                       and quality.get("signal_blocked") is None
+                       and quality.get("fallback_source") == "saved_morning_prediction"
+                       and not any(
+                           x.get("exhibition_time") is not None and x.get("exhibition_st") is not None
+                           for x in (race.get("boats") or [])
+                       )))
         is_restored = bool(race.get("retrospective_score_recovery"))
         if not neutral and not is_restored:
             continue
