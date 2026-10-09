@@ -1013,16 +1013,11 @@ def combo_strength(
 ):
     first, second, third = combo
 
+    weights = PURCHASE_RULES["normal_formation"]["ranking_formula"]
     return (
-        score_by_boat[
-            first
-        ] * 0.50
-        + score_by_boat[
-            second
-        ] * 0.30
-        + score_by_boat[
-            third
-        ] * 0.20
+        score_by_boat[first] * weights["first"]
+        + score_by_boat[second] * weights["second"]
+        + score_by_boat[third] * weights["third"]
     )
 
 
@@ -1104,12 +1099,17 @@ def build_formation(
     gap12 = scores[0] - scores[1]
     gap23 = scores[1] - scores[2]
     gap34 = scores[2] - scores[3] if len(scores) >= 4 else None
+    thresholds = PURCHASE_RULES["normal_formation"]["thresholds"]
+    maxima = PURCHASE_RULES["normal_formation"]["max_points"]
+    close = thresholds["close_gap_max_exclusive"]
+    strong = thresholds["strong_gap_min"]
+    semi = thresholds["semi_anchor_gap_min"]
 
     # 流しルール:
     # 1) 1・2位が接近し、3位以下と明確な差 -> 1・2着折返し＋3着流し
     # 2) 1位が強く、2位も3位以下と明確な差 -> 1着・2着固定＋3着流し
     # 3) 1位だけ強い -> 1着固定＋2・3着相手流し
-    if gap12 < 5.0 and gap23 >= 10.0:
+    if gap12 < close and gap23 >= strong:
         formation_type = "1・2着折返し＋3着流し"
         top1, top2 = order[0], order[1]
         tail = order[2:]
@@ -1122,7 +1122,7 @@ def build_formation(
         second_candidates = [top1, top2]
         third_candidates = tail
 
-    elif gap12 >= 10.0 and gap23 >= 10.0:
+    elif gap12 >= strong and gap23 >= strong:
         formation_type = "1・2着固定＋3着流し"
         top1, top2 = order[0], order[1]
         tail = order[2:]
@@ -1131,7 +1131,7 @@ def build_formation(
         second_candidates = [top2]
         third_candidates = tail
 
-    elif gap12 >= 10.0:
+    elif gap12 >= strong:
         formation_type = "1着固定＋相手流し"
         top1 = order[0]
         tail = order[1:]
@@ -1148,12 +1148,12 @@ def build_formation(
             )
         )
         # 点数過多を避けつつ従来4点より広げる
-        combinations = combinations[:12]
+        combinations = combinations[:maxima["single_anchor"]]
         first_candidates = [top1]
         second_candidates = tail
         third_candidates = tail
 
-    elif gap12 >= 5.0:
+    elif gap12 >= semi:
         formation_type = "準軸"
         first_candidates = order[:2]
         second_candidates = order[:3]
@@ -1169,7 +1169,7 @@ def build_formation(
                 combo,
             )
         )
-        combinations = combinations[:8]
+        combinations = combinations[:maxima["semi_anchor"]]
 
     else:
         formation_type = "混戦"
@@ -1187,7 +1187,7 @@ def build_formation(
                 combo,
             )
         )
-        combinations = combinations[:12]
+        combinations = combinations[:maxima["chaos"]]
 
     return {
         "model_version": FORMATION_MODEL,
