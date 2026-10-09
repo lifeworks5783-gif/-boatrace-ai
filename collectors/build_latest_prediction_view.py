@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 
 from logic_registry import load_logic, logic_identity, ROOT
 from recovery_live_overlay import join_verified_recovery
+from prediction_history_guard import preserve_closed_prediction
 
 JST = timezone(timedelta(hours=9))
 SIGNAL_LOGIC = load_logic("fujin_raijin")
@@ -1215,25 +1216,7 @@ def build_formation(
 
 AI_SCORE_CONFIG_DIR = Path("config/ai_score")
 
-DEFAULT_AI_SCORE_CONFIG = {
-    "schema_version": 1,
-    "model_version": "ai_finish_order_score_v0_20261005",
-    "effective_date": "20261005",
-    "status": "experimental",
-    "purchase_points": 8,
-    "display_points": 12,
-    "joint_method": "geometric_mean",
-    "morning": {
-        "first": {"racer_course": .35, "grade": .18, "motor": .14, "boat": .05, "national_top2": .10, "overall": .18},
-        "second": {"racer_course": .25, "grade": .20, "motor": .17, "boat": .06, "national_top2": .14, "overall": .18},
-        "third": {"racer_course": .18, "grade": .16, "motor": .22, "boat": .10, "national_top2": .16, "overall": .18},
-    },
-    "live": {
-        "first": {"structural": .48, "exTime": .10, "exST": .22, "overall": .20},
-        "second": {"structural": .58, "exTime": .08, "exST": .14, "overall": .20},
-        "third": {"structural": .66, "exTime": .07, "exST": .07, "overall": .20},
-    },
-}
+DEFAULT_AI_SCORE_CONFIG_PATH = AI_SCORE_CONFIG_DIR / "default.json"
 
 
 def load_ai_score_config(target_date):
@@ -1243,10 +1226,19 @@ def load_ai_score_config(target_date):
         config = json.loads(path.read_text(encoding="utf-8"))
         source = str(path)
     else:
-        config = json.loads(json.dumps(DEFAULT_AI_SCORE_CONFIG))
+        # The fallback is explicit, versioned configuration, never hidden code weights.
+        if not DEFAULT_AI_SCORE_CONFIG_PATH.is_file():
+            raise FileNotFoundError("Required normal AI default logic missing: " + str(DEFAULT_AI_SCORE_CONFIG_PATH))
+        default_bytes = DEFAULT_AI_SCORE_CONFIG_PATH.read_bytes()
+        config = json.loads(default_bytes)
+        if config.get("schema_version") != 1 or not config.get("model_version"):
+            raise ValueError("Invalid normal AI default model")
+        archive = AI_SCORE_CONFIG_DIR / "versions" / (config["model_version"] + ".json")
+        if not archive.is_file() or archive.read_bytes() != default_bytes:
+            raise ValueError("Immutable normal AI default model changed; publish a new version instead")
         config["effective_date"] = target_date
         config["model_version"] = f"ai_finish_order_score_fallback_{target_date}"
-        source = "built_in_fallback"
+        source = str(DEFAULT_AI_SCORE_CONFIG_PATH)
     config["_source"] = source
     return config
 
@@ -2024,7 +2016,13 @@ def main():
         for item in (original_formation.get("races") or [])
         if isinstance(item, dict) and text(item.get("race_id"))
     }
-    for row in all_rows:
+    for row_index, row in enumerate(all_rows):
+        prior = previous_by_id.get(text(row.get("race_id")))
+        if prior:
+            # Never re-score an already saved pre-deadline race just because
+            # current model numbers, collection time or page generation changed.
+            row = preserve_closed_prediction(prior, row, now)
+            all_rows[row_index] = row
         source = live.get(text(row.get("race_id"))) or {}
         source_quality = source.get("prediction_quality") or {}
         if (
