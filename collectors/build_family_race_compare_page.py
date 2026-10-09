@@ -2997,7 +2997,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"))} {prediction_quality_warning(row["live"])}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"))} {" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
@@ -3053,7 +3053,7 @@ def render_html(
   <div class="prediction-row">
 
     <div class="label">
-      {("直前予測" if row["live"] else ("朝予測の参考表示（直前予測未保存）" if row.get("live_display") else "直前予測なし"))} {prediction_quality_warning(row.get("live_display"))}
+      {("直前予測" if row["live"] else ("朝予測の参考表示（直前予測未保存）" if row.get("live_display") else "直前予測なし"))} 
     </div>
 
     <div>
@@ -3878,23 +3878,7 @@ details.all-scores summary {{
 </nav>
 
 
-<div class="note">
 
-終了済みレースについて、
-朝予測・最終直前予測と
-実際の結果を照合します。
-
-TOP3整合率は、
-予測TOP3と実際のTOP3が
-順不同で3艇すべて一致したレースを1、
-1艇でも違うレースを0として集計します。
-
-完全一致は、
-予測した1着・2着・3着と
-実際の1着・2着・3着が
-着順まで一致した場合です。
-
-</div>
 
 
 <section class="summary">
