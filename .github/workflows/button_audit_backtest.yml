@@ -1,0 +1,35 @@
+name: Button-only audit saved-data backtest (sandbox)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tests/backtest_button_audit_contract_20261009.py"
+      - ".github/workflows/button_audit_backtest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-backtest:
+    name: Read-only 2026-10-09 replay & two-page visual contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR snapshot (never main-write)
+        uses: actions/checkout@v4
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependencies
+        run: python -m pip install requests beautifulsoup4 pandas scipy
+      - name: Actual 144-race saved-data replay and injected-failure checks
+        run: python -u tests/backtest_button_audit_contract_20261009.py
+      - name: Preserve PASS/FAIL report even when acceptance test correctly fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: button-audit-sandbox-backtest-20261009
+          path: _audit_backtest/button_mode_audit_backtest_20261009.json
+          if-no-files-found: warn
