@@ -224,6 +224,26 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         print("FIVE_BOAT_SCRATCH_BACKTEST",
               {"official_five_boat_races":count,"signal_triggered":triggered})
 
+    def test_tokoname8_official_scratch_reaches_both_pdca_engines(self):
+        from recovery_live_overlay import load_verified_recovered_live
+        from evaluate_down_signal import signal_from_rows
+        from evaluate_signal_ai_performance import derive_raijin, derive_fujin
+        race=load_verified_recovered_live("20261009")["20261009-08-08"]
+        boats=race["boats"]
+        quality=race["prediction_quality"]
+        self.assertEqual(quality["verified_scratched_boats"],[3])
+        decision=signal_from_rows(boats, quality)
+        self.assertIsNotNone(decision)
+        self.assertEqual(decision["raijin_level"],2)
+        level,candidates=derive_raijin(boats,quality)
+        self.assertEqual(level,2)
+        self.assertTrue(candidates)
+        self.assertEqual(derive_fujin(boats,quality),0)
+        # The EXACT same five rows without official evidence are not
+        # eligible, even if the scores would otherwise show a signal.
+        self.assertIsNone(signal_from_rows(boats))
+        self.assertEqual(derive_raijin(boats)[0],0)
+
     def test_one_missing_boat_unverified_must_never_signal(self):
         from recovery_live_overlay import load_verified_recovered_live
         source=load_verified_recovered_live("20261009")
