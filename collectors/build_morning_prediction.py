@@ -9,24 +9,15 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-JST = timezone(timedelta(hours=9))
-MODEL_VERSION = "provisional_v4_20261006_morning_traceable_inputs"
+from logic_registry import load_logic, logic_identity
 
-# 暫定ロジックVer.1（2026-10-04固定）
-MORNING_WEIGHTS = {
-    "racer_course": 40.0,
-    "grade": 20.0,
-    "motor": 20.0,
-    "boat": 5.0,
-    "national_top2": 15.0,
-}
-# build_live_prediction.py との互換用。直前側の本番配点は同ファイルで 80/6/14。
-UNIFIED_WEIGHTS = {
-    "racer_course": 40.0, "grade": 20.0, "motor": 20.0,
-    "boat": 5.0, "national_top2": 15.0,
-    "exTime": 6.0, "exST": 14.0,
-}
-GRADE_PRIOR = {"A1": 1.00, "A2": 0.75, "B1": 0.45, "B2": 0.25}
+JST = timezone(timedelta(hours=9))
+MORNING_LOGIC = load_logic("morning")
+MODEL_VERSION = MORNING_LOGIC["model_version"]
+MORNING_WEIGHTS = MORNING_LOGIC["weights"]
+GRADE_PRIOR = MORNING_LOGIC["grade_prior"]
+# Legacy compatibility; the live calculator reads its independent configuration.
+UNIFIED_WEIGHTS = {**MORNING_WEIGHTS, "exTime": load_logic("live")["weights"]["exhibition_time"], "exST": load_logic("live")["weights"]["exhibition_st"]}
 FORBIDDEN_CURRENT_RESULT_KEYS = {"finish","result","race_time","actual_st","actual_course"}
 
 def parse_args():
@@ -189,10 +180,14 @@ def provisional_details(race,public_store=None,course_overrides=None):
             return {}, [f"{b}号艇:{k}" for k in required if values.get(k) is None]
     out={}
     for b in raw:
-        racer_course=(.40*ranks["course_win"][b]+.20*ranks["course_top2"][b]+.30*ranks["course_top3"][b]+.10*ranks["course_avg_st"][b])
-        motor=.40*ranks["motor_win"][b]+.60*ranks["motor_top3"][b]
-        boat=.50*ranks["boat_top2"][b]+.50*ranks["boat_top3"][b]
-        score=100*(.40*racer_course+.20*ranks["grade"][b]+.20*motor+.05*boat+.15*ranks["national_top2"][b])
+        sub = MORNING_LOGIC["subweights"]
+        racer_course=sum(weight*ranks[key][b] for key,weight in sub["racer_course"].items())
+        motor=sum(weight*ranks[key][b] for key,weight in sub["motor"].items())
+        boat=sum(weight*ranks[key][b] for key,weight in sub["boat"].items())
+        score=sum(MORNING_WEIGHTS[key]*value for key,value in {
+            "racer_course":racer_course, "grade":ranks["grade"][b],
+            "motor":motor, "boat":boat, "national_top2":ranks["national_top2"][b]
+        }.items())
         out[b]={
             "score":score,
             "racer_course":racer_course,
@@ -217,11 +212,11 @@ def score_boat(race,boat,public_store=None,course_override=None):
     if missing: raise RuntimeError(f"履歴特徴量不足 {race.get('race_id')}: {','.join(missing)}")
     d=details[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
     comps={
-        "racer_course":{"weight":40.0,"raw_score_0_1":round(d["racer_course"],6),"available":True},
-        "grade":{"weight":20.0,"raw_score_0_1":round(d["grade"],6),"available":True},
-        "motor":{"weight":20.0,"raw_score_0_1":round(d["motor"],6),"available":True},
-        "boat":{"weight":5.0,"raw_score_0_1":round(d["boat"],6),"available":True},
-        "national_top2":{"weight":15.0,"raw_score_0_1":round(d["national_top2"],6),"available":True},
+        "racer_course":{"weight":MORNING_WEIGHTS["racer_course"],"raw_score_0_1":round(d["racer_course"],6),"available":True},
+        "grade":{"weight":MORNING_WEIGHTS["grade"],"raw_score_0_1":round(d["grade"],6),"available":True},
+        "motor":{"weight":MORNING_WEIGHTS["motor"],"raw_score_0_1":round(d["motor"],6),"available":True},
+        "boat":{"weight":MORNING_WEIGHTS["boat"],"raw_score_0_1":round(d["boat"],6),"available":True},
+        "national_top2":{"weight":MORNING_WEIGHTS["national_top2"],"raw_score_0_1":round(d["national_top2"],6),"available":True},
     }
     return {"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(d["score"],2),"base_score":round(d["score"],2),"trend_adjustment_points":0.0,"f_l_penalty_points":0.0,"data_coverage_pct":100.0,"components":comps,"note":"暫定ロジックVer.1: 選手×想定コース40/級別20/モーター20/ボート5/全国2連対15"}
 
@@ -270,17 +265,17 @@ def main():
             for boat in boats:
                 lane=to_int(boat.get("boat")); d=details[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
                 history=boat.get("history") or {}
-                row={"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(d["score"],2),"base_score":round(d["score"],2),"trend_adjustment_points":0.0,"f_l_penalty_points":0.0,"data_coverage_pct":100.0,"components":{"racer_course":{"weight":40.0,"raw_score_0_1":round(d["racer_course"],6)},"grade":{"weight":20.0,"raw_score_0_1":round(d["grade"],6)},"motor":{"weight":20.0,"raw_score_0_1":round(d["motor"],6)},"boat":{"weight":5.0,"raw_score_0_1":round(d["boat"],6)},"national_top2":{"weight":15.0,"raw_score_0_1":round(d["national_top2"],6)}},"input_trace":{"history_feature_manifest":payload.get("history_feature_manifest"),"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"course_used":d.get("course"),"official_f_count":racer.get("official_f_count"),"official_l_count":racer.get("official_l_count"),"official_avg_st":racer.get("official_avg_st"),"official_fl_available":racer.get("official_fl_available",False),"candidate_components":{"f_l_holdings":{"available":racer.get("official_fl_available",False),"f_count":racer.get("official_f_count"),"l_count":racer.get("official_l_count"),"active_in_score":False},"motor_30d":{"available":history.get("motor_30d_available",False),"features":history.get("motor_30d"),"active_in_score":False},"parts_exchange":{"available":False,"value":"","active_in_score":False},"weather_water":{"available":False,"value":{},"active_in_score":False}}}}
+                row={"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(d["score"],2),"base_score":round(d["score"],2),"trend_adjustment_points":0.0,"f_l_penalty_points":0.0,"data_coverage_pct":100.0,"components":{"racer_course":{"weight":MORNING_WEIGHTS["racer_course"],"raw_score_0_1":round(d["racer_course"],6)},"grade":{"weight":MORNING_WEIGHTS["grade"],"raw_score_0_1":round(d["grade"],6)},"motor":{"weight":MORNING_WEIGHTS["motor"],"raw_score_0_1":round(d["motor"],6)},"boat":{"weight":MORNING_WEIGHTS["boat"],"raw_score_0_1":round(d["boat"],6)},"national_top2":{"weight":MORNING_WEIGHTS["national_top2"],"raw_score_0_1":round(d["national_top2"],6)}},"input_trace":{"history_feature_manifest":payload.get("history_feature_manifest"),"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"course_used":d.get("course"),"official_f_count":racer.get("official_f_count"),"official_l_count":racer.get("official_l_count"),"official_avg_st":racer.get("official_avg_st"),"official_fl_available":racer.get("official_fl_available",False),"candidate_components":{"f_l_holdings":{"available":racer.get("official_fl_available",False),"f_count":racer.get("official_f_count"),"l_count":racer.get("official_l_count"),"active_in_score":False},"motor_30d":{"available":history.get("motor_30d_available",False),"features":history.get("motor_30d"),"active_in_score":False},"parts_exchange":{"available":False,"value":"","active_in_score":False},"weather_water":{"available":False,"value":{},"active_in_score":False}}}}
                 scored.append(row)
             scored.sort(key=lambda x:(-x["score"],x["boat"]))
             for rank,row in enumerate(scored,1):
                 row["rank"]=rank; scores.append(row["score"])
                 rows.append({"target_date":target_date,"venue_code":race.get("venue_code"),"venue_name":race.get("venue_name"),"race":race.get("race"),"race_id":race.get("race_id"),"rank":rank,**{k:row[k] for k in ["boat","registration_no","racer_name","grade","motor_no","boat_no","score","base_score","trend_adjustment_points","f_l_penalty_points","data_coverage_pct"]}})
             prediction_races.append({"race_id":race.get("race_id"),"date":race.get("date"),"venue_code":race.get("venue_code"),"venue_name":race.get("venue_name"),"race":race.get("race"),"race_name":race.get("race_name"),"deadline":race.get("deadline"),"morning_order":[x["boat"] for x in scored],"top3_boats":[x["boat"] for x in scored[:3]],"strength":prediction_strength(scored),"boats":scored})
-        result={"schema_version":"1.0","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","generated_at":datetime.now(JST).isoformat(),"score_note":"現行本番配点は維持。入力追跡情報として30/90日履歴・場適性等を保存し、未検証要素は勝手に加点しない。対象日結果は不使用。","weights":MORNING_WEIGHTS,"race_count":len(prediction_races),"boat_count":len(rows),"races":prediction_races}
+        result={"schema_version":"1.0","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","generated_at":datetime.now(JST).isoformat(),"score_note":"現行本番配点は維持。入力追跡情報として30/90日履歴・場適性等を保存し、未検証要素は勝手に加点しない。対象日結果は不使用。","weights":MORNING_WEIGHTS,"logic_identity":logic_identity(MORNING_LOGIC),"race_count":len(prediction_races),"boat_count":len(rows),"races":prediction_races}
         oj.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8"); write_csv(oc,rows)
         if len(prediction_races)!=len(races) or len(rows)!=len(races)*6: raise RuntimeError("予測件数不一致")
-        validation={"status":"PASS","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","race_count":len(prediction_races),"boat_count":len(rows),"score_min":round(min(scores),2),"score_max":round(max(scores),2),"score_average":round(sum(scores)/len(scores),2),"average_data_coverage_pct":100.0,"current_day_result_leakage":0,"course_used":False,"exhibition_used":False,"weights":MORNING_WEIGHTS,"external_public_csv_used":False}
+        validation={"status":"PASS","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","race_count":len(prediction_races),"boat_count":len(rows),"score_min":round(min(scores),2),"score_max":round(max(scores),2),"score_average":round(sum(scores)/len(scores),2),"average_data_coverage_pct":100.0,"current_day_result_leakage":0,"course_used":False,"exhibition_used":False,"weights":MORNING_WEIGHTS,"logic_identity":logic_identity(MORNING_LOGIC),"external_public_csv_used":False}
         vj.write_text(json.dumps(validation,ensure_ascii=False,indent=2),encoding="utf-8")
         print("朝予測生成: PASS",len(prediction_races),"R",len(rows),"艇"); return 0
     except Exception as exc:
