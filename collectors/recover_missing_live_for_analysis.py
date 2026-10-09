@@ -27,6 +27,15 @@ def race_ids(rows):
     }
 
 
+def partial_race_ids(rows):
+    """Provisional morning-neutral scores must NEVER satisfy official recovery."""
+    return {
+        normalize_race_id(row.get("race_id")) for row in rows
+        if str(row.get("score_fallback") or "").strip().lower() in {"true", "yes", "1"}
+        and normalize_race_id(row.get("race_id"))
+    }
+
+
 def run(script: str, *args: str):
     cmd = [sys.executable, "-u", script, *args]
     print("RUN", " ".join(cmd), flush=True)
@@ -101,10 +110,7 @@ def main():
     # Saved neutral scores are NOT verified official live observations.
     # Keep them in the recovery queue until complete original exhibition
     # evidence is obtained; a stored 0-delta placeholder is not success.
-    partial_ids = {
-        normalize_race_id(row.get("race_id")) for row in original_rows
-        if str(row.get("score_fallback") or "").strip().lower() in {"true", "yes", "1"}
-    }
+    partial_ids = partial_race_ids(original_rows)
     verified_original = original - partial_ids
     # Recover only finished races; future races never count as an inactive signal.
     result_path = Path("archive") / y / m / day / f"results_{d}_all.csv"
