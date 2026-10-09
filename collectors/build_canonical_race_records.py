@@ -83,9 +83,10 @@ def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=
         ):
             continue
         boats = ranked_boats(race)
-        if len(boats) != 6:
+        if not 3 <= len(boats) <= 6:
             continue
-        if len({int(b.get("boat") or 0) for b in boats}) != 6:
+        observed_boats = {int(b.get("boat") or 0) for b in boats}
+        if len(observed_boats) != len(boats) or not observed_boats <= set(range(1, 7)):
             continue
         if not all(
             b.get("score") is not None and b.get("morning_score_reference") is not None
@@ -124,7 +125,7 @@ def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=
                     grouped.setdefault(digits, []).append(entry)
             for digits, rows in grouped.items():
                 rid = f"{digits[:8]}-{digits[8:10]}-{digits[10:12]}"
-                if rid in candidates or len(rows) != 6:
+                if rid in candidates or not 3 <= len(rows) <= 6:
                     continue
                 try:
                     boats = sorted(
@@ -138,7 +139,8 @@ def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=
                     )
                 except (ValueError, KeyError, TypeError):
                     continue
-                if {b["boat"] for b in boats} != set(range(1, 7)):
+                boat_ids = {b["boat"] for b in boats}
+                if len(boat_ids) != len(boats) or not boat_ids <= set(range(1, 7)):
                     continue
                 recovered_record = {
                     "race_id": rid,
@@ -173,14 +175,30 @@ def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=
             continue
 
         restored, boats = candidates[rid]
-        up = build_up_signal(boats, restored.get("prediction_quality"))
-        down = build_down_signal(boats, restored.get("prediction_quality"))
-        if not (up.get("available") and down.get("available")):
-            updated.append(row)
-            continue
+        if len(boats) == 6:
+            up = build_up_signal(boats, restored.get("prediction_quality"))
+            down = build_down_signal(boats, restored.get("prediction_quality"))
+            if not (up.get("available") and down.get("available")):
+                updated.append(row)
+                continue
+        else:
+            # The official recovery legitimately contains 3-5 active boats.
+            # This is not a collection failure or a verified no-signal event.
+            up = {"available": False, "active": False, "level": 0,
+                  "suppressed_reason": "reduced_field"}
+            down = {"available": False, "active": False, "level": 0,
+                    "suppressed_reason": "reduced_field"}
         row["boats"] = boats
         row["prediction_type"] = "直前"
-        row["prediction_quality"] = restored["prediction_quality"]
+        row["prediction_quality"] = dict(restored["prediction_quality"])
+        if len(boats) != 6:
+            row["prediction_quality"].update({
+                "reduced_field_observed": True,
+                "active_boat_count": len(boats),
+                "absent_boat_numbers": sorted(set(range(1,7)) -
+                                              {int(b["boat"]) for b in boats}),
+                "signal_evaluation": "not_supported_for_reduced_field",
+            })
         row["up_signal"] = up
         row["down_signal"] = down
         row["signal_ai_prediction"] = build_signal_ai_prediction(
@@ -262,6 +280,12 @@ def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
         elif signal.get("signal_key"):
             flags.append("unexpected_signal_ticket_without_marker")
             row["signal_ai_prediction"] = None
+        reduced_field = (
+            stage == "直前" and quality.get("reduced_field_observed")
+            and 3 <= len(boats) < 6
+        )
+        if reduced_field:
+            flags.append("reduced_field_signal_not_evaluated")
         if not key and is_fallback and stage == "直前":
             flags.append("live_signal_pending_recovery")
 
@@ -273,8 +297,9 @@ def canonicalize(races, *, target_date, config_manifest, signal_ai_config=None):
         row["canonical_strategy"] = (
             "signal_ai_24" if key and _ticket_valid(row.get("signal_ai_prediction") or {}, key)
             else ("signal_ai_unresolved" if key
-                  else ("live_signal_pending_recovery"
-                        if is_fallback and stage == "直前" else "normal_ai"))
+                  else ("reduced_field_signal_not_evaluated" if reduced_field
+                        else ("live_signal_pending_recovery"
+                              if is_fallback and stage == "直前" else "normal_ai")))
         )
         # The currently loaded config is NOT evidence of which weights
         # produced an older score. Preserve original provenance separately.
