@@ -7,6 +7,7 @@ reads results/payouts, changes old predictions, or treats 8 normal tickets as
 """
 from __future__ import annotations
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -95,6 +96,65 @@ def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=
             continue
         candidates[str(race.get("race_id") or "")] = (race, boats)
 
+    # Older recover_missing_live_for_analysis.py stores a verified
+    # merged CSV + manifest without updating live_predictions_final.json.
+    # Admit ONLY specifically recovered race IDs, not the entire merged CSV.
+    recovery_dir = Path(root) / "evaluations" / date[:4] / date[4:6] / date[6:8] / "recovery"
+    recovery_manifest = recovery_dir / f"live_recovery_manifest_{date}.json"
+    merged_csv = recovery_dir / f"merged_live_predictions_{date}.csv"
+    if recovery_manifest.is_file() and merged_csv.is_file():
+        manifest = json.loads(recovery_manifest.read_text(encoding="utf-8"))
+        if (
+            manifest.get("status") in {"complete", "partial"}
+            and manifest.get("treat_recovered_as_observation") is True
+            and manifest.get("result_leakage") is False
+        ):
+            target_codes = {
+                "".join(ch for ch in str(x) if ch.isdigit())[:12]
+                for x in manifest.get("recovered_races") or []
+            }
+            grouped = {}
+            with merged_csv.open("r", encoding="utf-8-sig", newline="") as stream:
+                for entry in csv.DictReader(stream):
+                    digits = "".join(ch for ch in str(entry.get("race_id") or "") if ch.isdigit())[:12]
+                    if digits not in target_codes or len(digits) != 12:
+                        continue
+                    if {"result", "finish", "payout", "actual_st"} & set(entry):
+                        continue
+                    grouped.setdefault(digits, []).append(entry)
+            for digits, rows in grouped.items():
+                rid = f"{digits[:8]}-{digits[8:10]}-{digits[10:12]}"
+                if rid in candidates or len(rows) != 6:
+                    continue
+                try:
+                    boats = sorted(
+                        [{
+                            "boat": int(row["boat"]), "rank": int(float(row["rank"])),
+                            "score": float(row["score"]),
+                            "morning_score_reference": float(row["morning_score_reference"]),
+                            "racer_name": row.get("racer_name") or "",
+                        } for row in rows],
+                        key=lambda x: x["rank"],
+                    )
+                except (ValueError, KeyError, TypeError):
+                    continue
+                if {b["boat"] for b in boats} != set(range(1, 7)):
+                    continue
+                recovered_record = {
+                    "race_id": rid,
+                    "boats": boats,
+                    "source_recovery_csv": str(merged_csv),
+                    "score_model_version": manifest.get("score_model_version"),
+                    "prediction_quality": {
+                        "status": "recovered_observation",
+                        "recovery_needed": False,
+                        "provenance": "post_result_official_beforeinfo",
+                        "result_leakage": False,
+                        "recovery_manifest": str(recovery_manifest),
+                    },
+                }
+                candidates[rid] = (recovered_record, boats)
+
     updated = []
     for original in originals:
         row = dict(original)
@@ -135,7 +195,9 @@ def hydrate_recovered_live(originals, *, date, root=Path("."), signal_ai_config=
                 "replayed_at": datetime.now(JST).isoformat(),
             }
         row["score_model_version"] = (
-            restored.get("score_model_version") or payload.get("model_version")
+            restored.get("score_model_version")
+            if restored.get("source_recovery_csv")
+            else (restored.get("score_model_version") or payload.get("model_version"))
         )
         row["score_logic_config"] = (
             restored.get("logic_config") or payload.get("logic_config")
