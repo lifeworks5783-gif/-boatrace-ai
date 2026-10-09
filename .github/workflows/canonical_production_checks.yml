@@ -35,6 +35,27 @@ jobs:
           python -m py_compile collectors/production_config.py collectors/build_morning_prediction.py collectors/build_live_prediction.py collectors/build_latest_prediction_view.py collectors/build_canonical_race_records.py collectors/build_deadline_prediction_view.py collectors/build_family_race_compare_page.py
       - name: Regression tests
         run: python -m unittest discover -s tests -p 'test_production_pipeline_contract.py' -v
+      - name: Old versus new production morning scores (same 10/09 inputs)
+        run: |
+          mkdir -p /tmp/morning-old /tmp/morning-new
+          git show bf09ddae688628a6e24c481d24ea0ea92860be1b:collectors/build_morning_prediction.py > /tmp/build_morning_legacy.py
+          INPUT=daily_inputs/2026/10/09/prediction_input_enriched_morning_20261009.json
+          test -s "$INPUT"
+          python /tmp/build_morning_legacy.py --date 20261009 --input "$INPUT" --output-dir /tmp/morning-old
+          python collectors/build_morning_prediction.py --date 20261009 --input "$INPUT" --output-dir /tmp/morning-new
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d='20261009'
+          def extract(root):
+              data=json.loads((Path(root)/f'morning_predictions_{d}.json').read_text(encoding='utf-8'))
+              return {r['race_id']: [(b['boat'],b['score'],b['rank']) for b in r['boats']] for r in data['races']}
+          old,new=extract('/tmp/morning-old'),extract('/tmp/morning-new')
+          assert len(old)>0 and old.keys()==new.keys(), ('race set mismatch',len(old),len(new))
+          mismatches=[rid for rid in old if old[rid]!=new[rid]]
+          assert not mismatches, ('score or rank changed', mismatches[:10])
+          print('REAL INPUT MORNING PARITY PASS',len(old),'races',sum(len(v) for v in old.values()),'boats')
+          PY
       - name: Smoke test using existing saved predictions (no network fetch)
         run: |
           python collectors/build_canonical_race_records.py --date 20261009
