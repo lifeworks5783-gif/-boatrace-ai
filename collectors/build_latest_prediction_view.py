@@ -1910,6 +1910,16 @@ def main():
             "prediction_type": (
                 prediction_type
             ),
+            # Source model is the one that actually created these saved
+            # scores, not the version currently active at page-render time.
+            "score_model_version": (
+                race.get("score_model_version")
+                or (live_payload if race_id in live else morning_payload).get("model_version")
+            ),
+            "score_logic_config": (
+                race.get("logic_config")
+                or (live_payload if race_id in live else morning_payload).get("logic_config")
+            ),
             "prediction_quality": (
                 prediction_quality
             ),
