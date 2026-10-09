@@ -71,6 +71,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: 共通AI分析の依存パッケージ
+        run: python -m pip install requests beautifulsoup4
+
       - name: 家族共有フォルダを準備
         run: |
           rm -rf _family_site
