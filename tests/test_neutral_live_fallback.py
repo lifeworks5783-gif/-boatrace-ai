@@ -202,6 +202,14 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         live_original=dict(raw,prediction_quality={"status":"normal"})
         self.assertIsNone(compare.neutral_display_from_canonical(dict(item,raw=live_original)))
 
+    def test_actual_signal_analysis_page_contains_fallback_pdca_ledger(self):
+        from build_family_signal_analysis_page import build_page
+        html_text=build_page(ROOT/"evaluations")
+        self.assertIn("風神雷神 AI分析",html_text)
+        self.assertIn("直前中立補完・公式復旧の監査／PDCA",html_text)
+        self.assertIn("公式展示復旧後に再判定",html_text)
+        self.assertIn("原因",html_text)
+
     def test_neutral_is_recovery_pending_and_provenance_retained(self):
         rows=[
             {"race_id":"20261009-10-10","boat":1,"score_fallback":"False"},
