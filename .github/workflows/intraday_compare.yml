@@ -11,7 +11,9 @@ on:
       - "config/run_intraday_compare_now.txt"
 concurrency:
   group: boatrace-intraday-compare
-  cancel-in-progress: true
+  # Button clicks and model updates may overlap; finish the current run.
+  # GitHub keeps at most one pending run per group, so the latest request follows.
+  cancel-in-progress: false
 
 jobs:
   compare:
