@@ -221,3 +221,19 @@ jobs:
               assert not {'actual_trifecta','payout','result'} & set(race.keys())
           print('canonical smoke PASS',data['race_count'],data['signal_races'],data['signal_24_unresolved'])
           PY
+      - name: Latest page uses the same canonical race source
+        run: |
+          python collectors/build_deadline_prediction_view.py --date 20261009
+          mkdir -p /tmp/canonical-latest
+          python collectors/build_family_prediction_page.py --input predictions/latest_by_deadline.json --output-dir /tmp/canonical-latest
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.load(open('predictions/latest_by_deadline.json'))
+          assert p['race_count']>=100
+          assert all(r.get('canonical_signal_source') is True for r in p['races'])
+          signal=sum(bool(r.get('canonical_signal_key')) for r in p['races'])
+          html=Path('/tmp/canonical-latest/index.html').read_text(encoding='utf-8')
+          assert len(html)>10000
+          print('LATEST CANONICAL PAGE PASS',p['race_count'],'races,',signal,'signals')
+          PY
