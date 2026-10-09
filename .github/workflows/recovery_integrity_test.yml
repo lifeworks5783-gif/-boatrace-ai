@@ -1,0 +1,41 @@
+name: Cumulative official beforeinfo recovery tests
+on:
+  push:
+    branches:
+      - fix/cumulative-official-beforeinfo-recovery-20261009
+  pull_request:
+    branches: [main]
+    paths:
+      - "collectors/recover_missing_live_for_analysis.py"
+      - "collectors/recovery_live_overlay.py"
+      - "evaluations/**/recovery/official_retry_beforeinfo_*.csv"
+      - "tests/test_recovery_sources.py"
+      - ".github/workflows/recovery_integrity_test.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install requests beautifulsoup4
+      - name: Test cumulative provenance and all current recovered races
+        run: python -m unittest discover -s tests -p test_recovery_sources.py -v
+      - name: Regenerate canonical predictions from current recovered data
+        run: |
+          python -u collectors/build_latest_prediction_view.py --date 20261009 --now 2026-10-09T12:00:00+09:00
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,'collectors')
+          from race_prediction_store import load_canonical, audit_canonical
+          data=load_canonical('20261009')
+          check=audit_canonical(data)
+          assert check['missing_signal_24']==0,check
+          assert check['active_signals'] > 0,check
+          print('RECOVERY_FULL_CURRENT_DATA_PASS', {k:v for k,v in check.items() if k!='details'})
+          PY
