@@ -540,7 +540,7 @@ jobs:
           echo "GitHub保存: PASS"
 
       - name: 家族共有ページ更新を開始
-        if: env.PRIVATE_CHANGED == 'true'
+        if: env.PRIVATE_CHANGED == 'true' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
