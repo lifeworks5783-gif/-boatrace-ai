@@ -710,6 +710,7 @@ def validate(
             "prediction_input race_id重複"
         )
 
+    partial_live = []
     for race in races:
 
         if len(
@@ -753,8 +754,11 @@ def validate(
             )
 
             if ready_count != 6:
-                errors.append(
-                    f"{race['race_id']}: 直前情報が6艇揃っていません"
+                # The program has six starters, but only part of official
+                # beforeinfo was obtained. The scorer must neutralise missing
+                # entrants instead of aborting all calculated competitors.
+                partial_live.append(
+                    f"{race['race_id']}: 直前情報の取得は{ready_count}/6艇・不足艇は朝スコア補完"
                 )
 
     leak = (
@@ -785,7 +789,7 @@ def validate(
         - live_count
     )
 
-    warnings = []
+    warnings = list(partial_live)
 
     if morning_count:
         warnings.append(
