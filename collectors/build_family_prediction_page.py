@@ -1170,7 +1170,7 @@ def main():
         最新データに更新して予測
       </button>
       <div id="refreshStatus" class="refresh-status">
-        押すと直前情報を再収集し、最新予測へ更新します。
+        押すと直前情報の取得・予測保存・終了済み全レースの結果取得と照合・AI分析・公開画面更新まで順番に処理します。定時自動取得はしません。
       </div>
     </div>
 
@@ -1282,7 +1282,7 @@ def main():
 
           if (response.status !== 202) throw new Error("request_failed");
 
-          status.textContent = "更新指示を受け付けました。取得・予測・公開は別処理です。約1分後に再読み込みしますが、処理中や新しい直前情報が未確定の場合は表示が変わらないことがあります。";
+          status.textContent = "更新指示を受け付けました。直前情報→予測→最新の公式結果→レース照合→AI分析→公開の順に更新します。全工程が終わる前は古い表示のままです。";
           window.setTimeout(() => window.location.reload(), 65000);
         }} catch (error) {{
           status.textContent = "更新を開始できませんでした。少し時間をおいて再度お試しください。";
