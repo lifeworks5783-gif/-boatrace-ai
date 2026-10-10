@@ -42,6 +42,7 @@ jobs:
         run: |
           python -m py_compile collectors/recovery_live_overlay.py collectors/build_latest_prediction_view.py
           python -m unittest discover -s tests -p 'test_saved_late_live_recovery.py' -v
+          python -m unittest discover -s tests -p 'test_manual_research_audit.py' -v
       - name: 対象日・保存済み公式復旧記録を検証
         id: date
         env:
@@ -92,11 +93,29 @@ jobs:
               if state['signal_key'] and state['signal_ai_status']!='ready':
                   raise SystemExit(f'Active signal lacks 24 tickets: {race_id}, {state}')
           PY
+          # Research version is manually refreshed; unfinished races are
+          # excluded from failures, while genuinely missing finished data
+          # remain distinguishable. This audit is persisted with the canonical.
+          python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+          python - <<'PY_AUDIT'
+          import os,json,pathlib
+          d=os.environ["TARGET_DATE"]
+          path=pathlib.Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+          report=json.loads(path.read_text(encoding="utf-8"))
+          research=report.get("research_audit") or {}
+          if report.get("automatic_collection_enabled") is not False:
+              raise SystemExit("Research manual mode lost")
+          if research.get("research_status") not in ("PASS","MANUAL_RECONCILIATION_PENDING"):
+              raise SystemExit(f"Research audit is invalid: {research}")
+          print("MANUAL_RESEARCH_AUDIT", research.get("research_status"),
+                research.get("valid_research_races"), research.get("requires_manual_completion"))
+          PY_AUDIT
           git config user.name boatrace-recovery-bot
           git config user.email boatrace-recovery-bot@users.noreply.github.com
           git add "predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/live/formation_predictions_final_${TARGET_DATE}.json"
           git add "predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/live/formation_predictions_final_${TARGET_DATE}.csv"
           git add predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
+          git add "evaluations/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/data_quality"
           if git diff --cached --quiet; then
             echo "共通正本はすでに最新"
             exit 0
