@@ -37,6 +37,10 @@ jobs:
           python-version: "3.12"
       - name: 予測計算依存を準備
         run: python -m pip install requests beautifulsoup4
+      - name: 締切前公式データと事後計算の復旧契約を検証
+        run: |
+          python -m py_compile collectors/recovery_live_overlay.py collectors/build_latest_prediction_view.py
+          python -m unittest discover -s tests -p 'test_saved_late_live_recovery.py' -v
       - name: 対象日・保存済み公式復旧記録を検証
         id: date
         env:
