@@ -6,6 +6,7 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from research_audit_policy import load_policy, finished_result_ids, audit_research_predictions
 
 def rows(p):
     if not p.exists(): return []
@@ -198,7 +199,11 @@ def main():
             issues.append({"race_id":rid,"missing":sorted(set(miss)),"quality_mark":"△","quality_label":"要確認"})
         else:
             complete+=1
-    status="INCOMPLETE" if issues else ("IN_PROGRESS" if pending_results else "PASS")
+    # Research is manually collected: unrun races are NOT audit failures.
+    # Keep race-result progress separately from prediction-data validity.
+    policy = load_policy()
+    status = "INCOMPLETE" if issues else "PASS"
+    collection_progress = "IN_PROGRESS" if pending_results else "COMPLETE"
     pending_ids={x["race_id"] for x in pending_results}
     original_complete=0
     recovered_complete=0
@@ -215,6 +220,29 @@ def main():
         if used_retry: recovered_complete+=1
         else: original_complete+=1
     report={"date":d,"status":status,"expected_races":len(expected),"result_races":len(actual),"audited_races":len(race_ids),"complete_races":complete,"original_pre_race_complete_races":original_complete,"post_result_recovered_complete_races":recovered_complete,"incomplete_races":len(issues),"pending_races":len(pending_results),"pending_result_details":pending_results,"audit_asof_jst":now_jst.isoformat(),"needs_recollection":any(any(x.startswith(("race:", "boat1:", "boat2:", "boat3:", "boat4:", "boat5:", "boat6:")) for x in issue["missing"]) for issue in issues),"issues":issues,"recovered_after_result":recovered,"official_rechecks":official_checks,"rules":{"prediction_leakage":"results are audit-only and must never be used to reconstruct prediction inputs","required_live":["exhibition_course","exhibition_time","exhibition_st_raw","change_parts_column"],"exhibition_exception":"is_miss=true boats may legitimately have blank exhibition fields","required_race_environment":["air_temperature_c","water_temperature_c","wind_speed_mps","wave_height_cm"],"provenance":["original_pre_race","post_result_retry"]}}
+    # A finished race can be researched from verified official beforeinfo
+    # regardless of when the manual replay was triggered. Timing != quality.
+    canonical = Path("predictions")/y/m/day/"live"/f"formation_predictions_final_{d}.json"
+    if canonical.is_file():
+        research = audit_research_predictions(
+            json.loads(canonical.read_text(encoding="utf-8")),
+            actual,
+        )
+    else:
+        research = {
+            "mode": policy["mode"],
+            "automatic_collection_enabled": False,
+            "research_status": "MANUAL_RECONCILIATION_PENDING",
+            "reason": "canonical_prediction_not_yet_written",
+        }
+    report["research_audit"] = research
+    report["collection_mode"] = policy["mode"]
+    report["automatic_collection_enabled"] = False
+    report["result_collection_progress"] = collection_progress
+    report["unfinished_races_are_not_audit_failures"] = True
+    report["late_official_capture_is_valid_for_research"] = True
+    report["rules"]["research_validity"] = policy["research_prediction_validity"]
+    report["rules"]["data_source_timestamp"] = "provenance_only_not_a_research_quality_failure"
     (out/f"completeness_{d}.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     with (out/f"missing_{d}.csv").open("w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=["race_id","missing"]);w.writeheader()
