@@ -152,3 +152,121 @@ def join_verified_recovery(existing_live: dict, date: str, root: Path = ROOT) ->
         joined[race_id] = recovered
         patched.append(race_id)
     return joined, patched
+
+
+def join_verified_late_saved_live(existing_live: dict, date: str, root: Path = ROOT) -> tuple[dict, list[str]]:
+    """Recover *scores* made after deadline from official before-deadline raw snapshots.
+
+    Some valid official exhibition captures were committed before deadline, but
+    live prediction generation did not run until the race had finished. These
+    scores are usable for retrospective PDCA and normal signal reconstruction,
+    NEVER as genuine predictions generated or bets placed before deadline.
+
+    Do not use any results, odds or payouts. Never alter a timely scored race.
+    """
+    from copy import deepcopy
+    from datetime import datetime, timedelta, timezone
+
+    if len(date) != 8 or not date.isdigit():
+        raise RecoverySafetyError("Invalid recovery date")
+    jst = timezone(timedelta(hours=9))
+
+    def time_value(raw):
+        try:
+            t = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+            return t if t.tzinfo else t.replace(tzinfo=jst)
+        except (ValueError, TypeError):
+            return None
+
+    def deadline_value(raw):
+        t = time_value(raw)
+        if t is not None:
+            return t
+        try:
+            return datetime.strptime(date + " " + str(raw).strip(), "%Y%m%d %H:%M").replace(tzinfo=jst)
+        except (ValueError, TypeError):
+            return None
+
+    day_root = root / "daily_inputs" / date[:4] / date[4:6] / date[6:8] / "live"
+    proofs = {}
+    for race_path in sorted(day_root.glob(f"raw/**/beforeinfo_races_{date}.csv")):
+        entry_path = race_path.with_name(f"beforeinfo_entries_{date}.csv")
+        if not entry_path.is_file():
+            continue
+        with race_path.open(encoding="utf-8-sig", newline="") as h:
+            race_rows = list(csv.DictReader(h))
+        with entry_path.open(encoding="utf-8-sig", newline="") as h:
+            entries = defaultdict(list)
+            for entry in csv.DictReader(h):
+                entries[str(entry.get("race_id") or "")].append(entry)
+
+        for meta in race_rows:
+            rid = str(meta.get("race_id") or "")
+            deadline = deadline_value(meta.get("deadline"))
+            collected = time_value(meta.get("collected_at"))
+            source = str(meta.get("source_url") or "")
+            boats = entries.get(rid, [])
+            if (not deadline or not collected or collected >= deadline
+                    or not source.startswith("https://www.boatrace.jp/owpc/pc/race/beforeinfo?")
+                    or len(boats) != 6):
+                continue
+            if {str(v.get("boat") or "") for v in boats} != {"1","2","3","4","5","6"}:
+                continue
+            if any(
+                not str(v.get("source_url") or "").startswith("https://www.boatrace.jp/owpc/pc/race/beforeinfo?")
+                or not (time_value(v.get("collected_at")) and time_value(v.get("collected_at")) < deadline)
+                or not (str(v.get("is_miss") or "").lower() in {"true","1","yes"}
+                        or all(str(v.get(k) or "").strip() for k in ("exhibition_course","exhibition_time","exhibition_st_raw")))
+                for v in boats
+            ):
+                continue
+            if rid not in proofs or collected < proofs[rid][0]:
+                proofs[rid] = (collected, deadline, entry_path, boats)
+
+    joined = dict(existing_live)
+    patched = []
+    for rid, race in existing_live.items():
+        proof = proofs.get(rid)
+        if not proof:
+            continue
+        _, deadline, entry_path, original_boats = proof
+        scored_at = time_value(race.get("generated_at"))
+        if scored_at is None or scored_at <= deadline:
+            # Genuine original pre-deadline prediction: leave it unchanged.
+            continue
+        quality = race.get("prediction_quality") or {}
+        if quality.get("status") == "recovered_observation":
+            continue
+        scored_boats = race.get("boats") or []
+        if len(scored_boats) != 6 or any(safe_float(v.get("score")) is None for v in scored_boats):
+            continue
+        official_by_boat = {int(v["boat"]): v for v in original_boats}
+        if {int(v.get("boat") or 0) for v in scored_boats} != set(range(1,7)):
+            continue
+        if any(
+            str(v.get("registration_no") or "").strip() != str(official_by_boat[int(v["boat"])].get("registration_no") or "").strip()
+            for v in scored_boats
+        ):
+            continue
+        copied = deepcopy(race)
+        copied["prediction_stage"] = "live_recovered_observation"
+        copied["prediction_quality"] = {
+            "status": "recovered_observation",
+            "mark": "↻",
+            "label": "公式直前情報から事後再計算",
+            "provenance": "saved_pre_deadline_official_beforeinfo",
+            "source": str(entry_path.relative_to(root)),
+            "result_leakage": False,
+            "prediction_generated_after_deadline": True,
+            "retrospective_simulation_only": True,
+            "recovery_needed": False,
+            "signal_blocked": False,
+            "verified_scratched_boats": [
+                int(v["boat"]) for v in original_boats
+                if str(v.get("is_miss") or "").lower() in {"true","1","yes"}
+            ],
+            "original_score_generated_at": race.get("generated_at"),
+        }
+        joined[rid] = copied
+        patched.append(rid)
+    return joined, patched
