@@ -6,6 +6,12 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      button_pipeline:
+        description: "ボタン一括更新の途中工程（正本反映は完了待ち親から起動）"
+        required: false
+        default: false
+        type: boolean
   push:
     paths:
       - "config/run_intraday_compare_now.txt"
@@ -132,7 +138,10 @@ jobs:
           exit 1
 
       - name: 復元済み直前スコアを共通予測正本に同期してから家族ページを公開
-        if: env.RESULT_COUNT != '0'
+        # Button orchestrator waits for this workflow to finish, then
+        # launches canonical reconciliation and publication IN SEQUENCE.
+        # Other callers keep the pre-existing asynchronous behavior.
+        if: env.RESULT_COUNT != '0' && !inputs.button_pipeline
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
