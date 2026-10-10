@@ -9,6 +9,9 @@ on:
       - ".github/workflows/canonical_recovery_reconcile.yml"
       - "config/run_reconcile_live_now.txt"
       - "tests/test_saved_late_live_recovery.py"
+      - "collectors/audit_daily_completeness.py"
+      - "collectors/research_audit_policy.py"
+      - "config/research_audit_policy.json"
   workflow_dispatch:
     inputs:
       target_date:
@@ -105,6 +108,11 @@ jobs:
           research=report.get("research_audit") or {}
           if report.get("automatic_collection_enabled") is not False:
               raise SystemExit("Research manual mode lost")
+          if report.get("status") == "INCOMPLETE" and not report.get("issues"):
+              raise SystemExit("Uncollected results must not count as audit errors")
+          for pending in report.get("pending_result_details") or []:
+              if pending.get("status") != "AWAITING_MANUAL_RESULT_COLLECTION":
+                  raise SystemExit(f"Incorrect automatic collection audit: {pending}")
           if research.get("research_status") not in ("PASS","MANUAL_RECONCILIATION_PENDING"):
               raise SystemExit(f"Research audit is invalid: {research}")
           print("MANUAL_RESEARCH_AUDIT", research.get("research_status"),
