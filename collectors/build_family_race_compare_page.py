@@ -1624,6 +1624,41 @@ def signal_payout_badge(payout, raijin, fujin, canonical_signal=None):
         '</span>'
     )
 
+def nontrigger_signal_diagnostic_html(raijin, fujin):
+    """Display verified reasons for a genuine F0R0, never hide missing inputs."""
+    raijin = raijin or {}
+    fujin = fujin or {}
+    if (raijin.get("available") is not True
+            or fujin.get("available") is not True
+            or (safe_int(raijin.get("level")) or 0) != 0
+            or (safe_int(fujin.get("level")) or 0) != 0):
+        return ""
+    metrics = fujin.get("metrics") or {}
+    thresholds = raijin.get("thresholds") or {}
+    min_rise = thresholds.get("level1_rise_min", 7.5)
+    rank_delta = metrics.get("rank1_delta")
+    top3_delta = metrics.get("top3_delta_sum")
+    gap = metrics.get("gap_1_2")
+    def show(v):
+        try:
+            return f"{float(v):+.1f}"
+        except (TypeError, ValueError):
+            return "未計算"
+    return (
+        '<details class="signal-no-trigger-detail">'
+        '<summary>シグナル非発動の判定根拠（研究用検証）</summary>'
+        '<div>雷神：直前上位3艇以外に、朝比＋'
+        + esc(f"{float(min_rise):g}")
+        + '点以上上昇した対象艇なし。'
+        + '風神：直前1位の朝比 ' + esc(show(rank_delta))
+        + '点、TOP3合計変動 ' + esc(show(top3_delta))
+        + '点、1位と2位の差 ' + esc(show(gap))
+        + '点。設定済みの低下条件はいずれも不成立です。'
+        + '結果の高配当によってシグナルを後付け発動させません。</div>'
+        '</details>'
+    )
+
+
 def parse_trifecta_result(value):
     text = str(value or "").strip()
     if not text:
@@ -2950,6 +2985,7 @@ def render_html(
 
   </div>
 
+  {nontrigger_signal_diagnostic_html(row.get("up_signal"), row.get("down_signal"))}
 
   <div class="actual">
 
