@@ -14,10 +14,10 @@ from datetime import datetime, timezone, timedelta
 
 DATE = "20261010"
 IDS = {
-    "20261010-02-05", "20261010-08-06", "20261010-09-06",
-    "20261010-16-05", "20261010-18-09", "20261010-22-05",
-    "20261010-23-10",
+    "20261010-02-05", "20261010-08-06",
+    "20261010-18-09", "20261010-23-10",
 }
+TIMELY_IDS = {"20261010-09-06", "20261010-16-05", "20261010-22-05"}
 
 
 class SavedLateLiveRecoveryTests(unittest.TestCase):
@@ -26,10 +26,12 @@ class SavedLateLiveRecoveryTests(unittest.TestCase):
         path = ROOT / "predictions" / "2026" / "10" / "10" / "live" / "live_predictions_final_20261010.json"
         cls.races = {r["race_id"]: r for r in json.loads(path.read_text(encoding="utf-8"))["races"]}
 
-    def test_seven_officially_saved_predictions_have_late_generated_scores(self):
+    def test_four_delayed_predictions_recovered_without_changing_three_genuine(self):
         joined, patched = join_verified_late_saved_live(self.races, DATE)
         self.assertEqual(set(patched), IDS)
-        self.assertEqual(set(joined), IDS)
+        self.assertEqual(set(joined), IDS | TIMELY_IDS)
+        for rid in TIMELY_IDS:
+            self.assertIs(joined[rid], self.races[rid])
         for rid in IDS:
             row = joined[rid]
             quality = row["prediction_quality"]
