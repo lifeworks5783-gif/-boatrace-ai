@@ -19,7 +19,7 @@ on:
 
 concurrency:
   group: boatrace-live-writer
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   live_prediction:
@@ -552,7 +552,9 @@ jobs:
           echo "GitHub保存: PASS"
 
       - name: 家族共有ページ更新を開始
-        if: env.PRIVATE_CHANGED == 'true'
+        # Avoid an early stale page before the button's result comparison ends.
+        # Direct live workflow runs still publish as before.
+        if: env.PRIVATE_CHANGED == 'true' && env.RAW_READY != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
