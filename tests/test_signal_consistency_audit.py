@@ -44,8 +44,12 @@ class SignalConsistencyAuditTests(unittest.TestCase):
             path.write_text('<article class="race-card">'
                 '<div class="race-title">戸田 1R</div></article>',
                 encoding="utf-8")
-            with self.assertRaises(RuntimeError):
-                audit("20261010", ROOT, path)
+            result = audit("20261010", ROOT, path)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertTrue(any(
+                x.get("error") in ("missing_public_race_card", "public_signal_icons_do_not_match")
+                for x in result["inconsistencies"]
+            ))
 
     def test_production_publication_check_is_wired_after_render(self):
         text = (ROOT / ".github/workflows/family_prediction_page.yml").read_text(encoding="utf-8")
