@@ -148,15 +148,25 @@ def evaluate_date(d):
     y, m, day = d[:4], d[4:6], d[6:8]
     production_live_path = Path("predictions") / y / m / day / "live" / f"live_predictions_final_{d}.csv"
     result_path = Path("archive") / y / m / day / f"results_{d}_all.csv"
-    if not production_live_path.is_file() or not result_path.is_file():
+    live_path, manifest_path = resolve_analysis_live_path(d, production_live_path)
+    recovered_source = live_path != production_live_path
+    if not live_path.is_file() or not result_path.is_file():
         return [], {
             "date": d,
             "status": "missing_input",
             "live_exists": production_live_path.is_file(),
+            "recovery_exists": recovered_source and live_path.is_file(),
             "result_exists": result_path.is_file(),
         }
-
-    live_path, _ = resolve_analysis_live_path(d, production_live_path)
+    # A verified recovery manifest explicitly differentiates a retrospective
+    # score reconstruction from a genuinely saved before-deadline prediction.
+    # Results are settlement-only; recovered scores are not placed bets.
+    if recovered_source:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if not (manifest.get("result_leakage") is False
+                and manifest.get("treat_recovered_as_observation") is True
+                and manifest.get("status") in {"complete", "partial"}):
+            raise RuntimeError(f"Unverified retrospective score source: {d}")
     live_rows = read_csv(live_path)
     result_rows = read_csv(result_path)
 
@@ -220,6 +230,7 @@ def evaluate_date(d):
     return details, {
         "date": d,
         "status": "ok",
+        "score_source": "verified_retrospective_recovery" if recovered_source else "saved_pre_deadline_live",
         "saved_prediction_races": len(grouped),
         "evaluated_races": len(details),
         "skipped_incomplete_prediction_races": skipped,
@@ -238,6 +249,25 @@ def discover_dates():
         result_path = Path("archive") / y / m / day / f"results_{d}_all.csv"
         if result_path.is_file():
             dates.append(d)
+    # Include independently verified retrospective observations for dates
+    # affected by the collection outage, even without a production live CSV.
+    for p in Path("evaluations").glob("????/??/??/recovery/live_recovery_manifest_????????.json"):
+        d = p.stem.rsplit("_", 1)[-1]
+        if len(d) != 8 or not d.isdigit():
+            continue
+        result_path = Path("archive") / d[:4] / d[4:6] / d[6:8] / f"results_{d}_all.csv"
+        if not result_path.is_file():
+            continue
+        try:
+            manifest = json.loads(p.read_text(encoding="utf-8"))
+            recovered = Path(str(manifest.get("merged_live_csv") or ""))
+            if (manifest.get("result_leakage") is False
+                    and manifest.get("treat_recovered_as_observation") is True
+                    and manifest.get("status") in {"complete", "partial"}
+                    and recovered.is_file()):
+                dates.append(d)
+        except (OSError, ValueError):
+            continue
     return sorted(set(dates))
 
 
@@ -330,6 +360,8 @@ def main():
             "description": "保存済みの結果判明前の直前予測スコアへ、現行の風神雷神シグナル判定ルールを後適用するリーク防止バックテスト",
             "base_prediction_recalculated_with_latest_weights": False,
             "uses_saved_pre_result_prediction_scores": True,
+            "verified_retrospective_recovered_scores_included": any(x.get("score_source") == "verified_retrospective_recovery" for x in coverage),
+            "retrospective_scores_are_not_pre_deadline_bets": True,
             "result_used_only_for_settlement": True,
         },
         "rules": {
