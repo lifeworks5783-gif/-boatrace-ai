@@ -155,16 +155,21 @@ def main():
                         recovered_fields.append(f"boat{boat}:{field}")
             # change_parts may legitimately be blank; only schema presence is required.
             if "change_parts" not in lr: miss.append(f"boat{boat}:change_parts_column")
-        # A race whose result is not due yet is not an acquisition failure.
-        # Use the morning program deadline, with a small post-race publication grace period.
-        # Never infer a result or a prediction from the scheduled time.
+        # Manual research: NO scheduled automatic result collection exists.
+        # Passing a scheduled race deadline does NOT prove a fetch failure.
+        # Research validation is against results we actually imported; the
+        # rest are manual collection pending, never \"audit incomplete\".
+        # Do not fabricate an official finish, live score or a placed ticket.
         deadline=schedule.get(rid, "")
-        if rid in expected and rid not in actual and re.fullmatch(r"\d{2}:\d{2}",deadline):
-            due=datetime.strptime(f"{d} {deadline}","%Y%m%d %H:%M").replace(tzinfo=timezone(timedelta(hours=9)))
-            due+=timedelta(minutes=12)
-            if now_jst < due:
-                pending_results.append({"race_id":rid,"deadline_jst":deadline,"review_after_jst":due.isoformat(),"status":"AWAITING_RESULT"})
-                continue
+        if rid in expected and rid not in actual:
+            pending_results.append({
+                "race_id": rid,
+                "deadline_jst": deadline,
+                "status": "AWAITING_MANUAL_RESULT_COLLECTION",
+                "automatic_collection_enabled": False,
+                "time_after_deadline_is_not_error": True,
+            })
+            continue
         if recovered_fields: recovered.append({"race_id":rid,"fields":sorted(set(recovered_fields))})
         # まず手元データだけで候補を絞る。公式アクセスは候補だけを後段で並列実行する。
         if miss:
