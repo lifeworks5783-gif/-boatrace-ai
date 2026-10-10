@@ -16,10 +16,16 @@ on:
     paths:
       - "config/run_fast_live_v3_now.txt"
       - "config/run_fast_live_recovery_now.txt"
+
+# Multiple button taps queue instead of cancelling a partially completed run.
+concurrency:
+  group: boatrace-manual-live-refresh
+  cancel-in-progress: false
+
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@v4
         with:
@@ -121,15 +127,47 @@ jobs:
             git pull --rebase origin main || true
             git push origin HEAD:main
           fi
-      - name: Start live prediction
+      - name: 直前スコアを保存完了するまで実行
         if: env.HAS_READY_BEFOREINFO == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run live_prediction_0930.yml --ref main -f raw_ready=true
+        run: |
+          python -u collectors/dispatch_wait_workflow.py \
+            --workflow live_prediction_0930.yml \
+            --timeout-seconds 1200 \
+            --input raw_ready=true
+          echo "直前情報→6艇スコア→共通予測保存: PASS"
 
-      - name: Start intraday result comparison
+      - name: 最新の公式結果を再取得し終了済み全レースを照合する
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run intraday_compare.yml --ref main
-          echo "当日データ照合・AI照合開始: PASS"
+          # Important: compare AFTER the live score commit; otherwise
+          # the comparison sees old, missing or fallback scores.
+          # Button mode explicitly avoids a second asynchronous reconcile.
+          python -u collectors/dispatch_wait_workflow.py \
+            --workflow intraday_compare.yml \
+            --timeout-seconds 1500 \
+            --input button_pipeline=true
+          echo "公式結果→不足スコア復元→レース照合→研究監査: PASS"
+
+      - name: 照合結果を共通正本へ反映して確定保存する
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
+          python -u collectors/dispatch_wait_workflow.py \
+            --workflow canonical_recovery_reconcile.yml \
+            --timeout-seconds 900 \
+            --input target_date="$TARGET_DATE" \
+            --input skip_family_publish=true
+          echo "研究用公式予測・風神雷神の共通正本保存: PASS"
+
+      - name: 予測とレース照合の4画面を再生成し公開まで確認する
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python -u collectors/dispatch_wait_workflow.py \
+            --workflow family_prediction_page.yml \
+            --timeout-seconds 900
+          echo "公開用4画面更新: PASS"
