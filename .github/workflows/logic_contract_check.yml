@@ -38,6 +38,10 @@ jobs:
             collectors/build_family_race_compare_page.py
       - name: Prevent interrupted result and page runs when update button is pressed twice
         run: python -m unittest discover -s tests -p test_workflow_queue_durability.py -v
+      - name: One-click latest official results comparison and four-page public refresh contract
+        run: |
+          python -m py_compile collectors/dispatch_wait_workflow.py
+          python -m unittest discover -s tests -p test_manual_button_full_refresh.py -v
       - name: Model parity and signal 24 contracts
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
       - name: Production immutable-history and numerical-config safety
