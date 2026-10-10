@@ -24,6 +24,7 @@ class ManualButtonFullRefreshContract(TestCase):
         self.assertEqual(s.count("dispatch_wait_workflow.py"), 4)
         self.assertIn("--input button_pipeline=true", s)
         self.assertIn("--input skip_family_publish=true", s)
+        self.assertIn("--input manual_refresh=true", s)
         self.assertIn("cancel-in-progress: false", s)
         self.assertNotIn("cancel-in-progress: true", s)
         # Result refresh must not be conditional on NEW live exhibitions.
@@ -71,6 +72,16 @@ class ManualButtonFullRefreshContract(TestCase):
         self.assertEqual(number, 101)
         self.assertIn("-f", gh.call_args_list[1].args)
         self.assertIn("approved=true", gh.call_args_list[1].args)
+
+    def test_actual_page_reload_waits_for_published_completion_marker(self):
+        publisher = (ROOT / ".github/workflows/family_prediction_page.yml").read_text(encoding="utf-8")
+        frontend = (ROOT / "collectors/build_family_prediction_page.py").read_text(encoding="utf-8")
+        self.assertIn("manual_refresh_status.json", publisher)
+        self.assertIn("if: inputs.manual_refresh", publisher)
+        self.assertIn("manual_refresh_completed", publisher)
+        self.assertIn("manual_refresh_status.json", frontend)
+        self.assertIn("readManualPublish", frontend)
+        self.assertNotIn("window.location.reload(), 65000", frontend)
 
     def test_disabled_auto_research_stays_manual(self):
         s = (ROOT / "config/research_audit_policy.json").read_text(encoding="utf-8")
