@@ -1624,6 +1624,27 @@ def signal_payout_badge(payout, raijin, fujin, canonical_signal=None):
         '</span>'
     )
 
+def signal_recheck_pending_html(formation_prediction):
+    """Never display a result card's morning-only placeholder as no signal."""
+    original = (formation_prediction or {}).get("raw") or {}
+    if not original:
+        return (
+            '<span class="signal-payout-miss" '
+            'title="共通正本の直前シグナルが未保存">直前シグナル再照合待ち</span>'
+        )
+    up = original.get("up_signal") or {}
+    down = original.get("down_signal") or {}
+    if (original.get("prediction_type") == "直前"
+            and up.get("available") is True
+            and down.get("available") is True):
+        return ""
+    return (
+        '<span class="signal-payout-miss" '
+        'title="結果は表示済み。公式直前データの手動取得・復旧とシグナル判定を待っています">'
+        '直前シグナル再照合待ち</span>'
+    )
+
+
 def nontrigger_signal_diagnostic_html(raijin, fujin):
     """Display verified reasons for a genuine F0R0, never hide missing inputs."""
     raijin = raijin or {}
@@ -2964,7 +2985,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {prediction_quality_warning(row.get("live_display"))}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {signal_recheck_pending_html(row.get("formation_prediction"))} {prediction_quality_warning(row.get("live_display"))}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
