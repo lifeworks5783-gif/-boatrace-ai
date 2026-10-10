@@ -18,6 +18,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from typing import Any, Dict, List, Optional, Tuple
+from research_audit_policy import load_policy, finished_result_ids, audit_research_predictions
 
 LABELS = {
 
@@ -3028,71 +3029,89 @@ def current_pdca_html(root: Path) -> str:
  return "".join(parts)
 
 def neutral_recovery_pdca_html(root: Path) -> str:
-    """Human-readable causes for neutral 0-delta fallback and later repair.
+    """Research-only audit: manually collected official data are valid observations.
 
-    Reads ONLY saved prediction / official replay audit records. No result is
-    used to alter a score or calculate a signal.
+    Auto-update is OFF. The score calculation timestamp alone is never a
+    quality failure. Missing live scores on an UNFINISHED race are neither
+    failures nor false 'non-signals'. Actual results are used only to select
+    finished races for evaluation; never to reconstruct prediction scores.
     """
+    policy = load_policy(root.parent)
     prediction_root = root.parent / "predictions"
     records = sorted(prediction_root.glob(
         "20??/??/??/live/formation_predictions_final_*.json"
     ))
     if not records:
         return ""
-    path = records[-1]
-    payload = load_json(path)
+    payload = load_json(records[-1])
     day = str(payload.get("target_date") or "")
-    if len(day) != 8:
+    if len(day) != 8 or not day.isdigit():
         return ""
-    manifest = load_json(root / day[:4] / day[4:6] / day[6:8]
-                         / "recovery" / f"live_recovery_manifest_{day}.json")
+    finished = finished_result_ids(day, root.parent)
+    summary = audit_research_predictions(payload, finished)
+    by_id = {
+        str(r.get("race_id")): r
+        for r in (payload.get("races") or [])
+        if isinstance(r, dict) and r.get("race_id")
+    }
     rows = []
-    pending = 0
-    restored = 0
-    for race in payload.get("races") or []:
+    valid = set(summary["valid_research_race_ids"])
+    for rid in sorted(finished):
+        race = by_id.get(rid) or {}
         quality = race.get("prediction_quality") or {}
-        neutral = (quality.get("signal_blocked") is True
-                   or bool(quality.get("boat_fallbacks"))
-                   or (quality.get("status") == "fallback"
-                       and quality.get("signal_blocked") is None
-                       and quality.get("fallback_source") == "saved_morning_prediction"
-                       and not any(
-                           x.get("exhibition_time") is not None and x.get("exhibition_st") is not None
-                           for x in (race.get("boats") or [])
-                       )))
-        is_restored = bool(race.get("retrospective_score_recovery"))
-        if not neutral and not is_restored:
-            continue
-        pending += int(neutral and not is_restored)
-        restored += int(is_restored)
-        affected = quality.get("boat_fallbacks") or []
-        affected_desc = "; ".join(
-            f"{item.get('boat')}号艇: {', '.join(str(x) for x in (item.get('reasons') or []))}"
-            for item in affected if isinstance(item, dict)
+        is_valid = rid in valid
+        is_manual = is_valid and (
+            bool(race.get("retrospective_score_recovery"))
+            or quality.get("status") == "recovered_observation"
         )
-        if not affected_desc and neutral:
-            affected_desc = "朝スコアを中立補完／艇別詳細未保存"
-        label = "事後復旧済" if is_restored else "▲ 未解決・公式データ再取得対象"
-        evidence = quality.get("source") or quality.get("fallback_source") or "収集履歴を要確認"
+        if is_manual:
+            label = "研究用有効（公式直前情報から再計算）"
+            detail = "手動更新・公式データ検証済"
+        elif is_valid:
+            label = "研究用有効（保存済み直前）"
+            detail = "公式データ・通常保存済"
+        else:
+            label = "要補完（終了済みの実データ不足）"
+            detail = next(
+                (x.get("reason") for x in summary["research_incomplete"]
+                 if x.get("race_id") == rid),
+                "データ照合待ち"
+            )
+        provenance = quality.get("source") or (
+            "保存済み予測正本" if is_valid else "正本への同期／公式データの補完待ち"
+        )
         rows.append([
-            html.escape(str(race.get("venue_name") or race.get("venue_code") or "会場不明")),
-            html.escape(str(race.get("race") or "?")) + "R",
-            html.escape(affected_desc or "復旧済"),
+            html.escape(str(race.get("venue_name") or race.get("venue_code") or rid)),
+            html.escape(str(race.get("race") or rid.rsplit("-", 1)[-1])) + "R",
             html.escape(label),
-            html.escape(str(evidence)),
+            html.escape(detail),
+            html.escape(str(provenance)),
         ])
-    missing = list(manifest.get("still_missing") or [])
-    reason = (f"現在{len(rows)}件の補完・復旧履歴。"
-              f"未解決{pending}R／事後復旧{restored}R。"
-              f"終了済み復旧残{len(missing)}R。")
-    source = ("原因・使用補完値・再取得状況を保存して追跡します。"
-              "朝スコアの中立補完はシグナル未発動とみなさず、公式展示復旧後に再判定します。")
-    body = table(["会場", "レース", "中立補完の対象・理由", "照合状態", "取得元／原因"], rows[:80]) if rows else (
-        '<div class="empty">現在の予測正本に艇別補完・復旧の記録はありません。</div>'
+    reason = (
+        f"研究版は手動取得・手動更新です（自動更新なし）。"
+        f"結果確定{summary['result_races']}R／"
+        f"研究用有効{summary['valid_research_races']}R／"
+        f"公式データ再計算で有効{summary['manual_official_reconstruction_races']}R／"
+        f"終了済み要補完{summary['requires_manual_completion']}R。"
+        f"未終了{summary['not_yet_finished_races_excluded_from_error']}Rは監査異常に含めません。"
     )
-    return ('<section class="section-card"><h2>直前中立補完・公式復旧の監査／PDCA</h2>'
-            f'<p class="section-note">{html.escape(reason)} {html.escape(source)}</p>'
-            + body + '</section>')
+    source = (
+        "公式展示情報が検証でき、6艇スコアと風神雷神判定・買い目の"
+        "整合性が保たれていれば、取得・再計算時刻にかかわらず研究用の有効データとして評価します。"
+        "実際に締切前に購入した記録かどうかは履歴上区別し、結果から予測スコアを逆算しません。"
+    )
+    body = table(
+        ["会場", "レース", "研究用監査判定", "データの扱い", "根拠"],
+        rows[:80],
+    ) if rows else (
+        '<div class="empty">終了済みの照合対象レースはまだありません。'
+        "未終了レースは欠損・監査異常とは扱いません。</div>"
+    )
+    return (
+        '<section class="section-card"><h2>研究版・手動更新データの監査／PDCA</h2>'
+        f'<p class="section-note">{html.escape(reason)} {html.escape(source)}</p>'
+        + body + '</section>'
+    )
 
 
 def build_page(
