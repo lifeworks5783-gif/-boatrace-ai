@@ -196,6 +196,7 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
         })
 
     external_payout_waiting = []
+    external_payout_with_valid_scores = 0
     if cards is not None:
         for key in sorted(set(cards) - set(finished)):
             record = by_id.get(key)
@@ -217,8 +218,23 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
                     inconsistencies.append({"race_id": key, "error": "new_result_missing_recovery_pending_mark"})
                 if card["badge_not_triggered"]:
                     inconsistencies.append({"race_id": key, "error": "new_result_falsely_labeled_signal_off"})
-            elif not any(expected_levels) and not card["explanation"]:
-                inconsistencies.append({"race_id": key, "error": "new_external_payout_missing_validated_no_signal_reason"})
+            else:
+                external_payout_with_valid_scores += 1
+                quality = record.get("prediction_quality") or {}
+                scored_boats = record.get("boats") or []
+                computed = [
+                    int_value(build_up_signal(scored_boats, quality).get("level")),
+                    int_value(build_down_signal(scored_boats, quality).get("level")),
+                ]
+                if computed != expected_levels:
+                    inconsistencies.append({
+                        "race_id": key, "error": "new_external_payout_signal_differs_from_six_boat_scores",
+                        "saved": expected_levels, "computed": computed,
+                    })
+                if any(expected_levels) and audit_race(record).get("signal_ai_status") != "ready":
+                    inconsistencies.append({"race_id": key, "error": "new_external_payout_missing_signal_24"})
+                if not any(expected_levels) and not card["explanation"]:
+                    inconsistencies.append({"race_id": key, "error": "new_external_payout_missing_validated_no_signal_reason"})
     return {
         "date": date, "audit": "Fujin_Raijin_score_PDCA_public_parity",
         "status": "PASS" if not inconsistencies else "FAIL",
@@ -229,6 +245,7 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
         "validated_no_signal_payout_5000plus": high_payout_no_signal,
         "public_page_checked": bool(rendered),
         "published_external_payouts_awaiting_recovery": len(external_payout_waiting),
+        "published_external_payouts_with_verified_scores": external_payout_with_valid_scores,
         "published_external_payout_ids": external_payout_waiting,
         "result_used_to_calculate_scores": False,
         "research_mode": "manual_research",
