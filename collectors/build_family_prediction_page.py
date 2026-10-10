@@ -1241,6 +1241,18 @@ def main():
       const button = document.getElementById("refreshPredictionButton");
       const status = document.getElementById("refreshStatus");
       const endpoint = "https://boatrace-family-trigger.onrender.com/trigger";
+      // This file is updated ONLY after the manual refresh has completed
+      // live scoring, results comparison, canonical sync and public deployment.
+      const statusUrl = "./manual_refresh_status.json";
+      const readManualPublish = async () => {{
+        try {{
+          const response = await fetch(statusUrl + "?check=" + Date.now(), {{ cache: "no-store" }});
+          if (!response.ok) return null;
+          return await response.json();
+        }} catch (error) {{
+          return null;
+        }}
+      }};
 
       const morningButton = document.getElementById("morningCollectionButton");
       const morningStatus = document.getElementById("morningCollectionStatus");
@@ -1273,6 +1285,9 @@ def main():
         button.disabled = true;
         status.textContent = "更新を受け付けています…";
 
+        // Compare the server-side published run, not a hard-coded 65s timer.
+        const baseline = await readManualPublish();
+        const lastPublishedRun = baseline ? String(baseline.publisher_run_id || "") : "";
         try {{
           const response = await fetch(endpoint, {{
             method: "POST",
@@ -1283,7 +1298,25 @@ def main():
           if (response.status !== 202) throw new Error("request_failed");
 
           status.textContent = "更新指示を受け付けました。直前情報→予測→最新の公式結果→レース照合→AI分析→公開の順に更新します。全工程が終わる前は古い表示のままです。";
-          window.setTimeout(() => window.location.reload(), 65000);
+          let checks = 0;
+          const checkForPublishedResult = async () => {{
+            const current = await readManualPublish();
+            if (current && current.manual_refresh_completed &&
+                String(current.publisher_run_id || "") !== lastPublishedRun) {{
+              status.textContent = "公式直前・結果照合・監査・公開を完了しました。結果取得 " +
+                String(current.result_races_saved ?? "—") + "R。画面を最新に切り替えます。";
+              window.location.reload();
+              return;
+            }}
+            checks++;
+            if (checks < 360) {{
+              window.setTimeout(checkForPublishedResult, 12000);
+            }} else {{
+              status.textContent = "公開完了の確認ができていません。レース照合画面か実行履歴を確認してください。";
+              button.disabled = false;
+            }}
+          }};
+          window.setTimeout(checkForPublishedResult, 12000);
         }} catch (error) {{
           status.textContent = "更新を開始できませんでした。少し時間をおいて再度お試しください。";
           button.disabled = false;
