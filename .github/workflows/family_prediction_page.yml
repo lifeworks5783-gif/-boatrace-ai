@@ -41,6 +41,12 @@ on:
       - ".github/workflows/family_prediction_page.yml"
 
   workflow_dispatch:
+    inputs:
+      manual_refresh:
+        description: "一括更新ボタンの最終公開（公開完了マーカーも更新）"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
