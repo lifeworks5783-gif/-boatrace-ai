@@ -123,6 +123,12 @@ jobs:
           print("MANUAL_RESEARCH_AUDIT", research.get("research_status"),
                 research.get("valid_research_races"), research.get("requires_manual_completion"))
           PY_AUDIT
+          # Prevent a genuine signal from becoming an old F0R0 placeholder.
+          # Check all finished races: six-boat score recomputation, persisted
+          # canonical levels and the independent cumulative PDCA source.
+          python -u collectors/audit_signal_consistency.py \
+            --date "$TARGET_DATE" \
+            --output "evaluations/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/data_quality/signal_display_consistency_${TARGET_DATE}.json"
           git config user.name boatrace-recovery-bot
           git config user.email boatrace-recovery-bot@users.noreply.github.com
           git add "predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/live/formation_predictions_final_${TARGET_DATE}.json"
