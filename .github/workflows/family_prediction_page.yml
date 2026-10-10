@@ -254,6 +254,44 @@ jobs:
 
           echo "公開ページ準備: PASS"
 
+      - name: 手動ボタン一括更新の公開完了マーカーを付与
+        if: inputs.manual_refresh
+        run: |
+          # Created ONLY after finished-result comparison, canonical save,
+          # signal PDCA and all four public pages have been generated.
+          # The public site serves this file only after GitHub Pages deploys.
+          python - <<'PY'
+          import csv,json,os
+          from datetime import datetime,timedelta,timezone
+          from pathlib import Path
+          now=datetime.now(timezone(timedelta(hours=9)))
+          day=now.strftime("%Y%m%d")
+          source=Path("archive")/day[:4]/day[4:6]/day[6:8]/f"results_{day}_all.csv"
+          count=0
+          if source.is_file():
+              with source.open(encoding="utf-8-sig", newline="") as stream:
+                  count=sum(1 for x in csv.DictReader(stream) if x.get("race_id"))
+          report=Path("evaluations")/day[:4]/day[4:6]/day[6:8]/"data_quality"/f"completeness_{day}.json"
+          audit={}
+          if report.is_file():
+              audit=json.loads(report.read_text(encoding="utf-8"))
+          marker={
+              "schema_version": 1,
+              "date": day,
+              "published_at_jst": now.isoformat(),
+              "manual_refresh_completed": True,
+              "research_mode": "manual_research",
+              "automatic_collection_enabled": False,
+              "result_races_saved": count,
+              "research_audit_status": (audit.get("research_audit") or {}).get("research_status"),
+              "publisher_run_id": os.environ["GITHUB_RUN_ID"],
+              "source_commit": os.environ["GITHUB_SHA"],
+          }
+          Path("family_public/manual_refresh_status.json").write_text(
+              json.dumps(marker,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+          print("Manual site refresh status:", marker)
+          PY
+
       - name: 公開リポジトリへ保存
         run: |
           cd family_public
@@ -272,6 +310,9 @@ jobs:
             analysis.html \
             race_compare.html \
             .nojekyll
+          if test -f manual_refresh_status.json; then
+            git add manual_refresh_status.json
+          fi
 
           if git diff --cached --quiet; then
             echo "公開内容に変更なし"
