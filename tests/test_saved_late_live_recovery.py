@@ -50,6 +50,22 @@ class SavedLateLiveRecoveryTests(unittest.TestCase):
             self.assertTrue(build_up_signal(row["boats"], quality)["available"])
             self.assertTrue(build_down_signal(row["boats"], quality)["available"])
 
+    def test_repeated_manual_refresh_preserves_original_timely_scores(self):
+        # A 14:06 manual rerun rewrote the rolling final generated_at, but
+        # immutable 12:55 snapshots prove that three scores were genuinely
+        # calculated before their deadlines. Do not downgrade their origin.
+        rolling = (ROOT / "predictions" / "2026" / "10" / "10" / "live"
+                   / "live_predictions_final_20261010.json")
+        rows = {r["race_id"]: r for r in json.loads(rolling.read_text(encoding="utf-8"))["races"]}
+        joined, patched = join_verified_late_saved_live(rows, DATE)
+        for rid in TIMELY_IDS:
+            self.assertEqual(joined[rid]["generated_at"], self.races[rid]["generated_at"])
+            self.assertEqual(joined[rid]["boats"], self.races[rid]["boats"])
+            self.assertNotEqual(joined[rid]["prediction_quality"]["status"], "recovered_observation")
+            self.assertNotIn(rid, patched)
+        for rid in IDS:
+            self.assertEqual(joined[rid]["prediction_quality"]["status"], "recovered_observation")
+
     def test_predeadline_generated_scores_stay_genuine(self):
         timely = dict(self.races["20261010-18-09"])
         timely["generated_at"] = "2026-10-10T12:41:00+09:00"
