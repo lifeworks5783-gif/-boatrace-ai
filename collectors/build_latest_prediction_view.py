@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 
 
 from logic_registry import load_logic, logic_identity, ROOT
-from recovery_live_overlay import join_verified_recovery
+from recovery_live_overlay import join_verified_recovery, join_verified_late_saved_live
 from prediction_history_guard import preserve_closed_prediction
 
 JST = timezone(timedelta(hours=9))
@@ -1712,10 +1712,15 @@ def main():
         live_payload
     )
 
-    # The persisted original live prediction may omit races that were restored
-    # from official pre-result beforeinfo AFTER a known collection failure.
-    # Join the verified six-boat recovery before signal classification so
-    # both latest and completed comparison use ONE stored signal and 24 picks.
+    # A saved official exhibition snapshot may have been obtained before the
+    # deadline even though the scoring job finished AFTER the deadline.
+    # Such scores are retrospective; use verified official evidence only.
+    live, late_saved_ids = join_verified_late_saved_live(live, target_date)
+    if late_saved_ids:
+        print("締切前公式情報・事後計算を履歴明示で復元:", len(late_saved_ids), "R")
+
+    # Restore verified official exhibition history for the remaining races.
+    # The originally saved normal purchases are preserved below.
     live, recovered_ids = join_verified_recovery(live, target_date)
     if recovered_ids:
         print("公式直前情報・事後復旧を共通予測正本へ統合:", len(recovered_ids), "R")
@@ -2113,7 +2118,7 @@ def main():
                     assert not (row.get("down_signal") or {}).get("active")
                 row["retrospective_score_recovery"] = True
                 row["retrospective_signal_recovery"] = True
-                row["signal_recovery_provenance"] = "official_beforeinfo_post_result_replay"
+                row["signal_recovery_provenance"] = source_quality.get("provenance")
                 row["signal_detected_at_original_deadline"] = False
                 row["historical_bet_preserved"] = True
                 print("公式展示から通常シグナルを再判定・当時の買い目保存:",
