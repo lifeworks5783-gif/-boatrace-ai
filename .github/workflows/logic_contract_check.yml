@@ -42,6 +42,10 @@ jobs:
         run: |
           python -m py_compile collectors/dispatch_wait_workflow.py
           python -m unittest discover -s tests -p test_manual_button_full_refresh.py -v
+      - name: Finished-race normal-score versus saved signal/PDCA/public parity regression
+        run: |
+          python -m py_compile collectors/audit_signal_consistency.py collectors/build_family_race_compare_page.py
+          python -m unittest discover -s tests -p test_signal_consistency_audit.py -v
       - name: Model parity and signal 24 contracts
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
       - name: Production immutable-history and numerical-config safety
