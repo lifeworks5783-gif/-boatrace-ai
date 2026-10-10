@@ -271,7 +271,11 @@ def join_verified_late_saved_live(existing_live: dict, date: str, root: Path = R
 
     for rid, race in existing_live.items():
         if rid in originals:
-            joined[rid] = deepcopy(originals[rid][1])
+            current_time = time_value(race.get("generated_at"))
+            if current_time is None or current_time > proofs[rid][1]:
+                joined[rid] = deepcopy(originals[rid][1])
+            # Do not replace a genuinely timely score with a snapshot
+            # or fabricate a late/retroactive prediction.
             continue
         proof = proofs.get(rid)
         if not proof:
