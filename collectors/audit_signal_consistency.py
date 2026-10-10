@@ -77,6 +77,7 @@ def published_cards(path: Path, valid_venues: dict[str, str]) -> dict[str, dict]
             "badge_unobservable": "5千円以上・未判定" in title_html,
             "badge_caught": ("5千円以上捕捉" in title_html or "5千円以上・事後捕捉" in title_html),
             "explanation": "シグナル非発動の判定根拠" in card,
+            "awaiting_official_live": "直前シグナル再照合待ち" in card,
         }
     return output
 
@@ -108,6 +109,17 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
         key: (row.get("venue_name") or "", int_value(row.get("race")))
         for key, row in finished.items()
     }
+    # The public page may already show an external payout newly announced
+    # AFTER the last official result import. Identify those races through the
+    # official morning program; never call them fake or a false F0R0.
+    program = root / "daily_inputs" / folder / "base" / f"program_races_{date}.csv"
+    if program.is_file():
+        for row in csv_rows(program):
+            key = race_code(row.get("race_id"))
+            if key and key not in valid_venues:
+                valid_venues[key] = (
+                    row.get("venue_name") or "", int_value(row.get("race"))
+                )
     cards = published_cards(rendered, valid_venues) if rendered else None
     inconsistencies = []
     checked = []
@@ -183,10 +195,30 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
             "source": (quality.get("provenance") or "saved_live"),
         })
 
+    external_payout_waiting = []
     if cards is not None:
-        extraneous = sorted(set(cards) - set(finished))
-        if extraneous:
-            inconsistencies.append({"error": "public_cards_without_official_results", "races": extraneous})
+        for key in sorted(set(cards) - set(finished)):
+            record = by_id.get(key)
+            if not record:
+                inconsistencies.append({"race_id": key, "error": "payout_only_without_canonical_race"})
+                continue
+            up, down = record.get("up_signal") or {}, record.get("down_signal") or {}
+            ready = (record.get("prediction_type") == "直前"
+                     and up.get("available") is True and down.get("available") is True)
+            expected_levels = [int_value(up.get("level")), int_value(down.get("level"))]
+            card = cards[key]
+            if [card["raijin_level"], card["fujin_level"]] != expected_levels:
+                inconsistencies.append({"race_id": key, "error": "new_external_payout_badge_not_canonical",
+                                        "canonical": expected_levels,
+                                        "displayed": [card["raijin_level"], card["fujin_level"]]})
+            if not ready:
+                external_payout_waiting.append(key)
+                if not card["awaiting_official_live"]:
+                    inconsistencies.append({"race_id": key, "error": "new_result_missing_recovery_pending_mark"})
+                if card["badge_not_triggered"]:
+                    inconsistencies.append({"race_id": key, "error": "new_result_falsely_labeled_signal_off"})
+            elif not any(expected_levels) and not card["explanation"]:
+                inconsistencies.append({"race_id": key, "error": "new_external_payout_missing_validated_no_signal_reason"})
     return {
         "date": date, "audit": "Fujin_Raijin_score_PDCA_public_parity",
         "status": "PASS" if not inconsistencies else "FAIL",
@@ -196,6 +228,8 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
         "validated_no_signal": no_signal,
         "validated_no_signal_payout_5000plus": high_payout_no_signal,
         "public_page_checked": bool(rendered),
+        "published_external_payouts_awaiting_recovery": len(external_payout_waiting),
+        "published_external_payout_ids": external_payout_waiting,
         "result_used_to_calculate_scores": False,
         "research_mode": "manual_research",
         "inconsistencies": inconsistencies,
