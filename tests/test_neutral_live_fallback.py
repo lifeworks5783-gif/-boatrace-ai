@@ -347,9 +347,10 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         from build_family_signal_analysis_page import build_page
         html_text=build_page(ROOT/"evaluations")
         self.assertIn("風神雷神 AI分析",html_text)
-        self.assertIn("直前中立補完・公式復旧の監査／PDCA",html_text)
-        self.assertIn("公式展示復旧後に再判定",html_text)
-        self.assertIn("原因",html_text)
+        self.assertIn("研究版・手動更新データの監査／PDCA",html_text)
+        self.assertIn("研究版は手動取得・手動更新です",html_text)
+        self.assertIn("未終了",html_text)
+        self.assertIn("研究用有効",html_text)
 
     def test_repeat_collection_does_not_erase_confirmed_official_st(self):
         from today_beforeinfo import merge_official_beforeinfo_entries
