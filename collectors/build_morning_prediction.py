@@ -113,13 +113,15 @@ def _raw_race_features(race,course_overrides=None):
         cr=rc.get((reg,str(course)),{}); rr=rf.get(reg,{})
         # 新人・該当コース未走などで90日コース履歴が無い場合は、
         # 同選手90日全体実績を実データfallbackとして使う。STも全体90日平均を使用。
-        if rr and (not cr.get("d90_win_rate") or cr.get("d90_avg_st") in (None, "")):
+        if rr:
             cr=dict(cr)
-            # コース履歴の各項目を個別に、同選手90日全体の実績で補完する。
-            # 一部だけ存在するコース履歴でもST欠損を放置しない。
+            # コース90日実績が無い場合、同選手90日全体を優先。
+            # 90日出走も無い場合だけ保存済みの直近10走の実績を参照する。
+            # どちらも当日の結果を含まない history_features 由来の実データ。
             for ck, rk in (("d90_win_rate","d90_win_rate"),("d90_top2_rate","d90_top2_rate"),("d90_top3_rate","d90_top3_rate"),("d90_avg_st","d90_avg_st")):
                 if cr.get(ck) in (None, ""):
-                    cr[ck]=rr.get(rk)
+                    recent=rr.get(rk)
+                    cr[ck]=recent if recent not in (None, "") else rr.get("last10_"+ck[4:])
         # 90日データがなお欠ける場合だけ、保存済み長期コース実績を参照する。
         # 選手個別の固定値は持たず、台帳CSVに実データがある場合のみ補完する。
         lf=long_fallbacks.get((reg,str(course)),{})
@@ -157,7 +159,7 @@ def _raw_race_features(race,course_overrides=None):
             "course_top3":_rate(cr.get("d90_top3_rate")),
             "course_avg_st":to_float(cr.get("d90_avg_st")),
             "grade":GRADE_PRIOR.get(text(racer.get("grade")).upper()),
-            "national_top2":_rate(rr.get("d90_top2_rate")),
+            "national_top2":_rate(rr.get("d90_top2_rate") if rr.get("d90_top2_rate") not in (None, "") else rr.get("last10_top2_rate")),
             "motor_win":motor_win,
             "motor_top3":motor_top3,
             "boat_top2":_rate(bb.get("d90_top2_rate")),
