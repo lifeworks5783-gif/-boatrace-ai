@@ -169,5 +169,6 @@ jobs:
         run: |
           python -u collectors/dispatch_wait_workflow.py \
             --workflow family_prediction_page.yml \
-            --timeout-seconds 900
+            --timeout-seconds 900 \
+            --input manual_refresh=true
           echo "公開用4画面更新: PASS"
