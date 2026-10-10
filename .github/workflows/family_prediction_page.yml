@@ -288,7 +288,7 @@ jobs:
               "source_commit": os.environ["GITHUB_SHA"],
           }
           Path("family_public/manual_refresh_status.json").write_text(
-              json.dumps(marker,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+              json.dumps(marker,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
           print("Manual site refresh status:", marker)
           PY
 
