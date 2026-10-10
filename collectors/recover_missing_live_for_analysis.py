@@ -98,12 +98,16 @@ def main():
         Path("predictions") / y / m / day / "live" / f"live_predictions_final_{d}.csv"
     )
     program = Path("daily_inputs") / y / m / day / "base" / f"program_races_{d}.csv"
-    if not production_live.is_file():
-        raise RuntimeError(f"production live prediction missing: {production_live}")
     if not program.is_file():
         raise RuntimeError(f"program races missing: {program}")
 
-    original_rows = read_csv(production_live)
+    # The production live CSV may genuinely be absent after an upstream morning
+    # outage.  Do not abort recovery just because the file was never created.
+    # No synthetic pre-deadline prediction is written; recovered observations
+    # remain separately labeled as retrospective in the recovery manifest.
+    original_rows = read_csv(production_live) if production_live.is_file() else []
+    if not production_live.is_file():
+        print(f"WARN: no original saved live prediction; official recovery only: {production_live}", flush=True)
     expected_rows = read_csv(program)
     expected = race_ids(expected_rows)
     original = race_ids(original_rows)
