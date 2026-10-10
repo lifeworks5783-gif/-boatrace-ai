@@ -18,6 +18,11 @@ on:
         description: "対象日 YYYYMMDD（省略時はJST当日）"
         required: false
         type: string
+      skip_family_publish:
+        description: "ボタン一括更新で利用。家族ページは呼出元が結果確定後に公開する"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -141,7 +146,7 @@ jobs:
           exit 1
 
       - name: 共通正本同期の成功後に家族4画面を明示更新
-        if: steps.date.outputs.run == 'true'
+        if: steps.date.outputs.run == 'true' && !inputs.skip_family_publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
