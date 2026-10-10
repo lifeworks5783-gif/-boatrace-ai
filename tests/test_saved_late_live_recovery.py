@@ -23,7 +23,11 @@ TIMELY_IDS = {"20261010-09-06", "20261010-16-05", "20261010-22-05"}
 class SavedLateLiveRecoveryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = ROOT / "predictions" / "2026" / "10" / "10" / "live" / "live_predictions_final_20261010.json"
+        # Pin the original seven-race evidence: rolling final predictions are
+        # intentionally updated by later manual button presses.
+        path = (ROOT / "predictions" / "2026" / "10" / "10" / "live"
+                / "snapshots" / "20261010_125552"
+                / "live_predictions_current_20261010.json")
         cls.races = {r["race_id"]: r for r in json.loads(path.read_text(encoding="utf-8"))["races"]}
 
     def test_four_delayed_predictions_recovered_without_changing_three_genuine(self):
