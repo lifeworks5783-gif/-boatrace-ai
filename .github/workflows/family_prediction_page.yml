@@ -197,6 +197,7 @@ jobs:
           test -n "${TARGET_DATE}"
 
           echo "レース照合対象日: ${TARGET_DATE}"
+          echo "COMPARE_DATE=${TARGET_DATE}" >> "$GITHUB_ENV"
 
           python -u collectors/build_family_race_compare_page.py \
             --date "${TARGET_DATE}" \
@@ -222,6 +223,18 @@ jobs:
           test -s _family_site/race_compare.html
 
           echo "4タブメニュー: PASS"
+
+      - name: 直前スコア・風神雷神判定・PDCA・レース照合表示を全終了レースで一致監査
+        run: |
+          RESULT_FILE="archive/${COMPARE_DATE:0:4}/${COMPARE_DATE:4:2}/${COMPARE_DATE:6:2}/results_${COMPARE_DATE}_all.csv"
+          if ! test -s "$RESULT_FILE"; then
+            echo "公式結果がまだ0R、照合シグナル監査は実結果取得後に実行"
+            exit 0
+          fi
+          python -u collectors/audit_signal_consistency.py \
+            --date "$COMPARE_DATE" \
+            --html _family_site/race_compare.html
+          echo "6艇再計算＝共通正本＝風神雷神PDCA＝公開表示: PASS"
 
       - name: 公開用リポジトリを読み込む
         uses: actions/checkout@v4
