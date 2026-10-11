@@ -1,0 +1,55 @@
+name: Recover historical research day official live
+on:
+  push:
+    paths:
+      - config/run_historical_recovery_20261011.txt
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: historical-research-recovery-writer
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q requests beautifulsoup4 pandas scipy lhafile
+      - name: Recover missing official inputs for completed 20261011 races only
+        run: |
+          python -u collectors/recover_missing_live_for_analysis.py --date 20261011
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d='20261011'
+          p=Path('evaluations/2026/10/11/recovery/live_recovery_manifest_20261011.json')
+          m=json.loads(p.read_text())
+          print('RESEARCH_RECOVERY', {k:m.get(k) for k in ('status','expected_races','finished_races_targeted','merged_analysis_races','still_missing')})
+          assert m['finished_races_targeted']==156
+          assert not m['still_missing']
+          assert m['result_leakage'] is False
+          PY
+      - name: Save only recovered official input and retrospective score evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add evaluations/2026/10/11/recovery/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Recover all completed Oct 11 research live data'
+            git stash push -u -m historical-recovery-rebase || true
+            git pull --rebase origin main
+            git push origin main
+          fi
+      - name: Dispatch canonical score and signal reconciliation for Oct 11
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run canonical_recovery_reconcile.yml --repo "$GITHUB_REPOSITORY" --ref main -f target_date=20261011
