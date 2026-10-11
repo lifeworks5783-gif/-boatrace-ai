@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "model_version": "signal_rank_diagnostic_v1_20261011",
+  "raijin_model_version": "fujin_raijin_pipeline_v2_20261011",
+  "score_weighting": {
+    "first": 0.5,
+    "second": 0.3,
+    "third": 0.2
+  },
+  "research_only": true,
+  "no_production_prediction_changes": true,
+  "do_not_relabel_historical_purchases": true,
+  "split": {
+    "train_end": "20261006",
+    "validation_end": "20261009",
+    "historical_check_end": "20261011",
+    "prospective_from": "20261012"
+  },
+  "source": "saved verified morning scores and live scores, same versioned Fujin/Raijin signal AI calculation",
+  "methods": {
+    "signal_score": {
+      "description": "現行: 風神雷神補正後評価順",
+      "kind": "signal"
+    },
+    "morning_delta": {
+      "description": "朝から補正後の上昇幅順",
+      "kind": "delta",
+      "base": "morning"
+    },
+    "live_delta": {
+      "description": "直前から補正後の上昇幅順",
+      "kind": "delta",
+      "base": "live"
+    },
+    "morning_abs_delta": {
+      "description": "朝から補正後の変化幅絶対値順",
+      "kind": "absolute",
+      "base": "morning"
+    },
+    "live_abs_delta": {
+      "description": "直前から補正後の変化幅絶対値順",
+      "kind": "absolute",
+      "base": "live"
+    },
+    "blend_morning_025": {
+      "description": "補正後評価+朝差×0.25",
+      "kind": "blend",
+      "base": "morning",
+      "weight": 0.25
+    },
+    "blend_live_025": {
+      "description": "補正後評価+直前差×0.25",
+      "kind": "blend",
+      "base": "live",
+      "weight": 0.25
+    },
+    "blend_morning_050": {
+      "description": "補正後評価+朝差×0.50",
+      "kind": "blend",
+      "base": "morning",
+      "weight": 0.5
+    },
+    "blend_live_050": {
+      "description": "補正後評価+直前差×0.50",
+      "kind": "blend",
+      "base": "live",
+      "weight": 0.5
+    },
+    "shortlist48_morning_delta": {
+      "description": "補正後上位48から朝差で24点",
+      "kind": "shortlist",
+      "base": "morning",
+      "pool": 48
+    },
+    "shortlist48_live_delta": {
+      "description": "補正後上位48から直前差で24点",
+      "kind": "shortlist",
+      "base": "live",
+      "pool": 48
+    }
+  },
+  "purchase_points": 24,
+  "stake_yen_per_point": 100,
+  "holdout_notice": "9/30–10/11 has already informed the research hypothesis; historical_check is NOT a clean future holdout. Prospective >=2026-10-12 is reserved for after the policy is frozen."
+}

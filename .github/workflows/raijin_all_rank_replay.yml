@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "collectors/evaluate_raijin_all_rank_replay.py"
+      - "collectors/evaluate_signal_rank_research.py"
+      - "config/research/signal_rank_diagnostic_v1_20261011.json"
+      - "tests/test_signal_rank_research.py"
       - "config/run_raijin_rankless_replay.txt"
   workflow_dispatch:
 
@@ -46,11 +49,28 @@ jobs:
           assert case["new_raijin_level"] == 3, case
           print("RAIJIN_V2_HISTORICAL_REPLAY_PASS", x["valid_races"], x["changed_raijin_levels"])
           PY
+      - name: Attribute every saved signal-race actual ranking to morning/live/buff stages
+        run: |
+          python -m unittest discover -s tests -p test_signal_rank_research.py -v
+          python -u collectors/evaluate_signal_rank_research.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("evaluations/signal_rank_research/v1")
+          x=json.loads((p/"summary.json").read_text(encoding="utf-8"))
+          assert x["baseline_full_replay_verified"] is True
+          assert x["result_as_scoring_input"] is False
+          assert x["finished_signal_races"] > 850
+          assert len(x["comparisons"]["by_signal"]) == 16
+          from collections import Counter
+          assert x["overall"]["by_method"]["signal_score"]["races"] == x["finished_signal_races"]
+          print("RESEARCH_ONLY_120_RANK_ATTRIBUTION_PASS", x["finished_signal_races"])
+          PY
       - name: Save research output without touching historical canonical files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add evaluations/raijin_all_rank_v2_replay/
+          git add evaluations/raijin_all_rank_v2_replay/ evaluations/signal_rank_research/v1/
           if git diff --cached --quiet; then echo "Replay unchanged"; exit 0; fi
           git commit -m "Save rank-independent Raijin v2 retrospective comparison"
           git pull --rebase origin main
