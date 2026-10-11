@@ -143,7 +143,25 @@ def verified_signal_quality_by_race(date):
     }
 
 
-def signal_from_rows(rows, quality=None):
+def verified_signal_rank_gate_by_race(date):
+    """Saved decision version. Old captured signals remain old; new v2 records do not gate ranks."""
+    path = canonical_path(date)
+    if not path.is_file():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if str(payload.get("target_date")) != date:
+        return {}
+    return {
+        normalize_race_id(row.get("race_id")): (
+            (row.get("signal_logic_identity") or {}).get("model_version")
+            != "fujin_raijin_pipeline_v2_20261011"
+        )
+        for row in payload.get("races") or []
+        if isinstance(row, dict)
+    }
+
+
+def signal_from_rows(rows, quality=None, *, outside_live_top3=None):
     ranked = sorted(rows, key=lambda x: to_int(x.get("rank")) or 99)
     if not signal_field_is_verified(ranked, quality):
         return None
@@ -173,7 +191,7 @@ def signal_from_rows(rows, quality=None):
 
     # Use exactly the same versioned Raijin detector as the published prediction.
     # Do not silently retain a second hard-coded rank restriction in PDCA.
-    raijin = build_up_signal(ranked, quality)
+    raijin = build_up_signal(ranked, quality, outside_live_top3=outside_live_top3)
     if raijin.get("available") is not True:
         return None
     raijin_candidates = raijin.get("candidates") or []
@@ -361,11 +379,12 @@ def main():
     details = []
     skipped = []
     qualities = verified_signal_quality_by_race(d)
+    rank_gates = verified_signal_rank_gate_by_race(d)
     for race_id, rows in sorted(grouped.items()):
         result = results.get(race_id)
         if result is None:
             continue
-        sig = signal_from_rows(rows, qualities.get(race_id))
+        sig = signal_from_rows(rows, qualities.get(race_id), outside_live_top3=rank_gates.get(race_id, d <= "20261011"))
         if sig is None:
             skipped.append(race_id)
             continue
