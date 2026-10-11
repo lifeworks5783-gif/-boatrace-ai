@@ -67,6 +67,9 @@ jobs:
           assert karatsu['new_top3_rising_candidates'][0]['boat'] == 6, karatsu
           print('RAIJIN_RANKLESS_REPLAY_PASS', x['valid_races'], x['changed_raijin_levels'])
           PY
+      - name: Corrected 2026-10-11 closed-race signal recovery and displayed rule
+        run: |
+          python -m unittest discover -s tests -p test_reconciled_signal_v2.py -v
       - name: Research-only 120-combination score/rank attribution and baseline parity
         run: |
           python -m unittest discover -s tests -p test_signal_rank_research.py -v
