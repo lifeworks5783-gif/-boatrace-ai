@@ -70,6 +70,17 @@ jobs:
       - name: Research-only 120-combination score/rank attribution and baseline parity
         run: |
           python -m unittest discover -s tests -p test_signal_rank_research.py -v
+          python -u collectors/evaluate_signal_rank_research.py \
+            --no-combination-details --output-dir /tmp/signal_rank_research_full_ci
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("/tmp/signal_rank_research_full_ci/summary.json").read_text())
+          assert x["finished_signal_races"] >= 900
+          assert len(x["sample_dates"]) >= 12
+          assert x["baseline_full_replay_verified"]
+          print("TWELVE_DAY_SIGNAL_RANK_RESEARCH_PASS",x["finished_signal_races"])
+          PY
       - name: Corrected Raijin v2 daily PDCA and family UI regressions
         run: |
           python -m unittest discover -s tests -p test_raijin_v2_pdca_collection.py -v
