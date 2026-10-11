@@ -459,6 +459,36 @@ def signal_ai_24_metrics(root: Path, date: str) -> Dict[str, Any]:
     }
 
 
+def raijin_v2_24_metrics(root: Path, date: str) -> Dict[str, Any]:
+    """V2 daily research result; never conflated with original purchased tickets."""
+    source = root / "raijin_all_rank_v2_replay" / "summary.json"
+    if not source.is_file():
+        return {}
+    replay = json.loads(source.read_text(encoding="utf-8"))
+    if replay.get("ruleset") != "fujin_raijin_pipeline_v2_20261011":
+        return {}
+    dates = [
+        row for row in replay.get("by_date") or []
+        if row.get("date") <= date and (row.get("new") or {}).get("finished_races_with_usable_data")
+    ]
+    if not dates:
+        return {}
+    row = dates[-1]
+    m = row["new"]
+    n = int(m.get("signal_active_finished_races") or 0)
+    return {
+        "source_date": row["date"],
+        "races": n,
+        "hits": int(m.get("hit24_races") or 0),
+        "points": n * 24,
+        "investment": n * 2400,
+        "returns": int(m.get("return_yen") or 0),
+        "profit": int(m.get("profit_yen") or 0),
+        "hit_rate": (int(m.get("hit24_races") or 0) / n) if n else None,
+        "recovery_rate": m.get("roi_pct"),
+    }
+
+
 def build_page(evaluation_root: Path) -> str:
     dates = find_dates(evaluation_root)
 
@@ -483,6 +513,7 @@ def build_page(evaluation_root: Path) -> str:
         box_overall = overall_metrics(box)
         ai_overall = overall_metrics(ai)
         signal_ai24 = signal_ai_24_metrics(evaluation_root, latest)
+        signal_v2 = raijin_v2_24_metrics(evaluation_root, latest)
 
         body_parts = [
             strategy_html(
@@ -503,9 +534,17 @@ def build_page(evaluation_root: Path) -> str:
         ]
         if signal_ai24:
             body_parts.insert(0, strategy_html(
-                "風神雷神専用AI・購入24点の結果成績",
-                f"評価対象日{signal_ai24['source_date']}：シグナル発動全レースを24点・各100円で仮想購入。保存済み買い目と実着を照合。通常AIとは別会計。",
+                "旧版判定・当時保存の専用AI24点結果",
+                f"評価対象日{signal_ai24['source_date']}：旧版のシグナル・保存済み買い目を監査するための成績。順位制限撤廃後の研究用成績とは別会計。",
                 signal_ai24,
+            ))
+
+        if signal_v2:
+            body_parts.insert(0, strategy_html(
+                "雷神・修正版（順位制限なし）専用AI24点の研究成績",
+                f"研究用再判定 {signal_v2['source_date']}：直前順位を問わず+7.5点以上で雷神判定。"
+                "旧版と同じ補正値の24点仮想購入成績であり、当時の実際の購入履歴を上書きしていません。",
+                signal_v2,
             ))
 
         ai_alignment = ai_alignment_html(ai)

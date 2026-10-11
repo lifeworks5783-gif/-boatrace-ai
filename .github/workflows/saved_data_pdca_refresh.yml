@@ -63,8 +63,18 @@ jobs:
           p=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
           q=json.loads(p.read_text(encoding="utf-8"))
           print({"status":q.get("status"),"audited":q.get("audited_races"),"complete":q.get("complete_races"),"incomplete":q.get("incomplete_races")})
-          if q.get("status")!="PASS" or q.get("complete_races")!=144:
-              raise SystemExit("saved-data PDCA requires 144R PASS")
+          expected=int(q.get("expected_races") or 0)
+          result=int(q.get("result_races") or 0)
+          complete=int(q.get("complete_races") or 0)
+          audited=int(q.get("audited_races") or 0)
+          incomplete=int(q.get("incomplete_races") or 0)
+          research=(q.get("research_audit") or {})
+          # 10/10 has 156 races; days have different official schedules.
+          # During a live day, pending races are NOT data defects.
+          if not (q.get("status")=="PASS" and research.get("research_status")=="PASS"
+                  and 0 < result <= expected <= audited and complete == result
+                  and incomplete == 0):
+              raise SystemExit("saved-data PDCA requires all finished races verified PASS")
           PY
 
       - name: 風神雷神の日次シグナルを再評価

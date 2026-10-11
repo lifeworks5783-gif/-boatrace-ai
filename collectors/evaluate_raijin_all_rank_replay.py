@@ -91,6 +91,73 @@ def summarize(rows, label):
     }
 
 
+
+def grouped_signal_pdca(rows, label="new"):
+    """16 classification PDCA, one fixed 24-ticket virtual purchase per active race."""
+    buckets = {}
+    for f_level in range(4):
+        for r_level in range(4):
+            key = f"F{f_level}R{r_level}"
+            matching = [r for r in rows
+                        if r["fujin_level"] == f_level
+                        and r[f"{label}_raijin_level"] == r_level]
+            buckets[key] = {
+                "signal_key": key,
+                "fujin_level": f_level,
+                "raijin_level": r_level,
+                "valid_races": len(matching),
+                **summarize(matching, label),
+            }
+    return buckets
+
+
+def candidate_pdca(rows):
+    """Raijin candidate finish position and score bands (truth used only in settlement)."""
+    bands = {
+        "under40": (0, 40), "40_49": (40, 50),
+        "50_59": (50, 60), "60_plus": (60, float("inf")),
+    }
+    summary = {}
+    for name, (lower, upper) in bands.items():
+        candidates = [
+            candidate for row in rows if row["actual"] is not None
+            for candidate in row["new_raijin_candidates"]
+            if lower <= candidate["score"] < upper
+        ]
+        counts = Counter(int(c["finish"]) for c in candidates if c["finish"] is not None)
+        total = len(candidates)
+        pct = lambda v: round(v * 100 / total, 2) if total else None
+        summary[name] = {
+            "candidate_count": total,
+            "first_count": counts[1],
+            "second_count": counts[2],
+            "third_count": counts[3],
+            "top3_count": counts[1] + counts[2] + counts[3],
+            "first_rate_pct": pct(counts[1]),
+            "second_rate_pct": pct(counts[2]),
+            "third_rate_pct": pct(counts[3]),
+            "top3_rate_pct": pct(counts[1] + counts[2] + counts[3]),
+        }
+    return summary
+
+
+def write_details(path, details):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fields = list(details[0]) if details else [
+        "date", "race_id", "fujin_level", "old_raijin_level",
+        "new_raijin_level", "old_hit24", "new_hit24",
+    ]
+    with path.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        for item in details:
+            writer.writerow({
+                k: json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else v
+                for k, v in item.items()
+            })
+
+
+
 def main():
     args = parse_args()
     config = load_signal_ai_config()
@@ -152,6 +219,17 @@ def main():
                 "changed": ol != nl,
                 "old_active": bool(fo or ol), "new_active": bool(fo or nl),
                 "old_signal_key": old_key, "new_signal_key": new_key,
+                "new_raijin_candidates": [
+                    {
+                        "boat": b["boat"], "rank": b["rank"],
+                        "rise": b["rise"], "score": b["score"],
+                        "finish": (
+                            (outcome.split("-").index(str(b["boat"])) + 1)
+                            if outcome and str(b["boat"]) in outcome.split("-") else 4
+                        ) if outcome else None,
+                    }
+                    for b in new["candidates"]
+                ],
                 "new_top3_rising_candidates": [
                     {"boat": b["boat"], "rank": b["rank"], "rise": b["rise"], "score": b["score"]}
                     for b in new["candidates"] if b["rank"] <= 3
@@ -171,6 +249,8 @@ def main():
             "official_finished_valid": sum(x["actual"] is not None for x in daily),
             "changed_levels": sum(x["changed"] for x in daily),
             "old": summarize(daily, "old"), "new": summarize(daily, "new"),
+            "new_by_signal": grouped_signal_pdca(daily, "new"),
+            "new_candidate_score_bands": candidate_pdca(daily),
         })
 
     changes = [x for x in details if x["changed"]]
@@ -188,19 +268,37 @@ def main():
         "transition_counts": dict(sorted(Counter(f'{x["old_raijin_level"]}->{x["new_raijin_level"]}' for x in details).items())),
         "old": summarize(details, "old"),
         "new": summarize(details, "new"),
+        "new_by_signal": grouped_signal_pdca(details, "new"),
+        "new_candidate_score_bands": candidate_pdca(details),
+        "rolling7": {
+            "dates": days[-7:],
+            "old": summarize([r for r in details if r["date"] in days[-7:]], "old"),
+            "new": summarize([r for r in details if r["date"] in days[-7:]], "new"),
+            "new_by_signal": grouped_signal_pdca([r for r in details if r["date"] in days[-7:]], "new"),
+        },
+        "last_completed_date": max((x["date"] for x in details if x["actual"]), default=None),
         "by_date": by_date,
         "known_case_202610112306": next((x for x in details if x["race_id"] == "202610112306"), None),
     }
     result_dir.mkdir(parents=True, exist_ok=True)
     (result_dir / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (result_dir / "skipped.json").write_text(json.dumps(skipped, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    fields = [k for k in (details[0] if details else {}) if k != "new_top3_rising_candidates"]
-    fields.append("new_top3_rising_candidates")
-    with (result_dir / "details.csv").open("w", encoding="utf-8-sig", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fields)
-        writer.writeheader()
-        for item in details:
-            writer.writerow({**item, "new_top3_rising_candidates": json.dumps(item["new_top3_rising_candidates"], ensure_ascii=False)})
+    write_details(result_dir / "details.csv", details)
+    # Dedicated corrected daily PDCA data is materialized independently of legacy
+    # prediction and historical real-time purchase records.
+    for row in by_date:
+        date = row["date"]
+        day_dir = result_dir / "daily" / date
+        day_dir.mkdir(parents=True, exist_ok=True)
+        (day_dir / "summary.json").write_text(
+            json.dumps({
+                "date": date, "ruleset": SIGNAL_LOGIC["model_version"],
+                "research_only": True,
+                "retrospective_result_not_original_signal": True,
+                **row,
+            }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        write_details(day_dir / "details.csv", [x for x in details if x["date"] == date])
     print("RAIJIN_RANKLESS_REPLAY", json.dumps({
         "dates": days, "valid": len(details), "skipped": len(skipped),
         "changed": len(changes), "old": summary["old"], "new": summary["new"],

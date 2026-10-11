@@ -29,6 +29,7 @@ on:
       - "collectors/build_family_analysis_page.py"
       - "collectors/build_family_signal_analysis_page.py"
       - "evaluations/fujin_raijin/**"
+      - "evaluations/raijin_all_rank_v2_replay/**"
       - "evaluations/signal_ai/**"
       - "evaluations/signal_pdca_cross/**"
       - "collectors/evaluate_signal_pdca_cross.py"
@@ -143,6 +144,24 @@ jobs:
           python -u collectors/evaluate_fujin_raijin_history.py
           python -u collectors/evaluate_signal_ai_performance.py
           python -u collectors/evaluate_signal_pdca_cross.py
+          # Revised Raijin is a new research PDCA ledger. Keep old canonical
+          # purchase/observed signal records and their historical ROI untouched.
+          python -u collectors/evaluate_raijin_all_rank_replay.py
+          test -s evaluations/raijin_all_rank_v2_replay/summary.json
+          test -s evaluations/raijin_all_rank_v2_replay/details.csv
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("evaluations/raijin_all_rank_v2_replay")
+          x = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+          assert x["ruleset"] == "fujin_raijin_pipeline_v2_20261011", x
+          assert x["result_as_input_to_signals"] is False
+          assert x["new_by_signal"] and len(x["new_by_signal"]) == 16
+          assert x["by_date"]
+          date = x["last_completed_date"]
+          assert date and (root / "daily" / date / "summary.json").is_file()
+          print("RAIJIN_V2_PDCA_CONSISTENT", date, x["valid_races"], x["changed_raijin_levels"])
+          PY
           test -s evaluations/signal_ai/latest/details.csv
           test -s evaluations/signal_pdca_cross/latest/summary.json
           echo "シグナルAI24点と高配当・16x4分析: PASS"

@@ -328,6 +328,119 @@ def cross_methods_report(data):
     return "".join(parts)
 
 
+def raijin_v2_pdca_section(root: Path) -> str:
+    """Active research PDCA uses the all-rank Raijin rule; historical ledger is separate."""
+    replay = load_json(root / "raijin_all_rank_v2_replay" / "summary.json")
+    if not replay:
+        return ('<section class="card"><h2>雷神 新ルールPDCA</h2>'
+                '<p class="note">新ルールの再計算データ生成待ちです。旧ルールの数値を代用しません。</p></section>')
+    if replay.get("ruleset") != "fujin_raijin_pipeline_v2_20261011":
+        raise ValueError("Unexpected Raijin PDCA model version: " + str(replay.get("ruleset")))
+    date_rows = replay.get("by_date") or []
+    latest_date = replay.get("last_completed_date") or (date_rows[-1]["date"] if date_rows else None)
+    daily = next((x for x in date_rows if x.get("date") == latest_date), {})
+    rolling = replay.get("rolling7") or {}
+    cumulative = replay.get("new") or {}
+    prior = replay.get("old") or {}
+    latest = daily.get("new") or {}
+    cards = (
+        card("新版評価可能R", n(replay.get("valid_races"), 0), "取得スコアの検証完了分")
+        + card("発動R（新版）", n(cumulative.get("signal_active_finished_races"), 0), "全艇順位制限なし")
+        + card("旧→新の判定変更R", n(replay.get("changed_raijin_levels"), 0), "同じ保存スコアで比較")
+        + card("新版24点的中率", pct(cumulative.get("hit24_rate_pct")), "全発動Rを仮想購入")
+        + card("新版24点ROI", pct(cumulative.get("roi_pct")), "購入24点各100円")
+        + card("新版万舟捕捉率", pct(cumulative.get("manshu_capture_pct")), "非発動も分母に含む")
+    )
+    daily_rows = []
+    for record in reversed(date_rows):
+        cur = record.get("new") or {}
+        old = record.get("old") or {}
+        daily_rows.append(
+            "<tr>"
+            f"<td>{html.escape(str(record.get('date') or ''))}</td>"
+            f"<td>{n(record.get('valid_races'), 0)}</td>"
+            f"<td>{n(record.get('changed_levels'), 0)}</td>"
+            f"<td>{n(cur.get('signal_active_finished_races'), 0)}</td>"
+            f"<td>{n(cur.get('hit24_races'), 0)}</td>"
+            f"<td>{pct(cur.get('hit24_rate_pct'))}</td>"
+            f"<td>{pct(cur.get('roi_pct'))}</td>"
+            f"<td>{pct(cur.get('manshu_capture_pct'))}</td>"
+            f"<td>{pct(old.get('roi_pct'))}</td>"
+            "</tr>"
+        )
+    day_table = (
+        '<div class="table-wrap"><table><thead><tr><th>日付</th><th>評価R</th>'
+        '<th>Lv変更</th><th>発動R</th><th>24点的中</th><th>的中率</th>'
+        '<th>新版ROI</th><th>万舟捕捉率</th><th>旧版ROI</th>'
+        '</tr></thead><tbody>' + "".join(daily_rows) + "</tbody></table></div>"
+    )
+
+    def grouped_table(rows, title):
+        groups = rows or {}
+        lines = []
+        for f_level in range(4):
+            for r_level in range(4):
+                key = f"F{f_level}R{r_level}"
+                v = groups.get(key) or {}
+                m = v.get("signal_active_finished_races")
+                lines.append(
+                    f"<tr><td>{key}</td><td>{n(v.get('valid_races'), 0)}</td>"
+                    f"<td>{n(m, 0)}</td><td>{n(v.get('hit24_races'), 0)}</td>"
+                    f"<td>{pct(v.get('hit24_rate_pct'))}</td>"
+                    f"<td>{pct(v.get('roi_pct'))}</td>"
+                    f"<td>{pct(v.get('manshu_capture_pct'))}</td></tr>"
+                )
+        return (
+            f"<h3>{html.escape(title)}</h3>"
+            '<div class="table-wrap"><table><thead><tr><th>F×R</th><th>対象R</th>'
+            '<th>発動R</th><th>24点的中</th><th>的中率</th><th>24点ROI</th>'
+            '<th>万舟捕捉率</th></tr></thead><tbody>'
+            + "".join(lines) + "</tbody></table></div>"
+        )
+
+    score_rows = []
+    for band, title in [("under40", "40点未満"), ("40_49", "40〜49点"),
+                        ("50_59", "50〜59点"), ("60_plus", "60点以上")]:
+        v = (replay.get("new_candidate_score_bands") or {}).get(band) or {}
+        score_rows.append(
+            f"<tr><td>{title}</td><td>{n(v.get('candidate_count'), 0)}</td>"
+            f"<td>{pct(v.get('first_rate_pct'))}</td>"
+            f"<td>{pct(v.get('second_rate_pct'))}</td>"
+            f"<td>{pct(v.get('third_rate_pct'))}</td>"
+            f"<td>{pct(v.get('top3_rate_pct'))}</td></tr>"
+        )
+    score_table = (
+        '<div class="table-wrap"><table><thead><tr><th>雷神対象艇・通常スコア帯</th>'
+        '<th>候補艇数</th><th>1着率</th><th>2着率</th><th>3着率</th>'
+        '<th>3着以内率</th></tr></thead><tbody>'
+        + "".join(score_rows) + "</tbody></table></div>"
+    )
+    roll = rolling.get("new") or {}
+    compare = (
+        f"<p class=\"note\">直近7日：発動 {n(roll.get('signal_active_finished_races'), 0)}R、"
+        f"24点的中率 {pct(roll.get('hit24_rate_pct'))}、"
+        f"ROI {pct(roll.get('roi_pct'))}、万舟捕捉率 {pct(roll.get('manshu_capture_pct'))}。"
+        f"累計の旧版ROI {pct(prior.get('roi_pct'))} / 新版ROI {pct(cumulative.get('roi_pct'))}。"
+        f"除外 {n(replay.get('excluded_races'), 0)}Rは未発動として集計しません。</p>"
+    )
+    return (
+        '<section class="card" id="raijin-v2-pdca">'
+        '<h2>雷神・修正版PDCA（全順位対象）</h2>'
+        '<p class="note">研究用の現行ルール：全出走艇が対象、朝比+7.5点以上。'
+        'Lv2は+10点以上（Lv3優先）、Lv3は対象艇の直前スコア50点以上。'
+        '風神と16分類の補正値は従来どおり。旧ルールの実際の購入・予測履歴は不変です。</p>'
+        f'<div class="metrics">{cards}</div>'
+        + compare
+        + '<h3>日別の訂正済みシグナル成績</h3>' + day_table
+        + grouped_table(daily.get("new_by_signal"), f"直近日 {latest_date}・16分類")
+        + grouped_table(replay.get("new_by_signal"), "累計・16分類")
+        + '<h3>雷神対象艇のスコア帯別着順</h3>' + score_table
+        + '<p class="note">研究用事後再評価のため、当時の実購入成績とは区別します。'
+        '結果・払戻は判定計算には使用せず、評価段階でのみ結合しています。</p>'
+        '</section>'
+    )
+
+
 def build_page(root: Path) -> str:
     backtest = load_json(root / "fujin_raijin/latest/backtest_summary.json")
     buff = load_json(root / "fujin_raijin/buff_debuff/latest.json")
@@ -396,26 +509,28 @@ def build_page(root: Path) -> str:
 <p class="note" style="margin-bottom:0">6点は「120通りの上位6点」です。同一3艇の6順列が上位を占めた場合は結果として3艇BOXと同じ形になります。</p>
 </section>
 
-<section class="card"><h2>現在の検証母数</h2><div class="metrics">{metrics}</div></section>
+{raijin_v2_pdca_section(root)}
+
+<section class="card"><h2>旧版・当時記録の比較集計</h2><p class="note">以下の過去保存版の数値は元の判定・買い目の監査用です。新ルールのPDCAは上の「雷神・修正版PDCA」を参照してください。</p><div class="metrics">{metrics}</div></section>
 
 <section class="card">
-<h2>採用中・シグナルAI補正 Ver.1</h2>
+<h2>旧版の保存判定に対するシグナルAI補正 Ver.1</h2>
 <p class="note">通常の朝・直前スコアは変更せず、各F×Rに対応する採用中のバフ/デバフで6艇を再評価した実成績です。ROIは現時点では該当シグナルをすべて24点購入した場合の比較値で、買い/見送りルール確定前の学習指標です。</p>
 <div class="metrics">{current_signal_ai_metrics(signal_ai)}</div>
 {current_signal_ai_table(signal_ai)}
 </section>
 
 <section class="card">
-<h2>風神 × 雷神 組み合わせ別</h2>
+<h2>旧版・風神 × 雷神 組み合わせ別</h2>
 <p class="note">発動率・5,000円以上率・万舟率・平均払戻を全16組み合わせで比較。非発動時は専用AIの購入なし。</p>
 {combo_table(backtest)}
 </section>
 
-<section class="card"><h2>毎日必須・5,000円以上の高配当と万舟捕捉（単日／累計）</h2>
+<section class="card"><h2>旧保存版の5,000円以上・万舟捕捉（単日／累計）</h2>
 <p class="note">5,000円未満も含む配当帯別の件数を、シグナル発動／非発動で完全分離。高配当捕捉率と発動後高配当率の分母を混同しません。</p>
 {high_dividend_report(cross_pdca)}
 </section>
-<section class="card"><h2>毎日必須・風神雷神16通り × 4買い方（単日／7日／累計）</h2>
+<section class="card"><h2>旧保存版の風神雷神16通り × 4買い方（単日／7日／累計）</h2>
 <p class="note">方式ごとの評価可能Rと購入点数・損益・回収率を表示。欠損レースは各方式の母数から除外、専用AIの非発動は対象外。</p>
 {cross_methods_report(cross_pdca)}
 </section>
@@ -438,7 +553,7 @@ def build_page(root: Path) -> str:
 {legacy_analysis_sections(root)}
 
 <section class="card">
-<h2>⑧ シグナル検証・詳細</h2>
+<h2>⑧ 旧保存版シグナル検証・詳細</h2>
 <p class="note">万舟捕捉率、シグナル発動後の高配当率など、買い／見送り判定に必要な固定検証項目を保存済みデータから再表示します。対象艇の着順別率・通常スコア帯との関係は保存データが揃い次第この枠へ継続追加します。</p>
 {detailed_signal_validation(backtest)}
 </section>
