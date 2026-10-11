@@ -54,6 +54,42 @@ jobs:
           echo "MONTH=${TARGET_DATE:4:2}" >> "$GITHUB_ENV"
           echo "DAY=${TARGET_DATE:6:2}" >> "$GITHUB_ENV"
 
+      - name: AI分析前に公式結果と不足直前情報を再収集して完全性を再監査
+        run: |
+          set -euo pipefail
+          BASE="daily_inputs/${YEAR}/${MONTH}/${DAY}/base"
+          test -s "$BASE/program_races_${TARGET_DATE}.csv"
+          test -s "$BASE/program_entries_${TARGET_DATE}.csv"
+          mkdir -p data
+          cp "$BASE/program_races_${TARGET_DATE}.csv" data/
+          cp "$BASE/program_entries_${TARGET_DATE}.csv" data/
+          python -u collectors/daily_results_fast.py --date "$TARGET_DATE"
+          python -u collectors/validate_daily.py --date "$TARGET_DATE"
+          python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          p=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+          x=json.loads(p.read_text(encoding="utf8"))
+          if x.get("needs_recollection") or x.get("incomplete_races",0):
+              raise SystemExit("missing original data detected: official live recollection required before PDCA")
+          PY
+          python -u collectors/today_beforeinfo.py --date "$TARGET_DATE" --mode missing
+          python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          p=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+          x=json.loads(p.read_text(encoding="utf8"))
+          if not (x.get("status")=="PASS" and x.get("expected_races",0)>0
+                  and x.get("result_races")==x.get("expected_races")
+                  and x.get("complete_races")==x.get("expected_races")
+                  and x.get("pending_races")==0 and x.get("incomplete_races")==0):
+              raise SystemExit("official source recovery incomplete: refuse partial full-day PDCA")
+          PY
+
       - name: 保存済みデータの完全性を確認
         run: |
           python - <<'PY'
