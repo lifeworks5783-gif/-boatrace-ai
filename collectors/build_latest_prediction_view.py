@@ -264,8 +264,14 @@ def signal_field_is_verified(boats, prediction_quality=None):
 def build_up_signal(
     boats,
     prediction_quality=None,
+    *,
+    outside_live_top3=None,
 ):
-    """Raijin display signal. Save/analyze only; never changes AI or formation."""
+    """Raijin detector; optional archived rank gate is only for reproducible audits."""
+    rank_gate = (
+        bool(SIGNAL_RAIJIN["outside_live_top3"])
+        if outside_live_top3 is None else bool(outside_live_top3)
+    )
     quality = prediction_quality or {}
     if quality.get("signal_blocked", (
         quality.get("recovery_needed")
@@ -306,7 +312,7 @@ def build_up_signal(
         morning_score = to_float(row.get("morning_score_reference"))
         boat = boat_number(row)
         if (
-            live_rank <= 3
+            (rank_gate and live_rank <= 3)
             or boat is None
             or live_score is None
             or morning_score is None
@@ -355,7 +361,7 @@ def build_up_signal(
             "level2_rise_max": None,
             "level3_candidate_score_min": SIGNAL_RAIJIN["level3_score"],
             "level3_candidate_rise_min": SIGNAL_RAIJIN["min_rise"],
-            "outside_live_top3": True,
+            "outside_live_top3": rank_gate,
             "level3_priority": True,
         },
         "candidates": candidates,

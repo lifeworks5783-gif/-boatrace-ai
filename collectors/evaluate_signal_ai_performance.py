@@ -7,7 +7,7 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-from evaluate_down_signal import verified_signal_quality_by_race
+from evaluate_down_signal import verified_signal_quality_by_race, verified_signal_rank_gate_by_race
 from build_latest_prediction_view import signal_field_is_verified
 
 CONFIG = Path("config/signal_ai/signal_ai_corrections_v1_20261008.json")
@@ -74,9 +74,9 @@ def _signal_inputs(ranked):
     ]
 
 
-def derive_raijin(ranked, quality=None):
+def derive_raijin(ranked, quality=None, *, outside_live_top3=None):
     from build_latest_prediction_view import build_up_signal
-    saved = build_up_signal(_signal_inputs(ranked), quality)
+    saved = build_up_signal(_signal_inputs(ranked), quality, outside_live_top3=outside_live_top3)
     return int(saved.get("level") or 0), saved.get("candidates") or []
 
 
@@ -162,9 +162,11 @@ def main():
     skipped=[]
 
     quality_maps = {}
+    rank_gates = {}
     for date,truth_rows in sorted(by_date.items()):
         live=load_live(date)
         quality_maps[date]=verified_signal_quality_by_race(date)
+        rank_gates[date]=verified_signal_rank_gate_by_race(date)
         for truth in truth_rows:
             rid=norm_race_id(truth.get("race_id"))
             rows=live.get(rid) or []
@@ -174,7 +176,7 @@ def main():
                 skipped.append({"date":date,"race_id":rid,"reason":f"unverified_live_starters_{len(rows)}"})
                 continue
             flevel=derive_fujin(ranked,quality)
-            rlevel,rcands=derive_raijin(ranked,quality)
+            rlevel,rcands=derive_raijin(ranked,quality,outside_live_top3=rank_gates[date].get(rid,date <= "20261011"))
             if flevel<=0 and rlevel<=0:
                 continue
             applied=apply_rule(ranked,flevel,rlevel,rcands,config)
@@ -226,7 +228,7 @@ def main():
         if not signal_field_is_verified(_signal_inputs(ranked), quality):
             skipped.append({"date":date,"race_id":d["race_id"],"reason":"canonical_official_starter_verification_changed"})
             continue
-        fl=derive_fujin(ranked,quality); rl,rc=derive_raijin(ranked,quality); applied=apply_rule(ranked,fl,rl,rc,config)
+        fl=derive_fujin(ranked,quality); rl,rc=derive_raijin(ranked,quality,outside_live_top3=rank_gates.get(date,{}).get(d["race_id"],date <= "20261011")); applied=apply_rule(ranked,fl,rl,rc,config)
         if not applied: continue
         key,rule,adjusted,combos=applied
         rank=next((i for i,(_,c) in enumerate(combos,1) if c==actual),None)

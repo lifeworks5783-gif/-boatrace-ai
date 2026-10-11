@@ -88,6 +88,12 @@ jobs:
           test -s evaluations/signal_ai/latest/summary.json
           test -s evaluations/signal_ai/latest/details.csv
 
+      - name: 雷神の順位制限なし新版を過去全件で別集計
+        run: |
+          python -u collectors/evaluate_raijin_all_rank_replay.py --output-dir evaluations/raijin_all_rank_v2_replay
+          test -s evaluations/raijin_all_rank_v2_replay/summary.json
+          test -s evaluations/raijin_all_rank_v2_replay/details.csv
+
       - name: 4日累積PDCAを再計算
         run: python -u collectors/evaluate_pdca_incremental_4day.py
 

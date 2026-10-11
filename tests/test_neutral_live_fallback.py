@@ -277,10 +277,10 @@ class NeutralLiveFallbackTests(unittest.TestCase):
         boats=race["boats"]
         quality=race["prediction_quality"]
         self.assertEqual(quality["verified_scratched_boats"],[3])
-        decision=signal_from_rows(boats, quality)
+        decision=signal_from_rows(boats, quality, outside_live_top3=True)
         self.assertIsNotNone(decision)
         self.assertEqual(decision["raijin_level"],2)
-        level,candidates=derive_raijin(boats,quality)
+        level,candidates=derive_raijin(boats,quality,outside_live_top3=True)
         self.assertEqual(level,2)
         self.assertTrue(candidates)
         self.assertEqual(derive_fujin(boats,quality),0)

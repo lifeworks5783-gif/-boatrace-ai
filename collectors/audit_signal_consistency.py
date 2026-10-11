@@ -82,6 +82,17 @@ def published_cards(path: Path, valid_venues: dict[str, str]) -> dict[str, dict]
     return output
 
 
+def archived_raijin_rank_gate(record: dict) -> bool:
+    """Re-audit stored predictions with THEIR frozen logic, not today's rules.
+
+    Records saved before the v2 no-rank policy retain the rank-gated logic.
+    A research replay must never silently rewrite a historically saved signal.
+    """
+    identity = record.get("signal_logic_identity") or {}
+    model = str(identity.get("model_version") or "")
+    return model != "fujin_raijin_pipeline_v2_20261011"
+
+
 def audit(date: str, root: Path, rendered: Path | None) -> dict:
     if not re.fullmatch(r"\d{8}", date):
         raise ValueError("Expected YYYYMMDD date")
@@ -143,7 +154,7 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
 
         saved_up = record.get("up_signal") or {}
         saved_down = record.get("down_signal") or {}
-        expected_up = build_up_signal(boats, quality)
+        expected_up = build_up_signal(boats, quality, outside_live_top3=archived_raijin_rank_gate(record))
         expected_down = build_down_signal(boats, quality)
         raijin, fujin = int_value(saved_up.get("level")), int_value(saved_down.get("level"))
         check_up, check_down = int_value(expected_up.get("level")), int_value(expected_down.get("level"))
@@ -223,7 +234,7 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
                 quality = record.get("prediction_quality") or {}
                 scored_boats = record.get("boats") or []
                 computed = [
-                    int_value(build_up_signal(scored_boats, quality).get("level")),
+                    int_value(build_up_signal(scored_boats, quality, outside_live_top3=archived_raijin_rank_gate(record)).get("level")),
                     int_value(build_down_signal(scored_boats, quality).get("level")),
                 ]
                 if computed != expected_levels:

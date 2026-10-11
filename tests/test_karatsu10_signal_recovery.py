@@ -30,7 +30,7 @@ class Karatsu10SignalRecoveryTest(unittest.TestCase):
             places=2,
         )
         fujin = build_down_signal(boats, row["prediction_quality"])
-        raijin = build_up_signal(boats, row["prediction_quality"])
+        raijin = build_up_signal(boats, row["prediction_quality"], outside_live_top3=True)  # audit original v1
         self.assertTrue(raijin["available"])
         self.assertTrue(raijin["active"])
         self.assertEqual(raijin["level"], 1)  # +9.98 displays +10.0, but <10 unrounded
