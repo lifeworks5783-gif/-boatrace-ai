@@ -42,6 +42,8 @@ jobs:
         run: |
           python -m py_compile collectors/dispatch_wait_workflow.py
           python -m unittest discover -s tests -p test_manual_button_full_refresh.py -v
+      - name: All-race manual recovery PDCA must follow canonical V2 signal refresh
+        run: python -m unittest discover -s tests -p test_signal_canonical_pdca_order.py -v
       - name: Finished-race normal-score versus saved signal/PDCA/public parity regression
         run: |
           python -m py_compile collectors/audit_signal_consistency.py collectors/build_family_race_compare_page.py
@@ -69,6 +71,11 @@ jobs:
           PY
       - name: Research-only 120-combination score/rank attribution and baseline parity
         run: |
+          # Rebuild independent V2 replay in the ephemeral CI workspace FIRST:
+          # live/recovery scores and 60 results can have advanced since the
+          # previously saved research snapshot; stale 21R replay must not block
+          # valid 60R parity tests or be silently accepted.
+          python -u collectors/evaluate_raijin_all_rank_replay.py
           python -m unittest discover -s tests -p test_signal_rank_research.py -v
           python -u collectors/evaluate_signal_rank_research.py \
             --no-combination-details --output-dir /tmp/signal_rank_research_full_ci

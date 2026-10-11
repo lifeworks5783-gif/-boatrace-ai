@@ -123,6 +123,14 @@ jobs:
           print("MANUAL_RESEARCH_AUDIT", research.get("research_status"),
                 research.get("valid_research_races"), research.get("requires_manual_completion"))
           PY_AUDIT
+          # Canonical recovery just replaced provisional/archived V1 signals with
+          # verified V2. The independent PDCA MUST be recomputed NOW from this
+          # canonical before comparing per-race F/R levels. The intraday PDCA
+          # runs earlier (on the last committed canonical) and can legitimately
+          # contain stale V1 rank gates or omit recovered races.
+          python -u collectors/evaluate_fujin_raijin_history.py --date "$TARGET_DATE"
+          test -s "evaluations/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/fujin_raijin_combo_${TARGET_DATE}.json"
+          test -s evaluations/fujin_raijin/latest/backtest_details.csv
           # Prevent a genuine signal from becoming an old F0R0 placeholder.
           # Check all finished races: six-boat score recomputation, persisted
           # canonical levels and the independent cumulative PDCA source.
@@ -135,6 +143,10 @@ jobs:
           git add "predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/live/formation_predictions_final_${TARGET_DATE}.csv"
           git add predictions/latest.md predictions/latest.json predictions/latest_by_deadline.md predictions/latest_by_deadline.json
           git add "evaluations/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/data_quality"
+          git add "evaluations/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/fujin_raijin_combo_${TARGET_DATE}.json"
+          git add evaluations/fujin_raijin/latest/backtest_details.csv
+          git add evaluations/fujin_raijin/latest/backtest_summary.json
+          git add evaluations/fujin_raijin/latest/combination_matrix.csv
           if git diff --cached --quiet; then
             echo "共通正本はすでに最新"
             exit 0
