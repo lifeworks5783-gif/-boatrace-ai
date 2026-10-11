@@ -9,7 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from race_prediction_store import canonical_path
-from build_latest_prediction_view import signal_field_is_verified
+from build_latest_prediction_view import signal_field_is_verified, build_up_signal
 
 
 RULE_VERSION = "down_signal_v1_20261008"
@@ -171,42 +171,17 @@ def signal_from_rows(rows, quality=None):
     }
     reasons = [key for key, met in criteria.items() if met]
 
-    up10 = any(
-        (idx + 1) > 3 and deltas[idx] >= 10.0
-        for idx in range(len(ranked))
-    )
-    up75 = any(
-        (idx + 1) > 3 and deltas[idx] >= 7.5
-        for idx in range(len(ranked))
-    )
-    raijin_candidates = [
-        {
-            "boat": to_int(ranked[idx].get("boat")),
-            "rank": idx + 1,
-            "rise": round(deltas[idx], 2),
-            "score": round(live_scores[idx], 2),
-        }
-        for idx in range(len(ranked))
-        if (idx + 1) > 3 and deltas[idx] >= 7.5
-    ]
-    raijin_max_rise = max(
-        (x["rise"] for x in raijin_candidates),
-        default=None,
-    )
-    raijin_has_score50 = any(
-        (x.get("score") is not None and x["score"] >= 50.0)
-        for x in raijin_candidates
-    )
-    if raijin_max_rise is None:
-        raijin_level = 0
-    elif raijin_has_score50:
-        # Lv3: 上昇幅だけでなく、通常予測スコア50以上まで浮上した実戦候補。
-        raijin_level = 3
-    elif raijin_max_rise >= 10.0:
-        # Lv2: +10以上。Lv3条件に該当しない限り上限なし。
-        raijin_level = 2
-    else:
-        raijin_level = 1
+    # Use exactly the same versioned Raijin detector as the published prediction.
+    # Do not silently retain a second hard-coded rank restriction in PDCA.
+    raijin = build_up_signal(ranked, quality)
+    if raijin.get("available") is not True:
+        return None
+    raijin_candidates = raijin.get("candidates") or []
+    up10 = any(item["rise"] >= 10.0 for item in raijin_candidates)
+    up75 = bool(raijin_candidates)
+    raijin_max_rise = raijin.get("max_rise")
+    raijin_has_score50 = bool(raijin.get("has_score50_candidate"))
+    raijin_level = int(raijin.get("level") or 0)
 
     return {
         "ranked": ranked,
