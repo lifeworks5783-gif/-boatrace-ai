@@ -30,6 +30,8 @@ on:
       - "collectors/build_family_signal_analysis_page.py"
       - "evaluations/fujin_raijin/**"
       - "evaluations/raijin_all_rank_v2_replay/**"
+      - "evaluations/signal_rank_research/**"
+      - "collectors/evaluate_signal_rank_research.py"
       - "evaluations/signal_ai/**"
       - "evaluations/signal_pdca_cross/**"
       - "collectors/evaluate_signal_pdca_cross.py"
@@ -149,6 +151,10 @@ jobs:
           python -u collectors/evaluate_raijin_all_rank_replay.py
           test -s evaluations/raijin_all_rank_v2_replay/summary.json
           test -s evaluations/raijin_all_rank_v2_replay/details.csv
+          # Public page consumes a read-only temporary research recomputation;
+          # daily full-120 CSV records are persisted by saved-data/replay PDCA.
+          python -u collectors/evaluate_signal_rank_research.py --no-combination-details
+          test -s evaluations/signal_rank_research/v1/summary.json
           python - <<'PY'
           import json
           from pathlib import Path
@@ -189,6 +195,7 @@ jobs:
           grep -q '毎日必須・5,000円以上の高配当' _family_site/analysis.html
           grep -q '毎日必須・風神雷神16通り' _family_site/analysis.html
           grep -q '3連単120通り' _family_site/analysis.html
+          grep -q '120通り・実着順位の原因研究' _family_site/analysis.html
 
           echo "風神雷神専用AI分析ページ生成: PASS"
 
