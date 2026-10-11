@@ -1,14 +1,9 @@
 name: Race prediction contract tests
 
 on:
-  push:
-    branches:
-      - main
-      - refactor/logic-registry-canonical-race-v1
-      - fix/recovered-live-canonical-signal-24
-      - fix/recovery-signal24-current-main
-  pull_request:
-    branches: [main]
+  # GitHub Actions at 90% of monthly limit: manually dispatch the costly
+  # 10-minute full contract suite when code is ready for acceptance.
+  # No per-push or PR fan-out while Cloudflare-native migration proceeds.
   workflow_dispatch:
 
 permissions:
