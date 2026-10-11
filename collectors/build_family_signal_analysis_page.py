@@ -526,11 +526,11 @@ def build_page(root: Path) -> str:
 {combo_table(backtest)}
 </section>
 
-<section class="card"><h2>毎日必須・5,000円以上の高配当と万舟捕捉（単日／累計）</h2>
+<section class="card"><h2>旧保存版の5,000円以上・万舟捕捉（単日／累計）</h2>
 <p class="note">5,000円未満も含む配当帯別の件数を、シグナル発動／非発動で完全分離。高配当捕捉率と発動後高配当率の分母を混同しません。</p>
 {high_dividend_report(cross_pdca)}
 </section>
-<section class="card"><h2>毎日必須・風神雷神16通り × 4買い方（単日／7日／累計）</h2>
+<section class="card"><h2>旧保存版の風神雷神16通り × 4買い方（単日／7日／累計）</h2>
 <p class="note">方式ごとの評価可能Rと購入点数・損益・回収率を表示。欠損レースは各方式の母数から除外、専用AIの非発動は対象外。</p>
 {cross_methods_report(cross_pdca)}
 </section>
@@ -553,7 +553,7 @@ def build_page(root: Path) -> str:
 {legacy_analysis_sections(root)}
 
 <section class="card">
-<h2>⑧ シグナル検証・詳細</h2>
+<h2>⑧ 旧保存版シグナル検証・詳細</h2>
 <p class="note">万舟捕捉率、シグナル発動後の高配当率など、買い／見送り判定に必要な固定検証項目を保存済みデータから再表示します。対象艇の着順別率・通常スコア帯との関係は保存データが揃い次第この枠へ継続追加します。</p>
 {detailed_signal_validation(backtest)}
 </section>
