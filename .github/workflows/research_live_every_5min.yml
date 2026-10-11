@@ -1,8 +1,7 @@
 name: Research latest-information five-minute scheduler
 on:
   schedule:
-    # Five-minute spacing, offset from busy top-of-hour.
-    - cron: '2-59/5 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,39 +10,68 @@ concurrency:
   group: research-live-five-minute-dispatch
   cancel-in-progress: false
 jobs:
-  dispatch-if-idle:
+  dispatch-if-needed:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Dispatch research-only V3 when inputs exist and prior run is idle
+      - name: From 04:00 JST collect; after all results trigger AI and PDCA
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$GH_REPO" != "lifeworks5783-gif/-boatrace-ai" ]]; then
-            echo "Refuse dispatch outside public research repository"
-            exit 1
-          fi
+          [[ "$GH_REPO" == "lifeworks5783-gif/-boatrace-ai" ]] || exit 1
           TODAY="$(TZ=Asia/Tokyo date +%Y%m%d)"
+          HOUR="$(TZ=Asia/Tokyo date +%H)"
+          if (( 10#$HOUR < 4 )); then
+            echo "Outside daily collection window (before 04:00 JST)"
+            exit 0
+          fi
           YEAR="${TODAY:0:4}"; MONTH="${TODAY:4:2}"; DAY="${TODAY:6:2}"
           ROOT="repos/$GH_REPO/contents"
-          # Do not run V3 before the actual morning input/prediction exists.
-          if ! gh api "$ROOT/daily_inputs/$YEAR/$MONTH/$DAY/base/program_races_$TODAY.csv" >/dev/null 2>&1; then
-            echo "Skip: today's original morning program is not yet saved"
+          BASE="daily_inputs/$YEAR/$MONTH/$DAY/base"
+          gh api "$ROOT/$BASE/program_races_$TODAY.csv" >/dev/null 2>&1 || {
+            echo "Morning program pending; do not invent inputs"; exit 0;
+          }
+          gh api "$ROOT/predictions/$YEAR/$MONTH/$DAY/morning_predictions_$TODAY.json" >/dev/null 2>&1 || {
+            echo "Morning score pending; do not fabricate a post-deadline morning prediction"; exit 0;
+          }
+
+          # Full-day completion requires official race counts, all results,
+          # six-boat completeness and research audit all PASS.
+          AUDIT="evaluations/$YEAR/$MONTH/$DAY/data_quality/completeness_$TODAY.json"
+          FULL=false
+          if gh api "$ROOT/$AUDIT" --jq .content 2>/dev/null | tr -d '\n' | base64 -d > /tmp/research-audit.json; then
+            if jq -e --arg d "$TODAY" '
+              .date==$d and .status=="PASS" and
+              .research_audit.research_status=="PASS" and
+              (.expected_races > 0) and
+              (.result_races == .expected_races) and
+              (.complete_races == .expected_races) and
+              (.pending_races == 0) and (.incomplete_races == 0)
+            ' /tmp/research-audit.json >/dev/null; then FULL=true; fi
+          fi
+          if [[ "$FULL" == true ]]; then
+            echo "No races remain; live polling stops for today."
+            # Avoid multiple AI/PDCA runs, including pending or successful runs.
+            RUNS="$(gh api "repos/$GH_REPO/actions/workflows/saved_data_pdca_refresh.yml/runs?per_page=100&event=workflow_dispatch" --jq '.workflow_runs')"
+            DAY_START="$(date -u -d "$(TZ=Asia/Tokyo date +%Y-%m-%d) 00:00:00 +0900" +%Y-%m-%dT%H:%M:%SZ)"
+            TODAY_RUNS="$(jq --arg start "$DAY_START" '[.[] | select(.created_at >= $start)]' <<< "$RUNS")"
+            if jq -e 'any(.[]; .status!="completed" or .conclusion=="success")' <<< "$TODAY_RUNS" >/dev/null; then
+              echo "AI/PDCA already queued, running or successful"; exit 0;
+            fi
+            if (( $(jq 'length' <<< "$TODAY_RUNS") >= 3 )); then
+              echo "AI/PDCA repeatedly failed; stop unsafe retries"; exit 1;
+            fi
+            gh workflow run saved_data_pdca_refresh.yml --repo "$GH_REPO" --ref main -f target_date="$TODAY"
+            echo "AI analysis / PDCA preparation dispatched for $TODAY"
             exit 0
           fi
-          if ! gh api "$ROOT/predictions/$YEAR/$MONTH/$DAY/morning_predictions_$TODAY.json" >/dev/null 2>&1; then
-            echo "Skip: original morning prediction has not been saved"
-            exit 0
-          fi
-          # Existing V3 writes snapshots, prediction, reconciliation and family pages.
-          # Running it concurrently would queue uncontrolled duplicate writers.
-          ACTIVE="$(gh api "repos/$GH_REPO/actions/workflows/fast_live_collection_v3.yml/runs?per_page=100" --jq '[.workflow_runs[] | select(.status != "completed")] | length')"
-          if [[ "$ACTIVE" -gt 0 ]]; then
-            echo "Skip: existing live collection is queued or running ($ACTIVE)"
-            exit 0
+
+          ACTIVE="$(gh api "repos/$GH_REPO/actions/workflows/fast_live_collection_v3.yml/runs?per_page=100" --jq '[.workflow_runs[] | select(.status!="completed")] | length')"
+          if (( ACTIVE > 0 )); then
+            echo "Research live V3 already running or queued"; exit 0;
           fi
           gh workflow run fast_live_collection_v3.yml --repo "$GH_REPO" --ref main -f quick_mode=true
-          echo "Research-only latest information pipeline dispatched for $TODAY"
+          echo "Research live data / signal / compare / publication dispatched"
