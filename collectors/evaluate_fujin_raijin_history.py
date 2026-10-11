@@ -16,6 +16,7 @@ from evaluate_down_signal import (
     resolve_analysis_live_path,
     signal_from_rows,
     verified_signal_quality_by_race,
+    verified_signal_rank_gate_by_race,
     to_int,
 )
 
@@ -185,6 +186,7 @@ def evaluate_date(d):
     details = []
     skipped = []
     qualities = verified_signal_quality_by_race(d)
+    rank_gates = verified_signal_rank_gate_by_race(d)
     no_result = 0
 
     for race_id, rows in sorted(grouped.items()):
@@ -193,7 +195,7 @@ def evaluate_date(d):
             no_result += 1
             continue
 
-        sig = signal_from_rows(rows, qualities.get(race_id))
+        sig = signal_from_rows(rows, qualities.get(race_id), outside_live_top3=rank_gates.get(race_id, d <= "20261011"))
         if sig is None:
             skipped.append(race_id)
             continue
