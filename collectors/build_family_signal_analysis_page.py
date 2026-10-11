@@ -441,6 +441,86 @@ def raijin_v2_pdca_section(root: Path) -> str:
     )
 
 
+def rank_research_panel(root: Path) -> str:
+    """Research only: this panel reads the non-production 120-combo PDCA."""
+    research = load_json(root / "signal_rank_research/v1/summary.json")
+    if not research:
+        return ('<section class="card"><h2>120通り・実着順位の原因研究</h2>'
+                '<div class="empty">研究用の再計算データを生成中です。本番の予測は変更しません。</div></section>')
+    if research.get("model_version") != "signal_rank_diagnostic_v1_20261011":
+        return ('<section class="card"><h2>120通り・実着順位の原因研究</h2>'
+                '<div class="empty">研究ロジックの版を確認してください。</div></section>')
+    metrics = (research.get("overall") or {}).get("by_method") or {}
+    diagnose = (research.get("overall") or {}).get("diagnostic") or {}
+    dates = research.get("sample_dates") or []
+    numbers = (
+        card("検証したシグナルR",n(research.get("finished_signal_races"),0),
+             f"{len(dates)}日分")
+        + card("朝段階の実着平均順位",n(diagnose.get("avg_realized_morning_rank")),"120通り内")
+        + card("直前段階の実着平均順位",n(diagnose.get("avg_realized_live_rank")),"120通り内")
+        + card("補正後の実着平均順位",n(diagnose.get("avg_realized_signal_rank")),"120通り内")
+        + card("シグナル補正で圏外へ",n(diagnose.get("actual_top24_lost_due_to_signal"),0),
+               "直前24位内→補正後25位以下")
+        + card("シグナル補正で圏内へ",n(diagnose.get("actual_top24_rescued_by_signal"),0),
+               "直前25位以下→補正後24位内")
+    )
+    order = ("signal_score","morning_delta","live_delta",
+             "morning_abs_delta","live_abs_delta",
+             "blend_morning_025","blend_live_025",
+             "shortlist48_morning_delta","shortlist48_live_delta")
+    rows = []
+    for key in order:
+        m = metrics.get(key) or {}
+        if not m: continue
+        rows.append(
+            f"<tr><td>{html.escape(str((research.get('methods') or {}).get(key,key)))}</td>"
+            f"<td>{n(m.get('races'),0)}</td>"
+            f"<td>{n(m.get('hits24'),0)}</td>"
+            f"<td>{pct(m.get('hit24_pct'))}</td>"
+            f"<td>{pct(m.get('roi_pct'))}</td>"
+            f"<td>{n(m.get('actual_rank_mean'))}</td>"
+            f"<td>{n(m.get('rescued_vs_baseline'),0)}</td>"
+            f"<td>{n(m.get('lost_vs_baseline'),0)}</td></tr>"
+        )
+    table = ('<div class="table-wrap"><table><thead><tr><th>24点選択の検証方式</th>'
+             '<th>評価R</th><th>的中R</th><th>的中率</th><th>回収率</th>'
+             '<th>実着平均順位</th><th>新しく拾えた</th><th>取りこぼし</th>'
+             '</tr></thead><tbody>'+"".join(rows)+'</tbody></table></div>')
+    bands = []
+    for k,label in (("under5000","5千円未満"),("5000_9999","5千〜1万円未満"),
+                    ("10000_plus","1万円以上")):
+        section = ((research.get("comparisons") or {}).get("by_payout") or {}).get(k) or {}
+        m = (section.get("by_method") or {}).get("signal_score") or {}
+        d = section.get("diagnostic") or {}
+        bands.append(
+            f"<tr><td>{label}</td><td>{n(section.get('races'),0)}</td>"
+            f"<td>{n(d.get('avg_realized_morning_rank'))}</td>"
+            f"<td>{n(d.get('avg_realized_live_rank'))}</td>"
+            f"<td>{n(d.get('avg_realized_signal_rank'))}</td>"
+            f"<td>{pct(m.get('hit24_pct'))}</td></tr>"
+        )
+    band_table = ('<div class="table-wrap"><table><thead><tr><th>3連単払戻</th><th>R</th>'
+                  '<th>朝の平均実着順位</th><th>直前の平均実着順位</th>'
+                  '<th>補正後の平均実着順位</th><th>24点的中率</th>'
+                  '</tr></thead><tbody>'+"".join(bands)+'</tbody></table></div>')
+    return (
+        '<section class="card" id="signal-rank-research">'
+        '<h2>120通り・実着順位の原因研究（独立PDCA）</h2>'
+        '<p class="note">同じレースの朝予測・通常直前予測・風神雷神補正後を120通り'
+        '（欠場艇がある場合60/24通り）で順位付け。'
+        '展示情報の影響と風神雷神バフ・デバフの影響を分けて確認します。'
+        '表示は過去結果との研究上の答え合わせで、当時の購入記録とは別です。</p>'
+        f'<div class="metrics">{numbers}</div>'
+        '<h3>実着の順位変化と配当帯</h3>'+band_table
+        '<h3>固定24点・同じ母数での研究比較</h3>'+table
+        '<p class="note">差分方式は未採用の研究案です。「拾えた／取りこぼし」は'
+        '現行24点に対する差。旧データを見て決めた候補なので、'
+        '今ある期間の良い結果だけで採用せず、今後の未使用データで再検証します。'
+        '元の通常予測・シグナル補正値・実際の購入履歴は変更しません。</p>'
+        '</section>'
+    )
+
+
 def build_page(root: Path) -> str:
     backtest = load_json(root / "fujin_raijin/latest/backtest_summary.json")
     buff = load_json(root / "fujin_raijin/buff_debuff/latest.json")
@@ -510,6 +590,8 @@ def build_page(root: Path) -> str:
 </section>
 
 {raijin_v2_pdca_section(root)}
+
+{rank_research_panel(root)}
 
 <section class="card"><h2>旧版・当時記録の比較集計</h2><p class="note">以下の過去保存版の数値は元の判定・買い目の監査用です。新ルールのPDCAは上の「雷神・修正版PDCA」を参照してください。</p><div class="metrics">{metrics}</div></section>
 
