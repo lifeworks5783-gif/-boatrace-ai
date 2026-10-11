@@ -34,6 +34,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from race_prediction_store import canonical_path, audit_race
+from signal_v2_research_overlay import finished_v2_overlays
 
 
 JST = timezone(timedelta(hours=9))
@@ -1624,8 +1625,10 @@ def signal_payout_badge(payout, raijin, fujin, canonical_signal=None):
         '</span>'
     )
 
-def signal_recheck_pending_html(formation_prediction):
+def signal_recheck_pending_html(formation_prediction, research_signal=None):
     """Never display a result card's morning-only placeholder as no signal."""
+    if research_signal is not None:
+        return ""  # Verified finished-race V2 research judgement already available
     original = (formation_prediction or {}).get("raw") or {}
     if not original:
         return (
@@ -1668,7 +1671,8 @@ def nontrigger_signal_diagnostic_html(raijin, fujin):
     return (
         '<details class="signal-no-trigger-detail">'
         '<summary>シグナル非発動の判定根拠（研究用検証）</summary>'
-        '<div>雷神：直前上位3艇以外に、朝比＋'
+        '<div>雷神：'
+        + ('直前上位3艇以外に、朝比＋' if thresholds.get('outside_live_top3') else '直前順位を問わず、朝比＋')
         + esc(f"{float(min_rise):g}")
         + '点以上上昇した対象艇なし。'
         + '風神：直前1位の朝比 ' + esc(show(rank_delta))
@@ -2477,7 +2481,9 @@ def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
     ai = signal if is_signal else (
         prediction.get("ai_score_prediction") or raw.get("ai_score_prediction") or {}
     )
-    label = "風神雷神専用AI予想" if is_signal else "通常AIスコア予測"
+    research_only = is_signal and canonical_signal.get("research_only") is True
+    label = ("風神雷神専用AI予想（V2・事後研究24点）" if research_only
+             else "風神雷神専用AI予想" if is_signal else "通常AIスコア予測")
     all120 = ai.get("all_120_combinations") or ai.get("combinations") or []
     purchase_points = 24 if is_signal else (safe_int(ai.get("points")) or 8)
     display_points = 24 if is_signal else 12
@@ -2501,7 +2507,7 @@ def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
             classes.append("ai-bought")
         if combo == trifecta:
             classes.append("hit-pick")
-        badge = "購入" if bought else "参考"
+        badge = ("検証候補" if research_only else "購入") if bought else "参考"
         score_text = f"{score:.1f}" if score is not None else "—"
         rows.append(
             f'<div class="{" ".join(classes)}">'
@@ -2522,25 +2528,27 @@ def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
         rank_label = (f"実着{actual_rank}位／{total_ranked}通り"
                       if actual_rank is not None else "実着順位未取得")
         if hit:
-            closed_result = (f'<span class="signal-rank-hit" title="風神雷神AI購入上位24点に実着が含まれました">'
+            closed_result = (f'<span class="signal-rank-hit" title="{ "研究用の仮想上位24点" if research_only else "風神雷神AI購入上位24点" }に実着が含まれました">'
                              f'的中・{esc(rank_label)}</span>')
         else:
-            closed_result = (f'<span class="signal-rank-miss" title="購入24点の外でも実着のAI評価順位を確認できます">'
+            closed_result = (f'<span class="signal-rank-miss" title="{ "研究用上位24点" if research_only else "購入24点" }の外でも実着のAI評価順位を確認できます">'
                              f'不的中・{esc(rank_label)}</span>')
     else:
         closed_result = status
 
 
+    ticket_label = "検証用仮想" if research_only else "購入"
+    research_note = ("研究用の事後再計算です。当時の締切前予測・購入履歴とは別の仮想収支です。" if research_only else "")
     return f"""
     <details class="simulation-box ai-result-box">
       <summary class="ai-result-summary">
         <span class="simulation-title">{label}を見る</span>
         <span class="ai-result-summary-meta">
-          購入{purchase_points}点 ／ {closed_result} ／ 投資 <b>{investment:,}円</b> ／ 払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b>
+          {ticket_label}{purchase_points}点 ／ {closed_result} ／ 仮想投資 <b>{investment:,}円</b> ／ 払戻 <b>{returned:,}円</b> ／ 収支 <b>{profit:+,}円</b>
         </span>
       </summary>
       <div class="ai-result-body">
-        <div class="simulation-meta">表示{len(visible)}点 ／ 購入上位{purchase_points}点・各100円</div>
+        <div class="simulation-meta">{esc(research_note)} 表示{len(visible)}点 ／ {ticket_label}上位{purchase_points}点・各100円</div>
         <div class="ai-result-list">{''.join(rows)}</div>
       </div>
     </details>
@@ -2783,7 +2791,9 @@ def render_html(
     race_rows,
 ):
 
-    # Canonical formation record is also the only signal/ticket source here.
+    # Preserve the frozen canonical v1 signal/tickets. Historical comparisons
+    # display the separately verified v2 research layer, never as a real bet.
+    corrected = finished_v2_overlays(target_date)
     for record in race_rows:
         original = (record.get("formation_prediction") or {}).get("raw") or {}
         checked = audit_race(original) if original else {
@@ -2792,6 +2802,12 @@ def render_html(
         record["_canonical_signal"] = {
             **checked, "signal_ai_prediction": original.get("signal_ai_prediction") or {}
         }
+        replay = corrected.get(record["race_code"])
+        if replay is not None:
+            record["_historical_signal_v2"] = replay
+            record["up_signal"] = replay["up_signal"]
+            record["down_signal"] = replay["down_signal"]
+            record["_canonical_signal"] = replay
 
     morning_summary = aggregate(
         race_rows,
@@ -2985,7 +3001,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {signal_recheck_pending_html(row.get("formation_prediction"))} {prediction_quality_warning(row.get("live_display"))}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {signal_recheck_pending_html(row.get("formation_prediction"), row.get("_historical_signal_v2"))} {prediction_quality_warning(row.get("live_display"))}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
@@ -3005,6 +3021,8 @@ def render_html(
     </div>
 
   </div>
+
+  {('<div class="signal-research-note">雷神V2の研究用事後再判定。公式保存の直前スコアで算出した検証結果で、締切時の検知・実購入ではありません。</div>' if row.get("_historical_signal_v2") else "")}
 
   {nontrigger_signal_diagnostic_html(row.get("up_signal"), row.get("down_signal"))}
 
