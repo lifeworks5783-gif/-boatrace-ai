@@ -1,0 +1,57 @@
+name: Raijin all-rank historical replay
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "collectors/evaluate_raijin_all_rank_replay.py"
+      - "config/run_raijin_rankless_replay.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raijin-all-rank-replay-main
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Prepare prediction calculation dependencies
+        run: python -m pip install requests beautifulsoup4
+      - name: Re-evaluate every archived observation under both rank policies
+        run: |
+          python -m unittest discover -s tests -p test_raijin_rank_independence.py -v
+          python -u collectors/evaluate_raijin_all_rank_replay.py --output-dir evaluations/raijin_all_rank_v2_replay
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("evaluations/raijin_all_rank_v2_replay/summary.json").read_text())
+          assert x["research_only"] is True
+          assert x["result_as_input_to_signals"] is False
+          assert x["valid_races"] > 0
+          assert x["changed_raijin_levels"] > 0
+          case=x["known_case_202610112306"]
+          assert case is not None and case["old_raijin_level"] == 0, case
+          assert case["new_raijin_level"] == 3, case
+          print("RAIJIN_V2_HISTORICAL_REPLAY_PASS", x["valid_races"], x["changed_raijin_levels"])
+          PY
+      - name: Save research output without touching historical canonical files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/raijin_all_rank_v2_replay/
+          if git diff --cached --quiet; then echo "Replay unchanged"; exit 0; fi
+          git commit -m "Save rank-independent Raijin v2 retrospective comparison"
+          git pull --rebase origin main
+          git push origin HEAD:main
