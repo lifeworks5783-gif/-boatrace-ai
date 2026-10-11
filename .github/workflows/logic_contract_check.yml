@@ -48,6 +48,25 @@ jobs:
           python -m unittest discover -s tests -p test_signal_consistency_audit.py -v
       - name: Model parity and signal 24 contracts
         run: python -m unittest discover -s tests -p test_logic_pipeline_contract.py -v
+      - name: Raijin all-rank regression and historical research replay
+        run: |
+          python -m unittest discover -s tests -p test_raijin_rank_independence.py -v
+          python -u collectors/evaluate_raijin_all_rank_replay.py --from-date 20261010 --to-date 20261011 --output-dir /tmp/raijin_replay_check
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('/tmp/raijin_replay_check/summary.json')
+          x = json.loads(p.read_text(encoding='utf-8'))
+          assert x['research_only'] is True
+          assert x['result_as_input_to_signals'] is False
+          assert x['valid_races'] > 0
+          assert x['changed_raijin_levels'] > 0
+          karatsu = x['known_case_202610112306']
+          assert karatsu['old_raijin_level'] == 0, karatsu
+          assert karatsu['new_raijin_level'] == 3, karatsu
+          assert karatsu['new_top3_rising_candidates'][0]['boat'] == 6, karatsu
+          print('RAIJIN_RANKLESS_REPLAY_PASS', x['valid_races'], x['changed_raijin_levels'])
+          PY
       - name: Production immutable-history and numerical-config safety
         run: python -m unittest discover -s tests -p test_production_safety.py -v
       - name: Neutral 0-delta provisional live scoring, signal block, two-page warnings and replay queue
