@@ -15,6 +15,7 @@ from pathlib import Path
 
 from build_latest_prediction_view import build_up_signal, build_down_signal
 from race_prediction_store import audit_race
+from signal_v2_research_overlay import finished_v2_overlays
 
 
 def race_code(value: object) -> str:
@@ -132,6 +133,7 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
                     row.get("venue_name") or "", int_value(row.get("race"))
                 )
     cards = published_cards(rendered, valid_venues) if rendered else None
+    corrected_research = finished_v2_overlays(date, root=root)
     inconsistencies = []
     checked = []
     triggered = 0
@@ -181,15 +183,19 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
                 inconsistencies.append({"race_id": key, "error": "missing_public_race_card"})
             else:
                 displayed = [card["raijin_level"], card["fujin_level"]]
-                if displayed != [raijin, fujin]:
+                projected = corrected_research.get(key)
+                expected_visible = ([int_value(projected["up_signal"].get("level")),
+                                     int_value(projected["down_signal"].get("level"))]
+                                    if projected else [raijin,fujin])
+                if displayed != expected_visible:
                     inconsistencies.append({"race_id": key, "error": "public_signal_icons_do_not_match",
-                                            "saved": [raijin, fujin], "public": displayed})
+                                            "saved_original": [raijin, fujin], "expected_visible": expected_visible, "public": displayed})
                 payout = int_value(result.get("trifecta_pay"))
                 if payout >= 5000:
-                    expected_miss = not bool(raijin or fujin)
+                    expected_miss = not any(expected_visible)
                     if card["badge_not_triggered"] != expected_miss or card["badge_unobservable"]:
                         inconsistencies.append({"race_id": key, "error": "false_public_payout_signal_badge"})
-                if not (raijin or fujin) and not card["explanation"]:
+                if not any(expected_visible) and not card["explanation"]:
                     inconsistencies.append({"race_id": key, "error": "missing_visible_no_signal_explanation"})
 
         payout = int_value(result.get("trifecta_pay"))
