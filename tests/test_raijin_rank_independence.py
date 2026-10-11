@@ -34,11 +34,13 @@ class RaijinAllRankContractTest(unittest.TestCase):
             [73.2, 69.3, 66.1, 43.8, 24.2, 23.3],
             [69.5, 55.4, 76.6, 57.3, 25.2, 16.0],
         )
+        for item, boat_number in zip(boats, [2, 6, 1, 3, 4, 5]):
+            item["boat"] = boat_number
         up = build_up_signal(boats)
         down = build_down_signal(boats)
         self.assertEqual(up["level"], 3)
         self.assertEqual(down["level"], 0)
-        self.assertEqual([item["boat"] for item in up["candidates"]], [2])
+        self.assertEqual([item["boat"] for item in up["candidates"]], [6])
         self.assertEqual(up["candidates"][0]["rank"], 2)
         self.assertAlmostEqual(up["candidates"][0]["rise"], 13.9)
         self.assertEqual(signal_from_rows(boats)["raijin_level"], up["level"])
