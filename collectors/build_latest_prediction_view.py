@@ -306,7 +306,7 @@ def build_up_signal(
         morning_score = to_float(row.get("morning_score_reference"))
         boat = boat_number(row)
         if (
-            live_rank <= 3
+            (SIGNAL_RAIJIN["outside_live_top3"] and live_rank <= 3)
             or boat is None
             or live_score is None
             or morning_score is None
@@ -355,7 +355,7 @@ def build_up_signal(
             "level2_rise_max": None,
             "level3_candidate_score_min": SIGNAL_RAIJIN["level3_score"],
             "level3_candidate_rise_min": SIGNAL_RAIJIN["min_rise"],
-            "outside_live_top3": True,
+            "outside_live_top3": bool(SIGNAL_RAIJIN["outside_live_top3"]),
             "level3_priority": True,
         },
         "candidates": candidates,
