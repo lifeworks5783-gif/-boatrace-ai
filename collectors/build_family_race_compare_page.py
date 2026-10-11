@@ -34,6 +34,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from race_prediction_store import canonical_path, audit_race
+from signal_v2_research_overlay import finished_v2_overlays
 
 
 JST = timezone(timedelta(hours=9))
@@ -1624,8 +1625,10 @@ def signal_payout_badge(payout, raijin, fujin, canonical_signal=None):
         '</span>'
     )
 
-def signal_recheck_pending_html(formation_prediction):
+def signal_recheck_pending_html(formation_prediction, research_signal=None):
     """Never display a result card's morning-only placeholder as no signal."""
+    if research_signal is not None:
+        return ""  # Verified finished-race V2 research judgement already available
     original = (formation_prediction or {}).get("raw") or {}
     if not original:
         return (
@@ -1668,7 +1671,8 @@ def nontrigger_signal_diagnostic_html(raijin, fujin):
     return (
         '<details class="signal-no-trigger-detail">'
         '<summary>シグナル非発動の判定根拠（研究用検証）</summary>'
-        '<div>雷神：直前上位3艇以外に、朝比＋'
+        '<div>雷神：'
+        + ('直前上位3艇以外に、朝比＋' if thresholds.get('outside_live_top3') else '直前順位を問わず、朝比＋')
         + esc(f"{float(min_rise):g}")
         + '点以上上昇した対象艇なし。'
         + '風神：直前1位の朝比 ' + esc(show(rank_delta))
@@ -2783,7 +2787,9 @@ def render_html(
     race_rows,
 ):
 
-    # Canonical formation record is also the only signal/ticket source here.
+    # Preserve the frozen canonical v1 signal/tickets. Historical comparisons
+    # display the separately verified v2 research layer, never as a real bet.
+    corrected = finished_v2_overlays(target_date)
     for record in race_rows:
         original = (record.get("formation_prediction") or {}).get("raw") or {}
         checked = audit_race(original) if original else {
@@ -2792,6 +2798,12 @@ def render_html(
         record["_canonical_signal"] = {
             **checked, "signal_ai_prediction": original.get("signal_ai_prediction") or {}
         }
+        replay = corrected.get(record["race_code"])
+        if replay is not None:
+            record["_historical_signal_v2"] = replay
+            record["up_signal"] = replay["up_signal"]
+            record["down_signal"] = replay["down_signal"]
+            record["_canonical_signal"] = replay
 
     morning_summary = aggregate(
         race_rows,
@@ -2985,7 +2997,7 @@ def render_html(
 
       <div class="race-title">
         {esc(row["venue"])}
-        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {signal_recheck_pending_html(row.get("formation_prediction"))} {prediction_quality_warning(row.get("live_display"))}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
+        {row["race"]}R{fujin_raijin_marker(row.get("up_signal"), row.get("down_signal"))} {signal_payout_badge(row.get("payout"), row.get("up_signal"), row.get("down_signal"), row.get("_canonical_signal"))} {signal_recheck_pending_html(row.get("formation_prediction"), row.get("_historical_signal_v2"))} {prediction_quality_warning(row.get("live_display"))}{" <span class=\"result-flash\">払戻速報</span>" if row.get("result_source") == "payout" else ""}
       </div>
 
       <div class="sub">
@@ -3005,6 +3017,8 @@ def render_html(
     </div>
 
   </div>
+
+  {('<div class="signal-research-note">雷神V2の研究用事後再判定。公式保存の直前スコアで算出した検証結果で、締切時の検知・実購入ではありません。</div>' if row.get("_historical_signal_v2") else "")}
 
   {nontrigger_signal_diagnostic_html(row.get("up_signal"), row.get("down_signal"))}
 
