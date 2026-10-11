@@ -179,7 +179,7 @@ jobs:
             --output-dir _family_site
 
           test -s _family_site/results.html
-          grep -q '風神雷神専用AI・購入24点' _family_site/results.html
+          grep -q '雷神・修正版（順位制限なし）専用AI24点' _family_site/results.html
 
           echo "結果ページ生成: PASS"
 
@@ -192,8 +192,8 @@ jobs:
           test -s _family_site/analysis.html
           grep -q '風神雷神 AI分析' _family_site/analysis.html
           grep -q '24点／2,400円' _family_site/analysis.html
-          grep -q '毎日必須・5,000円以上の高配当' _family_site/analysis.html
-          grep -q '毎日必須・風神雷神16通り' _family_site/analysis.html
+          grep -q '旧保存版の5,000円以上・万舟捕捉' _family_site/analysis.html
+          grep -q '旧保存版の風神雷神16通り' _family_site/analysis.html
           grep -q '3連単120通り' _family_site/analysis.html
           grep -q '120通り・実着順位の原因研究' _family_site/analysis.html
 
