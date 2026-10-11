@@ -7,8 +7,11 @@ permissions:
     branches: [main]
     paths:
       - config/run_morning_now.txt
-  # Actions minutes at 90%: autonomous daily reruns paused during
-  # Cloudflare migration. Manual button and workflow_dispatch remain.
+  # Research PUBLIC repository, standard ubuntu-latest runner.
+  # Restore original twice-daily UTC cron (03:00 and 04:30 JST).
+  schedule:
+    - cron: '0 18 * * *'
+    - cron: '30 19 * * *'
   workflow_dispatch:
 concurrency:
   group: boatrace-main-writer
