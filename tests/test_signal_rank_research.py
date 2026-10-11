@@ -87,7 +87,7 @@ class SignalRankingAttributionTests(unittest.TestCase):
         self.assertEqual(split_date("20261012",cfg),"prospective_after_freeze")
 
     def test_missing_config_or_active_signal_fails_closed(self):
-        with self.assertRaises((KeyError,TypeError)):
+        with self.assertRaises(RuntimeError):
             prepare_matrix([],{"level":1},{"level":0},{},{"methods":{}})
 
 
