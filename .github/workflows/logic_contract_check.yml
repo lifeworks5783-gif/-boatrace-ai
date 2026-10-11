@@ -71,6 +71,11 @@ jobs:
           PY
       - name: Research-only 120-combination score/rank attribution and baseline parity
         run: |
+          # Rebuild independent V2 replay in the ephemeral CI workspace FIRST:
+          # live/recovery scores and 60 results can have advanced since the
+          # previously saved research snapshot; stale 21R replay must not block
+          # valid 60R parity tests or be silently accepted.
+          python -u collectors/evaluate_raijin_all_rank_replay.py
           python -m unittest discover -s tests -p test_signal_rank_research.py -v
           python -u collectors/evaluate_signal_rank_research.py \
             --no-combination-details --output-dir /tmp/signal_rank_research_full_ci
