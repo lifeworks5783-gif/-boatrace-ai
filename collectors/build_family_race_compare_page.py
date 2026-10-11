@@ -2482,7 +2482,7 @@ def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
         prediction.get("ai_score_prediction") or raw.get("ai_score_prediction") or {}
     )
     research_only = is_signal and canonical_signal.get("research_only") is True
-    label = ("風神雷神V2・事後研究AI24点" if research_only
+    label = ("風神雷神専用AI予想（V2・事後研究24点）" if research_only
              else "風神雷神専用AI予想" if is_signal else "通常AIスコア予測")
     all120 = ai.get("all_120_combinations") or ai.get("combinations") or []
     purchase_points = 24 if is_signal else (safe_int(ai.get("points")) or 8)
