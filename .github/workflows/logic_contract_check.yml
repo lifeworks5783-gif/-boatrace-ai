@@ -67,6 +67,9 @@ jobs:
           assert karatsu['new_top3_rising_candidates'][0]['boat'] == 6, karatsu
           print('RAIJIN_RANKLESS_REPLAY_PASS', x['valid_races'], x['changed_raijin_levels'])
           PY
+      - name: Corrected Raijin v2 daily PDCA and family UI regressions
+        run: |
+          python -m unittest discover -s tests -p test_raijin_v2_pdca_collection.py -v
       - name: Production immutable-history and numerical-config safety
         run: python -m unittest discover -s tests -p test_production_safety.py -v
       - name: Neutral 0-delta provisional live scoring, signal block, two-page warnings and replay queue
