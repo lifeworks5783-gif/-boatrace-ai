@@ -104,6 +104,13 @@ jobs:
           test -s evaluations/raijin_all_rank_v2_replay/summary.json
           test -s evaluations/raijin_all_rank_v2_replay/details.csv
 
+      - name: 120通りの実着順位を朝・直前・シグナル補正で分解し研究データを更新
+        run: |
+          python -u collectors/evaluate_signal_rank_research.py
+          test -s evaluations/signal_rank_research/v1/summary.json
+          test -s evaluations/signal_rank_research/v1/race_diagnostics.csv
+          test -s evaluations/signal_rank_research/v1/daily/${TARGET_DATE}/summary.json
+
       - name: 4日累積PDCAを再計算
         run: python -u collectors/evaluate_pdca_incremental_4day.py
 
