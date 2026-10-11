@@ -1645,7 +1645,7 @@ def signal_recheck_pending_html(formation_prediction):
     )
 
 
-def nontrigger_signal_diagnostic_html(raijin, fujin):
+def nontrigger_signal_diagnostic_html(raijin, fujin, canonical_record=None):
     """Display verified reasons for a genuine F0R0, never hide missing inputs."""
     raijin = raijin or {}
     fujin = fujin or {}
@@ -1665,10 +1665,17 @@ def nontrigger_signal_diagnostic_html(raijin, fujin):
             return f"{float(v):+.1f}"
         except (TypeError, ValueError):
             return "未計算"
+    saved_version = ((canonical_record or {}).get("signal_logic_identity") or {}).get("model_version")
+    # Historical v1 observations retain the original restricted rule,
+    # while the active v2 uses rising boats at ANY live score rank.
+    restricted = saved_version and saved_version != "fujin_raijin_pipeline_v2_20261011"
+    raijin_basis = (
+        "直前4位以下に" if restricted else "直前順位に関係なく"
+    )
     return (
         '<details class="signal-no-trigger-detail">'
         '<summary>シグナル非発動の判定根拠（研究用検証）</summary>'
-        '<div>雷神：直前上位3艇以外に、朝比＋'
+        '<div>雷神：' + raijin_basis + '、朝比＋'
         + esc(f"{float(min_rise):g}")
         + '点以上上昇した対象艇なし。'
         + '風神：直前1位の朝比 ' + esc(show(rank_delta))
@@ -3006,7 +3013,7 @@ def render_html(
 
   </div>
 
-  {nontrigger_signal_diagnostic_html(row.get("up_signal"), row.get("down_signal"))}
+  {nontrigger_signal_diagnostic_html(row.get("up_signal"), row.get("down_signal"), (row.get("formation_prediction") or {}).get("raw") or {})}
 
   <div class="actual">
 

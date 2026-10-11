@@ -2122,6 +2122,27 @@ def main():
                     # candidates must not become a fabricated signal.
                     assert not (row.get("up_signal") or {}).get("active")
                     assert not (row.get("down_signal") or {}).get("active")
+                # A previous research-only recovery may have been evaluated
+                # under the retired rank-gated Raijin rule. Reconcile the
+                # dedicated signal under the current rule without erasing
+                # the old model's identity, signal or historical purchase.
+                prior_signal_model = (prior.get("signal_logic_identity") or {}).get("model_version")
+                current_signal_model = (row.get("signal_logic_identity") or {}).get("model_version")
+                if (prior.get("retrospective_signal_recovery")
+                        and prior_signal_model and current_signal_model
+                        and prior_signal_model != current_signal_model):
+                    row["signal_rule_reconciliation"] = {
+                        "old_model_version": prior_signal_model,
+                        "new_model_version": current_signal_model,
+                        "old_up_signal": prior.get("up_signal"),
+                        "old_down_signal": prior.get("down_signal"),
+                        "old_signal_ai_prediction": prior.get("signal_ai_prediction"),
+                        "basis": "verified_saved_official_live_scores_only",
+                        "original_normal_tickets_unchanged": True,
+                        "not_original_realtime_detection": True,
+                    }
+                elif prior.get("signal_rule_reconciliation"):
+                    row["signal_rule_reconciliation"] = prior["signal_rule_reconciliation"]
                 row["retrospective_score_recovery"] = True
                 row["retrospective_signal_recovery"] = True
                 row["signal_recovery_provenance"] = source_quality.get("provenance")

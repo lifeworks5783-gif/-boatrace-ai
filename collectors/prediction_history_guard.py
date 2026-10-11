@@ -37,7 +37,22 @@ def preserve_closed_prediction(previous: dict, proposed: dict, now: datetime) ->
         if previous.get("retrospective_signal_recovery"):
             from race_prediction_store import audit_race
             state = audit_race(previous)["signal_ai_status"]
-            if state == "ready":
+            old_logic = (previous.get("signal_logic_identity") or {}).get("model_version")
+            new_logic = (proposed.get("signal_logic_identity") or {}).get("model_version")
+            # Keep a previously completed retrospective calculation immutable
+            # UNLESS its saved signal is from an older rule version and the
+            # official recovered pre-result input is still fully observable.
+            # In that special case, preserve the old audit identity separately
+            # and re-evaluate ONLY the dedicated signal layer under the
+            # currently adopted rule. Never rewrite original purchase tickets.
+            both_observable = all(
+                (proposed.get(k) or {}).get("available") is True
+                for k in ("up_signal", "down_signal")
+            )
+            if state == "ready" and not (
+                old_logic and new_logic and old_logic != new_logic
+                and both_observable
+            ):
                 return previous
         return proposed
     proposed_time = _time(proposed.get("generated_at"))
