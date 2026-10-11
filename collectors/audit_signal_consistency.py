@@ -82,6 +82,15 @@ def published_cards(path: Path, valid_venues: dict[str, str]) -> dict[str, dict]
     return output
 
 
+def corrected_v2_replay_history(root: Path, date: str) -> dict[str, dict]:
+    """Research v2 independent replay, not legacy backtest v1."""
+    path = root / "evaluations" / "raijin_all_rank_v2_replay" / "daily" / date / "details.csv"
+    if not path.is_file():
+        return {}
+    return {race_code(row.get("race_id")): row for row in csv_rows(path)
+            if row.get("date") == date and race_code(row.get("race_id"))}
+
+
 def archived_raijin_rank_gate(record: dict) -> bool:
     """Re-audit stored predictions with THEIR frozen logic, not today's rules.
 
@@ -106,6 +115,7 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
         if race_code(r.get("race_id"))
     }
     history = saved_history(root, date)
+    v2_history = corrected_v2_replay_history(root, date)
     official = csv_rows(root / "archive" / folder / f"results_{date}_all.csv")
     finished = {}
     for row in official:
@@ -158,11 +168,25 @@ def audit(date: str, root: Path, rendered: Path | None) -> dict:
         expected_down = build_down_signal(boats, quality)
         raijin, fujin = int_value(saved_up.get("level")), int_value(saved_down.get("level"))
         check_up, check_down = int_value(expected_up.get("level")), int_value(expected_down.get("level"))
-        independent = history.get(key)
-        if not independent:
-            inconsistencies.append({"race_id": key, "error": "missing_independent_pdca_row"})
-            continue
-        pdca_levels = [int_value(independent.get("raijin_level")), int_value(independent.get("fujin_level"))]
+        version = (record.get("signal_logic_identity") or {}).get("model_version")
+        if version == "fujin_raijin_pipeline_v2_20261011":
+            independent = v2_history.get(key)
+            if not independent:
+                inconsistencies.append({"race_id": key, "error": "missing_independent_v2_replay_row"})
+                continue
+            pdca_levels = [
+                int_value(independent.get("new_raijin_level")),
+                int_value(independent.get("fujin_level")),
+            ]
+        else:
+            independent = history.get(key)
+            if not independent:
+                inconsistencies.append({"race_id": key, "error": "missing_independent_pdca_row"})
+                continue
+            pdca_levels = [
+                int_value(independent.get("raijin_level")),
+                int_value(independent.get("fujin_level")),
+            ]
         if (raijin, fujin) != (check_up, check_down):
             inconsistencies.append({"race_id": key, "error": "saved_signal_not_equal_to_score_recompute",
                                     "saved": [raijin, fujin], "computed": [check_up, check_down]})
