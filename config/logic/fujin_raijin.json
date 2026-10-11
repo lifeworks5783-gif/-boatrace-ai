@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "model_version": "fujin_raijin_pipeline_v1_20261009",
-  "effective_date": "20261009",
+  "model_version": "fujin_raijin_pipeline_v2_20261011",
+  "effective_date": "20261011",
   "strategy": "signal_ai",
   "detection": {
     "raijin": {
@@ -9,7 +9,7 @@
       "min_rise": 7.5,
       "level2_rise": 10,
       "level3_score": 50,
-      "outside_live_top3": true
+      "outside_live_top3": false
     },
     "fujin": {
       "rule_version": "down_signal_v0_20261007",
@@ -33,5 +33,5 @@
     "non_signal_uses_normal_ai": true
   },
   "no_result_input": true,
-  "notes": "シグナル発動時のみ専用AIを計算。通常の朝・直前スコアを変更しない。既存の補正値表は独立ファイルをそのまま参照。"
+  "notes": "雷神は朝比+7.5点以上なら直前順位を問わない。Lv1〜3条件・風神・補正表・通常予測は従来どおり。旧版の当時記録は保存し、研究用の再計算を別版で集計。"
 }
