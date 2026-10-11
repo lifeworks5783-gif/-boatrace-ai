@@ -81,6 +81,19 @@ jobs:
           assert x["baseline_full_replay_verified"]
           print("TWELVE_DAY_SIGNAL_RANK_RESEARCH_PASS",x["finished_signal_races"])
           PY
+      - name: Finished-race rankless signal v2 overlay and screenshot incident regression
+        run: |
+          python -m unittest discover -s tests -p test_signal_v2_race_compare_overlay.py -v
+          python -u collectors/build_family_race_compare_page.py \
+            --date 20261011 --predictions-root predictions --output-dir /tmp/corrected_signal_public
+          python - <<'PY'
+          from pathlib import Path
+          h=Path('/tmp/corrected_signal_public/race_compare.html').read_text(encoding='utf8')
+          assert '雷神V2の研究用事後再判定' in h
+          assert '直前順位を問わず' in h
+          assert '風神雷神V2・事後研究AI24点' in h
+          print("PUBLIC_RAIJIN_V2_SAVED_DATA_PASS")
+          PY
       - name: Corrected Raijin v2 daily PDCA and family UI regressions
         run: |
           python -m unittest discover -s tests -p test_raijin_v2_pdca_collection.py -v
