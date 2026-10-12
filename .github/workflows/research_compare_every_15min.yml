@@ -34,7 +34,7 @@ jobs:
           # research integrity are independently PASS, avoid re-downloading
           # 14 venue result pages every 15 minutes for the rest of the night.
           AUDIT_PATH="evaluations/${TODAY:0:4}/${TODAY:4:2}/${TODAY:6:2}/data_quality/completeness_${TODAY}.json"
-          if gh api "repos/$GH_REPO/contents/$AUDIT_PATH" --jq .content 2>/dev/null | tr -d '\\n' | base64 -d > /tmp/finished-audit.json; then
+          if gh api "repos/$GH_REPO/contents/$AUDIT_PATH" --jq .content 2>/dev/null | base64 -d > /tmp/finished-audit.json; then
             if jq -e --arg d "$TODAY" '
               .date==$d and .status=="PASS" and
               .research_audit.research_status=="PASS" and
