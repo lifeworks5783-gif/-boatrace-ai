@@ -1,0 +1,50 @@
+name: V4 Three-Stage Canary Contract
+on:
+  pull_request:
+    paths:
+      - "collectors/v4_pipeline.py"
+      - "tests/test_v4_pipeline_contract.py"
+      - ".github/workflows/v4_stage*.yml"
+      - ".github/workflows/v4_contract_ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -q requests beautifulsoup4 lhafile pyyaml
+      - name: Compile contract and all three workflow YAMLs
+        run: |
+          python -m py_compile collectors/v4_pipeline.py
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+          for name in ("v4_stage1_capture.yml","v4_stage2_decode.yml","v4_stage3_predict.yml"):
+              p=Path(".github/workflows")/name
+              config=yaml.safe_load(p.read_text(encoding="utf-8"))
+              assert config["jobs"] and config.get("name"),name
+              print("V4_YAML_OK",name)
+          PY
+      - name: Run raw-first and three-action tests
+        run: python -m unittest discover -s tests -p test_v4_pipeline_contract.py -v
+      - name: Smoke on actual saved morning program: capture selection / safe morning restore
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from collectors.v4_pipeline import capture_morning,plan_live,parse_now
+          from tempfile import TemporaryDirectory
+          day="20261012"
+          with TemporaryDirectory() as tmp:
+            m=capture_morning(Path("."),day,Path(tmp))
+            assert m["mode"]=="morning" and len(m["base_files"])>=2
+            entries=plan_live(Path("."),day,parse_now("2026-10-12T20:29:00+09:00"))
+            assert all(r["deadline"] for r in entries)
+            print("V4_ACTUAL_PROGRAM_SMOKE",{"base_files":len(m["base_files"]),
+                "eligible_future_races":len(entries)})
+          PY
