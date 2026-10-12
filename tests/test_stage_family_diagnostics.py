@@ -45,6 +45,15 @@ class StageResearchDiagnosticsTests(unittest.TestCase):
         self.assertEqual(edited.count('href="index.html"'),1)
         self.assertIn("3号艇・展示STの未知の表記",
                        (self.site/"raw_diagnostics.html").read_text(encoding="utf-8"))
+    def test_publisher_wires_diagnostics_without_expanding_four_main_tabs(self):
+        workflow=(Path(__file__).resolve().parents[1]/".github/workflows/family_prediction_page.yml").read_text(encoding="utf-8")
+        navigation=(Path(__file__).resolve().parents[1]/"collectors/add_family_navigation.py").read_text(encoding="utf-8")
+        self.assertIn("python -m raw_collector.stage_family_diagnostics",workflow)
+        self.assertIn('if test -s _family_site/raw_diagnostics.html; then',workflow)
+        self.assertIn('git add raw_diagnostics.html raw_diagnostics_summary.json',workflow)
+        self.assertIn('"analysis.html": "analysis"',navigation)
+        self.assertNotIn('"raw_diagnostics.html": "raw_diagnostics"',navigation)
+
     def test_repeat_staging_is_rejected_instead_of_duplicate_link(self):
         self.put(True)
         stage(self.root,self.site,"20261012")
