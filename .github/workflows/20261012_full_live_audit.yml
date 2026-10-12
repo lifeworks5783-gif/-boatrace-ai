@@ -5,6 +5,11 @@ on:
       - "collectors/official_race_conditions.py"
       - "collectors/research_live_full_day_probe.py"
       - "tests/test_official_race_conditions.py"
+      - "collectors/v4_pipeline.py"
+      - "tests/test_v4_pipeline_contract.py"
+      - ".github/workflows/v4_stage1_capture.yml"
+      - ".github/workflows/v4_stage2_decode.yml"
+      - ".github/workflows/v4_stage3_predict.yml"
       - ".github/workflows/20261012_full_live_audit.yml"
   workflow_dispatch:
 
@@ -28,6 +33,10 @@ jobs:
         run: |
           python -m py_compile collectors/official_race_conditions.py collectors/research_live_full_day_probe.py
           python -m unittest discover -s tests -p test_official_race_conditions.py -v
+      - name: V4 raw-first 3-stage pipeline contracts
+        run: |
+          python -m py_compile collectors/v4_pipeline.py
+          python -m unittest discover -s tests -p test_v4_pipeline_contract.py -v
       - name: Recheck all saved predictions (official gap already checked in run 38240929058)
         run: |
           python -m collectors.research_live_full_day_probe \
