@@ -1,0 +1,39 @@
+name: Research finished-race comparison scheduler
+on:
+  schedule:
+    - cron: '3,18,33,48 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: research-independent-compare-dispatch
+  cancel-in-progress: false
+jobs:
+  dispatch-compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Run comparison independently from pre-deadline live collection
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GH_REPO" == "lifeworks5783-gif/-boatrace-ai" ]] || exit 1
+          HOUR="$(TZ=Asia/Tokyo date +%H)"
+          if (( 10#$HOUR < 6 )); then
+            echo "Outside collection period"
+            exit 0
+          fi
+          TODAY="$(TZ=Asia/Tokyo date +%Y%m%d)"
+          BASE="repos/$GH_REPO/contents/daily_inputs/${TODAY:0:4}/${TODAY:4:2}/${TODAY:6:2}/base"
+          gh api "$BASE/program_races_$TODAY.csv" >/dev/null 2>&1 || exit 0
+          ACTIVE="$(gh api "repos/$GH_REPO/actions/workflows/intraday_compare.yml/runs?per_page=30" --jq '[.workflow_runs[] | select(.status!="completed")] | length')"
+          if (( ACTIVE > 0 )); then
+            echo "Comparison already running; skip duplicate"
+            exit 0
+          fi
+          gh workflow run intraday_compare.yml --repo "$GH_REPO" --ref main
+          echo "Finished-race comparison queued separately"
