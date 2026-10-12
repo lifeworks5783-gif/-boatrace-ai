@@ -101,5 +101,41 @@ class SavedLateLiveRecoveryTests(unittest.TestCase):
         self.assertIs(preserve_closed_prediction(previous, unchecked, now), previous)
 
 
+    def test_oct12_marugame_6_postdeadline_capture_is_research_only(self):
+        # Actual official capture 17:34:05 JST; cutoff was 17:34.
+        # Six valid scores in the rolling prediction must not remain a
+        # frozen morning fallback, nor be claimed as an original bet.
+        day = "20261012"
+        target = "20261012-15-06"
+        path = (ROOT / "predictions" / "2026" / "10" / "12" / "live"
+                / "live_predictions_final_20261012.json")
+        original = {r["race_id"]: r for r in json.loads(path.read_text(encoding="utf-8"))["races"]}
+        self.assertIn(target, original)
+        joined, patched = join_verified_late_saved_live({target: original[target]}, day)
+        self.assertIn(target, patched)
+        q = joined[target]["prediction_quality"]
+        self.assertEqual(q["status"], "recovered_observation")
+        self.assertEqual(q["provenance"], "saved_after_deadline_official_beforeinfo")
+        self.assertTrue(q["prediction_generated_after_deadline"])
+        self.assertTrue(q["retrospective_simulation_only"])
+        self.assertIs(q["result_leakage"], False)
+        self.assertEqual(len(joined[target]["boats"]), 6)
+        self.assertTrue(build_up_signal(joined[target]["boats"], q)["available"])
+        self.assertTrue(build_down_signal(joined[target]["boats"], q)["available"])
+
+        altered = dict(original[target])
+        altered["boats"] = [dict(b) for b in original[target]["boats"]]
+        altered["boats"][0]["exhibition_time"] = 99.9
+        unverified, refused = join_verified_late_saved_live({target: altered}, day)
+        self.assertNotIn(target, refused)
+        self.assertIs(unverified[target], altered)
+
+        fake_early = dict(original[target])
+        fake_early["generated_at"] = "2026-10-12T17:33:00+09:00"
+        original_score, changed = join_verified_late_saved_live({target: fake_early}, day)
+        self.assertNotIn(target, changed)
+        self.assertIs(original_score[target], fake_early)
+
+
 if __name__ == "__main__":
     unittest.main()
