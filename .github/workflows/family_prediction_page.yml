@@ -296,10 +296,17 @@ jobs:
           fetch-depth: 0
 
       - name: 公開ページをコピー
+        env:
+          MANUAL_REFRESH: ${{ inputs.manual_refresh }}
         run: |
-          cp \
-            _family_site/index.html \
-            family_public/index.html
+          # Latest index is owned by the fast publisher; never overwrite it
+          # with an older canonical snapshot produced by slow PDCA processing.
+          # Keep legacy initialization/manual full refresh behavior.
+          if test -s family_public/fast_publish_status.json && [ "$MANUAL_REFRESH" != "true" ]; then
+            echo "最新予測index.htmlは軽量優先公開が担当。通常の重い公開は他の3画面だけ更新。"
+          else
+            cp _family_site/index.html family_public/index.html
+          fi
 
           cp \
             _family_site/results.html \
@@ -398,9 +405,23 @@ jobs:
           git commit \
             -m "Update prediction results analysis and race comparison pages"
 
-          git push origin HEAD:main
-
-          echo "家族共有ページ更新: PASS"
+          # Fast index writes may advance the public repo while this slow
+          # analysis completes. Rebase only the other-page changes safely.
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              echo "家族共有ページ更新: PASS"
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main || {
+              git rebase --abort || true
+              echo "::error::Public file conflict; do not overwrite fast index"
+              exit 1
+            }
+            sleep "$((attempt * 2))"
+          done
+          echo "::error::Slow analysis publication push failed after retries"
+          exit 1
 
       # Publishing known data is independent from perfect full-day coverage.
       # Report a failed consistency audit AS A FAILURE after public content is
