@@ -145,7 +145,11 @@ def observed():
             if not signal_ai:
                 raise RuntimeError("active_signal_ai_missing")
             stats["signal_ai_if_active"] = True
-            stats["signal_ai_ticket_count"] = len(signal_ai.get("tickets") or signal_ai.get("top24") or [])
+            stats["signal_ai_ticket_count"] = len(signal_ai.get("combinations") or [])
+            if stats["signal_ai_ticket_count"] != 24 or signal_ai.get("points") != 24:
+                raise RuntimeError("signal_ai_24_tickets_not_generated")
+            if len(signal_ai.get("all_120_combinations") or []) != 120:
+                raise RuntimeError("signal_ai_120_combinations_missing")
         else:
             stats["signal_ai_if_active"] = "not_applicable"
     return stats
