@@ -302,7 +302,7 @@ jobs:
           # Latest index is owned by the fast publisher; never overwrite it
           # with an older canonical snapshot produced by slow PDCA processing.
           # Keep legacy initialization/manual full refresh behavior.
-          if test -s family_public/fast_publish_status.json && [ "$MANUAL_REFRESH" != "true" ]; then
+          if test -s family_public/index.html && [ "$MANUAL_REFRESH" != "true" ]; then
             echo "最新予測index.htmlは軽量優先公開が担当。通常の重い公開は他の3画面だけ更新。"
           else
             cp _family_site/index.html family_public/index.html
