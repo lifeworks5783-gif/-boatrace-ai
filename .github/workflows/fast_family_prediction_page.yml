@@ -35,12 +35,7 @@ jobs:
           [[ "$DAY" =~ ^20[0-9]{6}$ ]] || { echo "Invalid date: $DAY"; exit 1; }
           FILE="predictions/\${DAY:0:4}/\${DAY:4:2}/\${DAY:6:2}/live/formation_predictions_final_$DAY.json"
           if ! test -s "$FILE"; then
-            if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
-              echo "Daily canonical not yet available; watchdog exits without replacing existing page"
-              echo "PUBLISH_SKIP=true" >> "$GITHUB_ENV"
-              exit 0
-            fi
-            echo "Missing canonical: $FILE" >&2
+            echo "Missing canonical: $FILE; latest page is unchanged" >&2
             exit 1
           fi
           echo "TARGET_DATE=$DAY" >> "$GITHUB_ENV"
@@ -120,7 +115,7 @@ jobs:
             git -C family_public reset --hard origin/main
             REMOTE_SHA=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CANONICAL_FILE" --jq .sha)
             if [ "$REMOTE_SHA" != "$CANONICAL_SHA" ]; then
-              echo "::warning::Newer canonical saved while rendering; stop stale publication. The next dispatch/watchdog will publish it."
+              echo "::warning::Newer canonical saved while rendering; stop stale publication. The next V4 dispatch or manual retry will publish it."
               exit 0
             fi
             PUBLISHED=$(python - <<'PY'
