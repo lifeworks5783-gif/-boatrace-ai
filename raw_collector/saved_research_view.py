@@ -15,6 +15,7 @@ ISSUES={
  "only_reconstructed_after_result":"結果後に取得した復旧データのみ",
  "predeadline_capture_not_confirmed":"締切前取得の原本が未確認",
  "predeadline_capture_time_not_independently_verified":"保存済み原版の取得時刻は未検証",
+ "predeadline_capture_not_independently_attested":"3つの時刻は整合（ただし取得原本の独立証明なし）",
  "morning_prediction_file_unreadable_or_missing":"朝予測ファイルがない／読めない",
  "morning_prediction_not_saved_for_race":"朝予測に該当レースがない",
  "live_prediction_file_unreadable_or_missing":"直前予測ファイルがない／読めない",
@@ -24,6 +25,7 @@ ISSUES={
 }
 STATE={
  "original_folder_saved_unverified_time":"保存済み原版（時刻未検証）",
+ "original_folder_time_consistent_not_proven":"保存済み原版（取得時刻と締切が整合・独立証明なし）",
  "post_result_recovery_only":"結果後の復旧のみ",
  "historical_capture_time_unverified":"旧形式・取得時刻不明",
  "no_saved_beforeinfo":"直前の保存記録なし",
@@ -46,6 +48,7 @@ def make_html(data):
         state=race.get("beforeinfo_state","no_saved_beforeinfo")
         issues=race.get("issues",[])
         items="".join(f'<li>{h(ISSUES.get(x.get("code"),x.get("code")))}</li>' for x in issues)
+        clock=race.get("clock_consistent_earliest")
         flags=[
             ("朝番組",f'{race.get("morning_entry_count",0)}/6艇'),
             ("旧形式・原版",f'{race.get("original_folder_boats",0)}/6艇'),
@@ -54,6 +57,9 @@ def make_html(data):
             ("直前予測","保存あり" if race.get("live_prediction_saved") else "未確認"),
             ("共通正本","保存あり" if race.get("canonical_prediction_saved") else "未確認"),
         ]
+        if clock:
+            flags.append(("最も早い時刻整合記録",str(clock.get("collected_at") or "不明")))
+            flags.append(("締切まで",str(clock.get("seconds_before_deadline"))+"秒"))
         flagtext=" ／ ".join(f'{h(label)}：{h(val)}' for label,val in flags)
         sections.append(
             f'<details><summary><strong>{h(race["race_id"])}</strong>　'
@@ -78,7 +84,7 @@ ul{{margin:8px 0 0;padding-left:22px}}
 </style></head><body><main>
 <header><h1>研究用データ保存診断 {date}</h1></header>
 <p class="notice">この画面はGitHub研究版の既存CSV・保存済み予測を確認したものです。
-公式ページの生HTML原本は検証できておらず、Google Driveにも永続保存されたとは扱いません。
+公式ページの生HTML原本は検証できておらず、Google Driveにも永続保存されたとは扱いません。\nCSVの取得・受信・保存フォルダ時刻と公式締切が整合しても、当時の取得の独立証明にはなりません。
 結果後に復旧したデータを当時の直前取得・シグナル実績として扱いません。
 本画面は保存状況の検査であり、予測の的中や完全性の保証ではありません。</p>
 <div class="stats">{metric}</div>
