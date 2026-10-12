@@ -44,6 +44,12 @@ on:
       - "evaluations/2026/10/03/**"
       - ".github/workflows/family_prediction_page.yml"
 
+  # Hourly independent publication retry (JST 07:27–23:27). The V4
+  # calculator still explicitly dispatches this publisher after each save.
+  # A failed integrity audit must not leave all pages frozen for hours.
+  schedule:
+    - cron: '27 22-23,0-14 * * *'
+
   workflow_dispatch:
     inputs:
       manual_refresh:
@@ -266,6 +272,8 @@ jobs:
           fi
 
       - name: 直前スコア・風神雷神判定・PDCA・レース照合表示を全終了レースで一致監査
+        id: signal_audit
+        continue-on-error: true
         run: |
           RESULT_FILE="archive/${COMPARE_DATE:0:4}/${COMPARE_DATE:4:2}/${COMPARE_DATE:6:2}/results_${COMPARE_DATE}_all.csv"
           if ! test -s "$RESULT_FILE"; then
@@ -274,7 +282,8 @@ jobs:
           fi
           python -u collectors/audit_signal_consistency.py \
             --date "$COMPARE_DATE" \
-            --html _family_site/race_compare.html
+            --html _family_site/race_compare.html \
+            --output _family_site/internal_signal_integrity_report.json
           echo "6艇再計算＝共通正本＝風神雷神PDCA＝公開表示: PASS"
 
       - name: 公開用リポジトリを読み込む
@@ -392,6 +401,15 @@ jobs:
           git push origin HEAD:main
 
           echo "家族共有ページ更新: PASS"
+
+      # Publishing known data is independent from perfect full-day coverage.
+      # Report a failed consistency audit AS A FAILURE after public content is
+      # saved. Never silently mark incomplete signals as verified.
+      - name: 公開後に監査異常を明示（公開データは巻き戻さない）
+        if: steps.signal_audit.outcome == 'failure'
+        run: |
+          echo "::error::Signal parity audit failed. Published latest visible data with pending/unverified race labels; investigate _family_site/internal_signal_integrity_report.json in the audit step."
+          exit 1
 
       - name: 最終確認
         run: |
