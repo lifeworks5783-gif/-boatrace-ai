@@ -168,7 +168,10 @@ def decode_manifest(source,out,root):
         body=gzip.decompress(p.read_bytes())
         if hashlib.sha256(body).hexdigest()!=x["sha256"]:
             raise RuntimeError("raw_capture_checksum_mismatch:"+x["race_id"])
-        html=body.decode(x.get("charset") or "utf-8",errors="replace")
+        # HTML can change declared charset; use BeautifulSoup's byte-aware detector.
+        from bs4 import UnicodeDammit
+        detected=UnicodeDammit(body,is_html=True).unicode_markup
+        html=detected if detected is not None else body.decode("utf-8",errors="replace")
         base={k:x.get(k) for k in ("date","venue_code","venue_name","race","race_id","deadline")}
         try:
             parsed=legacy.parse_beforeinfo(html,base,x["requested_at"])
@@ -186,6 +189,14 @@ def decode_manifest(source,out,root):
                 bb=[{**base,**b,"source_url":x["source_url"],
                      "requested_at":x["requested_at"],
                      "collected_at":x["received_at"]} for b in bb]
+            # Use the actual HTTP timestamps, never the later parser-runtime
+            # timestamp (which may occur after the racing deadline).
+            r.update({"requested_at":x["requested_at"],"collected_at":x["received_at"],
+                      "source_url":x["source_url"]})
+            for entry in bb:
+                entry.update({"requested_at":x["requested_at"],
+                              "collected_at":x["received_at"],
+                              "source_url":x["source_url"]})
             races.append(r);boats.extend(bb)
             result["decoded_races"]+=1
         except Exception as exc:
