@@ -71,7 +71,9 @@ class StageResearchDiagnosticsTests(unittest.TestCase):
         navigation=(Path(__file__).resolve().parents[1]/"collectors/add_family_navigation.py").read_text(encoding="utf-8")
         self.assertIn("python -m raw_collector.stage_family_diagnostics",workflow)
         self.assertIn('if test -s _family_site/raw_diagnostics.html; then',workflow)
-        self.assertIn('git add raw_diagnostics.html raw_diagnostics_summary.json',workflow)
+        self.assertIn('for file in raw_diagnostics.html raw_diagnostics_summary.json;',workflow)
+        self.assertIn('git ls-files --error-unmatch "$file"',workflow)
+        self.assertIn("rm -f family_public/raw_diagnostics.html",workflow)
         self.assertIn('"analysis.html": "analysis"',navigation)
         self.assertNotIn('"raw_diagnostics.html": "raw_diagnostics"',navigation)
 
