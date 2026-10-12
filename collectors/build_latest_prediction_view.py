@@ -2076,7 +2076,7 @@ def main():
         source_quality = source.get("prediction_quality") or {}
         if (
             source_quality.get("status") == "recovered_observation"
-            and source_quality.get("provenance") in ("post_result_official_beforeinfo", "saved_pre_deadline_official_beforeinfo")
+            and source_quality.get("provenance") in ("post_result_official_beforeinfo", "saved_pre_deadline_official_beforeinfo", "saved_after_deadline_official_beforeinfo")
         ):
             prior = previous_by_id.get(text(row.get("race_id")))
             if prior:
