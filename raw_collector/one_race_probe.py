@@ -15,6 +15,8 @@ from bs4 import BeautifulSoup
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "collectors"))
 from raw_collector.archive import capture_one, load_raw, source_url
+from raw_collector.drive_bundle import bundle_batch
+from raw_collector.normalize import preview_local_bundle
 from today_beforeinfo import parse_beforeinfo
 from build_live_prediction import score_race
 from build_latest_prediction_view import (
@@ -61,6 +63,19 @@ def observed():
             raw = load_raw(Path(result["path"]))
             pages[kind] = raw.decode("utf-8", errors="replace")
         stats["raw_saved"] = True
+        # Exercise the SAME normalization path as production without requiring Drive OAuth.
+        # It remains local and ephemeral, and cannot be committed to public Git.
+        bundle,_ = bundle_batch(Path(temp),Path(temp)/"private_bundle",DATE)
+        preview = preview_local_bundle(bundle,root=ROOT)
+        matches = [r for r in preview["races"] if r["race_id"]==RACE_ID]
+        if len(matches)!=1 or matches[0]["parse_status"]!="ready_live_inputs":
+            raise RuntimeError("raw_to_normalized_dry_run_failed")
+        if matches[0]["source"].get("drive_raw_verified") or preview.get("source_archive")!="local_ephemeral_unarchived":
+            raise RuntimeError("drive_status_misreported_in_dry_run")
+        if len(matches[0]["boats"])!=6:
+            raise RuntimeError("normalized_boat_count_not_six")
+        stats["drive_free_normalize_six"] = True
+        stats["raw_bundle_verified_locally_only"] = True
 
         program_path = ROOT / "daily_inputs" / "2026" / "10" / "12" / "base" / "program_entries_20261012.csv"
         if not program_path.is_file():
