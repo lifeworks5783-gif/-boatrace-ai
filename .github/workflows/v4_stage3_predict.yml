@@ -141,8 +141,17 @@ jobs:
           git commit -m "V4 $V4_MODE: independently calculate  $DAY"
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then exit 0; fi
+            # Decoded inputs, scratch CSVs and feature cache remain uncommitted
+            # after the intended outputs were committed. Do not let those block
+            # a safe replay of the commit against the new main tip.
+            git reset --hard HEAD
+            git clean -fd
             git fetch origin main
-            git rebase origin/main || exit 1
+            git rebase origin/main || {
+              git rebase --abort || true
+              echo "Concurrent prediction files changed; do not overwrite newer scores" >&2
+              exit 1
+            }
             sleep 2
           done
           exit 1
