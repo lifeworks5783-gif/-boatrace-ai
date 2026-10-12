@@ -129,7 +129,21 @@ def main():
 
     # Keep historical recovery across repeated button presses.
     recovered_rows = read_csv(recovered_csv) if recovered_csv.is_file() else []
-    pending = sorted(set(missing_before) - race_ids(recovered_rows))
+    # A stored partial or neutral score is not a verified recovery.
+    # Retry that race rather than permanently excluding it from collection.
+    recovered_by_race = {}
+    for row in recovered_rows:
+        rid = normalize_race_id(row.get("race_id"))
+        if rid:
+            recovered_by_race.setdefault(rid, []).append(row)
+    verified_recovered = {
+        rid for rid, rows in recovered_by_race.items()
+        if {str(row.get("boat") or "").strip() for row in rows} ==
+           {"1", "2", "3", "4", "5", "6"}
+        and all(str(row.get("score_fallback") or "").strip().lower()
+                not in {"true", "yes", "1"} for row in rows)
+    }
+    pending = sorted(set(missing_before) - verified_recovered)
     retry_errors = []
 
     if pending:
@@ -185,13 +199,36 @@ def main():
         ]
         fetched = {}
         if to_fetch:
+            # Each race is isolated: one HTTP/parser exception must not discard
+            # official beforeinfo successfully fetched for other races.
+            from concurrent.futures import as_completed
             with ThreadPoolExecutor(max_workers=4) as pool:
-                for result in pool.map(lambda base: tbi.fetch_one(base, d), to_fetch):
-                    rid = normalize_race_id(result["base"].get("race_id"))
-                    if result.get("parsed") is None:
-                        retry_errors.append({"race_id": rid, "error": result.get("error")})
-                    else:
-                        fetched[rid] = result["parsed"]
+                futures = {pool.submit(tbi.fetch_one, base, d): base for base in to_fetch}
+                for future in as_completed(futures):
+                    base = futures[future]
+                    rid = normalize_race_id(base.get("race_id"))
+                    try:
+                        result = future.result()
+                        if result.get("parsed") is None:
+                            retry_errors.append({"race_id": rid, "error": result.get("error")})
+                        else:
+                            race_row, entries = result["parsed"]
+                            if (
+                                len(entries) != 6
+                                or {str(row.get("boat", "")).strip() for row in entries}
+                                   != {"1", "2", "3", "4", "5", "6"}
+                                or not all(
+                                    str(row.get("is_miss", "")).lower() in ("true", "1", "yes")
+                                    or all(str(row.get(k, "")).strip() for k in
+                                           ("exhibition_course", "exhibition_time", "exhibition_st_raw"))
+                                    for row in entries
+                                )
+                            ):
+                                retry_errors.append({"race_id": rid, "error": "official beforeinfo incomplete; retry later"})
+                                continue
+                            fetched[rid] = (race_row, entries)
+                    except Exception as exc:
+                        retry_errors.append({"race_id": rid, "error": str(exc)})
 
         observed = {**cached, **fetched}
         race_rows = []
