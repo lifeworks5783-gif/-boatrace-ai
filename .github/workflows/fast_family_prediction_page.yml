@@ -8,10 +8,8 @@ on:
         description: "JST date YYYYMMDD; empty means today"
         required: false
         type: string
-  # Watchdog only: recover missed dispatches or failed publication.
-  # Every 15 minutes, JST 06:00-22:59. Skip if the exact canonical blob was published.
-  schedule:
-    - cron: '*/15 21-23,0-13 * * *'
+  # Called by V4 stage3 only (also supports manual recovery).
+  # Avoid an extra 68 GitHub Actions runs/day from periodic polling.
 permissions:
   contents: read
 concurrency:
