@@ -82,6 +82,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install -q requests beautifulsoup4
+          python -m unittest discover -s tests -p test_fast_family_publication.py -v
           python -u collectors/build_deadline_prediction_view.py --date "$TARGET_DATE"
           mkdir -p _fast_site
           python -u collectors/build_family_prediction_page.py \
