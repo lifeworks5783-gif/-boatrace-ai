@@ -1,0 +1,29 @@
+name: Raw official HTTP capture contract tests
+on:
+  pull_request:
+    paths:
+      - "raw_collector/**"
+      - "tests/test_raw_archiving_contract.py"
+      - ".github/workflows/raw_capture_contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Confirm archive module compiles
+        run: python -m py_compile raw_collector/archive.py
+      - name: Validate raw preservation and parser independence
+        run: python -m unittest discover -s tests -p test_raw_archiving_contract.py -v
+
+# Deliberately NO cron and NO official website network fetches:
+# do not auto-download and push verbatim copyrighted pages to a PUBLIC repo.
+# Raw data needs an access-controlled destination before recurring collection.
