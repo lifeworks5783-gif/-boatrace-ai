@@ -69,6 +69,22 @@ jobs:
             k:one[k] for k in ("morning_entry_count","beforeinfo_state","morning_prediction_saved",
                                "live_prediction_saved","canonical_prediction_saved")})
           PY
+      - name: Inspect saved raw-CSV acquisition clocks against official deadlines
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import csv
+          root=Path("daily_inputs/2026/10/12/live/raw")
+          paths=sorted(root.glob("*/beforeinfo_entries_*.csv"))
+          print("ORIGINAL_SNAPSHOT_FILES",len(paths),"SAMPLES",[str(x) for x in paths[:5]])
+          for f in paths[:6]:
+            with f.open(encoding="utf-8-sig",newline="") as stream:
+              rows=list(csv.DictReader(stream))
+            fields=list(rows[0]) if rows else []
+            picks=[{k:r.get(k) for k in ("race_id","boat","collected_at","requested_at","observed_at","source_url") if k in r}
+                   for r in rows[:2]]
+            print("ORIGINAL_CLOCK_SAMPLE",str(f),"FIELDS",fields,"ROWS",picks)
+          PY
       - name: Render one real saved-data diagnostics screen (168 races) without any OAuth
         run: |
           python - <<'PY'
