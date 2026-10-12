@@ -30,6 +30,23 @@ jobs:
           TODAY="$(TZ=Asia/Tokyo date +%Y%m%d)"
           BASE="repos/$GH_REPO/contents/daily_inputs/${TODAY:0:4}/${TODAY:4:2}/${TODAY:6:2}/base"
           gh api "$BASE/program_races_$TODAY.csv" >/dev/null 2>&1 || exit 0
+          # Once all officially scheduled races, all six-boat outcomes and
+          # research integrity are independently PASS, avoid re-downloading
+          # 14 venue result pages every 15 minutes for the rest of the night.
+          AUDIT_PATH="evaluations/${TODAY:0:4}/${TODAY:4:2}/${TODAY:6:2}/data_quality/completeness_${TODAY}.json"
+          if gh api "repos/$GH_REPO/contents/$AUDIT_PATH" --jq .content 2>/dev/null | tr -d '\\n' | base64 -d > /tmp/finished-audit.json; then
+            if jq -e --arg d "$TODAY" '
+              .date==$d and .status=="PASS" and
+              .research_audit.research_status=="PASS" and
+              (.expected_races>0) and
+              (.result_races==.expected_races) and
+              (.complete_races==.expected_races) and
+              (.pending_races==0) and (.incomplete_races==0)
+            ' /tmp/finished-audit.json >/dev/null; then
+              echo "FULL_DAY_OFFICIAL_RESULTS_AND_RESEARCH_PASS: stop repeated venue fetches"
+              exit 0
+            fi
+          fi
           ACTIVE="$(gh api "repos/$GH_REPO/actions/workflows/intraday_compare.yml/runs?per_page=30" --jq '[.workflow_runs[] | select(.status!="completed")] | length')"
           if (( ACTIVE > 0 )); then
             echo "Comparison already running; skip duplicate"
