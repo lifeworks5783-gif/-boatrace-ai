@@ -32,6 +32,18 @@ def base_schedule(root:Path,day:str)->dict:
     with path.open(encoding="utf-8-sig",newline="") as stream:
         return {str(row["race_id"]):row for row in csv.DictReader(stream)}
 
+def program_registration_map(root:Path,day:str)->dict:
+    path=root/"daily_inputs"/day[:4]/day[4:6]/day[6:8]/"base"/f"program_entries_{day}.csv"
+    if not path.exists():
+        return {}
+    found={}
+    with path.open(encoding="utf-8-sig",newline="") as fh:
+        for row in csv.DictReader(fh):
+            race_id=str(row.get("race_id",""))
+            if not race_id: continue
+            found.setdefault(race_id,{})[str(row.get("boat",""))]=str(row.get("registration_no",""))
+    return found
+
 def normalize_verified_bundle(bundle:Path, *, root:Path,
                               transfer_status:str)->dict:
     if transfer_status not in ("verified_uploaded","verified_existing"):
@@ -39,6 +51,7 @@ def normalize_verified_bundle(bundle:Path, *, root:Path,
     manifest=validate_bundle(bundle)
     day=manifest["date"]
     schedules=base_schedule(root,day)
+    registration=program_registration_map(root,day)
     per_race={}
     with zipfile.ZipFile(bundle) as files:
         for entry in manifest["entries"]:
@@ -75,7 +88,14 @@ def normalize_verified_bundle(bundle:Path, *, root:Path,
                               row.get("exhibition_course") in range(1,7) and
                               row.get("exhibition_st_seconds") is not None
                               for row in boats))
-                        summary["parse_status"]="ready_live_inputs" if complete else "incomplete_live_inputs"
+                        expected=registration.get(rid,{})
+                        identities_match=(len(expected)==6 and
+                            all(expected.get(str(row.get("boat")))==str(row.get("registration_no"))
+                                for row in boats))
+                        summary["parse_status"]=(
+                            "ready_live_inputs" if complete and identities_match else
+                            "participant_identity_not_verified" if complete else
+                            "incomplete_live_inputs")
                 except Exception:
                     summary["parse_status"]="unparsed"
             else:
@@ -95,6 +115,12 @@ def merge_daily_summary(existing:dict | None,new:dict)->dict:
     for r in new.get("races",[]):
         old=byid.get(r["race_id"])
         if old is None or str(r["source"]["collected_at"])>=str(old["source"]["collected_at"]):
+            if old and old.get("parse_status")=="ready_live_inputs" and r.get("parse_status")!="ready_live_inputs":
+                # Hold the previous complete observation separately; never pretend it
+                # describes the new HTML, and never erase its validated values.
+                r["last_ready"]={k:old.get(k) for k in ("source","race","boats")}
+            elif old and old.get("last_ready") and r.get("parse_status")!="ready_live_inputs":
+                r["last_ready"]=old["last_ready"]
             byid[r["race_id"]]=r
     return {**new,"races":[byid[k] for k in sorted(byid)]}
 
