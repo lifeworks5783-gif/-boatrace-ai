@@ -215,7 +215,9 @@ def join_verified_late_saved_live(existing_live: dict, date: str, root: Path = R
                 continue
             if any(
                 not str(v.get("source_url") or "").startswith("https://www.boatrace.jp/owpc/pc/race/beforeinfo?")
-                or not (time_value(v.get("collected_at")) and time_value(v.get("collected_at")) < deadline)
+                or not (time_value(v.get("collected_at")) and
+                        ((time_value(v.get("collected_at")) < deadline) == (collected < deadline))
+                        or abs((time_value(v.get("collected_at")) - collected).total_seconds()) > 30)
                 or not (str(v.get("is_miss") or "").lower() in {"true","1","yes"}
                         or all(str(v.get(k) or "").strip() for k in ("exhibition_course","exhibition_time","exhibition_st_raw")))
                 for v in boats
