@@ -79,32 +79,27 @@ jobs:
           TOTAL_READY=$READY
           QUICK_MODE="${{ inputs.quick_mode || false }}"
 
+          # One successful race must never cancel retries for other unready races.
+          # Keep the quick refresh bounded; only missed races are selected again
+          # by today_beforeinfo.py, and previously saved official rows are retained.
           if [ "$QUICK_MODE" = "true" ]; then
-            # 家族ページの「最新情報に更新」ボタンは応答性を優先する。
-            # 1件でも取得済みなら待たずにその分を反映する。
-            # まだ1件も取れていない場合だけ20秒後に1回再確認する。
-            if [ "$UNREADY" -gt 0 ] && [ "$TOTAL_READY" -eq 0 ]; then
-              echo "ボタン更新: 未取得レースあり。20秒後に再確認します"
-              sleep 20
-              python -u collectors/today_beforeinfo.py --mode live
-              READY_NOW=$(read_validation_count new_ready_races)
-              UNREADY=$(read_validation_count unready_new_count)
-              TOTAL_READY=$((TOTAL_READY + READY_NOW))
-            fi
+            RETRIES=2
+            DELAY=15
           else
-            # 自動更新は欠損防止を優先し、未確定レースを最大2回追う。
-            for ATTEMPT in 1 2; do
-              if [ "$UNREADY" -le 0 ]; then
-                break
-              fi
-              echo "未確定の新規直前情報が ${UNREADY}R。60秒後に再確認します (${ATTEMPT}/2)"
-              sleep 60
-              python -u collectors/today_beforeinfo.py --mode live
-              READY_NOW=$(read_validation_count new_ready_races)
-              UNREADY=$(read_validation_count unready_new_count)
-              TOTAL_READY=$((TOTAL_READY + READY_NOW))
-            done
+            RETRIES=2
+            DELAY=30
           fi
+          for ATTEMPT in $(seq 1 "$RETRIES"); do
+            if [ "$UNREADY" -le 0 ]; then
+              break
+            fi
+            echo "未取得の直前情報 ${UNREADY}R を再確認 (${ATTEMPT}/${RETRIES})"
+            sleep "$DELAY"
+            python -u collectors/today_beforeinfo.py --mode live
+            READY_NOW=$(read_validation_count new_ready_races)
+            UNREADY=$(read_validation_count unready_new_count)
+            TOTAL_READY=$((TOTAL_READY + READY_NOW))
+          done
 
           READY=$TOTAL_READY
 
