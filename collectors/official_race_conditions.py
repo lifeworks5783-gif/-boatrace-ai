@@ -6,6 +6,7 @@ Do not change AI scoring or classify actual-result F/L as exhibition ST.
 """
 from __future__ import annotations
 import re
+import unicodedata
 
 SCHEMA="boatrace-official-condition-v1"
 EVENTS={
@@ -27,10 +28,11 @@ EVENTS={
 }
 # Official result expressions vary; collect unknown text instead of guessing.
 RESULT_PATTERNS=[
+ ("scratch",re.compile(r"^欠$|欠場|出走取消")),
  ("race_cancelled",re.compile(r"中止|開催中止|レース中止|欠航")),
- ("race_abandoned",re.compile(r"不成立|打切|競走不成立")),
- ("race_disqualification",re.compile(r"失格|妨害|不良航法|待機行動違反")),
- ("race_nonfinish",re.compile(r"転覆|落水|沈没|エンスト|不完走")),
+ ("race_abandoned",re.compile(r"^不$|不成立|打切|競走不成立")),
+ ("race_disqualification",re.compile(r"^失$|^妨$|失格|妨害|不良航法|待機行動違反")),
+ ("race_nonfinish",re.compile(r"^転$|^落$|転覆|落水|沈没|エンスト|不完走")),
  ("race_flying_start",re.compile(r"(?<![A-Za-z])F\d*|フライング",re.I)),
  ("race_late_start",re.compile(r"(?<![A-Za-z])L\d*|出遅れ",re.I)),
 ]
@@ -64,7 +66,7 @@ def classify_race(*,entries:list[dict],morning_entries:list[dict]|None=None,
             scratch.append(b);event("scratch","before_start",b,"is_miss")
         else:
             active.append(b)
-            value=str(r.get("exhibition_st_raw") or "").strip().upper()
+            value=unicodedata.normalize("NFKC",str(r.get("exhibition_st_raw") or "")).strip().upper()
             if value.startswith("F"):event("exhibition_false_start","before_start",b,value)
             elif value.startswith("L"):event("exhibition_late_start","before_start",b,value)
             elif value and not re.fullmatch(r"(?:0?\.)?\d{1,2}|1\.00",value):
@@ -82,14 +84,16 @@ def classify_race(*,entries:list[dict],morning_entries:list[dict]|None=None,
     if scratch or len(active)<6:event("fewer_starters","before_start",evidence=f"active={len(active)}")
     if any(r.get("change_parts") for r in entries):event("weather_or_equipment_change","before_start","", "parts")
     if official_status:
+        status=unicodedata.normalize("NFKC",str(official_status))
         for typ,pattern in RESULT_PATTERNS:
-            if pattern.search(str(official_status)):
-                event(typ,"after_start",evidence=official_status)
+            if pattern.search(status):
+                event(typ,"result_record",evidence=status)
     for row in actual_results or []:
         raw=" ".join(str(row.get(k) or "") for k in ("finish_status","result_status","remark","note","rank","arrival","status"))
+        raw=unicodedata.normalize("NFKC",raw).strip()
         for typ,pattern in RESULT_PATTERNS:
             if pattern.search(raw):
-                event(typ,"after_start",_boat_id(row.get("boat")),raw)
+                event(typ,"result_record",_boat_id(row.get("boat")),raw)
     active_count=len(active)
     # 3P3 6 tickets, 4P3 24; product is nominal 24 ONLY for 4-6
     # starters when scratches are verified. A raw row omitted is NOT evidence.
