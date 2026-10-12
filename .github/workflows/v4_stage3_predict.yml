@@ -159,5 +159,18 @@ jobs:
         if: env.V4_CALCULATED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          gh workflow run fast_family_prediction_page.yml             --repo "$GITHUB_REPOSITORY" --ref main             -f target_date="$TARGET_DATE"
+          set -euo pipefail
+          # GitHub API throttling must not silently lose a publication request.
+          for attempt in 1 2 3; do
+            if gh workflow run fast_family_prediction_page.yml \
+              --repo "$GITHUB_REPOSITORY" --ref main \
+              -f target_date="$TARGET_DATE"; then
+              echo "FAST_PUBLICATION_REQUESTED date=$TARGET_DATE"
+              exit 0
+            fi
+            sleep "$((attempt * 3))"
+          done
+          echo "::error::Priority publication dispatch failed after three attempts"
+          exit 1
