@@ -1,0 +1,46 @@
+name: Research quality page regression
+on:
+  pull_request:
+    paths:
+      - "raw_collector/saved_research_adapter.py"
+      - "raw_collector/saved_research_view.py"
+      - "raw_collector/stage_saved_quality_page.py"
+      - "tests/test_safe_saved_quality_publish.py"
+      - ".github/workflows/family_prediction_page.yml"
+      - ".github/workflows/research_quality_gate.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile quality modules
+        run: python -m py_compile raw_collector/saved_research_adapter.py raw_collector/saved_research_view.py raw_collector/stage_saved_quality_page.py
+      - name: Check original vs recovered provenance and website layout
+        run: python -m unittest discover -s tests -p test_safe_saved_quality_publish.py -v
+      - name: Validate real saved research data and diagnostic page output
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from tempfile import TemporaryDirectory
+          from raw_collector.saved_research_adapter import diagnose_saved_day
+          from raw_collector.stage_saved_quality_page import stage
+          report=diagnose_saved_day(Path("."),"20261012")
+          assert report["summary"]["total"] >= 100, report["summary"]
+          assert report["summary"]["morning_six"] >= 100, report["summary"]
+          assert report["summary"]["predeadline_live_six"] == 0  # no trusted attestation
+          with TemporaryDirectory() as tmp:
+            site=Path(tmp)
+            (site/"analysis.html").write_text('<html><nav class="family-nav"><a href="index.html">最新予想</a></nav></html>',encoding="utf-8")
+            result=stage(Path("."),site,"20261012")
+            assert result["status"]=="generated",result
+            page=(site/"raw_diagnostics.html").read_text(encoding="utf-8")
+            assert "20261012-22-12" in page and "独立証明" in page
+            assert "<nav" in (site/"analysis.html").read_text(encoding="utf-8")
+          print("RESEARCH_QUALITY_REAL_DATA_PASS",report["summary"],"publish_status",result)
+          PY
