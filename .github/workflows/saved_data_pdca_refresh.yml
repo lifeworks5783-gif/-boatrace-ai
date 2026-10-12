@@ -63,6 +63,47 @@ jobs:
           mkdir -p data
           cp "$BASE/program_races_${TARGET_DATE}.csv" data/
           cp "$BASE/program_entries_${TARGET_DATE}.csv" data/
+          # Do not spend minutes downloading the same all-day official results
+          # again when stored results + six-boat entries + independent audit
+          # already prove FULL coverage. Failure falls through to source retry.
+          if python - <<'PY'
+          import csv,json,os,re,sys
+          from collections import Counter
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          day=Path(d[:4])/d[4:6]/d[6:8]
+          base=Path("daily_inputs")/day/"base"
+          arc=Path("archive")/day
+          audit_file=Path("evaluations")/day/"data_quality"/f"completeness_{d}.json"
+          def fail(message):
+              print("PDCA_CACHE_RECHECK_REQUIRED",message,flush=True)
+              sys.exit(1)
+          def read_csv(path):
+              if not path.is_file(): fail(str(path))
+              with path.open(encoding="utf-8-sig",newline="") as f:
+                  return list(csv.DictReader(f))
+          def race_id(value):
+              digits="".join(c for c in str(value or "") if c.isdigit())
+              return digits[:12] if len(digits)>=12 else ""
+          if not audit_file.is_file(): fail("audit_missing")
+          q=json.loads(audit_file.read_text(encoding="utf-8"))
+          plan={race_id(v.get("race_id")) for v in read_csv(base/f"program_races_{d}.csv")}
+          actual={race_id(v.get("race_id")) for v in read_csv(arc/f"results_{d}_all.csv")}
+          counts=Counter(race_id(v.get("race_id")) for v in read_csv(arc/f"boat_results_{d}_all.csv"))
+          if not (q.get("date")==d and q.get("status")=="PASS" and
+              q.get("research_audit",{}).get("research_status")=="PASS" and
+              q.get("expected_races")==len(plan) and len(plan)>0 and
+              q.get("result_races")==q.get("complete_races")==len(plan) and
+              q.get("pending_races")==q.get("incomplete_races")==0 and
+              q.get("needs_recollection") is False and actual==plan and
+              all(counts.get(r)==6 for r in plan)):
+              fail("result_identity_or_integrity_mismatch")
+          print("PDCA_VERIFIED_SAVED_FULL_DAY",d,len(actual),"official result races and six-boat rows",flush=True)
+          PY
+          then
+            echo "Independently verified all saved official inputs; skip duplicate HTTP collection"
+            exit 0
+          fi
           python -u collectors/daily_results_fast.py --date "$TARGET_DATE"
           python -u collectors/validate_daily.py --date "$TARGET_DATE"
           python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
