@@ -82,7 +82,10 @@ class V4ContractTests(unittest.TestCase):
         self.assertIn('gh run download "$SOURCE_RUN"',files[2])
         self.assertIn('--now "$NOW"',files[2])
         self.assertIn('python -u collectors/build_latest_prediction_view.py',files[2])
-        self.assertIn('run family_prediction_page.yml',files[2])
+        # V4 must publish index via the light path; heavy PDCA is independent.
+        self.assertIn('run fast_family_prediction_page.yml',files[2])
+        self.assertNotIn('run family_prediction_page.yml',files[2])
+        self.assertTrue((root/".github/workflows/fast_family_prediction_page.yml").is_file())
         self.assertIn('live/v4_decoded',files[1])
         self.assertIn('live/v4_decoded',files[2])
         self.assertIn("v4-stage2-receipt-v1",files[1])
