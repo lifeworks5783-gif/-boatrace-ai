@@ -36,7 +36,7 @@ class OfficialRaceConditionTests(unittest.TestCase):
             {"boat":4,"remark":"転覆"},
             {"boat":5,"remark":"F01"}])
         stages={y["code"]:y["stage"] for y in x["events"]}
-        self.assertEqual(stages["race_disqualification"],"after_start")
+        self.assertEqual(stages["race_disqualification"],"result_record")
         self.assertEqual(stages["race_nonfinish"],"after_start")
         self.assertEqual(stages["race_flying_start"],"after_start")
         self.assertTrue(x["collection_accept"])
@@ -56,6 +56,30 @@ class OfficialRaceConditionTests(unittest.TestCase):
         self.assertIn("exhibition_late_start",kinds)
         self.assertNotIn("race_flying_start",kinds)
         self.assertNotIn("race_late_start",kinds)
+    def test_past_irregular_official_result_abbreviations_are_preserved(self):
+        results=[{"boat":1,"rank":"欠"},{"boat":2,"rank":"失"},
+                 {"boat":3,"rank":"転"},{"boat":4,"rank":"落"},
+                 {"boat":5,"rank":"妨"},{"boat":6,"rank":"不"}]
+        x=classify_race(entries=boats(),actual_results=results)
+        codes={y["code"] for y in x["events"]}
+        for name in ("scratch","race_disqualification","race_nonfinish","race_abandoned"):
+            self.assertIn(name,codes)
+        self.assertTrue(x["collection_accept"])
+        self.assertTrue(all(y["stage"]=="result_record" for y in x["events"]))
+
+    def test_wide_f_l_notation_and_three_digit_boat_machine_numbers(self):
+        b=boats()
+        b[0]["boat_no"]=150
+        b[1]["boat_no"]=129
+        b[2]["boat_no"]=171
+        x=classify_race(entries=b,actual_results=[
+            {"boat":1,"rank":"Ｆ.01"},{"boat":2,"rank":"Ｌ.03"}])
+        self.assertTrue(x["signal_24_product_possible"])
+        codes={y["code"] for y in x["events"]}
+        self.assertIn("race_flying_start",codes)
+        self.assertIn("race_late_start",codes)
+        self.assertFalse(x["unresolved_missing_lanes"])
+
     def test_weather_equipment_and_unknown_st_do_not_block_capture(self):
         rows=boats()
         rows[3]["change_parts"]="ピストン交換"
