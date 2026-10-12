@@ -84,7 +84,7 @@ def _clock_evidence(date_dir,day,deadlines):
     jst=timezone(timedelta(hours=9))
     for file in sorted(root.glob("*/beforeinfo_entries_*.csv")):
         name=file.parent.name
-        if not re.fullmatch(r"\\d{8}_\\d{6}",name):continue
+        if not re.fullmatch(r"\d{8}_\d{6}",name):continue
         try:
             folder_time=datetime.strptime(name,"%Y%m%d_%H%M%S").replace(tzinfo=jst)
         except ValueError:continue
