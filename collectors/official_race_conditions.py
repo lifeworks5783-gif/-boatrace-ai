@@ -93,7 +93,7 @@ def classify_race(*,entries:list[dict],morning_entries:list[dict]|None=None,
     active_count=len(active)
     # 3P3 6 tickets, 4P3 24; product is nominal 24 ONLY for 4-6
     # starters when scratches are verified. A raw row omitted is NOT evidence.
-    confirmed=len(scratch)+len(by)==6 and not unknown_missing and len(by)==6
+    confirmed=len(by)==6 and not unknown_missing and len(scratch)==6-active_count
     signal_24_possible=(4<=active_count<=6 and
                         (active_count==6 or confirmed))
     return {
