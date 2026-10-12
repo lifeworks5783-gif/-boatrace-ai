@@ -32,13 +32,13 @@ jobs:
           fetch-depth: 1
       - name: Resolve date and immutable source identity
         env:
-          INPUT_DATE: \${{ inputs.target_date }}
+          INPUT_DATE: ${{ inputs.target_date }}
         shell: bash
         run: |
           set -euo pipefail
-          DAY="\${INPUT_DATE:-$(TZ=Asia/Tokyo date +%Y%m%d)}"
+          DAY="${INPUT_DATE:-$(TZ=Asia/Tokyo date +%Y%m%d)}"
           [[ "$DAY" =~ ^20[0-9]{6}$ ]] || { echo "Invalid date: $DAY"; exit 1; }
-          FILE="predictions/\${DAY:0:4}/\${DAY:4:2}/\${DAY:6:2}/live/formation_predictions_final_$DAY.json"
+          FILE="predictions/${DAY:0:4}/${DAY:4:2}/${DAY:6:2}/live/formation_predictions_final_$DAY.json"
           if ! test -s "$FILE"; then
             echo "Missing canonical: $FILE; latest page is unchanged" >&2
             exit 1
@@ -53,7 +53,7 @@ jobs:
         with:
           repository: lifeworks5783-gif/boatrace-family-view
           ref: main
-          token: \${{ secrets.FAMILY_VIEW_TOKEN }}
+          token: ${{ secrets.FAMILY_VIEW_TOKEN }}
           path: family_public
           fetch-depth: 1
       - name: Skip unchanged published canonical
@@ -107,7 +107,7 @@ jobs:
       - name: Retry public Git push and store timing evidence
         if: env.PUBLISH_SKIP == 'false'
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
