@@ -66,7 +66,8 @@ def _normalize_bundle(bundle:Path, *, root:Path,drive_verified:bool)->dict:
     registration=program_registration_map(root,day)
     per_race={}
     with zipfile.ZipFile(bundle) as files:
-        for entry in manifest["entries"]:
+        # Content hashes do not sort chronologically; keep versions in observed order.
+        for entry in sorted(manifest["entries"],key=lambda x:(str(x["received_at"]),str(x["sha256"]))):
             date,kind,venue,rno=source_identity(entry["source_url"])
             if kind!="beforeinfo":
                 continue
