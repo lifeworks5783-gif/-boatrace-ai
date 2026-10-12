@@ -7,11 +7,8 @@ permissions:
     branches: [main]
     paths:
       - config/run_morning_now.txt
-  # Research PUBLIC repository, standard ubuntu-latest runner.
-  # Restore original twice-daily UTC cron (03:00 and 04:30 JST).
-  schedule:
-    - cron: '0 18 * * *'
-    - cron: '30 19 * * *'
+  # V3 daily cron retired; retained manual button fallback only.
+  # V4 Stage 1 owns 03:07/04:32/05:07 JST morning collection and calculation.
   workflow_dispatch:
 concurrency:
   group: boatrace-main-writer
