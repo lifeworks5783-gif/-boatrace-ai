@@ -306,6 +306,9 @@ jobs:
           if test -s _family_site/raw_diagnostics.html; then
             cp _family_site/raw_diagnostics.html family_public/raw_diagnostics.html
             cp _family_site/raw_diagnostics_summary.json family_public/raw_diagnostics_summary.json
+          else
+            # Do not leave yesterday's quality report visible after source disappears.
+            rm -f family_public/raw_diagnostics.html family_public/raw_diagnostics_summary.json
           fi
 
           touch family_public/.nojekyll
@@ -368,9 +371,8 @@ jobs:
             analysis.html \
             race_compare.html \
             .nojekyll
-          if test -f raw_diagnostics.html; then
-            git add raw_diagnostics.html raw_diagnostics_summary.json
-          fi
+          # Includes removal of stale diagnostics if current data cannot be checked.
+          git add -A -- raw_diagnostics.html raw_diagnostics_summary.json
           if test -f manual_refresh_status.json; then
             git add manual_refresh_status.json
           fi
