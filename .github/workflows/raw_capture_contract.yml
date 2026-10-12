@@ -69,6 +69,26 @@ jobs:
             k:one[k] for k in ("morning_entry_count","beforeinfo_state","morning_prediction_saved",
                                "live_prediction_saved","canonical_prediction_saved")})
           PY
+      - name: Render one real saved-data diagnostics screen (168 races) without any OAuth
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from raw_collector.stage_family_diagnostics import stage
+          base=Path("_saved_diagnostics_smoke")
+          base.mkdir(exist_ok=True)
+          (base/"analysis.html").write_text(
+              '<html><body><nav class="family-nav"><a href="analysis.html">AI分析</a></nav></body></html>',
+              encoding="utf-8")
+          report=stage(Path("."),base,"20261012")
+          assert report["status"]=="staged_saved_research_diagnostics",report
+          assert report["count"]==168,report
+          html=(base/"raw_diagnostics.html").read_text(encoding="utf-8")
+          assert html.count('20261012-22-12')==1
+          assert "結果後に復旧したデータを当時の直前取得" in html
+          assert "公式ページの生HTML原本は検証できておらず" in html
+          assert (base/"raw_diagnostics_summary.json").exists()
+          print("REAL_SAVED_RESEARCH_VIEW_PASS",report)
+          PY
       - name: Verify private archive before normalizing for GitHub
         run: |
           python -m py_compile raw_collector/normalize.py
