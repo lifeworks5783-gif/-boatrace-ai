@@ -1,6 +1,6 @@
 {
   "target_date": "20261012",
-  "generated_at": "2026-10-12T09:54:27+09:00",
+  "generated_at": "2026-10-12T09:59:29.534389+09:00",
   "formation_model": "formation_gap_flow_v2",
   "upcoming_race_count": 158,
   "races": [
@@ -5402,25 +5402,89 @@
       "venue_name": "徳山",
       "race": 4,
       "deadline": "2026-10-12T10:09:00+09:00",
-      "prediction_type": "朝",
+      "prediction_type": "直前",
       "prediction_quality": {
-        "status": "normal",
-        "mark": "",
-        "label": "正常",
-        "recovery_needed": false,
-        "reason": [],
-        "fallback_source": null
+        "status": "fallback",
+        "mark": "⚠",
+        "label": "補完あり",
+        "recovery_needed": true,
+        "reason": [
+          "締切前の直前情報が未確定または未保存"
+        ],
+        "fallback_source": "saved_morning_prediction",
+        "signal_blocked": true,
+        "boat_fallbacks": [
+          {
+            "boat": 1,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 2,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 3,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 5,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 4,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 6,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          }
+        ],
+        "recorded_at": "2026-10-12T09:59:29.534389+09:00"
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 1,
           "racer_name": "芝田浩治",
           "score": 79.1,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 79.1,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A2",
           "registration_no": 3484,
           "motor_no": 16,
@@ -5656,9 +5720,13 @@
           "boat": 2,
           "racer_name": "鎌倉涼",
           "score": 67.4,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 67.4,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A1",
           "registration_no": 4456,
           "motor_no": 65,
@@ -5894,9 +5962,13 @@
           "boat": 3,
           "racer_name": "丹下健",
           "score": 55.5,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 55.5,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4139,
           "motor_no": 72,
@@ -6132,9 +6204,13 @@
           "boat": 5,
           "racer_name": "村上功祐",
           "score": 46.9,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 46.9,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4039,
           "motor_no": 12,
@@ -6370,9 +6446,13 @@
           "boat": 4,
           "racer_name": "西尾亮輔",
           "score": 44.1,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 44.1,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4752,
           "motor_no": 61,
@@ -6608,9 +6688,13 @@
           "boat": 6,
           "racer_name": "川崎公靖",
           "score": 7.0,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 7.0,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4271,
           "motor_no": 52,
@@ -9346,28 +9430,17 @@
       },
       "signal_ai_prediction": null,
       "up_signal": {
-        "available": true,
+        "available": false,
         "active": false,
         "level": 0,
         "rule_version": "raijin_signal_v1_20261008",
         "system_name": "風神雷神シグナル",
         "signal_name": "雷神",
-        "thresholds": {
-          "level1_rise_min": 7.5,
-          "level1_rise_max_exclusive": 10,
-          "level2_rise_min": 10,
-          "level2_rise_max": null,
-          "level3_candidate_score_min": 50,
-          "level3_candidate_rise_min": 7.5,
-          "outside_live_top3": false,
-          "level3_priority": true
-        },
         "candidates": [],
         "max_rise": null,
-        "has_score50_candidate": false,
         "ai_effect": false,
         "formation_effect": false,
-        "status": "provisional_analysis_only"
+        "suppressed_reason": "fallback_prediction"
       },
       "down_signal": {
         "available": false,
@@ -9375,7 +9448,7 @@
         "level": 0,
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
-        "suppressed_reason": "missing_morning_reference"
+        "suppressed_reason": "fallback_prediction"
       },
       "signal_system_name": "風神雷神シグナル",
       "signal_logic_identity": {
@@ -9413,7 +9486,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -13183,7 +13256,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -17006,7 +17079,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -21022,7 +21095,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -25024,7 +25097,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -29038,7 +29111,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -33052,7 +33125,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -36834,7 +36907,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -40739,7 +40812,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -44767,7 +44840,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -48795,7 +48868,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -52823,7 +52896,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -56825,7 +56898,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -60839,7 +60912,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -64855,7 +64928,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -68883,7 +68956,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -72911,7 +72984,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -76708,7 +76781,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -80519,7 +80592,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -84535,7 +84608,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -88537,7 +88610,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -92565,7 +92638,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -96581,7 +96654,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -100609,7 +100682,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -104637,7 +104710,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -108665,7 +108738,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -112681,7 +112754,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -116697,7 +116770,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -120549,7 +120622,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -124346,7 +124419,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -128374,7 +128447,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -132390,7 +132463,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -136418,7 +136491,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -140446,7 +140519,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -144460,7 +144533,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -148488,7 +148561,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -152516,7 +152589,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -156544,7 +156617,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -160396,7 +160469,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -164219,7 +164292,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -168247,7 +168320,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -172275,7 +172348,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -176291,7 +176364,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -180319,7 +180392,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -184321,7 +184394,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -188349,7 +188422,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -192363,7 +192436,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -196365,7 +196438,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -200121,7 +200194,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -204149,7 +204222,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -207999,7 +208072,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -212013,7 +212086,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -216041,7 +216114,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -220069,7 +220142,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -224085,7 +224158,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -228113,7 +228186,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -232115,7 +232188,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -236143,7 +236216,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -240007,7 +240080,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -244009,7 +244082,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -248037,7 +248110,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -251901,7 +251974,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -255917,7 +255990,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -259945,7 +260018,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -263973,7 +264046,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -268001,7 +268074,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -272029,7 +272102,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -276031,7 +276104,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -280033,7 +280106,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -284061,7 +284134,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -287843,7 +287916,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -291871,7 +291944,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -295885,7 +295958,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -299682,7 +299755,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -303696,7 +303769,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -307724,7 +307797,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -311740,7 +311813,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -315768,7 +315841,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -319784,7 +319857,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -323786,7 +323859,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -327636,7 +327709,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -331650,7 +331723,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -335652,7 +335725,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -339668,7 +339741,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -343682,7 +343755,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -347696,7 +347769,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -351452,7 +351525,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -355454,7 +355527,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -359468,7 +359541,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -363482,7 +363555,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -367498,7 +367571,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -371512,7 +371585,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -375526,7 +375599,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -379540,7 +379613,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -383556,7 +383629,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -387584,7 +387657,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -391475,7 +391548,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -395503,7 +395576,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -399519,7 +399592,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -403547,7 +403620,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -407563,7 +407636,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -411577,7 +411650,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -415605,7 +415678,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -419633,7 +419706,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -423635,7 +423708,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -427649,7 +427722,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -431665,7 +431738,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -435421,7 +435494,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -439423,7 +439496,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -443451,7 +443524,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -447479,7 +447552,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -451495,7 +451568,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -455523,7 +455596,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -459537,7 +459610,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -463551,7 +463624,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -467565,7 +467638,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -471593,7 +471666,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -475609,7 +475682,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -479637,7 +479710,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -483639,7 +483712,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -487653,7 +487726,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -491655,7 +491728,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -495657,7 +495730,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -499673,7 +499746,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -503701,7 +503774,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -507729,7 +507802,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -511745,7 +511818,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -515773,7 +515846,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -519775,7 +519848,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -523803,7 +523876,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -527831,7 +527904,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -531833,7 +531906,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -535849,7 +535922,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -539865,7 +539938,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -543893,7 +543966,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -547921,7 +547994,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -551949,7 +552022,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -555977,7 +556050,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -559993,7 +560066,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -564007,7 +564080,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -568035,7 +568108,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -572037,7 +572110,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -576053,7 +576126,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -580069,7 +580142,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -584083,7 +584156,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -588111,7 +588184,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -592113,7 +592186,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -596141,7 +596214,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -600169,7 +600242,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -604183,7 +604256,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -608197,7 +608270,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -612225,7 +612298,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -616239,7 +616312,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -620267,7 +620340,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -624269,7 +624342,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
@@ -628297,7 +628370,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T09:54:27+09:00",
+      "generated_at": "2026-10-12T09:59:29.534389+09:00",
       "boats": [
         {
           "rank": 1,
