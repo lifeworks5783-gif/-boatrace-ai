@@ -28,11 +28,11 @@ jobs:
         run: |
           python -m py_compile collectors/official_race_conditions.py collectors/research_live_full_day_probe.py
           python -m unittest discover -s tests -p test_official_race_conditions.py -v
-      - name: Recheck all saved predictions and only missing official exhibition pages
+      - name: Recheck all saved predictions (official gap already checked in run 38240929058)
         run: |
           python -m collectors.research_live_full_day_probe \
             --date 20261012 --as-of 2026-10-12T20:02:31+09:00 \
-            --max-official-gap-requests 15 --output-dir _research_probe
+            --max-official-gap-requests 0 --output-dir _research_probe
       - name: Retain research-only decoded report (no full official HTML)
         if: always()
         uses: actions/upload-artifact@v4
