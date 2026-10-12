@@ -377,7 +377,7 @@ def build_ai_card(race, index):
     if integrity["signal_key"]:
         ai = signal_ai
         position = ai.get("boat_scores") or []
-        combos = (ai.get("combinations") or [])[:24]
+        combos = (ai.get("all_120_combinations") or ai.get("combinations") or [])[:50]
         score_rows = "".join(
             '<tr>'
             f'<td>{esc(x.get("boat"))}号艇{(" " + esc(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat"))))) if text(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat")))) else ""}</td>'
@@ -415,10 +415,10 @@ def build_ai_card(race, index):
             </table>
           </div>
           <details class="ai-combo-details">
-            <summary>シグナルAI予想・購入24点（2,400円）を見る</summary>
+            <summary>シグナルAI順位1〜50位を見る（購入は上位24点）</summary>
             <div class="ai-combos">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
           </details>
-          <div class="ai-note">シグナル発動時は上位24点を各100円で仮想購入（合計2,400円）。収支・回収率も24点で評価します。6/8/12/18点はPDCA内で比較します。</div>
+          <div class="ai-note">1〜24位が従来の仮想購入対象、25〜50位は検証用の参考順位です。購入額・回収率は従来どおり24点で計算します。全120通りの順位データは保存済みです。</div>
         </article>
         """
 
@@ -483,7 +483,7 @@ def build_ai_card(race, index):
         </table>
       </div>
       <details class="ai-combo-details">
-        <summary>シグナルAI予想・上位12点を見る</summary>
+        <summary>通常AI順位1〜50位を見る（検証用）</summary>
         <div class="ai-combos">{combo_rows or "AI予測はまだ生成されていません。"}</div>
       </details>
     </article>
