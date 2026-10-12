@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT / "collectors"))
 from raw_collector.archive import capture_one, load_raw, source_url
 from raw_collector.drive_bundle import bundle_batch
 from raw_collector.normalize import preview_local_bundle
+from raw_collector.diagnostics_view import build_page
 from today_beforeinfo import parse_beforeinfo
 from build_live_prediction import score_race
 from build_latest_prediction_view import (
@@ -76,6 +77,15 @@ def observed():
             raise RuntimeError("normalized_boat_count_not_six")
         stats["drive_free_normalize_six"] = True
         stats["raw_bundle_verified_locally_only"] = True
+        preview_path=Path(temp)/"normalized-preview.json"
+        preview_path.write_text(json.dumps(preview,ensure_ascii=False),encoding="utf-8")
+        page=build_page(preview_path,Path(temp)/"research_diagnostics")
+        if page["total"]!=1 or page["ready"]!=1 or page["needs_review"]!=0:
+            raise RuntimeError("real_race_quality_page_invalid")
+        diagnostic_html=Path(page["page"]).read_text(encoding="utf-8")
+        if RACE_ID not in diagnostic_html or "永続保存未確認" not in diagnostic_html:
+            raise RuntimeError("real_race_quality_page_missing_evidence_labels")
+        stats["research_diagnostics_page"] = "PASS (local-only, not published)"
 
         program_path = ROOT / "daily_inputs" / "2026" / "10" / "12" / "base" / "program_entries_20261012.csv"
         if not program_path.is_file():
