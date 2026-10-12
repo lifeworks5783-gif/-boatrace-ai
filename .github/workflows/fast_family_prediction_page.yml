@@ -1,0 +1,182 @@
+# V4 fast lane: do NOT evaluate PDCA / historical results / signal research here.
+# Refresh only the latest prediction page. Existing full publisher owns other tabs.
+name: 最新予測・優先公開（軽量）
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "JST date YYYYMMDD; empty means today"
+        required: false
+        type: string
+  # Watchdog only: recover missed dispatches or failed publication.
+  # Every 15 minutes, JST 06:00-22:59. Skip if the exact canonical blob was published.
+  schedule:
+    - cron: '*/15 21-23,0-13 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: boatrace-fast-family-publish
+  cancel-in-progress: true
+jobs:
+  fast-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Read the current canonical prediction (no recalculation)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Resolve date and immutable source identity
+        env:
+          INPUT_DATE: \${{ inputs.target_date }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          DAY="\${INPUT_DATE:-$(TZ=Asia/Tokyo date +%Y%m%d)}"
+          [[ "$DAY" =~ ^20[0-9]{6}$ ]] || { echo "Invalid date: $DAY"; exit 1; }
+          FILE="predictions/\${DAY:0:4}/\${DAY:4:2}/\${DAY:6:2}/live/formation_predictions_final_$DAY.json"
+          if ! test -s "$FILE"; then
+            if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+              echo "Daily canonical not yet available; watchdog exits without replacing existing page"
+              echo "PUBLISH_SKIP=true" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            echo "Missing canonical: $FILE" >&2
+            exit 1
+          fi
+          echo "TARGET_DATE=$DAY" >> "$GITHUB_ENV"
+          echo "CANONICAL_FILE=$FILE" >> "$GITHUB_ENV"
+          echo "CANONICAL_SHA=$(git rev-parse HEAD:$FILE)" >> "$GITHUB_ENV"
+          echo "PUBLISH_SKIP=false" >> "$GITHUB_ENV"
+      - name: Read public repository without overwriting the other tabs
+        if: env.PUBLISH_SKIP == 'false'
+        uses: actions/checkout@v4
+        with:
+          repository: lifeworks5783-gif/boatrace-family-view
+          ref: main
+          token: \${{ secrets.FAMILY_VIEW_TOKEN }}
+          path: family_public
+          fetch-depth: 1
+      - name: Skip unchanged published canonical
+        if: env.PUBLISH_SKIP == 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          PUBLISHED=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('family_public/fast_publish_status.json')
+          try:
+              record=json.loads(path.read_text(encoding='utf-8'))
+              print(record.get('canonical_blob_sha',''))
+          except (OSError,ValueError):
+              print('')
+          PY
+          )
+          if [ "$PUBLISHED" = "$CANONICAL_SHA" ] && test -s family_public/index.html; then
+            echo "Already published exact canonical $CANONICAL_SHA"
+            echo "PUBLISH_SKIP=true" >> "$GITHUB_ENV"
+          fi
+      - name: Install minimum dependencies for the latest page only
+        if: env.PUBLISH_SKIP == 'false'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build current latest page without heavy PDCA
+        if: env.PUBLISH_SKIP == 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -q requests beautifulsoup4
+          python -u collectors/build_deadline_prediction_view.py --date "$TARGET_DATE"
+          mkdir -p _fast_site
+          python -u collectors/build_family_prediction_page.py \
+            --input predictions/latest_by_deadline.json --output-dir _fast_site
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,'collectors')
+          from add_family_navigation import update_page
+          update_page(Path('_fast_site/index.html'), 'prediction')
+          text=Path('_fast_site/index.html').read_text(encoding='utf-8')
+          assert '<nav class="family-nav">' in text
+          assert 'レース照合' in text and 'AI分析' in text
+          assert '<html' in text and '</html>' in text
+          PY
+          test -s _fast_site/index.html
+      - name: Retry public Git push and store timing evidence
+        if: env.PUBLISH_SKIP == 'false'
+        env:
+          GH_TOKEN: \${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_TS=$(gh api "repos/$GITHUB_REPOSITORY/commits?path=$CANONICAL_FILE&per_page=1" \
+            --jq '.[0].commit.committer.date')
+          test -n "$SOURCE_TS"
+          git -C family_public config user.name boatrace-fast-publication-bot
+          git -C family_public config user.email boatrace-fast-publication-bot@users.noreply.github.com
+          for attempt in 1 2 3 4; do
+            git -C family_public fetch origin main
+            git -C family_public reset --hard origin/main
+            REMOTE_SHA=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CANONICAL_FILE" --jq .sha)
+            if [ "$REMOTE_SHA" != "$CANONICAL_SHA" ]; then
+              echo "::warning::Newer canonical saved while rendering; stop stale publication. The next dispatch/watchdog will publish it."
+              exit 0
+            fi
+            PUBLISHED=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              print(json.loads(Path('family_public/fast_publish_status.json').read_text()).get('canonical_blob_sha',''))
+          except (OSError,ValueError):
+              print('')
+          PY
+            )
+            if [ "$PUBLISHED" = "$CANONICAL_SHA" ] && test -s family_public/index.html; then
+              echo "Published by another run; no duplicate"
+              exit 0
+            fi
+            cp _fast_site/index.html family_public/index.html
+            touch family_public/.nojekyll
+            export SOURCE_TS
+            python - <<'PY'
+          import json,os
+          from datetime import datetime,timezone,timedelta
+          from pathlib import Path
+          timestamp=datetime.now(timezone.utc)
+          source=datetime.fromisoformat(os.environ['SOURCE_TS'].replace('Z','+00:00'))
+          marker={
+              'schema_version':1,
+              'target_date':os.environ['TARGET_DATE'],
+              'canonical_blob_sha':os.environ['CANONICAL_SHA'],
+              'canonical_path':os.environ['CANONICAL_FILE'],
+              'prediction_commit_at_utc':source.isoformat(),
+              'published_commit_prepared_at_utc':timestamp.isoformat(),
+              'prediction_commit_to_publication_seconds':max(0,round((timestamp-source).total_seconds())),
+              'publisher_run_id':os.environ['GITHUB_RUN_ID'],
+              'published_at_jst':timestamp.astimezone(timezone(timedelta(hours=9))).isoformat(),
+              'scope':'latest_prediction_index_only',
+              'other_tabs_untouched':True,
+              'pages_deployment_verified':False,
+          }
+          Path('family_public/fast_publish_status.json').write_text(
+              json.dumps(marker,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('FAST_PUBLICATION_STATUS',marker)
+          PY
+            git -C family_public add index.html fast_publish_status.json .nojekyll
+            if git -C family_public diff --cached --quiet; then
+              echo "No public file changes"
+              exit 0
+            fi
+            git -C family_public commit -m "Publish latest canonical prediction without PDCA: $TARGET_DATE"
+            if git -C family_public push origin HEAD:main; then
+              echo "FAST_PUBLICATION_PUSH_PASS source=$CANONICAL_SHA"
+              exit 0
+            fi
+            echo "Public repository advanced while publishing; retry against fresh main: $attempt"
+            sleep "$((attempt*2))"
+          done
+          echo "::error::Public push failed after four conflict-safe retries"
+          exit 1
