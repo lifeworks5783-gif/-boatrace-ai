@@ -46,8 +46,19 @@ def program_registration_map(root:Path,day:str)->dict:
 
 def normalize_verified_bundle(bundle:Path, *, root:Path,
                               transfer_status:str)->dict:
+    """Production: allow normalizing for GitHub only after confirmed Drive transfer."""
     if transfer_status not in ("verified_uploaded","verified_existing"):
         raise RuntimeError("raw_bundle_not_verified_in_private_drive")
+    return _normalize_bundle(bundle,root=root,drive_verified=True)
+
+def preview_local_bundle(bundle:Path, *, root:Path)->dict:
+    """Research-only: inspect a local archive before OAuth without claiming Drive storage.
+
+    Never pass this result to write_summary() or publish it as a durable forecast.
+    """
+    return _normalize_bundle(bundle,root=root,drive_verified=False)
+
+def _normalize_bundle(bundle:Path, *, root:Path,drive_verified:bool)->dict:
     manifest=validate_bundle(bundle)
     day=manifest["date"]
     schedules=base_schedule(root,day)
@@ -64,7 +75,7 @@ def normalize_verified_bundle(bundle:Path, *, root:Path,
                 "source_url":entry["source_url"],
                 "raw_sha256":entry["sha256"],
                 "collected_at":entry["received_at"],
-                "drive_raw_verified":True,
+                "drive_raw_verified":drive_verified,
                 "parser":PARSER_ID
             }
             summary={"race_id":rid,"source":provenance,"parse_status":"unparsed",
@@ -104,7 +115,7 @@ def normalize_verified_bundle(bundle:Path, *, root:Path,
             if not prev or str(summary["source"]["collected_at"])>=str(prev["source"]["collected_at"]):
                 per_race[rid]=summary
     return {"schema":"boatrace-normalized-v1","date":day,
-            "source_archive":"private_google_drive_verified",
+            "source_archive":"private_google_drive_verified" if drive_verified else "local_ephemeral_unarchived",
             "races":[per_race[k] for k in sorted(per_race)]}
 
 def merge_daily_summary(existing:dict | None,new:dict)->dict:
@@ -125,6 +136,10 @@ def merge_daily_summary(existing:dict | None,new:dict)->dict:
     return {**new,"races":[byid[k] for k in sorted(byid)]}
 
 def write_summary(payload:dict,*,repo_root:Path)->Path:
+    if (payload.get("source_archive")!="private_google_drive_verified" or
+        any(not race.get("source",{}).get("drive_raw_verified")
+            for race in payload.get("races",[]))):
+        raise RuntimeError("local_ephemeral_preview_cannot_be_committed")
     day=payload["date"]
     path=repo_root/"normalized"/day[:4]/day[4:6]/day[6:8]/"races.json"
     path.parent.mkdir(parents=True,exist_ok=True)
