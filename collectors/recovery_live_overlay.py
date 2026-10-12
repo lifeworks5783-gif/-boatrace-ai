@@ -189,6 +189,7 @@ def join_verified_late_saved_live(existing_live: dict, date: str, root: Path = R
 
     day_root = root / "daily_inputs" / date[:4] / date[4:6] / date[6:8] / "live"
     proofs = {}
+    late_proofs = {}
     for race_path in sorted(day_root.glob(f"raw/**/beforeinfo_races_{date}.csv")):
         entry_path = race_path.with_name(f"beforeinfo_entries_{date}.csv")
         if not entry_path.is_file():
@@ -206,7 +207,7 @@ def join_verified_late_saved_live(existing_live: dict, date: str, root: Path = R
             collected = time_value(meta.get("collected_at"))
             source = str(meta.get("source_url") or "")
             boats = entries.get(rid, [])
-            if (not deadline or not collected or collected >= deadline
+            if (not deadline or not collected
                     or not source.startswith("https://www.boatrace.jp/owpc/pc/race/beforeinfo?")
                     or len(boats) != 6):
                 continue
@@ -220,8 +221,11 @@ def join_verified_late_saved_live(existing_live: dict, date: str, root: Path = R
                 for v in boats
             ):
                 continue
-            if rid not in proofs or collected < proofs[rid][0]:
-                proofs[rid] = (collected, deadline, entry_path, boats)
+            # A result arriving seconds after the cutoff is authentic
+            # official research evidence, but NEVER a timely prediction.
+            destination = proofs if collected < deadline else late_proofs
+            if rid not in destination or collected < destination[rid][0]:
+                destination[rid] = (collected, deadline, entry_path, boats)
 
     joined = dict(existing_live)
     patched = []
@@ -316,6 +320,66 @@ def join_verified_late_saved_live(existing_live: dict, date: str, root: Path = R
                 int(v["boat"]) for v in original_boats
                 if str(v.get("is_miss") or "").lower() in {"true","1","yes"}
             ],
+            "original_score_generated_at": race.get("generated_at"),
+        }
+        joined[rid] = copied
+        patched.append(rid)
+
+    # A 6-boat score computed after the deadline may still be valid for
+    # RESEARCH when its actual observations match a saved, unmodified official
+    # HTTP snapshot received after the deadline. Preserve the old timely picks
+    # through the caller's immutable-history guard. Never call this a live bet.
+    for rid, race in existing_live.items():
+        if rid in proofs or rid not in late_proofs:
+            continue
+        observed_at, cutoff, entry_path, official_boats = late_proofs[rid]
+        scored_at = time_value(race.get("generated_at"))
+        if scored_at is None or scored_at <= cutoff:
+            continue
+        quality = race.get("prediction_quality") or {}
+        if (quality.get("status") in {"fallback", "recovered_observation"}
+                or quality.get("signal_blocked")):
+            continue
+        scored_boats = race.get("boats") or []
+        if (len(scored_boats) != 6
+                or any(safe_float(b.get("score")) is None
+                       or b.get("score_fallback") for b in scored_boats)):
+            continue
+        official_by_boat = {int(b["boat"]): b for b in official_boats}
+        if ({int(b.get("boat") or 0) for b in scored_boats} != set(range(1, 7))
+                or set(official_by_boat) != set(range(1, 7))):
+            continue
+        def matches_official(score, official):
+            if str(score.get("registration_no") or "").strip() != str(official.get("registration_no") or "").strip():
+                return False
+            if str(score.get("exhibition_course") or "").strip() != str(official.get("exhibition_course") or "").strip():
+                return False
+            for left, right in (
+                ("exhibition_time", "exhibition_time"),
+                ("exhibition_st", "exhibition_st_seconds"),
+            ):
+                x, y = safe_float(score.get(left)), safe_float(official.get(right))
+                if x is None or y is None or abs(x-y) > 0.0001:
+                    return False
+            return True
+        if not all(matches_official(b, official_by_boat[int(b["boat"])] )
+                   for b in scored_boats):
+            continue
+        copied = deepcopy(race)
+        copied["prediction_stage"] = "live_recovered_observation"
+        copied["prediction_quality"] = {
+            "status": "recovered_observation",
+            "mark": "↻",
+            "label": "締切後の公式展示記録で検証した研究用再計算",
+            "provenance": "saved_after_deadline_official_beforeinfo",
+            "source": str(entry_path.relative_to(root)),
+            "original_official_received_at": observed_at.isoformat(),
+            "result_leakage": False,
+            "prediction_generated_after_deadline": True,
+            "retrospective_simulation_only": True,
+            "recovery_needed": False,
+            "signal_blocked": False,
+            "verified_scratched_boats": [],
             "original_score_generated_at": race.get("generated_at"),
         }
         joined[rid] = copied
