@@ -122,10 +122,23 @@ def _normalize_bundle(bundle:Path, *, root:Path,drive_verified:bool)->dict:
                     {"code":"schedule_missing","field":"program_races"}]
             prev=per_race.get(rid)
             if not prev or str(summary["source"]["collected_at"])>=str(prev["source"]["collected_at"]):
-                per_race[rid]=summary
+                per_race[rid]=_preserve_last_ready(prev,summary)
     return {"schema":"boatrace-normalized-v1","date":day,
             "source_archive":"private_google_drive_verified" if drive_verified else "local_ephemeral_unarchived",
             "races":[per_race[k] for k in sorted(per_race)]}
+
+def _preserve_last_ready(old:dict | None,current:dict)->dict:
+    """Never erase last complete observation when newer HTML has an unknown format.
+
+    This is applied both inside one ZIP and when merging several daily batches.
+    New/invalid observations remain visible as the current observation.
+    """
+    if old and current.get("parse_status")!="ready_live_inputs":
+        if old.get("parse_status")=="ready_live_inputs":
+            current["last_ready"]={k:old.get(k) for k in ("source","race","boats")}
+        elif old.get("last_ready"):
+            current["last_ready"]=old["last_ready"]
+    return current
 
 def merge_daily_summary(existing:dict | None,new:dict)->dict:
     if not existing:return new
@@ -135,13 +148,7 @@ def merge_daily_summary(existing:dict | None,new:dict)->dict:
     for r in new.get("races",[]):
         old=byid.get(r["race_id"])
         if old is None or str(r["source"]["collected_at"])>=str(old["source"]["collected_at"]):
-            if old and old.get("parse_status")=="ready_live_inputs" and r.get("parse_status")!="ready_live_inputs":
-                # Hold the previous complete observation separately; never pretend it
-                # describes the new HTML, and never erase its validated values.
-                r["last_ready"]={k:old.get(k) for k in ("source","race","boats")}
-            elif old and old.get("last_ready") and r.get("parse_status")!="ready_live_inputs":
-                r["last_ready"]=old["last_ready"]
-            byid[r["race_id"]]=r
+            byid[r["race_id"]]=_preserve_last_ready(old,r)
     return {**new,"races":[byid[k] for k in sorted(byid)]}
 
 def write_summary(payload:dict,*,repo_root:Path)->Path:
