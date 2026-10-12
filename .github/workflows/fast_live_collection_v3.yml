@@ -127,43 +127,15 @@ jobs:
             git pull --rebase origin main || true
             git push origin HEAD:main
           fi
-      - name: 直前スコアを保存完了するまで実行
+      # Release the collector runner immediately. The prediction workflow has
+      # its own concurrency guard and publishes via its workflow_run trigger.
+      - name: 新規直前情報から予測を非同期起動
         if: env.HAS_READY_BEFOREINFO == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python -u collectors/dispatch_wait_workflow.py \
-            --workflow live_prediction_0930.yml \
-            --timeout-seconds 1200 \
-            --input raw_ready=true
-          echo "直前情報→6艇スコア→共通予測保存: PASS"
-
-      # Publish new predictions immediately after the live-score commit.
-      # Do not make fresh pre-deadline predictions wait for finished-race analysis.
-      - name: 最新予測を先にホームページへ反映する
-        if: env.HAS_READY_BEFOREINFO == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python -u collectors/dispatch_wait_workflow.py \
-            --workflow family_prediction_page.yml \
-            --timeout-seconds 900
-          echo "直前予測→公開: PASS"
-
-      # Result comparison and canonical recovery run separately. The compare
-      # workflow already dispatches canonical reconciliation and a later
-      # publication after its outputs are committed; never await it here.
-      - name: 結果照合は低優先度の別工程として非同期起動
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          ACTIVE="$(gh api "repos/$GH_REPO/actions/workflows/intraday_compare.yml/runs?per_page=20" --jq '[.workflow_runs[] | select(.status!="completed")] | length')"
-          if (( ACTIVE > 0 )); then
-            echo "既存の照合処理が稼働中のため重複起動を省略"
-            exit 0
-          fi
-          gh workflow run intraday_compare.yml --repo "$GH_REPO" --ref main
-          echo "結果照合を独立して起動。次回の直前取得は待たない"
+          gh workflow run live_prediction_0930.yml --repo "$GH_REPO" --ref main -f raw_ready=true
+          echo "直前情報保存済み。予測とサイト公開は別ワークフローで継続"
