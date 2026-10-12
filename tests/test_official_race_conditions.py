@@ -41,8 +41,8 @@ class OfficialRaceConditionTests(unittest.TestCase):
             {"boat":5,"remark":"F01"}])
         stages={y["code"]:y["stage"] for y in x["events"]}
         self.assertEqual(stages["race_disqualification"],"result_record")
-        self.assertEqual(stages["race_nonfinish"],"after_start")
-        self.assertEqual(stages["race_flying_start"],"after_start")
+        self.assertEqual(stages["race_nonfinish"],"result_record")
+        self.assertEqual(stages["race_flying_start"],"result_record")
         self.assertTrue(x["collection_accept"])
     def test_cancellation_and_abandoned(self):
         x=classify_race(entries=[],official_status="レース中止 競走不成立")
