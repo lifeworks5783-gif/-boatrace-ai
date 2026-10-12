@@ -251,6 +251,20 @@ jobs:
 
           echo "4タブメニュー: PASS"
 
+      - name: 研究用・保存データ品質ページを生成
+        run: |
+          # Original HTML and Google Drive evidence are not represented by decoded CSV.
+          # Build a separate read-only page; do not alter predictions or four main tabs.
+          python -m raw_collector.stage_saved_quality_page \
+            --date "${COMPARE_DATE}" \
+            --site-dir _family_site
+          if test -f _family_site/raw_diagnostics.html; then
+            test -s _family_site/raw_diagnostics_summary.json
+            echo "研究用保存品質ページ: PASS"
+          else
+            echo "当日番組の保存がないため、研究品質ページは生成しません"
+          fi
+
       - name: 直前スコア・風神雷神判定・PDCA・レース照合表示を全終了レースで一致監査
         run: |
           RESULT_FILE="archive/${COMPARE_DATE:0:4}/${COMPARE_DATE:4:2}/${COMPARE_DATE:6:2}/results_${COMPARE_DATE}_all.csv"
@@ -289,6 +303,13 @@ jobs:
           cp \
             _family_site/race_compare.html \
             family_public/race_compare.html
+
+          if test -s _family_site/raw_diagnostics.html; then
+            cp _family_site/raw_diagnostics.html family_public/raw_diagnostics.html
+            cp _family_site/raw_diagnostics_summary.json family_public/raw_diagnostics_summary.json
+          else
+            rm -f family_public/raw_diagnostics.html family_public/raw_diagnostics_summary.json
+          fi
 
           touch family_public/.nojekyll
 
@@ -350,6 +371,12 @@ jobs:
             analysis.html \
             race_compare.html \
             .nojekyll
+          # Optional new/removed research diagnostic files; no error on first publish.
+          for file in raw_diagnostics.html raw_diagnostics_summary.json; do
+            if test -e "$file" || git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+              git add -A -- "$file"
+            fi
+          done
           if test -f manual_refresh_status.json; then
             git add manual_refresh_status.json
           fi
