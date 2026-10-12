@@ -155,7 +155,7 @@ def decode_manifest(source,out,root):
         return result
     if mode!="live":raise ValueError("unsupported_mode")
     # Keep all parse failures in status.json, don't re-write the raw HTTP body.
-    sys.path.insert(0,str(root/"collectors"))
+    sys.path.insert(0,str(Path(__file__).resolve().parent))
     from bs4 import BeautifulSoup
     import today_beforeinfo as legacy
     races=[];boats=[]
