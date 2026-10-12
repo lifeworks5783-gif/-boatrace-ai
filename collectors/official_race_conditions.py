@@ -31,8 +31,8 @@ RESULT_PATTERNS=[
  ("race_abandoned",re.compile(r"不成立|打切|競走不成立")),
  ("race_disqualification",re.compile(r"失格|妨害|不良航法|待機行動違反")),
  ("race_nonfinish",re.compile(r"転覆|落水|沈没|エンスト|不完走")),
- ("race_flying_start",re.compile(r"(?<![A-Za-z])F\\d*|フライング",re.I)),
- ("race_late_start",re.compile(r"(?<![A-Za-z])L\\d*|出遅れ",re.I)),
+ ("race_flying_start",re.compile(r"(?<![A-Za-z])F\d*|フライング",re.I)),
+ ("race_late_start",re.compile(r"(?<![A-Za-z])L\d*|出遅れ",re.I)),
 ]
 def _boat_id(x):
     try:
@@ -67,7 +67,7 @@ def classify_race(*,entries:list[dict],morning_entries:list[dict]|None=None,
             value=str(r.get("exhibition_st_raw") or "").strip().upper()
             if value.startswith("F"):event("exhibition_false_start","before_start",b,value)
             elif value.startswith("L"):event("exhibition_late_start","before_start",b,value)
-            elif value and not re.fullmatch(r"(?:0?\\.)?\\d{1,2}|1\\.00",value):
+            elif value and not re.fullmatch(r"(?:0?\.)?\d{1,2}|1\.00",value):
                 event("exhibition_unknown","before_start",b,value)
             old=before.get(b)
             if old and r.get("exhibition_course") not in (None,"","-"):
