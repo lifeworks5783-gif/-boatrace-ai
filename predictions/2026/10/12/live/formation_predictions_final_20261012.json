@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "model_version": "formation_gap_flow_v2",
   "target_date": "20261012",
-  "generated_at": "2026-10-12T15:29:41+09:00",
+  "generated_at": "2026-10-12T15:44:15.710858+09:00",
   "race_count": 168,
   "simulation_rule": "3連単各組み合わせ100円固定",
   "races": [
@@ -5421,25 +5421,89 @@
       "venue_name": "桐生",
       "race": 2,
       "deadline": "2026-10-12T15:47:00+09:00",
-      "prediction_type": "朝",
+      "prediction_type": "直前",
       "prediction_quality": {
-        "status": "normal",
-        "mark": "",
-        "label": "正常",
-        "recovery_needed": false,
-        "reason": [],
-        "fallback_source": null
+        "status": "fallback",
+        "mark": "⚠",
+        "label": "補完あり",
+        "recovery_needed": true,
+        "reason": [
+          "締切前の直前情報が未確定または未保存"
+        ],
+        "fallback_source": "saved_morning_prediction",
+        "signal_blocked": true,
+        "boat_fallbacks": [
+          {
+            "boat": 1,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 3,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 2,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 4,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 5,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 6,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          }
+        ],
+        "recorded_at": "2026-10-12T15:44:15.710858+09:00"
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 1,
           "racer_name": "石田政吾",
           "score": 85.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 85.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 3635,
           "motor_no": 33,
@@ -5675,9 +5739,13 @@
           "boat": 3,
           "racer_name": "小林京平",
           "score": 84.3,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 84.3,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 5311,
           "motor_no": 14,
@@ -5913,9 +5981,13 @@
           "boat": 2,
           "racer_name": "寺本昇平",
           "score": 57.4,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 57.4,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 3947,
           "motor_no": 28,
@@ -6151,9 +6223,13 @@
           "boat": 4,
           "racer_name": "小澤和也",
           "score": 40.0,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 40.0,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4110,
           "motor_no": 38,
@@ -6389,9 +6465,13 @@
           "boat": 5,
           "racer_name": "飯田庄吾",
           "score": 23.9,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 23.9,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4803,
           "motor_no": 13,
@@ -6627,9 +6707,13 @@
           "boat": 6,
           "racer_name": "崎利仁",
           "score": 8.8,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 8.8,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 3973,
           "motor_no": 71,
@@ -9398,9 +9482,9 @@
         "has_score50_candidate": false,
         "ai_effect": false,
         "formation_effect": false,
-        "status": "provisional_analysis_only",
-        "uses_fallback": false,
-        "unverified_non_trigger": false
+        "status": "provisional_fallback",
+        "uses_fallback": true,
+        "unverified_non_trigger": true
       },
       "down_signal": {
         "available": false,
@@ -9446,7 +9530,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -13464,7 +13548,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -17468,7 +17552,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -21486,7 +21570,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -25516,7 +25600,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -29520,7 +29604,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -33550,7 +33634,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -37566,7 +37650,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -41584,7 +41668,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -45614,7 +45698,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -70566,7 +70650,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -74051,7 +74135,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -77530,7 +77614,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -96519,7 +96603,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -100523,7 +100607,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -109224,7 +109308,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -123500,7 +123584,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -135588,7 +135672,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -139065,7 +139149,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -147934,25 +148018,89 @@
       "venue_name": "江戸川",
       "race": 11,
       "deadline": "2026-10-12T15:53:00+09:00",
-      "prediction_type": "朝",
+      "prediction_type": "直前",
       "prediction_quality": {
-        "status": "normal",
-        "mark": "",
-        "label": "正常",
-        "recovery_needed": false,
-        "reason": [],
-        "fallback_source": null
+        "status": "fallback",
+        "mark": "⚠",
+        "label": "補完あり",
+        "recovery_needed": true,
+        "reason": [
+          "締切前の直前情報が未確定または未保存"
+        ],
+        "fallback_source": "saved_morning_prediction",
+        "signal_blocked": true,
+        "boat_fallbacks": [
+          {
+            "boat": 1,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 2,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 5,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 3,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 4,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 6,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          }
+        ],
+        "recorded_at": "2026-10-12T15:44:15.710858+09:00"
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 1,
           "racer_name": "海野ゆか",
           "score": 86.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 86.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A1",
           "registration_no": 3618,
           "motor_no": 34,
@@ -148188,9 +148336,13 @@
           "boat": 2,
           "racer_name": "平田さや",
           "score": 71.0,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 71.0,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A2",
           "registration_no": 4286,
           "motor_no": 31,
@@ -148426,9 +148578,13 @@
           "boat": 5,
           "racer_name": "平高奈菜",
           "score": 61.1,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 61.1,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A2",
           "registration_no": 4450,
           "motor_no": 15,
@@ -148664,9 +148820,13 @@
           "boat": 3,
           "racer_name": "寺島美里",
           "score": 51.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 51.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4891,
           "motor_no": 32,
@@ -148902,9 +149062,13 @@
           "boat": 4,
           "racer_name": "孫崎百世",
           "score": 24.3,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 24.3,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4941,
           "motor_no": 63,
@@ -149140,9 +149304,13 @@
           "boat": 6,
           "racer_name": "植竹玲奈",
           "score": 5.4,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 5.4,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 5361,
           "motor_no": 10,
@@ -151925,9 +152093,9 @@
         "has_score50_candidate": false,
         "ai_effect": false,
         "formation_effect": false,
-        "status": "provisional_analysis_only",
-        "uses_fallback": false,
-        "unverified_non_trigger": false
+        "status": "provisional_fallback",
+        "uses_fallback": true,
+        "unverified_non_trigger": true
       },
       "down_signal": {
         "available": false,
@@ -151973,7 +152141,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -161417,7 +161585,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -181087,7 +181255,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -206217,7 +206385,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -210233,7 +210401,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -214252,7 +214420,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -222395,7 +222563,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -267634,7 +267802,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -276867,7 +277035,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -327193,7 +327361,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -330954,7 +331122,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -338369,7 +338537,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -342399,7 +342567,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -346429,7 +346597,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -350433,7 +350601,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -354463,7 +354631,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -358467,7 +358635,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -362485,7 +362653,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -366515,7 +366683,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -370545,7 +370713,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -374575,7 +374743,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -403773,7 +403941,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -442955,25 +443123,89 @@
       "venue_name": "丸亀",
       "race": 2,
       "deadline": "2026-10-12T15:49:00+09:00",
-      "prediction_type": "朝",
+      "prediction_type": "直前",
       "prediction_quality": {
-        "status": "normal",
-        "mark": "",
-        "label": "正常",
-        "recovery_needed": false,
-        "reason": [],
-        "fallback_source": null
+        "status": "fallback",
+        "mark": "⚠",
+        "label": "補完あり",
+        "recovery_needed": true,
+        "reason": [
+          "締切前の直前情報が未確定または未保存"
+        ],
+        "fallback_source": "saved_morning_prediction",
+        "signal_blocked": true,
+        "boat_fallbacks": [
+          {
+            "boat": 1,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 5,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 2,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 6,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 4,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 3,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          }
+        ],
+        "recorded_at": "2026-10-12T15:44:15.710858+09:00"
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 1,
           "racer_name": "正木聖賢",
           "score": 73.9,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 73.9,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 3920,
           "motor_no": 35,
@@ -443209,9 +443441,13 @@
           "boat": 5,
           "racer_name": "相原利章",
           "score": 62.3,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 62.3,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A2",
           "registration_no": 4540,
           "motor_no": 64,
@@ -443447,9 +443683,13 @@
           "boat": 2,
           "racer_name": "尾形栄治",
           "score": 54.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 54.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 3868,
           "motor_no": 57,
@@ -443685,9 +443925,13 @@
           "boat": 6,
           "racer_name": "白井友晴",
           "score": 45.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 45.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 3696,
           "motor_no": 23,
@@ -443923,9 +444167,13 @@
           "boat": 4,
           "racer_name": "森晋太郎",
           "score": 35.2,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 35.2,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B2",
           "registration_no": 4495,
           "motor_no": 21,
@@ -444161,9 +444409,13 @@
           "boat": 3,
           "racer_name": "高山秀雄",
           "score": 28.4,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 28.4,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 3448,
           "motor_no": 53,
@@ -446946,9 +447198,9 @@
         "has_score50_candidate": false,
         "ai_effect": false,
         "formation_effect": false,
-        "status": "provisional_analysis_only",
-        "uses_fallback": false,
-        "unverified_non_trigger": false
+        "status": "provisional_fallback",
+        "uses_fallback": true,
+        "unverified_non_trigger": true
       },
       "down_signal": {
         "available": false,
@@ -446994,7 +447246,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -451024,7 +451276,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -455054,7 +455306,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -459058,7 +459310,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -463088,7 +463340,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -467118,7 +467370,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -471148,7 +471400,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -475166,7 +475418,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -479184,7 +479436,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -483188,7 +483440,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -539809,7 +540061,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -543813,7 +544065,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -553231,7 +553483,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -556723,7 +556975,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -560189,7 +560441,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -589619,7 +589871,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -603906,7 +604158,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -607924,7 +608176,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -611954,7 +612206,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -615972,7 +616224,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -620002,7 +620254,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -624006,7 +624258,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -628022,7 +628274,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -632052,7 +632304,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -636068,7 +636320,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -640098,7 +640350,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -644102,7 +644354,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -648132,7 +648384,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -693200,7 +693452,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -702097,7 +702349,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -706115,7 +706367,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
@@ -758785,7 +759037,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-12T15:29:41+09:00",
+      "generated_at": "2026-10-12T15:44:15.710858+09:00",
       "boats": [
         {
           "rank": 1,
