@@ -37,6 +37,31 @@ jobs:
         run: |
           python -m py_compile collectors/v4_pipeline.py
           python -m unittest discover -s tests -p test_v4_pipeline_contract.py -v
+      - name: V4 official one-race actual HTTP body -> independent parse smoke
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from tempfile import TemporaryDirectory
+          from collectors.v4_pipeline import fetch_one,decode_manifest
+          meta={"date":"20261012","venue_code":"22","venue_name":"福岡",
+                "race":12,"race_id":"20261012-22-12","deadline":"16:40",
+                "source_url":"https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd=20261012&jcd=22&rno=12"}
+          with TemporaryDirectory() as tmp:
+              root=Path(tmp)
+              result=fetch_one(meta,root/"raw"/"raw")
+              assert result.get("http_status")==200,result
+              (root/"raw"/"manifest.json").write_text(
+                  json.dumps({"schema":"boatrace-v4-capture-v1","date":"20261012",
+                              "mode":"live","records":[result]}),encoding="utf-8")
+              decoded=decode_manifest(root/"raw",root/"decoded",Path("."))
+              assert decoded["observed_races"]==1,decoded
+              assert decoded["decoded_races"]==1,decoded
+              print("V4_ACTUAL_OFFICIAL_RAW_DECODE_PASS",{
+                  "race_id":result["race_id"],"sha256":result["sha256"],
+                  "decoded_races":decoded["decoded_races"],
+                  "retrospective_research_only":True})
+          PY
       - name: Recheck all saved predictions (official gap already checked in run 38240929058)
         run: |
           python -m collectors.research_live_full_day_probe \
