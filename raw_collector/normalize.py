@@ -11,6 +11,7 @@ import zipfile
 from pathlib import Path
 from raw_collector.drive_bundle import validate_bundle
 from raw_collector.archive import source_identity
+from raw_collector.parser_audit import audit_parsed_beforeinfo
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"collectors"))
@@ -79,7 +80,10 @@ def _normalize_bundle(bundle:Path, *, root:Path,drive_verified:bool)->dict:
                 "parser":PARSER_ID
             }
             summary={"race_id":rid,"source":provenance,"parse_status":"unparsed",
-                     "race":None,"boats":[]}
+                     "race":None,"boats":[],
+                     "diagnostics":{"schema":"boatrace-parser-audit-v1",
+                         "ready_live_inputs":False,"parser_learning_required":True,
+                         "issues":[{"code":"parser_not_yet_run","field":"beforeinfo"}]}}
             if base:
                 context={"date":date,"venue_code":venue,
                          "venue_name":base.get("venue_name",""),
@@ -93,24 +97,29 @@ def _normalize_bundle(bundle:Path, *, root:Path,drive_verified:bool)->dict:
                         weather,boats=parsed
                         summary["race"]={k:weather.get(k) for k in RACE_FIELDS}
                         summary["boats"]=[{k:row.get(k) for k in ENTRY_FIELDS} for row in boats]
-                        complete=(len(boats)==6 and
-                          len({row.get("registration_no") for row in boats})==6 and
-                          all(row.get("exhibition_time") is not None and
-                              row.get("exhibition_course") in range(1,7) and
-                              row.get("exhibition_st_seconds") is not None
-                              for row in boats))
                         expected=registration.get(rid,{})
-                        identities_match=(len(expected)==6 and
-                            all(expected.get(str(row.get("boat")))==str(row.get("registration_no"))
-                                for row in boats))
+                        audit=audit_parsed_beforeinfo(boats,weather,expected)
+                        summary["diagnostics"]=audit
+                        identity_issues={"program_registration_mismatch",
+                                         "program_six_registrations_not_verified",
+                                         "missing_registration","duplicate_registration"}
+                        mismatch=any(x["code"] in identity_issues
+                                     for x in audit["issues"])
                         summary["parse_status"]=(
-                            "ready_live_inputs" if complete and identities_match else
-                            "participant_identity_not_verified" if complete else
+                            "ready_live_inputs" if audit["ready_live_inputs"] else
+                            "participant_identity_not_verified" if mismatch else
                             "incomplete_live_inputs")
+                    else:
+                        summary["diagnostics"]["issues"]=[
+                            {"code":"parser_no_exhibition_data","field":"beforeinfo"}]
                 except Exception:
                     summary["parse_status"]="unparsed"
+                    summary["diagnostics"]["issues"]=[
+                        {"code":"parser_unhandled_exception","field":"beforeinfo"}]
             else:
                 summary["parse_status"]="schedule_missing"
+                summary["diagnostics"]["issues"]=[
+                    {"code":"schedule_missing","field":"program_races"}]
             prev=per_race.get(rid)
             if not prev or str(summary["source"]["collected_at"])>=str(prev["source"]["collected_at"]):
                 per_race[rid]=summary
