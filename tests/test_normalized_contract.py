@@ -39,5 +39,20 @@ class NormalizedContractTests(unittest.TestCase):
         x=merge_daily_summary(a,b)
         self.assertEqual([v["race_id"] for v in x["races"]],
                          ["20261012-22-01","20261012-22-12"])
+    def test_bad_new_parser_result_does_not_erase_last_valid_snapshot(self):
+        old={"schema":"boatrace-normalized-v1","date":"20261012","races":[{
+            "race_id":"20261012-22-12","parse_status":"ready_live_inputs",
+            "source":{"collected_at":"2026-10-12T15:00:00+09:00","raw_sha256":"old"},
+            "race":{"wind_speed_mps":4.0},"boats":[{"boat":1,"exhibition_st_raw":".03"}]}]}
+        new={"schema":"boatrace-normalized-v1","date":"20261012","races":[{
+            "race_id":"20261012-22-12","parse_status":"unparsed",
+            "source":{"collected_at":"2026-10-12T15:01:00+09:00","raw_sha256":"new"},
+            "race":None,"boats":[]}]}
+        row=merge_daily_summary(old,new)["races"][0]
+        self.assertEqual(row["parse_status"],"unparsed")
+        self.assertEqual(row["source"]["raw_sha256"],"new")
+        self.assertEqual(row["last_ready"]["source"]["raw_sha256"],"old")
+        self.assertEqual(row["last_ready"]["boats"][0]["exhibition_st_raw"],".03")
+
 if __name__=="__main__":
     unittest.main()
