@@ -137,6 +137,47 @@ jobs:
           done
           exit 1
 
+
+      # The retired V3 five-minute scheduler previously owned end-of-day PDCA.
+      # Keep that role with the independent result-comparison path, not V4
+      # pre-deadline capture. Dispatch only after full official data coverage.
+      - name: 全レース照合完了時に日次PDCAを重複なく自動起動
+        if: env.RESULT_COUNT != '0' && !inputs.button_pipeline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUDIT="evaluations/${YEAR}/${MONTH}/${DAY}/data_quality/completeness_${TARGET_DATE}.json"
+          if ! test -s "$AUDIT"; then
+            echo "Daily official coverage audit pending; no premature PDCA"
+            exit 0
+          fi
+          if ! jq -e --arg d "$TARGET_DATE" '
+            .date == $d and .status == "PASS" and
+            .research_audit.research_status == "PASS" and
+            (.expected_races > 0) and
+            (.result_races == .expected_races) and
+            (.complete_races == .expected_races) and
+            (.pending_races == 0) and (.incomplete_races == 0)
+          ' "$AUDIT" >/dev/null; then
+            echo "At least one official race is unfinished/unverified; retry after next comparison"
+            exit 0
+          fi
+          DAY_START="$(date -u -d "$(TZ=Asia/Tokyo date +%Y-%m-%d) 00:00:00 +0900" +%Y-%m-%dT%H:%M:%SZ)"
+          RUNS="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/saved_data_pdca_refresh.yml/runs?per_page=100&event=workflow_dispatch" --jq '.workflow_runs')"
+          TODAY_RUNS="$(jq --arg start "$DAY_START" '[.[] | select(.created_at >= $start)]' <<<"$RUNS")"
+          if jq -e 'any(.[]; .status != "completed" or .conclusion == "success")' <<<"$TODAY_RUNS" >/dev/null; then
+            echo "Today's PDCA already queued/running/completed"
+            exit 0
+          fi
+          if (( $(jq 'length' <<<"$TODAY_RUNS") >= 3 )); then
+            echo "Previous PDCA retries failed repeatedly: manual investigation required"
+            exit 1
+          fi
+          gh workflow run saved_data_pdca_refresh.yml --repo "$GITHUB_REPOSITORY" --ref main -f target_date="$TARGET_DATE"
+          echo "Full-day audited PDCA dispatched for $TARGET_DATE"
+
       - name: 復元済み直前スコアを共通予測正本に同期してから家族ページを公開
         # Button orchestrator waits for this workflow to finish, then
         # launches canonical reconciliation and publication IN SEQUENCE.
