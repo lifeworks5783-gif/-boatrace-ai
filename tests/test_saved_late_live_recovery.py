@@ -112,7 +112,7 @@ class SavedLateLiveRecoveryTests(unittest.TestCase):
         original = {r["race_id"]: r for r in json.loads(path.read_text(encoding="utf-8"))["races"]}
         self.assertIn(target, original)
         joined, patched = join_verified_late_saved_live({target: original[target]}, day)
-        self.assertIn(target, patched)
+        self.assertIn(target, patched, json.dumps({"quality": original[target].get("prediction_quality"), "generated_at": original[target].get("generated_at"), "boats": original[target].get("boats")}, ensure_ascii=False)[:4000])
         q = joined[target]["prediction_quality"]
         self.assertEqual(q["status"], "recovered_observation")
         self.assertEqual(q["provenance"], "saved_after_deadline_official_beforeinfo")
