@@ -157,7 +157,7 @@ jobs:
           git add evaluations/fujin_raijin/latest/combination_matrix.csv
           if git diff --cached --quiet; then
             echo "共通正本はすでに最新"
-            return 2
+            return 0
           fi
           git commit -m "Sync verified official live recovery into canonical signal predictions for $TARGET_DATE"
           }
@@ -165,18 +165,7 @@ jobs:
             echo "最新mainから正本再生成 attempt=$attempt"
             git fetch origin main
             git reset --hard origin/main
-            set +e
             rebuild_from_latest_main
-            rc=$?
-            set -e
-            if [ "$rc" = 2 ]; then
-              echo "最新mainと一致: PASS"
-              exit 0
-            fi
-            if [ "$rc" != 0 ]; then
-              echo "正本再生成エラー rc=$rc" >&2
-              exit "$rc"
-            fi
             if git push origin HEAD:main; then
               echo "公式直前復旧の共通正本保存: PASS"
               exit 0
