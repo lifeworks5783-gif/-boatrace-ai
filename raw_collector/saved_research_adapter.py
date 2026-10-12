@@ -9,8 +9,8 @@ import csv
 import json
 import re
 from collections import Counter, defaultdict
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from raw_collector.parser_audit import audit_parsed_beforeinfo
 
 def _csv(path):
     if not path.is_file(): return []
@@ -39,7 +39,7 @@ def _snapshot_sources(root,day):
             for p in sorted(glob_root.glob(pattern)):
                 if p.is_file() and p.name.startswith("beforeinfo_entries_"):
                     sources.append((p,provenance))
-    add(date_dir/"live"/"raw","*/beforeinfo_entries_*.csv","saved_before_deadline")
+    add(date_dir/"live"/"raw","*/beforeinfo_entries_*.csv","original_folder")
     add(date_dir/"live"/"retry_after_results","**/beforeinfo_entries_*.csv","retrieved_after_result")
     add(date_dir/"live"/"backfill","**/beforeinfo_entries_*.csv","retrieved_after_result")
     path=recover/f"official_retry_beforeinfo_entries_{day}.csv"
@@ -81,7 +81,7 @@ def diagnose_saved_day(root:Path,day:str)->dict:
     for row in entry_rows:
         rid=_norm_id(row.get("race_id"))
         if rid and rid[:8]==day:grouped[rid].append(row)
-    snapshots=defaultdict(lambda:{"saved_before_deadline":[],"retrieved_after_result":[],
+    snapshots=defaultdict(lambda:{"original_folder":[],"retrieved_after_result":[],
                                    "legacy_unverified_capture_time":[]})
     for path,provenance in _snapshot_sources(root,day):
         for row in _csv(path):
@@ -107,12 +107,12 @@ def diagnose_saved_day(root:Path,day:str)->dict:
             rows=sets.get(ctype,[])
             return len({str(x.get("boat") or "") for x in rows
                         if str(x.get("boat") or "") in {"1","2","3","4","5","6"}})
-        current=distinct_count("saved_before_deadline")
+        current=distinct_count("original_folder")
         retry=distinct_count("retrieved_after_result")
         unknown=distinct_count("legacy_unverified_capture_time")
         # No recovered row may raise the observed predeadline count.
         if current:
-            observation="predeadline_snapshot_saved"
+            observation="original_folder_saved_unverified_time"
         elif retry:
             observation="post_result_recovery_only"
         elif unknown:
@@ -124,6 +124,7 @@ def diagnose_saved_day(root:Path,day:str)->dict:
         issues=[]
         if not six:issues.append({"code":"saved_program_entries_not_six","field":"program_entries","observed":len(entrants)})
         if current and current<6:issues.append({"code":"saved_live_entries_incomplete","field":"beforeinfo_entries","observed":current})
+        if current:issues.append({"code":"predeadline_capture_time_not_independently_verified","field":"provenance"})
         if not current and retry:issues.append({"code":"only_reconstructed_after_result","field":"provenance"})
         if not current and not retry:issues.append({"code":"predeadline_capture_not_confirmed","field":"provenance"})
         if morning is None:issues.append({"code":"morning_prediction_file_unreadable_or_missing","field":"morning_prediction"})
@@ -135,7 +136,8 @@ def diagnose_saved_day(root:Path,day:str)->dict:
         out.append({
             "race_id":rid,"morning_entry_count":len(entrants),
             "morning_six_identity_verified":bool(six),
-            "saved_predeadline_boats":current,
+            "original_folder_boats":current,
+            "saved_predeadline_boats":0, # verified with collected_at + cutoff in future stage
             "reconstructed_after_result_boats":retry,
             "legacy_time_unverified_boats":unknown,
             "beforeinfo_state":observation,
@@ -152,7 +154,8 @@ def diagnose_saved_day(root:Path,day:str)->dict:
                     "has_saved_program":True,"raw_html_archive_verified":False},
         "races":out,
         "summary":{"total":len(out),"morning_six":sum(x["morning_six_identity_verified"] for x in out),
-                   "predeadline_live_six":sum(x["saved_predeadline_boats"]==6 for x in out),
+                   "predeadline_live_six":0,
+                   "original_folder_six":sum(x["original_folder_boats"]==6 for x in out),
                    "recovered_only":counts["post_result_recovery_only"],
                    "no_live_saved":counts["no_saved_beforeinfo"],
                    "unknown_time":counts["historical_capture_time_unverified"],
