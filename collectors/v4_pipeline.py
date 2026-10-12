@@ -72,7 +72,7 @@ def fetch_one(entry,raw_dir,now=None,client=None):
     url=entry["source_url"]
     requested=datetime.now(JST).isoformat() if now is None else now.isoformat()
     try:
-        response=(client or requests).get(url,timeout=(4,8),headers={
+        response=(client or requests).get(url,timeout=(5,12),headers={
             "User-Agent":"Mozilla/5.0 (compatible; BoatraceResearchCollector/4)",
             "Accept":"text/html"})
         body=response.content
@@ -110,17 +110,30 @@ def capture_live(root,day,out,now=None,workers=6):
     dump(out/"manifest.json",manifest)
     return manifest
 def capture_morning(root,day,out):
-    """Wrap the EXISTING official race-card collector, never invent base data."""
+    """If uncached, fetch official LZH once, archive it, then decode existing logic."""
     root=Path(root);out=Path(out)
     out.mkdir(parents=True,exist_ok=True)
     existing=day_path(root,day)/"base"
-    if all((existing/f"{name}_{day}.csv").is_file() for name in
-           ("program_races","program_entries")):
-        source=existing
-    else:
-        import shutil
+    reused=all((existing/f"{name}_{day}.csv").is_file() for name in
+           ("program_races","program_entries"))
+    source=existing
+    raw_evidence=None
+    if not reused:
+        sys.path.insert(0,str(root/"collectors"))
+        import today_basic
+        url=today_basic.build_source_url(day)
+        binary=today_basic.download_file(url,retries=2)
+        if not binary:raise RuntimeError("morning_empty_raw_official_archive")
+        name=f"program_{day}.lzh"
+        raw_file=out/"raw"/name
+        raw_file.parent.mkdir(parents=True,exist_ok=True)
+        raw_file.write_bytes(binary)
+        raw_evidence={"path":"raw/"+name,"url":url,"sha256":hashlib.sha256(binary).hexdigest(),
+                      "bytes":len(binary),"capture_at":datetime.now(JST).isoformat()}
         script=root/"collectors"/"today_basic.py"
-        subprocess.run([sys.executable,str(script)],cwd=root,check=True,timeout=230)
+        subprocess.run([sys.executable,str(script),"--date",day,
+                        "--archive-input",str(raw_file.resolve())],
+                       cwd=root,check=True,timeout=120)
         source=root/"data"
     target=out/"base"
     target.mkdir(exist_ok=True)
@@ -133,7 +146,8 @@ def capture_morning(root,day,out):
         raise RuntimeError("morning_program_not_available")
     manifest={"schema":"boatrace-v4-capture-v1","mode":"morning","date":day,
         "capture_count":len(copied),"records":[],"base_files":sorted(copied),
-        "source_type":"existing_official_program_collector_not_immutable_binary"}
+        "raw_archive":raw_evidence,
+        "source_type":"cached_existing_program_no_binary" if reused else "official_LZH_original_before_parse"}
     dump(out/"manifest.json",manifest)
     return manifest
 
@@ -146,6 +160,12 @@ def decode_manifest(source,out,root):
             "observed_races":0,"decoded_races":0,"unparsed_races":[],
             "snapshot_path":None,"raw_storage":"temporary_github_actions_artifact_only"}
     if mode=="morning":
+        raw=manifest.get("raw_archive")
+        if raw:
+            evidence=source/raw["path"]
+            if (not evidence.is_file() or
+                hashlib.sha256(evidence.read_bytes()).hexdigest()!=raw["sha256"]):
+                raise RuntimeError("morning_raw_lzh_checksum_mismatch")
         import shutil
         tgt=out/"base";tgt.mkdir(parents=True,exist_ok=True)
         for p in (source/"base").glob("*"):
