@@ -112,7 +112,22 @@ class SavedLateLiveRecoveryTests(unittest.TestCase):
         original = {r["race_id"]: r for r in json.loads(path.read_text(encoding="utf-8"))["races"]}
         self.assertIn(target, original)
         joined, patched = join_verified_late_saved_live({target: original[target]}, day)
-        self.assertIn(target, patched, json.dumps({"quality": original[target].get("prediction_quality"), "generated_at": original[target].get("generated_at"), "boats": original[target].get("boats")}, ensure_ascii=False)[:4000])
+        import csv
+        source = ROOT / "daily_inputs" / "2026" / "10" / "12" / "live" / "raw" / "20261012_173619" / "beforeinfo_entries_20261012.csv"
+        with source.open(encoding="utf-8", newline="") as stream:
+            official = {int(row["boat"]): row for row in csv.DictReader(stream) if row["race_id"] == target}
+        debug = {
+            "quality": original[target].get("prediction_quality"),
+            "generated": original[target].get("generated_at"),
+            "boat_comparison": [{
+                "boat": row.get("boat"),
+                "registration": [row.get("registration_no"), official.get(int(row["boat"]), {}).get("registration_no")],
+                "course": [row.get("exhibition_course"), official.get(int(row["boat"]), {}).get("exhibition_course")],
+                "time": [row.get("exhibition_time"), official.get(int(row["boat"]), {}).get("exhibition_time")],
+                "st": [row.get("exhibition_st"), official.get(int(row["boat"]), {}).get("exhibition_st_seconds")],
+            } for row in original[target]["boats"]],
+        }
+        self.assertIn(target, patched, json.dumps(debug, ensure_ascii=False)[:4000])
         q = joined[target]["prediction_quality"]
         self.assertEqual(q["status"], "recovered_observation")
         self.assertEqual(q["provenance"], "saved_after_deadline_official_beforeinfo")
