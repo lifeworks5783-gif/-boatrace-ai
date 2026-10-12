@@ -1,6 +1,10 @@
 """Exceptional official race states are first-class observations, not fetch failures."""
 import unittest
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"collectors"))
 from collectors.official_race_conditions import classify_race
+import build_latest_prediction_view as latest
 
 def boats(scratches=(),n=6):
     return [{"boat":i,"is_miss":i in scratches,
@@ -79,6 +83,50 @@ class OfficialRaceConditionTests(unittest.TestCase):
         self.assertIn("race_flying_start",codes)
         self.assertIn("race_late_start",codes)
         self.assertFalse(x["unresolved_missing_lanes"])
+
+    def test_real_raijin_fujin_and_signal_24_support_five_active_starters(self):
+        scored=[
+            {"boat":1,"score":82.0,"morning_score_reference":60.0},
+            {"boat":2,"score":70.0,"morning_score_reference":73.0},
+            {"boat":4,"score":60.0,"morning_score_reference":62.0},
+            {"boat":5,"score":52.0,"morning_score_reference":52.0},
+            {"boat":6,"score":48.0,"morning_score_reference":48.0}]
+        quality={"verified_scratched_boats":[3]}
+        self.assertTrue(latest.signal_field_is_verified(scored,quality))
+        up=latest.build_up_signal(scored,quality,outside_live_top3=False)
+        down=latest.build_down_signal(scored,quality)
+        self.assertTrue(up.get("available"))
+        self.assertTrue(down.get("available"))
+        self.assertGreater(up.get("level",0),0)
+        result=latest.build_signal_ai_prediction(scored,up,down,latest.load_signal_ai_config())
+        self.assertEqual(len(result["combinations"]),24)
+        self.assertEqual(len(result["all_120_combinations"]),60)
+        self.assertTrue(result["normal_prediction_unchanged"])
+        self.assertIsNotNone(latest.build_formation(scored))
+
+    def test_real_signal_24_handles_four_active_when_two_explicit_scratches(self):
+        scored=[
+            {"boat":1,"score":82.0,"morning_score_reference":60.0},
+            {"boat":3,"score":70.0,"morning_score_reference":73.0},
+            {"boat":4,"score":62.0,"morning_score_reference":63.0},
+            {"boat":6,"score":55.0,"morning_score_reference":55.0}]
+        quality={"verified_scratched_boats":[2,5]}
+        self.assertTrue(latest.signal_field_is_verified(scored,quality))
+        up=latest.build_up_signal(scored,quality,outside_live_top3=False)
+        down=latest.build_down_signal(scored,quality)
+        self.assertTrue(down["available"])
+        self.assertTrue(up["available"])
+        assert up.get("level",0)>0
+        signal=latest.build_signal_ai_prediction(scored,up,down,latest.load_signal_ai_config())
+        self.assertEqual(len(signal["combinations"]),24)
+        self.assertEqual(len(signal["all_120_combinations"]),24)
+        self.assertTrue(signal["normal_prediction_unchanged"])
+
+    def test_missing_boat_without_official_confirmation_keeps_signal_pending(self):
+        scored=[{"boat":i,"score":80-i*2,"morning_score_reference":65.0} for i in range(1,6)]
+        self.assertFalse(latest.signal_field_is_verified(scored,{}))
+        self.assertFalse(latest.build_up_signal(scored,{}).get("available"))
+        self.assertFalse(latest.build_down_signal(scored,{}).get("available"))
 
     def test_weather_equipment_and_unknown_st_do_not_block_capture(self):
         rows=boats()
