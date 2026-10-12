@@ -138,37 +138,32 @@ jobs:
             --input raw_ready=true
           echo "直前情報→6艇スコア→共通予測保存: PASS"
 
-      - name: 最新の公式結果を再取得し終了済み全レースを照合する
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # Important: compare AFTER the live score commit; otherwise
-          # the comparison sees old, missing or fallback scores.
-          # Button mode explicitly avoids a second asynchronous reconcile.
-          python -u collectors/dispatch_wait_workflow.py \
-            --workflow intraday_compare.yml \
-            --timeout-seconds 1500 \
-            --input button_pipeline=true
-          echo "公式結果→不足スコア復元→レース照合→研究監査: PASS"
-
-      - name: 照合結果を共通正本へ反映して確定保存する
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          TARGET_DATE=$(TZ=Asia/Tokyo date +%Y%m%d)
-          python -u collectors/dispatch_wait_workflow.py \
-            --workflow canonical_recovery_reconcile.yml \
-            --timeout-seconds 900 \
-            --input target_date="$TARGET_DATE" \
-            --input skip_family_publish=true
-          echo "研究用公式予測・風神雷神の共通正本保存: PASS"
-
-      - name: 予測とレース照合の4画面を再生成し公開まで確認する
+      # Publish new predictions immediately after the live-score commit.
+      # Do not make fresh pre-deadline predictions wait for finished-race analysis.
+      - name: 最新予測を先にホームページへ反映する
+        if: env.HAS_READY_BEFOREINFO == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python -u collectors/dispatch_wait_workflow.py \
             --workflow family_prediction_page.yml \
-            --timeout-seconds 900 \
-            --input manual_refresh=true
-          echo "公開用4画面更新: PASS"
+            --timeout-seconds 900
+          echo "直前予測→公開: PASS"
+
+      # Result comparison and canonical recovery run separately. The compare
+      # workflow already dispatches canonical reconciliation and a later
+      # publication after its outputs are committed; never await it here.
+      - name: 結果照合は低優先度の別工程として非同期起動
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTIVE="$(gh api "repos/$GH_REPO/actions/workflows/intraday_compare.yml/runs?per_page=20" --jq '[.workflow_runs[] | select(.status!="completed")] | length')"
+          if (( ACTIVE > 0 )); then
+            echo "既存の照合処理が稼働中のため重複起動を省略"
+            exit 0
+          fi
+          gh workflow run intraday_compare.yml --repo "$GH_REPO" --ref main
+          echo "結果照合を独立して起動。次回の直前取得は待たない"
