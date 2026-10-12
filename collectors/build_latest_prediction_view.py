@@ -233,13 +233,8 @@ def signal_field_is_verified(boats, prediction_quality=None):
     For fewer than four starters, the fixed 24-ticket product is impossible.
     """
     quality = prediction_quality or {}
-    if quality.get("signal_blocked") is True:
-        return False
-    if any(
-        str(b.get("score_fallback") or "").strip().lower() in {"1", "true", "yes"}
-        for b in boats
-    ):
-        return False
+    # A partial input fallback does not prevent calculating a signal from
+    # the available six-boat scores. Quality is tracked separately below.
     count = len(boats)
     if count < 4 or count > 6:
         return False
@@ -261,6 +256,16 @@ def signal_field_is_verified(boats, prediction_quality=None):
     )
 
 
+def signal_is_provisional(boats, quality):
+    """A signal may be computed, but fallbacks cannot prove non-activation."""
+    return (
+        quality.get("status") == "fallback"
+        or bool(quality.get("recovery_needed"))
+        or bool(quality.get("signal_blocked"))
+        or any(bool(b.get("score_fallback")) for b in boats)
+    )
+
+
 def build_up_signal(
     boats,
     prediction_quality=None,
@@ -273,24 +278,6 @@ def build_up_signal(
         if outside_live_top3 is None else bool(outside_live_top3)
     )
     quality = prediction_quality or {}
-    if quality.get("signal_blocked", (
-        quality.get("recovery_needed")
-        or text(quality.get("status")) == "fallback"
-    )):
-        return {
-            "available": False,
-            "active": False,
-            "level": 0,
-            "rule_version": UP_SIGNAL_RULE_VERSION,
-            "system_name": SIGNAL_SYSTEM_NAME,
-            "signal_name": "雷神",
-            "candidates": [],
-            "max_rise": None,
-            "ai_effect": False,
-            "formation_effect": False,
-            "suppressed_reason": "fallback_prediction",
-        }
-
     if not signal_field_is_verified(boats, quality):
         return {
             "available": False,
@@ -369,7 +356,9 @@ def build_up_signal(
         "has_score50_candidate": has_score50,
         "ai_effect": False,
         "formation_effect": False,
-        "status": "provisional_analysis_only",
+        "status": "provisional_fallback" if signal_is_provisional(boats, quality) else "provisional_analysis_only",
+        "uses_fallback": signal_is_provisional(boats, quality),
+        "unverified_non_trigger": signal_is_provisional(boats, quality) and level == 0,
     }
 
 
@@ -379,19 +368,6 @@ def build_down_signal(
 ):
     """Provisional decline signal. Display/save only; never changes AI or formation."""
     quality = prediction_quality or {}
-    if quality.get("signal_blocked", (
-        quality.get("recovery_needed")
-        or text(quality.get("status")) == "fallback"
-    )):
-        return {
-            "available": False,
-            "active": False,
-            "level": 0,
-            "rule_version": DOWN_SIGNAL_RULE_VERSION,
-            "reasons": [],
-            "suppressed_reason": "fallback_prediction",
-        }
-
     if not signal_field_is_verified(boats, quality):
         return {
             "available": False,
@@ -462,7 +438,9 @@ def build_down_signal(
         },
         "ai_effect": False,
         "formation_effect": False,
-        "status": "provisional_analysis_only",
+        "status": "provisional_fallback" if signal_is_provisional(boats, quality) else "provisional_analysis_only",
+        "uses_fallback": signal_is_provisional(boats, quality),
+        "unverified_non_trigger": signal_is_provisional(boats, quality) and level == 0,
     }
 
 def load_signal_ai_config():
