@@ -1,0 +1,10 @@
+name = "boatrace-live-dispatcher"
+main = "src/index.js"
+compatibility_date = "2026-10-12"
+# Cloudflare Cron runs the lightweight dispatcher; source scraping and AI
+# still run on GitHub until a separate Cloudflare-native collector is deployed.
+[triggers]
+crons = ["*/2 * * * *"]
+[vars]
+GITHUB_REPOSITORY = "lifeworks5783-gif/-boatrace-ai"
+WORKFLOW_FILE = "fast_live_collection_v3.yml"
