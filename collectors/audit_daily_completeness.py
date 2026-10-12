@@ -71,8 +71,32 @@ def main():
     # Original pre-race snapshots are preferred. Post-result retries may fill
     # missing values, but must never be mislabeled as original observations.
     live={}; provenance={}
+    def source_for_row(path, source, row):
+        """V4 official records are pre-deadline only when the received timestamp proves it.
+
+        Retrospective capture remains useful research evidence, but must not
+        count as a real-time original pre-race observation.
+        """
+        if source != "original_pre_race" or "v4_decoded" not in path.parts:
+            return source
+        rid=norm(row.get("race_id"))
+        deadline=schedule.get(rid)
+        stamp=str(row.get("collected_at") or "").strip()
+        if not deadline or not stamp:
+            return "post_result_retry"
+        try:
+            got=datetime.fromisoformat(stamp.replace("Z","+00:00"))
+            if got.tzinfo is None:
+                return "post_result_retry"
+            cutoff=datetime.strptime(d+" "+deadline,"%Y%m%d %H:%M").replace(
+                tzinfo=timezone(timedelta(hours=9))
+            )
+            return "original_pre_race" if got<=cutoff else "post_result_retry"
+        except (ValueError,TypeError):
+            return "post_result_retry"
     def merge_live(path, source):
         for r in rows(path):
+            effective_source=source_for_row(path,source,r)
             key=(norm(r.get("race_id")),str(r.get("boat","")).strip())
             cur=live.setdefault(key,{})
             src=provenance.setdefault(key,{})
@@ -80,13 +104,13 @@ def main():
                 # change_parts は「部品交換なし」のとき空欄が正常。
                 # 値の有無ではなく列が存在した事実を保持する。
                 if k=="change_parts":
-                    if source=="original_pre_race" or k not in cur:
+                    if effective_source=="original_pre_race" or k not in cur:
                         cur[k]=v
-                        src[k]=source
+                        src[k]=effective_source
                     continue
                 if not nonempty(v): continue
-                if source=="original_pre_race" or not nonempty(cur.get(k)):
-                    cur[k]=v; src[k]=source
+                if effective_source=="original_pre_race" or not nonempty(cur.get(k)):
+                    cur[k]=v; src[k]=effective_source
     raw_paths=sorted((base/"live"/"raw").glob("*/beforeinfo_entries_*.csv")) if (base/"live"/"raw").exists() else []
     for p in raw_paths: merge_live(p,"original_pre_race")
     retry_paths=sorted((base/"live"/"retry_after_results").glob("**/beforeinfo_entries_*.csv")) if (base/"live"/"retry_after_results").exists() else []
@@ -107,19 +131,26 @@ def main():
     live_races={}; race_provenance={}
     def merge_races(path, source):
         for r in rows(path):
+            effective_source=source_for_row(path,source,r)
             key=norm(r.get("race_id"))
             if not key: continue
             cur=live_races.setdefault(key,{})
             src=race_provenance.setdefault(key,{})
             for k,v in r.items():
                 if not nonempty(v): continue
-                if source=="original_pre_race" or not nonempty(cur.get(k)):
-                    cur[k]=v; src[k]=source
+                if effective_source=="original_pre_race" or not nonempty(cur.get(k)):
+                    cur[k]=v; src[k]=effective_source
     for p in sorted((base/"live"/"raw").glob("*/beforeinfo_races_*.csv")) if (base/"live"/"raw").exists() else []: merge_races(p,"original_pre_race")
     for p in sorted((base/"live"/"retry_after_results").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"retry_after_results").exists() else []: merge_races(p,"post_result_retry")
     for p in sorted((base/"live"/"backfill").glob("**/beforeinfo_races_*.csv")) if (base/"live"/"backfill").exists() else []: merge_races(p,"post_result_retry")
     recovery_races=recovery_dir/f"official_retry_beforeinfo_races_{d}.csv"
     if recovery_races.is_file(): merge_races(recovery_races,"post_result_retry")
+    # Match the boat-entry glob: V4 snapshots save a separate race-level CSV.
+    # Previous audit ignored this directory and falsely marked official
+    # Shimonoseki 9R as missing despite a verified 21:13 pre-deadline capture.
+    v4_race_paths=sorted((base/"live"/"v4_decoded").glob("**/beforeinfo_races_*.csv"))
+    for p in v4_race_paths:
+        merge_races(p,"original_pre_race")
     issues=[];complete=0;recovered=[];official_checks=[];pending_results=[]
     race_ids=sorted(expected|actual)
     pending=[]
