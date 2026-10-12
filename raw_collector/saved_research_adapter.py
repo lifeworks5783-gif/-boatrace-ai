@@ -10,6 +10,7 @@ import json
 import re
 from collections import Counter, defaultdict
 from datetime import datetime, timezone, timedelta
+from urllib.parse import urlsplit, parse_qs
 from pathlib import Path
 
 def _csv(path):
@@ -65,6 +66,65 @@ def _load_prediction_ids(path,day):
     except (ValueError,TypeError,OSError):
         return None
 
+def _parse_jst_clock(value):
+    try:
+        dt=datetime.fromisoformat(str(value or ""))
+        if dt.tzinfo is None:return None
+        return dt.astimezone(timezone(timedelta(hours=9)))
+    except (TypeError,ValueError):return None
+
+def _clock_evidence(date_dir,day,deadlines):
+    """Triangulate actual row clocks and folder stamps; does NOT prove provenance.
+
+    Repeated copies of older observations do not become new live observations.
+    """
+    root=date_dir/"live"/"raw"
+    records=defaultdict(list)
+    if not root.is_dir():return records
+    jst=timezone(timedelta(hours=9))
+    for file in sorted(root.glob("*/beforeinfo_entries_*.csv")):
+        name=file.parent.name
+        if not re.fullmatch(r"\\d{8}_\\d{6}",name):continue
+        try:
+            folder_time=datetime.strptime(name,"%Y%m%d_%H%M%S").replace(tzinfo=jst)
+        except ValueError:continue
+        byid=defaultdict(list)
+        for row in _csv(file):
+            rid=_norm_id(row.get("race_id"))
+            if rid and rid[:8]==day:byid[rid].append(row)
+        for rid,rows in byid.items():
+            if len({str(r.get("boat")) for r in rows})!=6:continue
+            deadline=deadlines.get(rid)
+            if not deadline:continue
+            try:
+                cutoff=datetime.strptime(day+" "+deadline,"%Y%m%d %H:%M").replace(tzinfo=jst)
+            except ValueError:continue
+            urls={r.get("source_url") for r in rows}
+            if len(urls)!=1:continue
+            u=urlsplit(next(iter(urls)) or "")
+            params=parse_qs(u.query)
+            if (u.scheme!="https" or u.hostname!="www.boatrace.jp" or
+                u.path!="/owpc/pc/race/beforeinfo" or
+                params.get("hd")!=[day] or
+                params.get("jcd")!=[rid.split("-")[1]] or
+                params.get("rno")!=[str(int(rid.split("-")[2]))]):
+                continue
+            requested={_parse_jst_clock(r.get("requested_at")) for r in rows}
+            collected={_parse_jst_clock(r.get("collected_at")) for r in rows}
+            if len(requested)!=1 or len(collected)!=1:continue
+            req,got=next(iter(requested)),next(iter(collected))
+            if req is None or got is None:continue
+            # A later copied file is not independent evidence of a later fetch.
+            if not(req<=got<=folder_time<cutoff):continue
+            if (folder_time-got).total_seconds()>240:continue
+            if (got-req).total_seconds()>120:continue
+            records[rid].append({"collected_at":got.isoformat(),
+                                 "saved_folder_clock":folder_time.isoformat(),
+                                 "deadline":cutoff.isoformat(),
+                                 "seconds_before_deadline":round((cutoff-got).total_seconds()),
+                                 "evidence_level":"three_clock_consistent_not_independently_attested"})
+    return records
+
 def diagnose_saved_day(root:Path,day:str)->dict:
     if not re.fullmatch(r"\d{8}",day):raise ValueError("invalid_date")
     folder=root/"daily_inputs"/day[:4]/day[4:6]/day[6:8]/"base"
@@ -81,6 +141,10 @@ def diagnose_saved_day(root:Path,day:str)->dict:
     for row in entry_rows:
         rid=_norm_id(row.get("race_id"))
         if rid and rid[:8]==day:grouped[rid].append(row)
+    deadlines={_norm_id(r.get("race_id")):str(r.get("deadline") or "")
+               for r in race_rows if _norm_id(r.get("race_id"))}
+    clock_records=_clock_evidence(root/"daily_inputs"/day[:4]/day[4:6]/day[6:8],
+                                  day,deadlines)
     snapshots=defaultdict(lambda:{"original_folder":[],"retrieved_after_result":[],
                                    "legacy_unverified_capture_time":[]})
     for path,provenance in _snapshot_sources(root,day):
@@ -111,7 +175,10 @@ def diagnose_saved_day(root:Path,day:str)->dict:
         retry=distinct_count("retrieved_after_result")
         unknown=distinct_count("legacy_unverified_capture_time")
         # No recovered row may raise the observed predeadline count.
-        if current:
+        matching=clock_records.get(rid,[])
+        if current and matching:
+            observation="original_folder_time_consistent_not_proven"
+        elif current:
             observation="original_folder_saved_unverified_time"
         elif retry:
             observation="post_result_recovery_only"
@@ -124,7 +191,9 @@ def diagnose_saved_day(root:Path,day:str)->dict:
         issues=[]
         if not six:issues.append({"code":"saved_program_entries_not_six","field":"program_entries","observed":len(entrants)})
         if current and current<6:issues.append({"code":"saved_live_entries_incomplete","field":"beforeinfo_entries","observed":current})
-        if current:issues.append({"code":"predeadline_capture_time_not_independently_verified","field":"provenance"})
+        if current:
+            issues.append({"code":"predeadline_capture_not_independently_attested" if matching else
+                           "predeadline_capture_time_not_independently_verified","field":"provenance"})
         if not current and retry:issues.append({"code":"only_reconstructed_after_result","field":"provenance"})
         if not current and not retry:issues.append({"code":"predeadline_capture_not_confirmed","field":"provenance"})
         if morning is None:issues.append({"code":"morning_prediction_file_unreadable_or_missing","field":"morning_prediction"})
@@ -137,7 +206,10 @@ def diagnose_saved_day(root:Path,day:str)->dict:
             "race_id":rid,"morning_entry_count":len(entrants),
             "morning_six_identity_verified":bool(six),
             "original_folder_boats":current,
-            "saved_predeadline_boats":0, # verified with collected_at + cutoff in future stage
+            "saved_predeadline_boats":0, # not independently attested
+            "clock_consistent_snapshot_count":len(matching),
+            "clock_consistent_earliest":min(matching,key=lambda x:x["collected_at"])
+                if matching else None,
             "reconstructed_after_result_boats":retry,
             "legacy_time_unverified_boats":unknown,
             "beforeinfo_state":observation,
@@ -156,6 +228,7 @@ def diagnose_saved_day(root:Path,day:str)->dict:
         "summary":{"total":len(out),"morning_six":sum(x["morning_six_identity_verified"] for x in out),
                    "predeadline_live_six":0,
                    "original_folder_six":sum(x["original_folder_boats"]==6 for x in out),
+                   "clock_consistent_not_proven":sum(bool(x["clock_consistent_snapshot_count"]) for x in out),
                    "recovered_only":counts["post_result_recovery_only"],
                    "no_live_saved":counts["no_saved_beforeinfo"],
                    "unknown_time":counts["historical_capture_time_unverified"],
