@@ -56,6 +56,14 @@ jobs:
           DIR="daily_inputs/$(echo "$DAY" | cut -c1-4)/$(echo "$DAY" | cut -c5-6)/$(echo "$DAY" | cut -c7-8)"
           mkdir -p data features
           cp "$DIR/base"/* data/
+          if [ "$MODE" = morning ]; then
+            MORNING_SAVED="predictions/$(echo "$DAY" | cut -c1-4)/$(echo "$DAY" | cut -c5-6)/$(echo "$DAY" | cut -c7-8)/morning_predictions_$DAY.json"
+            if test -s "$MORNING_SAVED"; then
+              echo "V4 morning: already immutable and saved. Do not regenerate live views."
+              echo "V4_CALCULATED=false" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          fi
           if [ "$MODE" = live ]; then
             SNAP=$(python -c 'import json;print(json.load(open("_v4_status/status.json"))["snapshot_path"])')
             STAMP=$(basename "$SNAP")
