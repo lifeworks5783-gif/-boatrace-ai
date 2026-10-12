@@ -122,19 +122,56 @@ jobs:
             exit 0
           fi
           git commit -m "Intraday compare ${TARGET_DATE} $(TZ=Asia/Tokyo date +%H%M%S)"
-          for attempt in 1 2 3; do
+          # Save the official source snapshot, not a stale generated commit.
+          # On concurrent canonical updates rebase can conflict and lose the
+          # final result. Reset to newest main and RECOMPUTE every derived file.
+          BACKUP="$(mktemp -d)"
+          cp -a "archive/${YEAR}/${MONTH}/${DAY}" "$BACKUP/official"
+          for attempt in 1 2 3 4; do
             if git push origin HEAD:main; then
               echo "CHANGED=true" >> "$GITHUB_ENV"
               exit 0
             fi
-            # Other live workflows may update generated data while this job is running.
-            # Preserve any unstaged generated files before rebasing, then restore them.
-            git stash push -u -m "intraday-rebase-${GITHUB_RUN_ID}" || true
+            echo "Concurrent official/research update; recompute against current main (attempt $attempt)"
             git fetch origin main
-            git rebase origin/main || { git rebase --abort || true; git stash pop || true; exit 1; }
-            git stash pop || true
-            sleep 3
+            git reset --hard origin/main
+            export OFFICIAL_BACKUP="$BACKUP/official"
+            python - <<'PY'
+          import csv,os,shutil
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          source=Path(os.environ["OFFICIAL_BACKUP"])
+          dest=Path("archive")/d[:4]/d[4:6]/d[6:8]
+          def count(folder):
+              p=folder/f"results_{d}_all.csv"
+              if not p.is_file(): return 0
+              with p.open(encoding="utf-8-sig",newline="") as f:
+                  return len({r.get("race_id") for r in csv.DictReader(f) if r.get("race_id")})
+          saved,current=count(source),count(dest)
+          if saved > current:
+              shutil.copytree(source,dest,dirs_exist_ok=True)
+              print("OFFICIAL_LATEST_RESTORED",saved,"previous",current)
+          else:
+              print("OFFICIAL_REMOTE_NEWER_OR_EQUAL",current,saved)
+          PY
+            mkdir -p data
+            cp "daily_inputs/${YEAR}/${MONTH}/${DAY}/base/program_races_${TARGET_DATE}.csv" data/
+            cp "daily_inputs/${YEAR}/${MONTH}/${DAY}/base/program_entries_${TARGET_DATE}.csv" data/
+            python -u collectors/recover_missing_live_for_analysis.py --date "$TARGET_DATE"
+            python -u collectors/audit_daily_completeness.py --date "$TARGET_DATE"
+            python -u collectors/evaluate_predictions.py --date "$TARGET_DATE"
+            python -u collectors/evaluate_ai_score_prediction.py --date "$TARGET_DATE"
+            python -u collectors/evaluate_fujin_raijin_history.py --date "$TARGET_DATE"
+            git add "evaluations/${YEAR}/${MONTH}/${DAY}" "evaluations/fujin_raijin/latest" "archive/${YEAR}/${MONTH}/${DAY}"
+            if git diff --cached --quiet; then
+              echo "CHANGED=false" >> "$GITHUB_ENV"
+              echo "Current remote main already contains the checked results"
+              exit 0
+            fi
+            git commit -m "Intraday verified recompute ${TARGET_DATE} after parallel writer"
+            sleep 2
           done
+          echo "Official results remained unsaved after safe current-main retries" >&2
           exit 1
 
 
