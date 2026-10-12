@@ -38,7 +38,7 @@ jobs:
           # A one-time externally committed canary marker selects morning/live
           # without changing the scheduled default or requiring dashboard clicks.
           if [ "$GITHUB_EVENT_NAME" = push ] && [ -s config/v4_capture_now.txt ]; then
-            REQUEST_MODE=$(head -n1 config/v4_capture_now.txt | tr -d '\\r ')
+            REQUEST_MODE=$(head -n1 config/v4_capture_now.txt | tr -d '[:space:]')
           fi
           if [ "$REQUEST_MODE" != morning ] && [ "$REQUEST_MODE" != live ]; then
             echo "Invalid requested capture mode" >&2; exit 1
