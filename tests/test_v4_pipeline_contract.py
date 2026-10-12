@@ -83,6 +83,11 @@ class V4ContractTests(unittest.TestCase):
         self.assertIn('--now "$NOW"',files[2])
         self.assertIn('python -u collectors/build_latest_prediction_view.py',files[2])
         self.assertIn('run family_prediction_page.yml',files[2])
+        self.assertIn('live/v4_decoded',files[1])
+        self.assertIn('live/v4_decoded',files[2])
+        self.assertIn("v4-stage2-receipt-v1",files[1])
+        self.assertIn("v4-stage3-receipt-v1",files[2])
+        self.assertNotIn('sleep "$DELAY"',files[0])
     def test_beforeinfo_recording_timestamp_is_not_decode_timestamp(self):
         code=(Path(__file__).resolve().parents[1]/"collectors/v4_pipeline.py").read_text(encoding="utf-8")
         self.assertIn('"collected_at":x["received_at"]',code)

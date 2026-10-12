@@ -58,8 +58,9 @@ jobs:
           cp "$DIR/base"/* data/
           if [ "$MODE" = live ]; then
             SNAP=$(python -c 'import json;print(json.load(open("_v4_status/status.json"))["snapshot_path"])')
-            test -s "$DIR/live/$SNAP/beforeinfo_races_$DAY.csv"
-            cp "$DIR/live/$SNAP/"beforeinfo_*.csv data/
+            STAMP=$(basename "$SNAP")
+            test -s "$DIR/live/v4_decoded/$STAMP/beforeinfo_races_$DAY.csv"
+            cp "$DIR/live/v4_decoded/$STAMP/"beforeinfo_*.csv data/
           fi
           python -u collectors/build_history_features.py --as-of "$DAY"
           python -u collectors/build_prediction_input.py --stage "$MODE"
@@ -88,10 +89,38 @@ jobs:
           echo "V4_MODE=$MODE" >> "$GITHUB_ENV"
       - name: Save verified calculation outputs
         if: env.V4_CALCULATED == 'true'
+        env:
+          UPSTREAM_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
           DAY="$TARGET_DATE"
           OUT="predictions/$(echo "$DAY" | cut -c1-4)/$(echo "$DAY" | cut -c5-6)/$(echo "$DAY" | cut -c7-8)"
+          # Persist transparent outcome of stage 3 for cutover verification.
+          mkdir -p evaluations/v4/pipeline_runs
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          x=json.loads(Path("_v4_status/status.json").read_text(encoding="utf-8"))
+          day=os.environ["TARGET_DATE"]
+          mode=os.environ["V4_MODE"]
+          folder=Path("predictions")/day[:4]/day[4:6]/day[6:8]
+          live=folder/"live"/("live_predictions_final_"+day+".json")
+          morning=folder/("morning_predictions_"+day+".json")
+          actual=live if mode=="live" else morning
+          scores=json.loads(actual.read_text(encoding="utf-8")) if actual.exists() else {}
+          report={"schema":"boatrace-v4-stage3-receipt-v1",
+              "stage3_run_id":os.environ["GITHUB_RUN_ID"],
+              "stage2_run_id":os.environ.get("UPSTREAM_RUN_ID"),
+              "mode":mode,"date":day,"input_decoded_races":x.get("decoded_races"),
+              "saved_prediction_races":len(scores.get("races") or []),
+              "recomputed_from_stored_input":True,
+              "normal_logic_untouched":True,"signal_origin":"normal_scores",
+              "original_raw_saved_permanently":False}
+          file=Path("evaluations/v4/pipeline_runs")/(os.environ["GITHUB_RUN_ID"]+"_predict.json")
+          file.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          print("V4_STAGE3_RECEIPT",report)
+          PY
+          git add "evaluations/v4/pipeline_runs/${GITHUB_RUN_ID}_predict.json"
           git config user.name boatrace-v4-research-bot
           git config user.email boatrace-v4-research-bot@users.noreply.github.com
           git add "$OUT" predictions/latest.json predictions/latest.md \

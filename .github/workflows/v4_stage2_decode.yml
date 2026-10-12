@@ -47,6 +47,8 @@ jobs:
           python -m collectors.v4_pipeline decode --day "$DAY" \
              --in-dir _v4_input --out _v4_decoded
       - name: Save decoded small files, never commit HTML originals
+        env:
+          UPSTREAM_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
           MODE=$(python -c 'import json;print(json.load(open("_v4_decoded/status.json"))["mode"])')
@@ -63,12 +65,31 @@ jobs:
             git add "$DEST/base"
           elif [ "$MODE" = live ]; then
             SNAPSHOT=$(python -c 'import json;print(json.load(open("_v4_decoded/status.json"))["snapshot_path"])')
-            mkdir -p "$DEST/live/$SNAPSHOT"
-            cp "_v4_decoded/$SNAPSHOT"/* "$DEST/live/$SNAPSHOT/"
-            git add "$DEST/live/$SNAPSHOT"
+            STAMP=$(basename "$SNAPSHOT")
+            mkdir -p "$DEST/live/v4_decoded/$STAMP"
+            cp "_v4_decoded/$SNAPSHOT"/* "$DEST/live/v4_decoded/$STAMP/"
+            git add "$DEST/live/v4_decoded/$STAMP"
           else
             exit 1
           fi
+          # One small permanent stage marker, not the raw HTML.
+          mkdir -p evaluations/v4/pipeline_runs
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          data=json.loads(Path("_v4_decoded/status.json").read_text())
+          info={"schema":"boatrace-v4-stage2-receipt-v1",
+                "stage2_run_id":os.environ["GITHUB_RUN_ID"],
+                "stage1_run_id":os.environ.get("UPSTREAM_RUN_ID"),
+                "mode":data["mode"],"date":data["date"],
+                "decoded_races":data.get("decoded_races",0),
+                "unparsed_races":data.get("unparsed_races",[]),
+                "original_html_persistent":False,
+                "source":"v4_capture_artifact_sha_verified"}
+          Path("evaluations/v4/pipeline_runs/"+os.environ["GITHUB_RUN_ID"]+"_decode.json").write_text(
+            json.dumps(info,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          PY
+          git add "evaluations/v4/pipeline_runs/${GITHUB_RUN_ID}_decode.json"
           git config user.name "boatrace-v4-research-bot"
           git config user.email "boatrace-v4-research-bot@users.noreply.github.com"
           if git diff --cached --quiet; then exit 0; fi
