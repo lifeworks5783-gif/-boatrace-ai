@@ -663,6 +663,10 @@ def main():
         default=None,
         help="対象日 YYYYMMDD",
     )
+    # V4 may preserve the official compressed original BEFORE this parser runs.
+    # Existing button/scheduled workflows keep the legacy download path.
+    parser.add_argument("--archive-input",type=str,default=None)
+
 
     args = parser.parse_args()
 
@@ -705,9 +709,12 @@ def main():
     print("========================================")
 
     try:
-        archive_bytes = download_file(
-            source_url
+        archive_bytes = (
+            Path(args.archive_input).read_bytes()
+            if args.archive_input else download_file(source_url)
         )
+        if not archive_bytes:
+            raise RuntimeError("公式番組表アーカイブが空です")
 
         source_sha256 = hashlib.sha256(
             archive_bytes

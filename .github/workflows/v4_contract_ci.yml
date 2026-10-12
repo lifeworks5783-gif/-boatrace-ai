@@ -1,0 +1,80 @@
+name: V4 Three-Stage Canary Contract
+on:
+  push:
+    branches: [feature/20261012-v4-three-stage-collection]
+  pull_request:
+    paths:
+      - "collectors/v4_pipeline.py"
+      - "tests/test_v4_pipeline_contract.py"
+      - ".github/workflows/v4_stage*.yml"
+      - ".github/workflows/v4_contract_ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -q requests beautifulsoup4 lhafile pyyaml
+      - name: Compile contract and all three workflow YAMLs
+        run: |
+          python -m py_compile collectors/v4_pipeline.py
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+          for name in ("v4_stage1_capture.yml","v4_stage2_decode.yml","v4_stage3_predict.yml"):
+              p=Path(".github/workflows")/name
+              config=yaml.safe_load(p.read_text(encoding="utf-8"))
+              assert config["jobs"] and config.get("name"),name
+              print("V4_YAML_OK",name)
+          PY
+      - name: Run raw-first and three-action tests
+        run: python -m unittest discover -s tests -p test_v4_pipeline_contract.py -v
+      - name: Actual official HTML raw capture -> checksum -> interpretation smoke (research only)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from tempfile import TemporaryDirectory
+          from datetime import datetime
+          import json
+          from collectors.v4_pipeline import fetch_one,decode_manifest,JST
+          # Postdeadline testing never creates or labels a contemporary prediction.
+          meta={"date":"20261012","venue_code":"22","venue_name":"福岡","race":12,
+                "race_id":"20261012-22-12","deadline":"16:40",
+                "source_url":"https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd=20261012&jcd=22&rno=12"}
+          with TemporaryDirectory() as tmp:
+              root=Path(tmp)
+              got=fetch_one(meta,root/"captured"/"raw")
+              assert got.get("http_status")==200,got
+              (root/"captured"/"manifest.json").write_text(json.dumps({
+                "schema":"boatrace-v4-capture-v1","mode":"live",
+                "date":"20261012","records":[got]}),encoding="utf-8")
+              out=decode_manifest(root/"captured",root/"decoded",Path("."))
+              assert out["observed_races"]==1,out
+              assert out["decoded_races"]==1,out
+              assert Path(root/"captured"/"raw"/got["raw_path"]).is_file()
+              print("V4_ONE_OFFICIAL_RACE_RAW_TO_DECODE_PASS",
+                {"race_id":meta["race_id"],"raw_sha256":got["sha256"],
+                 "decoded_races":out["decoded_races"],
+                 "research_only_retrospective":True})
+          PY
+      - name: Smoke on actual saved morning program: capture selection / safe morning restore
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from collectors.v4_pipeline import capture_morning,plan_live,parse_now
+          from tempfile import TemporaryDirectory
+          day="20261012"
+          with TemporaryDirectory() as tmp:
+            m=capture_morning(Path("."),day,Path(tmp))
+            assert m["mode"]=="morning" and len(m["base_files"])>=2
+            entries=plan_live(Path("."),day,parse_now("2026-10-12T20:29:00+09:00"))
+            assert all(r["deadline"] for r in entries)
+            print("V4_ACTUAL_PROGRAM_SMOKE",{"base_files":len(m["base_files"]),
+                "eligible_future_races":len(entries)})
+          PY

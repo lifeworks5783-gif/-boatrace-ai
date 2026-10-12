@@ -1,0 +1,116 @@
+name: V4 Stage 3 Prediction and Signals
+on:
+  workflow_run:
+    workflows: ["V4 Stage 2 Interpret and Store"]
+    types: [completed]
+permissions:
+  actions: write
+  contents: write
+concurrency:
+  group: boatrace-live-writer
+  cancel-in-progress: false
+jobs:
+  predict:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -q requests beautifulsoup4 lhafile
+      - name: Verify upstream interpretation status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" \
+            --name v4-decoded-status --dir _v4_status
+          test -s _v4_status/status.json
+      - name: Calculate from stored information only (no second official capture)
+        shell: bash
+        run: |
+          set -euo pipefail
+          MODE=$(python -c 'import json;print(json.load(open("_v4_status/status.json"))["mode"])')
+          COUNT=$(python -c 'import json;print(json.load(open("_v4_status/status.json")).get("decoded_races",0))')
+          if [ "$MODE" = skip ] || [ "$COUNT" -eq 0 ]; then
+            echo "No newly interpreted input; skip computation"
+            echo "V4_CALCULATED=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          DAY=$(python -c 'import json;print(json.load(open("_v4_status/status.json"))["date"])')
+          if [ "$DAY" != "$(TZ=Asia/Tokyo date +%Y%m%d)" ]; then
+            echo "The day rolled over; never label historic replay as live"
+            echo "V4_CALCULATED=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "TARGET_DATE=$DAY" >> "$GITHUB_ENV"
+          NOW=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M:%S%:z)
+          DIR="daily_inputs/$(echo "$DAY" | cut -c1-4)/$(echo "$DAY" | cut -c5-6)/$(echo "$DAY" | cut -c7-8)"
+          mkdir -p data features
+          cp "$DIR/base"/* data/
+          if [ "$MODE" = live ]; then
+            SNAP=$(python -c 'import json;print(json.load(open("_v4_status/status.json"))["snapshot_path"])')
+            test -s "$DIR/live/$SNAP/beforeinfo_races_$DAY.csv"
+            cp "$DIR/live/$SNAP/"beforeinfo_*.csv data/
+          fi
+          python -u collectors/build_history_features.py --as-of "$DAY"
+          python -u collectors/build_prediction_input.py --stage "$MODE"
+          python -u collectors/enrich_prediction_input.py --date "$DAY" --stage "$MODE"
+          if [ "$MODE" = morning ]; then
+            OUT="predictions/$(echo "$DAY" | cut -c1-4)/$(echo "$DAY" | cut -c5-6)/$(echo "$DAY" | cut -c7-8)"
+            mkdir -p "$OUT"
+            if [ -s "$OUT/morning_predictions_$DAY.json" ]; then
+              echo "Morning score immutable; use previously saved version"
+            else
+              python -u collectors/build_morning_prediction.py --date "$DAY"
+              cp data/morning_predictions_*"$DAY"* "$OUT/"
+            fi
+          else
+            python -u collectors/build_live_prediction.py --date "$DAY" --now "$NOW"
+            OUT="predictions/$(echo "$DAY" | cut -c1-4)/$(echo "$DAY" | cut -c5-6)/$(echo "$DAY" | cut -c7-8)/live"
+            mkdir -p "$OUT"
+            for item in data/live_predictions_final_*"$DAY"*; do
+              test -s "$item" && cp "$item" "$OUT/" || true
+            done
+          fi
+          # Signals are derived from existing normal AI scores. No score formula edits.
+          python -u collectors/build_latest_prediction_view.py --date "$DAY" --now "$NOW"
+          python -u collectors/build_deadline_prediction_view.py --date "$DAY"
+          echo "V4_CALCULATED=true" >> "$GITHUB_ENV"
+          echo "V4_MODE=$MODE" >> "$GITHUB_ENV"
+      - name: Save verified calculation outputs
+        if: env.V4_CALCULATED == 'true'
+        run: |
+          set -euo pipefail
+          DAY="$TARGET_DATE"
+          OUT="predictions/$(echo "$DAY" | cut -c1-4)/$(echo "$DAY" | cut -c5-6)/$(echo "$DAY" | cut -c7-8)"
+          git config user.name boatrace-v4-research-bot
+          git config user.email boatrace-v4-research-bot@users.noreply.github.com
+          git add "$OUT" predictions/latest.json predictions/latest.md \
+            predictions/latest_by_deadline.json predictions/latest_by_deadline.md
+          if [ "$V4_MODE" = morning ]; then git add features; fi
+          if git diff --cached --quiet; then
+            echo "No changed outputs"
+            exit 0
+          fi
+          git commit -m "V4 $V4_MODE: independently calculate  $DAY"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            git fetch origin main
+            git rebase origin/main || exit 1
+            sleep 2
+          done
+          exit 1
+      - name: Refresh research family display after commit
+        if: env.V4_CALCULATED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run family_prediction_page.yml --repo "$GITHUB_REPOSITORY" --ref main
