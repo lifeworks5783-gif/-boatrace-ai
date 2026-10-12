@@ -33,6 +33,34 @@ jobs:
           PY
       - name: Run raw-first and three-action tests
         run: python -m unittest discover -s tests -p test_v4_pipeline_contract.py -v
+      - name: Actual official HTML raw capture -> checksum -> interpretation smoke (research only)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from tempfile import TemporaryDirectory
+          from datetime import datetime
+          import json
+          from collectors.v4_pipeline import fetch_one,decode_manifest,JST
+          # Postdeadline testing never creates or labels a contemporary prediction.
+          meta={"date":"20261012","venue_code":"22","venue_name":"福岡","race":12,
+                "race_id":"20261012-22-12","deadline":"16:40",
+                "source_url":"https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd=20261012&jcd=22&rno=12"}
+          with TemporaryDirectory() as tmp:
+              root=Path(tmp)
+              got=fetch_one(meta,root/"captured"/"raw")
+              assert got.get("http_status")==200,got
+              (root/"captured"/"manifest.json").write_text(json.dumps({
+                "schema":"boatrace-v4-capture-v1","mode":"live",
+                "date":"20261012","records":[got]}),encoding="utf-8")
+              out=decode_manifest(root/"captured",root/"decoded",Path("."))
+              assert out["observed_races"]==1,out
+              assert out["decoded_races"]==1,out
+              assert Path(root/"captured"/"raw"/got["raw_path"]).is_file()
+              print("V4_ONE_OFFICIAL_RACE_RAW_TO_DECODE_PASS",
+                {"race_id":meta["race_id"],"raw_sha256":got["sha256"],
+                 "decoded_races":out["decoded_races"],
+                 "research_only_retrospective":True})
+          PY
       - name: Smoke on actual saved morning program: capture selection / safe morning restore
         run: |
           python - <<'PY'
