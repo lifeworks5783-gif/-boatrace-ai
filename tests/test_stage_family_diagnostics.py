@@ -26,13 +26,34 @@ class StageResearchDiagnosticsTests(unittest.TestCase):
                                                   "field":"exhibition_st_raw","boat":3}]}}]}
         self.output.write_text(json.dumps(data,ensure_ascii=False),encoding="utf-8")
     def test_missing_normalized_never_adds_broken_link(self):
-        self.assertEqual(stage(self.root,self.site,"20261012")["status"],"skipped_no_verified_research_data")
+        self.assertEqual(stage(self.root,self.site,"20261012")["status"],"skipped_no_saved_research_data")
         self.assertEqual((self.site/"analysis.html").read_text(encoding="utf-8"),self.original)
         self.assertFalse((self.site/"raw_diagnostics.html").exists())
     def test_unarchived_dev_preview_never_appears_on_family_site(self):
         self.put(False)
-        self.assertEqual(stage(self.root,self.site,"20261012")["status"],"skipped_original_not_archived")
+        self.assertEqual(stage(self.root,self.site,"20261012")["status"],"skipped_no_saved_research_data")
         self.assertFalse((self.site/"raw_diagnostics.html").exists())
+    def test_existing_program_adds_live_save_diagnostics_without_drive_oauth(self):
+        base=self.root/"daily_inputs/2026/10/12/base"
+        base.mkdir(parents=True)
+        (base/"program_races_20261012.csv").write_text(
+            "race_id,deadline\n20261012-22-12,16:40\n",encoding="utf-8")
+        (base/"program_entries_20261012.csv").write_text(
+            "race_id,boat,registration_no\n"+
+            "".join(f"20261012-22-12,{i},{4000+i}\n" for i in range(1,7)),
+            encoding="utf-8")
+        self.put(False)  # Local preview cannot claim verified Drive raw archive.
+        result=stage(self.root,self.site,"20261012")
+        self.assertEqual(result["status"],"staged_saved_research_diagnostics")
+        self.assertEqual(result["count"],1)
+        report=(self.site/"raw_diagnostics.html").read_text(encoding="utf-8")
+        self.assertIn("朝番組6艇",report)
+        self.assertIn("原本",report)
+        self.assertIn("結果後に復旧したデータを当時の直前取得",report)
+        analysis=(self.site/"analysis.html").read_text(encoding="utf-8")
+        self.assertIn("研究用・保存データ診断を見る",analysis)
+        self.assertEqual(analysis.count('<nav'),1)
+
     def test_verified_research_data_adds_optional_link_and_page(self):
         self.put(True)
         r=stage(self.root,self.site,"20261012")
