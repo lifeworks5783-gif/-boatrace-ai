@@ -8,8 +8,13 @@ on:
         description: "JST date YYYYMMDD; empty means today"
         required: false
         type: string
-  # Called by V4 stage3 only (also supports manual recovery).
-  # Avoid an extra 68 GitHub Actions runs/day from periodic polling.
+  # One-time bootstrap on first merge and explicit manual recovery markers.
+  # V4 normal dispatch remains the main path; no periodic polling.
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fast_family_prediction_page.yml"
+      - "config/run_fast_publish_now.txt"
 permissions:
   contents: read
 concurrency:
