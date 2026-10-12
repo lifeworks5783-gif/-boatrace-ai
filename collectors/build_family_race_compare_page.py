@@ -2486,7 +2486,7 @@ def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
              else "風神雷神専用AI予想" if is_signal else "通常AIスコア予測")
     all120 = ai.get("all_120_combinations") or ai.get("combinations") or []
     purchase_points = 24 if is_signal else (safe_int(ai.get("points")) or 8)
-    display_points = 24 if is_signal else 12
+    display_points = 50  # Ranking display only; the original purchase limits remain unchanged.
     visible = all120[:display_points]
     if not visible:
         return '<div class="simulation missing">専用AI24点未保存（要修復）</div>' if is_signal else '<div class="simulation missing">AI予想の保存済み買い目なし</div>'
@@ -2548,7 +2548,7 @@ def ai_score_result_html(prediction, trifecta, payout, canonical_signal=None):
         </span>
       </summary>
       <div class="ai-result-body">
-        <div class="simulation-meta">{esc(research_note)} 表示{len(visible)}点 ／ {ticket_label}上位{purchase_points}点・各100円</div>
+        <div class="simulation-meta">{esc(research_note)} AI順位表示{len(visible)}位まで ／ {ticket_label}上位{purchase_points}点・各100円 ／ 購入範囲外は参考順位（全120通りは保存データで管理）</div>
         <div class="ai-result-list">{''.join(rows)}</div>
       </div>
     </details>
