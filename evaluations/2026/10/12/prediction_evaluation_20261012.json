@@ -1,8 +1,8 @@
 {
   "status": "PASS",
   "target_date": "20261012",
-  "generated_at": "2026-10-12T12:28:21.494203+09:00",
-  "actual_races_available": 50,
+  "generated_at": "2026-10-12T12:51:30.210581+09:00",
+  "actual_races_available": 56,
   "analysis_live_source": "evaluations/2026/10/12/recovery/merged_live_predictions_20261012.csv",
   "recovery_manifest": {
     "date": "20261012",
@@ -14,9 +14,9 @@
     "recovery_input": "BOAT RACE official beforeinfo only; results/payouts are not prediction inputs",
     "provenance": "post_result_retry_due_known_live_collection_bug",
     "expected_races": 168,
-    "finished_races_targeted": 50,
-    "not_yet_finished_races": 118,
-    "production_live_races_before": 47,
+    "finished_races_targeted": 56,
+    "not_yet_finished_races": 112,
+    "production_live_races_before": 54,
     "missing_before": [
       "202610120302",
       "202610120602",
@@ -41,7 +41,7 @@
       "202610121803",
       "202610121804"
     ],
-    "merged_analysis_races": 56,
+    "merged_analysis_races": 63,
     "still_missing": [],
     "merged_live_csv": "evaluations/2026/10/12/recovery/merged_live_predictions_20261012.csv",
     "recovered_live_csv": "evaluations/2026/10/12/recovery/recovered_live_predictions_20261012.csv"
@@ -49,40 +49,40 @@
   "morning": {
     "stage": "morning",
     "prediction_races_in_file": 168,
-    "evaluated_races": 50,
-    "top1_win_rate": 0.4,
-    "winner_in_top2_rate": 0.66,
-    "winner_in_top3_rate": 0.78,
-    "average_winner_prediction_rank": 2.3
+    "evaluated_races": 56,
+    "top1_win_rate": 0.35714,
+    "winner_in_top2_rate": 0.60714,
+    "winner_in_top3_rate": 0.73214,
+    "average_winner_prediction_rank": 2.48214
   },
   "live": {
     "stage": "live",
-    "prediction_races_in_file": 56,
-    "evaluated_races": 50,
-    "top1_win_rate": 0.42,
-    "winner_in_top2_rate": 0.64,
-    "winner_in_top3_rate": 0.78,
-    "average_winner_prediction_rank": 2.22
+    "prediction_races_in_file": 63,
+    "evaluated_races": 56,
+    "top1_win_rate": 0.375,
+    "winner_in_top2_rate": 0.58929,
+    "winner_in_top3_rate": 0.73214,
+    "average_winner_prediction_rank": 2.42857
   },
   "morning_vs_live": {
-    "compared_races": 50,
+    "compared_races": 56,
     "winner_rank_improved": 10,
-    "winner_rank_worsened": 5,
-    "winner_rank_same": 35,
-    "improved_rate": 0.2
+    "winner_rank_worsened": 6,
+    "winner_rank_same": 40,
+    "improved_rate": 0.17857
   },
   "formation_simulation": {
     "model_version": "formation_gap_flow_v2",
     "overall": {
-      "races": 50,
+      "races": 56,
       "hits": 10,
-      "points": 442,
-      "investment": 44200,
+      "points": 502,
+      "investment": 50200,
       "return": 23380,
-      "hit_rate": 0.2,
-      "average_points_per_race": 8.84,
-      "profit": -20820,
-      "recovery_rate_pct": 52.9
+      "hit_rate": 0.17857,
+      "average_points_per_race": 8.96429,
+      "profit": -26820,
+      "recovery_rate_pct": 46.57
     },
     "by_formation_type": {
       "1・2着折返し＋3着流し": {
@@ -97,61 +97,61 @@
         "recovery_rate_pct": 32.61
       },
       "準軸": {
-        "races": 17,
+        "races": 18,
         "hits": 1,
-        "points": 136,
-        "investment": 13600,
-        "return": 5410,
-        "hit_rate": 0.05882,
-        "average_points_per_race": 8.0,
-        "profit": -8190,
-        "recovery_rate_pct": 39.78
-      },
-      "1着固定＋相手流し": {
-        "races": 12,
-        "hits": 5,
         "points": 144,
         "investment": 14400,
+        "return": 5410,
+        "hit_rate": 0.05556,
+        "average_points_per_race": 8.0,
+        "profit": -8990,
+        "recovery_rate_pct": 37.57
+      },
+      "1着固定＋相手流し": {
+        "races": 13,
+        "hits": 5,
+        "points": 156,
+        "investment": 15600,
         "return": 7710,
-        "hit_rate": 0.41667,
+        "hit_rate": 0.38462,
         "average_points_per_race": 12.0,
-        "profit": -6690,
-        "recovery_rate_pct": 53.54
+        "profit": -7890,
+        "recovery_rate_pct": 49.42
       },
       "混戦": {
-        "races": 7,
+        "races": 10,
         "hits": 2,
-        "points": 84,
-        "investment": 8400,
+        "points": 120,
+        "investment": 12000,
         "return": 7520,
-        "hit_rate": 0.28571,
+        "hit_rate": 0.2,
         "average_points_per_race": 12.0,
-        "profit": -880,
-        "recovery_rate_pct": 89.52
+        "profit": -4480,
+        "recovery_rate_pct": 62.67
       },
       "1・2着固定＋3着流し": {
-        "races": 8,
+        "races": 9,
         "hits": 1,
-        "points": 32,
-        "investment": 3200,
+        "points": 36,
+        "investment": 3600,
         "return": 1240,
-        "hit_rate": 0.125,
+        "hit_rate": 0.11111,
         "average_points_per_race": 4.0,
-        "profit": -1960,
-        "recovery_rate_pct": 38.75
+        "profit": -2360,
+        "recovery_rate_pct": 34.44
       }
     },
     "by_prediction_type": {
       "直前": {
-        "races": 50,
+        "races": 56,
         "hits": 10,
-        "points": 442,
-        "investment": 44200,
+        "points": 502,
+        "investment": 50200,
         "return": 23380,
-        "hit_rate": 0.2,
-        "average_points_per_race": 8.84,
-        "profit": -20820,
-        "recovery_rate_pct": 52.9
+        "hit_rate": 0.17857,
+        "average_points_per_race": 8.96429,
+        "profit": -26820,
+        "recovery_rate_pct": 46.57
       }
     }
   },
@@ -160,27 +160,27 @@
     "selection_rule": "フォーメーションと同じレースを対象に、そのレースで採用した予測段階（直前優先、無ければ朝）のAI順位上位3艇を3連単6点BOXで各100円購入",
     "points_per_race": 6,
     "overall": {
-      "races": 50,
+      "races": 56,
       "hits": 9,
-      "points": 300,
-      "investment": 30000,
+      "points": 336,
+      "investment": 33600,
       "return": 28020,
-      "hit_rate": 0.18,
+      "hit_rate": 0.16071,
       "average_points_per_race": 6.0,
-      "profit": -1980,
-      "recovery_rate_pct": 93.4
+      "profit": -5580,
+      "recovery_rate_pct": 83.39
     },
     "by_prediction_type": {
       "live": {
-        "races": 50,
+        "races": 56,
         "hits": 9,
-        "points": 300,
-        "investment": 30000,
+        "points": 336,
+        "investment": 33600,
         "return": 28020,
-        "hit_rate": 0.18,
+        "hit_rate": 0.16071,
         "average_points_per_race": 6.0,
-        "profit": -1980,
-        "recovery_rate_pct": 93.4
+        "profit": -5580,
+        "recovery_rate_pct": 83.39
       }
     }
   },
