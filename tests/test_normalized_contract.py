@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from raw_collector.archive import record_response
 from raw_collector.drive_bundle import bundle_batch
-from raw_collector.normalize import normalize_verified_bundle,merge_daily_summary,write_summary
+from raw_collector.normalize import normalize_verified_bundle,preview_local_bundle,merge_daily_summary,write_summary
 
 class NormalizedContractTests(unittest.TestCase):
     def setUp(self):
@@ -31,6 +31,15 @@ class NormalizedContractTests(unittest.TestCase):
         self.assertNotIn("<html>",str(payload))
         written=write_summary(payload,repo_root=self.root)
         self.assertIn("20261012-22-12",written.read_text(encoding="utf-8"))
+    def test_drive_auth_free_preview_is_explicitly_non_durable(self):
+        preview=preview_local_bundle(self.zip,root=self.root)
+        self.assertEqual(preview["source_archive"],"local_ephemeral_unarchived")
+        self.assertEqual(preview["races"][0]["parse_status"],"unparsed")
+        self.assertFalse(preview["races"][0]["source"]["drive_raw_verified"])
+        with self.assertRaisesRegex(RuntimeError,"cannot_be_committed"):
+            write_summary(preview,repo_root=self.root)
+        self.assertFalse((self.root/"normalized").exists())
+
     def test_daily_merge_preserves_other_races(self):
         a={"schema":"boatrace-normalized-v1","date":"20261012","races":[
             {"race_id":"20261012-22-01","source":{"collected_at":"1"}}]}
