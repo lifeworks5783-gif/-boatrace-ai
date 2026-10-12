@@ -78,6 +78,10 @@ jobs:
         env:
           TARGET_DATE: ${{ steps.date.outputs.date }}
         run: |
+          set -euo pipefail
+          # Canonical write can overlap real-time predictions. Always rebuild
+          # using the newest committed main, never rebase generated JSON/CSV.
+          rebuild_from_latest_main() {
           python -u collectors/build_latest_prediction_view.py --date "$TARGET_DATE"
           python -u collectors/build_deadline_prediction_view.py --date "$TARGET_DATE"
           python - <<'PY'
@@ -153,18 +157,34 @@ jobs:
           git add evaluations/fujin_raijin/latest/combination_matrix.csv
           if git diff --cached --quiet; then
             echo "共通正本はすでに最新"
-            exit 0
+            return 2
           fi
           git commit -m "Sync verified official live recovery into canonical signal predictions for $TARGET_DATE"
-          for attempt in 1 2 3; do
+          }
+          for attempt in 1 2 3 4 5; do
+            echo "最新mainから正本再生成 attempt=$attempt"
+            git fetch origin main
+            git reset --hard origin/main
+            set +e
+            rebuild_from_latest_main
+            rc=$?
+            set -e
+            if [ "$rc" = 2 ]; then
+              echo "最新mainと一致: PASS"
+              exit 0
+            fi
+            if [ "$rc" != 0 ]; then
+              echo "正本再生成エラー rc=$rc" >&2
+              exit "$rc"
+            fi
             if git push origin HEAD:main; then
               echo "公式直前復旧の共通正本保存: PASS"
               exit 0
             fi
-            git fetch origin main
-            git rebase origin/main
+            echo "並行更新を検出。生成ファイルのrebaseは禁止し最新mainから再計算"
+            sleep "$((attempt * 2))"
           done
-          echo "Push conflict: no unverified result was published" >&2
+          echo "並行更新が継続しているため安全停止。次回再生成対象を維持" >&2
           exit 1
 
       - name: 共通正本同期の成功後に家族4画面を明示更新
