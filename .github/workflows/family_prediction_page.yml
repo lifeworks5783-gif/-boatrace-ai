@@ -371,8 +371,13 @@ jobs:
             analysis.html \
             race_compare.html \
             .nojekyll
-          # Includes removal of stale diagnostics if current data cannot be checked.
-          git add -A -- raw_diagnostics.html raw_diagnostics_summary.json
+          # Includes removal of stale reports, but avoids missing-path errors
+          # on the very first publish before diagnostics have ever existed.
+          for file in raw_diagnostics.html raw_diagnostics_summary.json; do
+            if test -e "$file" || git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+              git add -A -- "$file"
+            fi
+          done
           if test -f manual_refresh_status.json; then
             git add manual_refresh_status.json
           fi
