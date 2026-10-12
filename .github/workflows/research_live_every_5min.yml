@@ -1,7 +1,7 @@
 name: Research latest-information five-minute scheduler
 on:
-  schedule:
-    - cron: '*/5 * * * *'
+  # V3 scheduled polling retired after successful V4 morning/live canary.
+  # workflow_dispatch retained solely for controlled fallback and PDCA recovery.
   workflow_dispatch:
 permissions:
   contents: read
