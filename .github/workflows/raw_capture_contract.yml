@@ -4,6 +4,8 @@ on:
     paths:
       - "raw_collector/**"
       - "tests/test_raw_archiving_contract.py"
+      - "tests/test_drive_archive_contract.py"
+      - "tests/test_normalized_contract.py"
       - ".github/workflows/raw_capture_contract.yml"
   workflow_dispatch:
 
@@ -28,8 +30,16 @@ jobs:
           python -m py_compile raw_collector/plan.py
           python -m unittest discover -s tests -p test_raw_plan_contract.py -v
           python -m raw_collector.plan --date 20261012 --now 2026-10-12T16:25:00+09:00 --venue 22 --max-requests 1
+      - name: Validate private Drive bundle and mock uploader
+        run: |
+          python -m py_compile raw_collector/drive_bundle.py raw_collector/drive_upload.py raw_collector/ingest_once.py
+          python -m unittest discover -s tests -p test_drive_archive_contract.py -v
       - name: Install research parser dependencies for one-race live smoke
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+      - name: Verify private archive before normalizing for GitHub
+        run: |
+          python -m py_compile raw_collector/normalize.py
+          python -m unittest discover -s tests -p test_normalized_contract.py -v
       - name: One official race — raw, parse, historical features, normal score and F/R
         run: python -m raw_collector.one_race_probe
 
