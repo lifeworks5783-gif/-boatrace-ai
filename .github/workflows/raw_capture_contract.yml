@@ -1,0 +1,117 @@
+name: Raw official HTTP capture contract tests
+on:
+  pull_request:
+    paths:
+      - "raw_collector/**"
+      - "tests/test_raw_archiving_contract.py"
+      - "tests/test_drive_archive_contract.py"
+      - "tests/test_normalized_contract.py"
+      - "tests/test_parser_audit_contract.py"
+      - "tests/test_raw_diagnostics_view.py"
+      - "tests/test_stage_family_diagnostics.py"
+      - "tests/test_saved_research_adapter.py"
+      - ".github/workflows/raw_capture_contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Confirm archive module compiles
+        run: python -m py_compile raw_collector/archive.py
+      - name: Validate raw preservation and parser independence
+        run: python -m unittest discover -s tests -p test_raw_archiving_contract.py -v
+      - name: Validate full-day URL planner and cutoff safety
+        run: |
+          python -m py_compile raw_collector/plan.py
+          python -m unittest discover -s tests -p test_raw_plan_contract.py -v
+          python -m raw_collector.plan --date 20261012 --now 2026-10-12T16:25:00+09:00 --venue 22 --max-requests 1
+      - name: Validate private Drive bundle and mock uploader
+        run: |
+          python -m py_compile raw_collector/drive_bundle.py raw_collector/drive_upload.py raw_collector/ingest_once.py
+          python -m unittest discover -s tests -p test_drive_archive_contract.py -v
+      - name: Install research parser dependencies for one-race live smoke
+        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+      - name: Validate parser knowledge and unknown-format diagnostics
+        run: |
+          python -m py_compile raw_collector/parser_audit.py
+          python -m unittest discover -s tests -p test_parser_audit_contract.py -v
+      - name: Validate standalone research diagnostics screen
+        run: |
+          python -m py_compile raw_collector/diagnostics_view.py
+          python -m unittest discover -s tests -p test_raw_diagnostics_view.py -v
+      - name: Validate verified-only optional integration with research AI analysis
+        run: |
+          python -m py_compile raw_collector/stage_family_diagnostics.py
+          python -m unittest discover -s tests -p test_stage_family_diagnostics.py -v
+      - name: Audit existing saved daily research data, without Google Drive authentication
+        run: |
+          python -m py_compile raw_collector/saved_research_adapter.py raw_collector/saved_research_view.py
+          python -m unittest discover -s tests -p test_saved_research_adapter.py -v
+          python - <<'PY'
+          from pathlib import Path
+          from raw_collector.saved_research_adapter import diagnose_saved_day
+          r=diagnose_saved_day(Path("."),"20261012")
+          assert r["source_kind"]=="decoded_research_files_not_official_html",r
+          assert r["summary"]["total"]>=1,r
+          one=next(x for x in r["races"] if x["race_id"]=="20261012-22-12")
+          assert one["morning_six_identity_verified"],one
+          assert not one["official_html_original_archived"],one
+          print("EXISTING_SAVED_DIAGNOSTICS=",r["summary"],"FUKUOKA_12R=",{
+            k:one[k] for k in ("morning_entry_count","beforeinfo_state","morning_prediction_saved",
+                               "live_prediction_saved","canonical_prediction_saved")})
+          PY
+      - name: Inspect saved raw-CSV acquisition clocks against official deadlines
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import csv
+          root=Path("daily_inputs/2026/10/12/live/raw")
+          paths=sorted(root.glob("*/beforeinfo_entries_*.csv"))
+          print("ORIGINAL_SNAPSHOT_FILES",len(paths),"SAMPLES",[str(x) for x in paths[:5]])
+          for f in paths[:6]:
+            with f.open(encoding="utf-8-sig",newline="") as stream:
+              rows=list(csv.DictReader(stream))
+            fields=list(rows[0]) if rows else []
+            picks=[{k:r.get(k) for k in ("race_id","boat","collected_at","requested_at","observed_at","source_url") if k in r}
+                   for r in rows[:2]]
+            print("ORIGINAL_CLOCK_SAMPLE",str(f),"FIELDS",fields,"ROWS",picks)
+          PY
+      - name: Render one real saved-data diagnostics screen (168 races) without any OAuth
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from raw_collector.stage_family_diagnostics import stage
+          base=Path("_saved_diagnostics_smoke")
+          base.mkdir(exist_ok=True)
+          (base/"analysis.html").write_text(
+              '<html><body><nav class="family-nav"><a href="analysis.html">AI分析</a></nav></body></html>',
+              encoding="utf-8")
+          report=stage(Path("."),base,"20261012")
+          assert report["status"]=="staged_saved_research_diagnostics",report
+          assert report["count"]==168,report
+          html=(base/"raw_diagnostics.html").read_text(encoding="utf-8")
+          assert html.count('20261012-22-12')==1
+          assert "結果後に復旧したデータを当時の直前取得" in html
+          assert "公式ページの生HTML原本は検証できておらず" in html
+          assert (base/"raw_diagnostics_summary.json").exists()
+          print("REAL_SAVED_RESEARCH_VIEW_PASS",report)
+          PY
+      - name: Verify private archive before normalizing for GitHub
+        run: |
+          python -m py_compile raw_collector/normalize.py
+          python -m unittest discover -s tests -p test_normalized_contract.py -v
+      - name: One official race — raw, parse, historical features, normal score and F/R
+        run: python -m raw_collector.one_race_probe
+
+# Only two controlled read-only official requests for one real-race smoke test.
+# Deliberately NO cron and NO public HTML archive upload.
+# Raw data needs an access-controlled destination before recurring collection.

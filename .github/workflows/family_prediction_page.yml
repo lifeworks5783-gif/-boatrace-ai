@@ -251,6 +251,19 @@ jobs:
 
           echo "4タブメニュー: PASS"
 
+      - name: 研究版データ解読診断ページを検証済み原本から任意生成
+        run: |
+          # 既存4タブは維持。Drive原本未照合・対象データなしの場合はページ追加しない。
+          python -m raw_collector.stage_family_diagnostics \
+            --date "${COMPARE_DATE}" \
+            --site-dir _family_site
+          if test -f _family_site/raw_diagnostics.html; then
+            test -s _family_site/raw_diagnostics_summary.json
+            echo "研究用データ読み取り診断ページ: PASS"
+          else
+            echo "原本の実転送が未完了のため研究診断ページの公開は保留"
+          fi
+
       - name: 直前スコア・風神雷神判定・PDCA・レース照合表示を全終了レースで一致監査
         run: |
           RESULT_FILE="archive/${COMPARE_DATE:0:4}/${COMPARE_DATE:4:2}/${COMPARE_DATE:6:2}/results_${COMPARE_DATE}_all.csv"
@@ -289,6 +302,14 @@ jobs:
           cp \
             _family_site/race_compare.html \
             family_public/race_compare.html
+
+          if test -s _family_site/raw_diagnostics.html; then
+            cp _family_site/raw_diagnostics.html family_public/raw_diagnostics.html
+            cp _family_site/raw_diagnostics_summary.json family_public/raw_diagnostics_summary.json
+          else
+            # Do not leave yesterday's quality report visible after source disappears.
+            rm -f family_public/raw_diagnostics.html family_public/raw_diagnostics_summary.json
+          fi
 
           touch family_public/.nojekyll
 
@@ -350,6 +371,13 @@ jobs:
             analysis.html \
             race_compare.html \
             .nojekyll
+          # Includes removal of stale reports, but avoids missing-path errors
+          # on the very first publish before diagnostics have ever existed.
+          for file in raw_diagnostics.html raw_diagnostics_summary.json; do
+            if test -e "$file" || git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+              git add -A -- "$file"
+            fi
+          done
           if test -f manual_refresh_status.json; then
             git add manual_refresh_status.json
           fi
