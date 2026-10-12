@@ -23,6 +23,11 @@ jobs:
         run: python -m py_compile raw_collector/archive.py
       - name: Validate raw preservation and parser independence
         run: python -m unittest discover -s tests -p test_raw_archiving_contract.py -v
+      - name: Validate full-day URL planner and cutoff safety
+        run: |
+          python -m py_compile raw_collector/plan.py
+          python -m unittest discover -s tests -p test_raw_plan_contract.py -v
+          python -m raw_collector.plan --date 20261012 --now 2026-10-12T16:25:00+09:00 --venue 22 --max-requests 1
       - name: Install research parser dependencies for one-race live smoke
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
       - name: One official race — raw, parse, historical features, normal score and F/R
