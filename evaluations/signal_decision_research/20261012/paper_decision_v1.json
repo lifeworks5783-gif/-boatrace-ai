@@ -1,0 +1,1373 @@
+{
+  "schema": "fujin-raijin-buy-skip-paper-study-v1",
+  "target_date": "20261012",
+  "generated_for_next_day": "20261013",
+  "status": "RESEARCH_ONLY_NO_PRODUCTION_CHANGE",
+  "source": {
+    "path": "evaluations/raijin_all_rank_v2_replay/summary.json",
+    "git_blob_sha": "e84cbe50d1d5f03ca97028ece6d320e706611e01",
+    "logic_version": "fujin_raijin_pipeline_v2_20261011",
+    "pre_result_scores_saved": true,
+    "post_result_reconstruction_included": true,
+    "actual_at_deadline_bets_claimed": false
+  },
+  "methods": {
+    "train_dates": [
+      "20261006",
+      "20261007",
+      "20261008",
+      "20261009",
+      "20261010",
+      "20261011"
+    ],
+    "retrospective_review_dates": [
+      "20261012"
+    ],
+    "unit": "24 tickets x 100 yen per selected race",
+    "per_signal_group_disjoint": true,
+    "results_used_for_settlement_only": true,
+    "category_selected_with_20261012_seen_previously": true,
+    "retro_review_is_not_preregistered_out_of_sample": true,
+    "classification_no_market_odds_edge_assumed": true
+  },
+  "candidate_flags": {
+    "F1R3": {
+      "research_status": "PAPER_BUY_CANDIDATE_NOT_APPROVED",
+      "reason": "training ROI above 100 and review ROI above 100, but only one of six training days profitable; high-variance and retrospectively selected"
+    },
+    "F0R3": {
+      "research_status": "PAPER_SKIP_CANDIDATE_NOT_APPROVED",
+      "reason": "training and separate review ROI below 100, but high volatility; removing it worsened training whole-portfolio ROI"
+    },
+    "F2R3": {
+      "research_status": "WATCH_INSUFFICIENT_SAMPLE",
+      "reason": "25 training races, strong training ROI but separate review 3 races only and low ROI"
+    },
+    "other_categories": {
+      "research_status": "UNCHANGED_RECORD_AND_MONITOR",
+      "reason": "do not choose buy on sparse samples or pooled wins alone"
+    }
+  },
+  "training_by_class": {
+    "F0R0": {
+      "signal_key": "F0R0",
+      "races": 95,
+      "hits": 0,
+      "investment_yen": 0,
+      "return_yen": 0,
+      "payout5000_captured": 0,
+      "manshu_captured": 0,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 15,
+          "profit_yen": 0,
+          "roi_pct": null
+        },
+        {
+          "date": "20261007",
+          "races": 10,
+          "profit_yen": 0,
+          "roi_pct": null
+        },
+        {
+          "date": "20261008",
+          "races": 20,
+          "profit_yen": 0,
+          "roi_pct": null
+        },
+        {
+          "date": "20261009",
+          "races": 14,
+          "profit_yen": 0,
+          "roi_pct": null
+        },
+        {
+          "date": "20261010",
+          "races": 14,
+          "profit_yen": 0,
+          "roi_pct": null
+        },
+        {
+          "date": "20261011",
+          "races": 22,
+          "profit_yen": 0,
+          "roi_pct": null
+        }
+      ],
+      "profit_yen": 0,
+      "roi_pct": null,
+      "hit24_rate_pct": 0,
+      "profitable_day_count": 0
+    },
+    "F0R1": {
+      "signal_key": "F0R1",
+      "races": 59,
+      "hits": 33,
+      "investment_yen": 141600,
+      "return_yen": 77500,
+      "payout5000_captured": 26,
+      "manshu_captured": 15,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 12,
+          "profit_yen": -18520,
+          "roi_pct": 35.69
+        },
+        {
+          "date": "20261007",
+          "races": 8,
+          "profit_yen": -10750,
+          "roi_pct": 44.01
+        },
+        {
+          "date": "20261008",
+          "races": 11,
+          "profit_yen": -9390,
+          "roi_pct": 64.43
+        },
+        {
+          "date": "20261009",
+          "races": 12,
+          "profit_yen": -19370,
+          "roi_pct": 32.74
+        },
+        {
+          "date": "20261010",
+          "races": 12,
+          "profit_yen": -1770,
+          "roi_pct": 93.85
+        },
+        {
+          "date": "20261011",
+          "races": 4,
+          "profit_yen": -4300,
+          "roi_pct": 55.21
+        }
+      ],
+      "profit_yen": -64100,
+      "roi_pct": 54.73,
+      "hit24_rate_pct": 55.93,
+      "profitable_day_count": 0
+    },
+    "F0R2": {
+      "signal_key": "F0R2",
+      "races": 253,
+      "hits": 145,
+      "investment_yen": 607200,
+      "return_yen": 404030,
+      "payout5000_captured": 75,
+      "manshu_captured": 42,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 42,
+          "profit_yen": -43960,
+          "roi_pct": 56.39
+        },
+        {
+          "date": "20261007",
+          "races": 44,
+          "profit_yen": -18660,
+          "roi_pct": 82.33
+        },
+        {
+          "date": "20261008",
+          "races": 41,
+          "profit_yen": -56030,
+          "roi_pct": 43.06
+        },
+        {
+          "date": "20261009",
+          "races": 35,
+          "profit_yen": 14120,
+          "roi_pct": 116.81
+        },
+        {
+          "date": "20261010",
+          "races": 46,
+          "profit_yen": -44190,
+          "roi_pct": 59.97
+        },
+        {
+          "date": "20261011",
+          "races": 45,
+          "profit_yen": -54450,
+          "roi_pct": 49.58
+        }
+      ],
+      "profit_yen": -203170,
+      "roi_pct": 66.54,
+      "hit24_rate_pct": 57.31,
+      "profitable_day_count": 1
+    },
+    "F0R3": {
+      "signal_key": "F0R3",
+      "races": 209,
+      "hits": 96,
+      "investment_yen": 501600,
+      "return_yen": 447030,
+      "payout5000_captured": 74,
+      "manshu_captured": 34,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 41,
+          "profit_yen": 24410,
+          "roi_pct": 124.81
+        },
+        {
+          "date": "20261007",
+          "races": 31,
+          "profit_yen": -46970,
+          "roi_pct": 36.87
+        },
+        {
+          "date": "20261008",
+          "races": 29,
+          "profit_yen": 77500,
+          "roi_pct": 211.35
+        },
+        {
+          "date": "20261009",
+          "races": 33,
+          "profit_yen": -41940,
+          "roi_pct": 47.05
+        },
+        {
+          "date": "20261010",
+          "races": 39,
+          "profit_yen": -18680,
+          "roi_pct": 80.04
+        },
+        {
+          "date": "20261011",
+          "races": 36,
+          "profit_yen": -48890,
+          "roi_pct": 43.41
+        }
+      ],
+      "profit_yen": -54570,
+      "roi_pct": 89.12,
+      "hit24_rate_pct": 45.93,
+      "profitable_day_count": 2
+    },
+    "F1R0": {
+      "signal_key": "F1R0",
+      "races": 26,
+      "hits": 14,
+      "investment_yen": 62400,
+      "return_yen": 39700,
+      "payout5000_captured": 9,
+      "manshu_captured": 4,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 1,
+          "profit_yen": 1100,
+          "roi_pct": 145.83
+        },
+        {
+          "date": "20261007",
+          "races": 6,
+          "profit_yen": 270,
+          "roi_pct": 101.88
+        },
+        {
+          "date": "20261008",
+          "races": 2,
+          "profit_yen": 1990,
+          "roi_pct": 141.46
+        },
+        {
+          "date": "20261009",
+          "races": 5,
+          "profit_yen": -9820,
+          "roi_pct": 18.17
+        },
+        {
+          "date": "20261010",
+          "races": 7,
+          "profit_yen": -5920,
+          "roi_pct": 64.76
+        },
+        {
+          "date": "20261011",
+          "races": 5,
+          "profit_yen": -10320,
+          "roi_pct": 14
+        }
+      ],
+      "profit_yen": -22700,
+      "roi_pct": 63.62,
+      "hit24_rate_pct": 53.85,
+      "profitable_day_count": 3
+    },
+    "F1R1": {
+      "signal_key": "F1R1",
+      "races": 20,
+      "hits": 13,
+      "investment_yen": 48000,
+      "return_yen": 22420,
+      "payout5000_captured": 5,
+      "manshu_captured": 2,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 4,
+          "profit_yen": -1730,
+          "roi_pct": 81.98
+        },
+        {
+          "date": "20261007",
+          "races": 1,
+          "profit_yen": -1480,
+          "roi_pct": 38.33
+        },
+        {
+          "date": "20261008",
+          "races": 2,
+          "profit_yen": -4800,
+          "roi_pct": 0
+        },
+        {
+          "date": "20261009",
+          "races": 3,
+          "profit_yen": -6000,
+          "roi_pct": 16.67
+        },
+        {
+          "date": "20261010",
+          "races": 4,
+          "profit_yen": -1800,
+          "roi_pct": 81.25
+        },
+        {
+          "date": "20261011",
+          "races": 6,
+          "profit_yen": -9770,
+          "roi_pct": 32.15
+        }
+      ],
+      "profit_yen": -25580,
+      "roi_pct": 46.71,
+      "hit24_rate_pct": 65,
+      "profitable_day_count": 0
+    },
+    "F1R2": {
+      "signal_key": "F1R2",
+      "races": 60,
+      "hits": 40,
+      "investment_yen": 144000,
+      "return_yen": 123410,
+      "payout5000_captured": 14,
+      "manshu_captured": 4,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 12,
+          "profit_yen": 3480,
+          "roi_pct": 112.08
+        },
+        {
+          "date": "20261007",
+          "races": 9,
+          "profit_yen": -7780,
+          "roi_pct": 63.98
+        },
+        {
+          "date": "20261008",
+          "races": 10,
+          "profit_yen": -7820,
+          "roi_pct": 67.42
+        },
+        {
+          "date": "20261009",
+          "races": 8,
+          "profit_yen": -1220,
+          "roi_pct": 93.65
+        },
+        {
+          "date": "20261010",
+          "races": 13,
+          "profit_yen": -16260,
+          "roi_pct": 47.88
+        },
+        {
+          "date": "20261011",
+          "races": 8,
+          "profit_yen": 9010,
+          "roi_pct": 146.93
+        }
+      ],
+      "profit_yen": -20590,
+      "roi_pct": 85.7,
+      "hit24_rate_pct": 66.67,
+      "profitable_day_count": 2
+    },
+    "F1R3": {
+      "signal_key": "F1R3",
+      "races": 48,
+      "hits": 33,
+      "investment_yen": 115200,
+      "return_yen": 133300,
+      "payout5000_captured": 14,
+      "manshu_captured": 6,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 13,
+          "profit_yen": -5160,
+          "roi_pct": 83.46
+        },
+        {
+          "date": "20261007",
+          "races": 5,
+          "profit_yen": -1850,
+          "roi_pct": 84.58
+        },
+        {
+          "date": "20261008",
+          "races": 6,
+          "profit_yen": -13200,
+          "roi_pct": 8.33
+        },
+        {
+          "date": "20261009",
+          "races": 9,
+          "profit_yen": -6520,
+          "roi_pct": 69.81
+        },
+        {
+          "date": "20261010",
+          "races": 5,
+          "profit_yen": -780,
+          "roi_pct": 93.5
+        },
+        {
+          "date": "20261011",
+          "races": 10,
+          "profit_yen": 45610,
+          "roi_pct": 290.04
+        }
+      ],
+      "profit_yen": 18100,
+      "roi_pct": 115.71,
+      "hit24_rate_pct": 68.75,
+      "profitable_day_count": 1
+    },
+    "F2R0": {
+      "signal_key": "F2R0",
+      "races": 33,
+      "hits": 17,
+      "investment_yen": 79200,
+      "return_yen": 41730,
+      "payout5000_captured": 9,
+      "manshu_captured": 7,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 4,
+          "profit_yen": -7710,
+          "roi_pct": 19.69
+        },
+        {
+          "date": "20261007",
+          "races": 9,
+          "profit_yen": -13470,
+          "roi_pct": 37.64
+        },
+        {
+          "date": "20261008",
+          "races": 7,
+          "profit_yen": -13060,
+          "roi_pct": 22.26
+        },
+        {
+          "date": "20261009",
+          "races": 5,
+          "profit_yen": 5040,
+          "roi_pct": 142
+        },
+        {
+          "date": "20261010",
+          "races": 2,
+          "profit_yen": 1270,
+          "roi_pct": 126.46
+        },
+        {
+          "date": "20261011",
+          "races": 6,
+          "profit_yen": -9540,
+          "roi_pct": 33.75
+        }
+      ],
+      "profit_yen": -37470,
+      "roi_pct": 52.69,
+      "hit24_rate_pct": 51.52,
+      "profitable_day_count": 2
+    },
+    "F2R1": {
+      "signal_key": "F2R1",
+      "races": 11,
+      "hits": 5,
+      "investment_yen": 26400,
+      "return_yen": 10360,
+      "payout5000_captured": 6,
+      "manshu_captured": 4,
+      "by_day": [
+        {
+          "date": "20261007",
+          "races": 3,
+          "profit_yen": 910,
+          "roi_pct": 112.64
+        },
+        {
+          "date": "20261008",
+          "races": 1,
+          "profit_yen": -2400,
+          "roi_pct": 0
+        },
+        {
+          "date": "20261009",
+          "races": 2,
+          "profit_yen": -4800,
+          "roi_pct": 0
+        },
+        {
+          "date": "20261010",
+          "races": 1,
+          "profit_yen": -1900,
+          "roi_pct": 20.83
+        },
+        {
+          "date": "20261011",
+          "races": 4,
+          "profit_yen": -7850,
+          "roi_pct": 18.23
+        }
+      ],
+      "profit_yen": -16040,
+      "roi_pct": 39.24,
+      "hit24_rate_pct": 45.45,
+      "profitable_day_count": 1
+    },
+    "F2R2": {
+      "signal_key": "F2R2",
+      "races": 36,
+      "hits": 27,
+      "investment_yen": 86400,
+      "return_yen": 75930,
+      "payout5000_captured": 11,
+      "manshu_captured": 7,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 4,
+          "profit_yen": -5670,
+          "roi_pct": 40.94
+        },
+        {
+          "date": "20261007",
+          "races": 8,
+          "profit_yen": 8070,
+          "roi_pct": 142.03
+        },
+        {
+          "date": "20261008",
+          "races": 5,
+          "profit_yen": -5290,
+          "roi_pct": 55.92
+        },
+        {
+          "date": "20261009",
+          "races": 11,
+          "profit_yen": -3790,
+          "roi_pct": 85.64
+        },
+        {
+          "date": "20261010",
+          "races": 4,
+          "profit_yen": -6040,
+          "roi_pct": 37.08
+        },
+        {
+          "date": "20261011",
+          "races": 4,
+          "profit_yen": 2250,
+          "roi_pct": 123.44
+        }
+      ],
+      "profit_yen": -10470,
+      "roi_pct": 87.88,
+      "hit24_rate_pct": 75,
+      "profitable_day_count": 2
+    },
+    "F2R3": {
+      "signal_key": "F2R3",
+      "races": 25,
+      "hits": 15,
+      "investment_yen": 60000,
+      "return_yen": 67690,
+      "payout5000_captured": 10,
+      "manshu_captured": 6,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 3,
+          "profit_yen": -2090,
+          "roi_pct": 70.97
+        },
+        {
+          "date": "20261007",
+          "races": 7,
+          "profit_yen": 6880,
+          "roi_pct": 140.95
+        },
+        {
+          "date": "20261008",
+          "races": 3,
+          "profit_yen": -5560,
+          "roi_pct": 22.78
+        },
+        {
+          "date": "20261009",
+          "races": 5,
+          "profit_yen": 10530,
+          "roi_pct": 187.75
+        },
+        {
+          "date": "20261010",
+          "races": 4,
+          "profit_yen": -430,
+          "roi_pct": 95.52
+        },
+        {
+          "date": "20261011",
+          "races": 3,
+          "profit_yen": -1640,
+          "roi_pct": 77.22
+        }
+      ],
+      "profit_yen": 7690,
+      "roi_pct": 112.82,
+      "hit24_rate_pct": 60,
+      "profitable_day_count": 2
+    },
+    "F3R0": {
+      "signal_key": "F3R0",
+      "races": 7,
+      "hits": 5,
+      "investment_yen": 16800,
+      "return_yen": 8610,
+      "payout5000_captured": 1,
+      "manshu_captured": 1,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 2,
+          "profit_yen": -1990,
+          "roi_pct": 58.54
+        },
+        {
+          "date": "20261007",
+          "races": 1,
+          "profit_yen": -1680,
+          "roi_pct": 30
+        },
+        {
+          "date": "20261008",
+          "races": 1,
+          "profit_yen": -1290,
+          "roi_pct": 46.25
+        },
+        {
+          "date": "20261009",
+          "races": 1,
+          "profit_yen": 800,
+          "roi_pct": 133.33
+        },
+        {
+          "date": "20261011",
+          "races": 2,
+          "profit_yen": -4030,
+          "roi_pct": 16.04
+        }
+      ],
+      "profit_yen": -8190,
+      "roi_pct": 51.25,
+      "hit24_rate_pct": 71.43,
+      "profitable_day_count": 1
+    },
+    "F3R1": {
+      "signal_key": "F3R1",
+      "races": 3,
+      "hits": 2,
+      "investment_yen": 7200,
+      "return_yen": 2240,
+      "payout5000_captured": 1,
+      "manshu_captured": 0,
+      "by_day": [
+        {
+          "date": "20261008",
+          "races": 1,
+          "profit_yen": -1430,
+          "roi_pct": 40.42
+        },
+        {
+          "date": "20261009",
+          "races": 1,
+          "profit_yen": -2400,
+          "roi_pct": 0
+        },
+        {
+          "date": "20261010",
+          "races": 1,
+          "profit_yen": -1130,
+          "roi_pct": 52.92
+        }
+      ],
+      "profit_yen": -4960,
+      "roi_pct": 31.11,
+      "hit24_rate_pct": 66.67,
+      "profitable_day_count": 0
+    },
+    "F3R2": {
+      "signal_key": "F3R2",
+      "races": 9,
+      "hits": 5,
+      "investment_yen": 21600,
+      "return_yen": 11740,
+      "payout5000_captured": 2,
+      "manshu_captured": 2,
+      "by_day": [
+        {
+          "date": "20261006",
+          "races": 2,
+          "profit_yen": -4800,
+          "roi_pct": 0
+        },
+        {
+          "date": "20261007",
+          "races": 1,
+          "profit_yen": 1870,
+          "roi_pct": 177.92
+        },
+        {
+          "date": "20261008",
+          "races": 1,
+          "profit_yen": -1140,
+          "roi_pct": 52.5
+        },
+        {
+          "date": "20261010",
+          "races": 4,
+          "profit_yen": -3390,
+          "roi_pct": 64.69
+        },
+        {
+          "date": "20261011",
+          "races": 1,
+          "profit_yen": -2400,
+          "roi_pct": 0
+        }
+      ],
+      "profit_yen": -9860,
+      "roi_pct": 54.35,
+      "hit24_rate_pct": 55.56,
+      "profitable_day_count": 1
+    },
+    "F3R3": {
+      "signal_key": "F3R3",
+      "races": 1,
+      "hits": 0,
+      "investment_yen": 2400,
+      "return_yen": 0,
+      "payout5000_captured": 0,
+      "manshu_captured": 0,
+      "by_day": [
+        {
+          "date": "20261008",
+          "races": 1,
+          "profit_yen": -2400,
+          "roi_pct": 0
+        }
+      ],
+      "profit_yen": -2400,
+      "roi_pct": 0,
+      "hit24_rate_pct": 0,
+      "profitable_day_count": 0
+    }
+  },
+  "review_20261012_by_class": {
+    "F0R0": {
+      "signal_key": "F0R0",
+      "races": 23,
+      "hits": 0,
+      "investment_yen": 0,
+      "return_yen": 0,
+      "payout5000_captured": 0,
+      "manshu_captured": 0,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 23,
+          "profit_yen": 0,
+          "roi_pct": null
+        }
+      ],
+      "profit_yen": 0,
+      "roi_pct": null,
+      "hit24_rate_pct": 0,
+      "profitable_day_count": 0
+    },
+    "F0R1": {
+      "signal_key": "F0R1",
+      "races": 12,
+      "hits": 7,
+      "investment_yen": 28800,
+      "return_yen": 8550,
+      "payout5000_captured": 5,
+      "manshu_captured": 4,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 12,
+          "profit_yen": -20250,
+          "roi_pct": 29.69
+        }
+      ],
+      "profit_yen": -20250,
+      "roi_pct": 29.69,
+      "hit24_rate_pct": 58.33,
+      "profitable_day_count": 0
+    },
+    "F0R2": {
+      "signal_key": "F0R2",
+      "races": 32,
+      "hits": 18,
+      "investment_yen": 76800,
+      "return_yen": 49890,
+      "payout5000_captured": 9,
+      "manshu_captured": 4,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 32,
+          "profit_yen": -26910,
+          "roi_pct": 64.96
+        }
+      ],
+      "profit_yen": -26910,
+      "roi_pct": 64.96,
+      "hit24_rate_pct": 56.25,
+      "profitable_day_count": 0
+    },
+    "F0R3": {
+      "signal_key": "F0R3",
+      "races": 41,
+      "hits": 17,
+      "investment_yen": 98400,
+      "return_yen": 42440,
+      "payout5000_captured": 11,
+      "manshu_captured": 4,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 41,
+          "profit_yen": -55960,
+          "roi_pct": 43.13
+        }
+      ],
+      "profit_yen": -55960,
+      "roi_pct": 43.13,
+      "hit24_rate_pct": 41.46,
+      "profitable_day_count": 0
+    },
+    "F1R0": {
+      "signal_key": "F1R0",
+      "races": 4,
+      "hits": 4,
+      "investment_yen": 9600,
+      "return_yen": 11820,
+      "payout5000_captured": 1,
+      "manshu_captured": 0,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 4,
+          "profit_yen": 2220,
+          "roi_pct": 123.12
+        }
+      ],
+      "profit_yen": 2220,
+      "roi_pct": 123.13,
+      "hit24_rate_pct": 100,
+      "profitable_day_count": 1
+    },
+    "F1R1": {
+      "signal_key": "F1R1",
+      "races": 6,
+      "hits": 5,
+      "investment_yen": 14400,
+      "return_yen": 15590,
+      "payout5000_captured": 2,
+      "manshu_captured": 1,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 6,
+          "profit_yen": 1190,
+          "roi_pct": 108.26
+        }
+      ],
+      "profit_yen": 1190,
+      "roi_pct": 108.26,
+      "hit24_rate_pct": 83.33,
+      "profitable_day_count": 1
+    },
+    "F1R2": {
+      "signal_key": "F1R2",
+      "races": 12,
+      "hits": 5,
+      "investment_yen": 28800,
+      "return_yen": 10460,
+      "payout5000_captured": 6,
+      "manshu_captured": 3,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 12,
+          "profit_yen": -18340,
+          "roi_pct": 36.32
+        }
+      ],
+      "profit_yen": -18340,
+      "roi_pct": 36.32,
+      "hit24_rate_pct": 41.67,
+      "profitable_day_count": 0
+    },
+    "F1R3": {
+      "signal_key": "F1R3",
+      "races": 13,
+      "hits": 11,
+      "investment_yen": 31200,
+      "return_yen": 46390,
+      "payout5000_captured": 4,
+      "manshu_captured": 2,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 13,
+          "profit_yen": 15190,
+          "roi_pct": 148.69
+        }
+      ],
+      "profit_yen": 15190,
+      "roi_pct": 148.69,
+      "hit24_rate_pct": 84.62,
+      "profitable_day_count": 1
+    },
+    "F2R0": {
+      "signal_key": "F2R0",
+      "races": 3,
+      "hits": 3,
+      "investment_yen": 7200,
+      "return_yen": 5050,
+      "payout5000_captured": 0,
+      "manshu_captured": 0,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 3,
+          "profit_yen": -2150,
+          "roi_pct": 70.14
+        }
+      ],
+      "profit_yen": -2150,
+      "roi_pct": 70.14,
+      "hit24_rate_pct": 100,
+      "profitable_day_count": 0
+    },
+    "F2R1": {
+      "signal_key": "F2R1",
+      "races": 5,
+      "hits": 2,
+      "investment_yen": 12000,
+      "return_yen": 4820,
+      "payout5000_captured": 3,
+      "manshu_captured": 2,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 5,
+          "profit_yen": -7180,
+          "roi_pct": 40.17
+        }
+      ],
+      "profit_yen": -7180,
+      "roi_pct": 40.17,
+      "hit24_rate_pct": 40,
+      "profitable_day_count": 0
+    },
+    "F2R2": {
+      "signal_key": "F2R2",
+      "races": 7,
+      "hits": 2,
+      "investment_yen": 16800,
+      "return_yen": 1980,
+      "payout5000_captured": 1,
+      "manshu_captured": 1,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 7,
+          "profit_yen": -14820,
+          "roi_pct": 11.79
+        }
+      ],
+      "profit_yen": -14820,
+      "roi_pct": 11.79,
+      "hit24_rate_pct": 28.57,
+      "profitable_day_count": 0
+    },
+    "F2R3": {
+      "signal_key": "F2R3",
+      "races": 3,
+      "hits": 1,
+      "investment_yen": 7200,
+      "return_yen": 1610,
+      "payout5000_captured": 1,
+      "manshu_captured": 1,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 3,
+          "profit_yen": -5590,
+          "roi_pct": 22.36
+        }
+      ],
+      "profit_yen": -5590,
+      "roi_pct": 22.36,
+      "hit24_rate_pct": 33.33,
+      "profitable_day_count": 0
+    },
+    "F3R0": {
+      "signal_key": "F3R0",
+      "races": 5,
+      "hits": 2,
+      "investment_yen": 12000,
+      "return_yen": 7430,
+      "payout5000_captured": 2,
+      "manshu_captured": 2,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 5,
+          "profit_yen": -4570,
+          "roi_pct": 61.92
+        }
+      ],
+      "profit_yen": -4570,
+      "roi_pct": 61.92,
+      "hit24_rate_pct": 40,
+      "profitable_day_count": 0
+    },
+    "F3R1": {
+      "signal_key": "F3R1",
+      "races": 1,
+      "hits": 1,
+      "investment_yen": 2400,
+      "return_yen": 1760,
+      "payout5000_captured": 0,
+      "manshu_captured": 0,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 1,
+          "profit_yen": -640,
+          "roi_pct": 73.33
+        }
+      ],
+      "profit_yen": -640,
+      "roi_pct": 73.33,
+      "hit24_rate_pct": 100,
+      "profitable_day_count": 0
+    },
+    "F3R2": {
+      "signal_key": "F3R2",
+      "races": 1,
+      "hits": 1,
+      "investment_yen": 2400,
+      "return_yen": 850,
+      "payout5000_captured": 0,
+      "manshu_captured": 0,
+      "by_day": [
+        {
+          "date": "20261012",
+          "races": 1,
+          "profit_yen": -1550,
+          "roi_pct": 35.42
+        }
+      ],
+      "profit_yen": -1550,
+      "roi_pct": 35.42,
+      "hit24_rate_pct": 100,
+      "profitable_day_count": 0
+    },
+    "F3R3": {
+      "signal_key": "F3R3",
+      "races": 0,
+      "hits": 0,
+      "investment_yen": 0,
+      "return_yen": 0,
+      "payout5000_captured": 0,
+      "manshu_captured": 0,
+      "by_day": [],
+      "profit_yen": 0,
+      "roi_pct": null,
+      "hit24_rate_pct": null,
+      "profitable_day_count": 0
+    }
+  },
+  "policy_replays": {
+    "all_active": {
+      "training": {
+        "keys": [
+          "F0R1",
+          "F0R2",
+          "F0R3",
+          "F1R0",
+          "F1R1",
+          "F1R2",
+          "F1R3",
+          "F2R0",
+          "F2R1",
+          "F2R2",
+          "F2R3",
+          "F3R0",
+          "F3R1",
+          "F3R2",
+          "F3R3"
+        ],
+        "races": 800,
+        "hits24": 450,
+        "investment_yen": 1920000,
+        "return_yen": 1465690,
+        "payout5000_captured": 257,
+        "manshu_captured": 134,
+        "profit_yen": -454310,
+        "roi_pct": 76.34,
+        "hit_rate_pct": 56.25
+      },
+      "retrospective_review": {
+        "keys": [
+          "F0R1",
+          "F0R2",
+          "F0R3",
+          "F1R0",
+          "F1R1",
+          "F1R2",
+          "F1R3",
+          "F2R0",
+          "F2R1",
+          "F2R2",
+          "F2R3",
+          "F3R0",
+          "F3R1",
+          "F3R2",
+          "F3R3"
+        ],
+        "races": 145,
+        "hits24": 79,
+        "investment_yen": 348000,
+        "return_yen": 208640,
+        "payout5000_captured": 45,
+        "manshu_captured": 24,
+        "profit_yen": -139360,
+        "roi_pct": 59.95,
+        "hit_rate_pct": 54.48
+      }
+    },
+    "only_F1R3": {
+      "training": {
+        "keys": [
+          "F1R3"
+        ],
+        "races": 48,
+        "hits24": 33,
+        "investment_yen": 115200,
+        "return_yen": 133300,
+        "payout5000_captured": 14,
+        "manshu_captured": 6,
+        "profit_yen": 18100,
+        "roi_pct": 115.71,
+        "hit_rate_pct": 68.75
+      },
+      "retrospective_review": {
+        "keys": [
+          "F1R3"
+        ],
+        "races": 13,
+        "hits24": 11,
+        "investment_yen": 31200,
+        "return_yen": 46390,
+        "payout5000_captured": 4,
+        "manshu_captured": 2,
+        "profit_yen": 15190,
+        "roi_pct": 148.69,
+        "hit_rate_pct": 84.62
+      }
+    },
+    "F1R3_plus_F2R3": {
+      "training": {
+        "keys": [
+          "F1R3",
+          "F2R3"
+        ],
+        "races": 73,
+        "hits24": 48,
+        "investment_yen": 175200,
+        "return_yen": 200990,
+        "payout5000_captured": 24,
+        "manshu_captured": 12,
+        "profit_yen": 25790,
+        "roi_pct": 114.72,
+        "hit_rate_pct": 65.75
+      },
+      "retrospective_review": {
+        "keys": [
+          "F1R3",
+          "F2R3"
+        ],
+        "races": 16,
+        "hits24": 12,
+        "investment_yen": 38400,
+        "return_yen": 48000,
+        "payout5000_captured": 5,
+        "manshu_captured": 3,
+        "profit_yen": 9600,
+        "roi_pct": 125,
+        "hit_rate_pct": 75
+      }
+    },
+    "all_except_F0R3": {
+      "training": {
+        "keys": [
+          "F0R1",
+          "F0R2",
+          "F1R0",
+          "F1R1",
+          "F1R2",
+          "F1R3",
+          "F2R0",
+          "F2R1",
+          "F2R2",
+          "F2R3",
+          "F3R0",
+          "F3R1",
+          "F3R2",
+          "F3R3"
+        ],
+        "races": 591,
+        "hits24": 354,
+        "investment_yen": 1418400,
+        "return_yen": 1018660,
+        "payout5000_captured": 183,
+        "manshu_captured": 100,
+        "profit_yen": -399740,
+        "roi_pct": 71.82,
+        "hit_rate_pct": 59.9
+      },
+      "retrospective_review": {
+        "keys": [
+          "F0R1",
+          "F0R2",
+          "F1R0",
+          "F1R1",
+          "F1R2",
+          "F1R3",
+          "F2R0",
+          "F2R1",
+          "F2R2",
+          "F2R3",
+          "F3R0",
+          "F3R1",
+          "F3R2",
+          "F3R3"
+        ],
+        "races": 104,
+        "hits24": 62,
+        "investment_yen": 249600,
+        "return_yen": 166200,
+        "payout5000_captured": 34,
+        "manshu_captured": 20,
+        "profit_yen": -83400,
+        "roi_pct": 66.59,
+        "hit_rate_pct": 59.62
+      }
+    }
+  },
+  "robustness": {
+    "train_leave_one_day_out": [
+      {
+        "excluded_day": "20261006",
+        "F1R3_roi_pct": 127.69,
+        "F1R3_races": 35,
+        "F0R3_roi_pct": 80.41
+      },
+      {
+        "excluded_day": "20261007",
+        "F1R3_roi_pct": 119.33,
+        "F1R3_races": 43,
+        "F0R3_roi_pct": 98.22
+      },
+      {
+        "excluded_day": "20261008",
+        "F1R3_roi_pct": 131.05,
+        "F1R3_races": 42,
+        "F0R3_roi_pct": 69.43
+      },
+      {
+        "excluded_day": "20261009",
+        "F1R3_roi_pct": 126.3,
+        "F1R3_races": 39,
+        "F0R3_roi_pct": 97.01
+      },
+      {
+        "excluded_day": "20261010",
+        "F1R3_roi_pct": 118.29,
+        "F1R3_races": 43,
+        "F0R3_roi_pct": 91.2
+      },
+      {
+        "excluded_day": "20261011",
+        "F1R3_roi_pct": 69.84,
+        "F1R3_races": 38,
+        "F0R3_roi_pct": 98.63
+      }
+    ],
+    "F1R3_train_profitable_days": 1,
+    "F1R3_train_evaluated_days": 6,
+    "F1R3_train_without_20261011_roi_pct": 69.84
+  },
+  "next_evaluation": {
+    "first_unseen_future_day": "20261013",
+    "required_days": "multiple future completed race days; no single-day approval",
+    "required_metrics": [
+      "selected_races",
+      "selection_hit_rate",
+      "investment_yen",
+      "return_yen",
+      "profit_yen",
+      "roi_pct",
+      "manshu_capture_of_all",
+      "predeadline_evidence_rate",
+      "class_daily_profit_stability"
+    ],
+    "decision_locks_real_buy": false,
+    "model_config_changes": false,
+    "production_purchase_strategy_changes": false
+  }
+}
