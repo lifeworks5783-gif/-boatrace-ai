@@ -7,6 +7,7 @@ on:
       - "tests/test_drive_archive_contract.py"
       - "tests/test_normalized_contract.py"
       - "tests/test_parser_audit_contract.py"
+      - "tests/test_raw_diagnostics_view.py"
       - ".github/workflows/raw_capture_contract.yml"
   workflow_dispatch:
 
@@ -41,6 +42,10 @@ jobs:
         run: |
           python -m py_compile raw_collector/parser_audit.py
           python -m unittest discover -s tests -p test_parser_audit_contract.py -v
+      - name: Validate standalone research diagnostics screen
+        run: |
+          python -m py_compile raw_collector/diagnostics_view.py
+          python -m unittest discover -s tests -p test_raw_diagnostics_view.py -v
       - name: Verify private archive before normalizing for GitHub
         run: |
           python -m py_compile raw_collector/normalize.py
