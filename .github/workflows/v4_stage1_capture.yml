@@ -1,0 +1,56 @@
+name: V4 Stage 1 Raw Capture
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [morning, live]
+        default: live
+        required: true
+  push:
+    branches: [main]
+    paths: [config/v4_capture_now.txt]
+  # 5-minute cron is activated only after stage 1→2→3 canary succeeds.
+permissions:
+  contents: read
+concurrency:
+  group: v4-raw-capture-${{ github.event.inputs.mode || 'live' }}
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Official HTTP capture dependencies
+        run: python -m pip install -q requests beautifulsoup4 lhafile
+      - name: Raw HTTP capture (never decode before artifact)
+        env:
+          REQUEST_MODE: ${{ inputs.mode || 'live' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TODAY="$(TZ=Asia/Tokyo date +%Y%m%d)"
+          BASE="daily_inputs/$(TZ=Asia/Tokyo date +%Y/%m/%d)/base"
+          if [ "$REQUEST_MODE" = live ]; then
+            HOUR="$(TZ=Asia/Tokyo date +%H)"
+            if (( 10#$HOUR < 6 )) || [ ! -s "$BASE/program_races_$TODAY.csv" ]; then
+              REQUEST_MODE=skip
+            fi
+          fi
+          if [ "$REQUEST_MODE" = skip ]; then
+            mkdir -p _v4_capture
+            echo '{"schema":"boatrace-v4-capture-v1","mode":"skip","records":[]}' > _v4_capture/manifest.json
+          else
+            python -m collectors.v4_pipeline capture --mode "$REQUEST_MODE" --day "$TODAY" --out _v4_capture
+          fi
+      - name: Upload preserved exact official bytes (temporary, 7 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: v4-capture
+          path: _v4_capture/
+          retention-days: 7
+          if-no-files-found: error
