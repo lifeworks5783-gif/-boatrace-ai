@@ -1,0 +1,43 @@
+{
+  "model_version": "chatgpt_independent_probabilistic_v1_20261014",
+  "hypothesis_frozen_on": "2026-10-14",
+  "status": "research_only_not_approved_for_purchase",
+  "score_formula": {
+    "morning_weight": 0.65,
+    "exhibition_time_z_points": 1.5,
+    "exhibition_z_clip": 2
+  },
+  "plackett_luce_temperature": 14,
+  "signal_rules": {
+    "consensus_gap_min": 8,
+    "upset_live_lift_min": 5
+  },
+  "purchase_hypotheses": {
+    "fixed_points": [
+      6,
+      8,
+      12
+    ],
+    "adaptive": {
+      "consensus_axis": 6,
+      "upset_watch": 12,
+      "neutral_or_uncertain": 8
+    },
+    "stake_yen_each": 100
+  },
+  "data_policy": {
+    "official_results": "settlement_only",
+    "actual_rank": "not_for_prediction",
+    "post_result_recovery": "research_only_not_real_time",
+    "market_odds": "not_used_or_available",
+    "never_change_production": true
+  },
+  "research_requirements": [
+    "score / signal / purchase strategies derived from saved features before joining official outcomes",
+    "daily and seven-day and cumulative for matched race sets",
+    "both improvements and worsening with race IDs",
+    "do not tune parameters on the day used to claim holdout performance",
+    "report confidence interval and large-payout dependence before adoption",
+    "no profitability claim from model scores without calibrated odds"
+  ]
+}
