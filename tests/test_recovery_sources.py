@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "collectors"))
 
-from recover_missing_live_for_analysis import merge_official_snapshots
+from recover_missing_live_for_analysis import merge_official_snapshots, unverified_canonical_race_ids
 from recovery_live_overlay import load_verified_recovered_live, ROOT
 
 
@@ -24,6 +24,19 @@ class RecoverySourceTest(unittest.TestCase):
         scratched = [x for x in combined if x["race_id"] == "20261009-23-03" and x["boat"] == "4"]
         self.assertEqual(len(scratched), 1)
         self.assertEqual(scratched[0]["is_miss"], "True")
+
+    def test_canonical_morning_or_fallback_enters_recovery_queue(self):
+        rows = [
+            {"race_id": "20261013-04-06", "prediction_type": "朝", "quality_status": "normal"},
+            {"race_id": "20261013-11-05", "prediction_type": "朝", "quality_status": "normal"},
+            {"race_id": "20261013-12-12", "prediction_type": "直前", "quality_status": "fallback"},
+            {"race_id": "20261013-19-05", "prediction_type": "直前", "quality_status": "fallback"},
+            {"race_id": "20261013-19-12", "prediction_type": "直前", "quality_status": "normal"},
+            {"race_id": "20261013-04-03", "prediction_type": "直前", "quality_status": "recovered_observation"},
+        ]
+        self.assertEqual(unverified_canonical_race_ids(rows), {
+            "202610130406", "202610131105", "202610131212", "202610131905"
+        })
 
     def test_current_verified_recovery_has_all_manifest_races(self):
         date = "20261009"
