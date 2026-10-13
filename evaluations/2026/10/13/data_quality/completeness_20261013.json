@@ -2,21 +2,14 @@
   "date": "20261013",
   "status": "PASS",
   "expected_races": 132,
-  "result_races": 115,
+  "result_races": 118,
   "audited_races": 132,
-  "complete_races": 115,
-  "original_pre_race_complete_races": 95,
+  "complete_races": 118,
+  "original_pre_race_complete_races": 98,
   "post_result_recovered_complete_races": 20,
   "incomplete_races": 0,
-  "pending_races": 17,
+  "pending_races": 14,
   "pending_result_details": [
-    {
-      "race_id": "20261013-12-10",
-      "deadline_jst": "19:23",
-      "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-      "automatic_collection_enabled": false,
-      "time_after_deadline_is_not_error": true
-    },
     {
       "race_id": "20261013-12-11",
       "deadline_jst": "20:03",
@@ -32,13 +25,6 @@
       "time_after_deadline_is_not_error": true
     },
     {
-      "race_id": "20261013-15-10",
-      "deadline_jst": "19:39",
-      "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-      "automatic_collection_enabled": false,
-      "time_after_deadline_is_not_error": true
-    },
-    {
       "race_id": "20261013-15-11",
       "deadline_jst": "20:10",
       "status": "AWAITING_MANUAL_RESULT_COLLECTION",
@@ -48,13 +34,6 @@
     {
       "race_id": "20261013-15-12",
       "deadline_jst": "20:38",
-      "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-      "automatic_collection_enabled": false,
-      "time_after_deadline_is_not_error": true
-    },
-    {
-      "race_id": "20261013-19-05",
-      "deadline_jst": "19:30",
       "status": "AWAITING_MANUAL_RESULT_COLLECTION",
       "automatic_collection_enabled": false,
       "time_after_deadline_is_not_error": true
@@ -130,7 +109,7 @@
       "time_after_deadline_is_not_error": true
     }
   ],
-  "audit_asof_jst": "2026-10-13T19:23:22.846847+09:00",
+  "audit_asof_jst": "2026-10-13T19:54:41.119294+09:00",
   "needs_recollection": false,
   "issues": [],
   "recovered_after_result": [
@@ -622,8 +601,8 @@
   "research_audit": {
     "mode": "manual_research",
     "automatic_collection_enabled": false,
-    "result_races": 115,
-    "valid_research_races": 113,
+    "result_races": 118,
+    "valid_research_races": 115,
     "valid_research_race_ids": [
       "20261013-04-01",
       "20261013-04-02",
@@ -668,6 +647,7 @@
       "20261013-12-07",
       "20261013-12-08",
       "20261013-12-09",
+      "20261013-12-10",
       "20261013-13-01",
       "20261013-13-02",
       "20261013-13-03",
@@ -701,6 +681,7 @@
       "20261013-15-07",
       "20261013-15-08",
       "20261013-15-09",
+      "20261013-15-10",
       "20261013-18-01",
       "20261013-18-02",
       "20261013-18-03",
@@ -768,7 +749,7 @@
       "20261013-22-10",
       "20261013-22-11"
     ],
-    "requires_manual_completion": 2,
+    "requires_manual_completion": 3,
     "research_incomplete": [
       {
         "race_id": "20261013-04-06",
@@ -777,9 +758,13 @@
       {
         "race_id": "20261013-11-05",
         "reason": "live_score_not_yet_reconciled"
+      },
+      {
+        "race_id": "20261013-19-05",
+        "reason": "live_score_fallback"
       }
     ],
-    "not_yet_finished_races_excluded_from_error": 17,
+    "not_yet_finished_races_excluded_from_error": 14,
     "research_status": "MANUAL_RECONCILIATION_PENDING",
     "historical_bet_claimed_for_recovered_scores": false,
     "timestamp_is_not_a_research_validity_failure": true
