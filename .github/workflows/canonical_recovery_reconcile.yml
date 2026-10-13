@@ -142,9 +142,17 @@ jobs:
           # Prevent a genuine signal from becoming an old F0R0 placeholder.
           # Check all finished races: six-boat score recomputation, persisted
           # canonical levels and the independent cumulative PDCA source.
-          python -u collectors/audit_signal_consistency.py \
+          # A different race's cumulative PDCA mismatch must not block
+          # validated recovered signals/tickets from being persisted. Preserve
+          # the failed audit report AND fail the job only after publication.
+          if python -u collectors/audit_signal_consistency.py \
             --date "$TARGET_DATE" \
-            --output "evaluations/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/data_quality/signal_display_consistency_${TARGET_DATE}.json"
+            --output "evaluations/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/data_quality/signal_display_consistency_${TARGET_DATE}.json"; then
+            echo "SIGNAL_RECOVERY_AUDIT=PASS" >> "$GITHUB_ENV"
+          else
+            echo "SIGNAL_RECOVERY_AUDIT=FAIL" >> "$GITHUB_ENV"
+            echo "::warning::Signal parity anomalies remain; save verified per-race recovery with the failure report."
+          fi
           git config user.name boatrace-recovery-bot
           git config user.email boatrace-recovery-bot@users.noreply.github.com
           git add "predictions/${TARGET_DATE:0:4}/${TARGET_DATE:4:2}/${TARGET_DATE:6:2}/live/formation_predictions_final_${TARGET_DATE}.json"
@@ -185,3 +193,10 @@ jobs:
           # dispatch follows verified canonical save and also covers no-op reruns.
           gh workflow run family_prediction_page.yml --repo "${GITHUB_REPOSITORY}" --ref main
           echo "公式復旧の保存後に家族4画面の公開を予約: PASS"
+
+      - name: 復旧後の全体監査異常を通知（復旧正本と公開は維持）
+        if: steps.date.outputs.run == 'true' && env.SIGNAL_RECOVERY_AUDIT == 'FAIL'
+        run: |
+          echo "::error::Other races have unresolved parity exceptions. Saved validated recoveries and triggered publication; inspect daily signal_display_consistency JSON."
+          exit 1
+
