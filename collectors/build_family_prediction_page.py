@@ -388,12 +388,21 @@ def build_ai_card(race, index):
             '</tr>'
             for x in position
         )
+        # The 24 saved purchase candidates must be visible without opening
+        # details. Ranks 25-50 are reference-only and remain collapsed.
         combo_rows = "".join(
             '<div class="ai-combo">'
             f'<b>{i}位 {esc(x.get("combination"))}</b>'
             f'<span>AI評価 {esc(score_label(x.get("score")))}点</span>'
             '</div>'
-            for i, x in enumerate(combos, 1)
+            for i, x in enumerate(combos[:24], 1)
+        )
+        reference_rows = "".join(
+            '<div class="ai-combo">'
+            f'<b>{i}位 {esc(x.get("combination"))}</b>'
+            f'<span>AI評価 {esc(score_label(x.get("score")))}点</span>'
+            '</div>'
+            for i, x in enumerate(combos[24:50], 25)
         )
         signal_key = text(ai.get("signal_key"))
         return f"""
@@ -414,11 +423,14 @@ def build_ai_card(race, index):
               <tbody>{score_rows}</tbody>
             </table>
           </div>
+          <div class="formation-title signal-ai-purchase-title">シグナル専用3連単予測・上位24点（検証用・各100円／計2,400円）</div>
+          <div class="ai-note">風神雷神の補正後スコアで評価した24点です。通常予測の買い目とは別集計です。</div>
+          <div class="ai-combos signal-ai-purchase-list" aria-label="シグナル専用3連単上位24点">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
           <details class="ai-combo-details">
-            <summary>シグナルAI順位1〜50位を見る（購入は上位24点）</summary>
-            <div class="ai-combos">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
+            <summary>参考順位25〜50位を見る（購入対象外）</summary>
+            <div class="ai-combos">{reference_rows or "参考順位はありません。"}</div>
           </details>
-          <div class="ai-note">1〜24位が従来の仮想購入対象、25〜50位は検証用の参考順位です。購入額・回収率は従来どおり24点で計算します。全120通りの順位データは保存済みです。</div>
+          <div class="ai-note">購入額・回収率は従来どおり上位24点で計算します。25〜50位は検証用の参考順位です。全120通りの順位データは保存済みです。</div>
         </article>
         """
 
@@ -763,6 +775,9 @@ def main():
       font-size: 14px;
     }}
     .ai-combos {{ display: grid; gap: 6px; }}
+    .signal-ai-purchase-title {{ margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }}
+    .signal-ai-purchase-list {{ margin-top: 10px; }}
+    .signal-ai-purchase-list .ai-combo {{ border-left: 3px solid var(--live-accent); }}
     .ai-combo {{
       display: flex;
       justify-content: space-between;
