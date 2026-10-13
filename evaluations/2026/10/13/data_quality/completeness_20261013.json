@@ -2,21 +2,14 @@
   "date": "20261013",
   "status": "PASS",
   "expected_races": 132,
-  "result_races": 7,
+  "result_races": 12,
   "audited_races": 132,
-  "complete_races": 7,
-  "original_pre_race_complete_races": 4,
-  "post_result_recovered_complete_races": 3,
+  "complete_races": 12,
+  "original_pre_race_complete_races": 8,
+  "post_result_recovered_complete_races": 4,
   "incomplete_races": 0,
-  "pending_races": 125,
+  "pending_races": 120,
   "pending_result_details": [
-    {
-      "race_id": "20261013-04-01",
-      "deadline_jst": "10:30",
-      "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-      "automatic_collection_enabled": false,
-      "time_after_deadline_is_not_error": true
-    },
     {
       "race_id": "20261013-04-02",
       "deadline_jst": "10:57",
@@ -174,13 +167,6 @@
     {
       "race_id": "20261013-06-12",
       "deadline_jst": "16:32",
-      "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-      "automatic_collection_enabled": false,
-      "time_after_deadline_is_not_error": true
-    },
-    {
-      "race_id": "20261013-11-01",
-      "deadline_jst": "10:25",
       "status": "AWAITING_MANUAL_RESULT_COLLECTION",
       "automatic_collection_enabled": false,
       "time_after_deadline_is_not_error": true
@@ -431,13 +417,6 @@
       "time_after_deadline_is_not_error": true
     },
     {
-      "race_id": "20261013-14-05",
-      "deadline_jst": "10:21",
-      "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-      "automatic_collection_enabled": false,
-      "time_after_deadline_is_not_error": true
-    },
-    {
       "race_id": "20261013-14-06",
       "deadline_jst": "10:52",
       "status": "AWAITING_MANUAL_RESULT_COLLECTION",
@@ -566,20 +545,6 @@
     {
       "race_id": "20261013-15-12",
       "deadline_jst": "20:38",
-      "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-      "automatic_collection_enabled": false,
-      "time_after_deadline_is_not_error": true
-    },
-    {
-      "race_id": "20261013-18-04",
-      "deadline_jst": "10:05",
-      "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-      "automatic_collection_enabled": false,
-      "time_after_deadline_is_not_error": true
-    },
-    {
-      "race_id": "20261013-18-05",
-      "deadline_jst": "10:32",
       "status": "AWAITING_MANUAL_RESULT_COLLECTION",
       "automatic_collection_enabled": false,
       "time_after_deadline_is_not_error": true
@@ -886,7 +851,7 @@
       "time_after_deadline_is_not_error": true
     }
   ],
-  "audit_asof_jst": "2026-10-13T10:12:56.994279+09:00",
+  "audit_asof_jst": "2026-10-13T10:39:03.944709+09:00",
   "needs_recollection": false,
   "issues": [],
   "recovered_after_result": [
@@ -958,6 +923,29 @@
         "boat6:exhibition_st_raw",
         "boat6:exhibition_time"
       ]
+    },
+    {
+      "race_id": "20261013-18-04",
+      "fields": [
+        "boat1:exhibition_course",
+        "boat1:exhibition_st_raw",
+        "boat1:exhibition_time",
+        "boat2:exhibition_course",
+        "boat2:exhibition_st_raw",
+        "boat2:exhibition_time",
+        "boat3:exhibition_course",
+        "boat3:exhibition_st_raw",
+        "boat3:exhibition_time",
+        "boat4:exhibition_course",
+        "boat4:exhibition_st_raw",
+        "boat4:exhibition_time",
+        "boat5:exhibition_course",
+        "boat5:exhibition_st_raw",
+        "boat5:exhibition_time",
+        "boat6:exhibition_course",
+        "boat6:exhibition_st_raw",
+        "boat6:exhibition_time"
+      ]
     }
   ],
   "official_rechecks": [],
@@ -986,16 +974,20 @@
   "research_audit": {
     "mode": "manual_research",
     "automatic_collection_enabled": false,
-    "result_races": 7,
-    "valid_research_races": 7,
+    "result_races": 12,
+    "valid_research_races": 11,
     "valid_research_race_ids": [
+      "20261013-04-01",
+      "20261013-11-01",
       "20261013-14-01",
       "20261013-14-02",
       "20261013-14-03",
       "20261013-14-04",
+      "20261013-14-05",
       "20261013-18-01",
       "20261013-18-02",
-      "20261013-18-03"
+      "20261013-18-03",
+      "20261013-18-05"
     ],
     "manual_official_reconstruction_races": 3,
     "manual_official_reconstruction_ids": [
@@ -1003,10 +995,15 @@
       "20261013-14-03",
       "20261013-18-03"
     ],
-    "requires_manual_completion": 0,
-    "research_incomplete": [],
-    "not_yet_finished_races_excluded_from_error": 125,
-    "research_status": "PASS",
+    "requires_manual_completion": 1,
+    "research_incomplete": [
+      {
+        "race_id": "20261013-18-04",
+        "reason": "live_score_not_yet_reconciled"
+      }
+    ],
+    "not_yet_finished_races_excluded_from_error": 120,
+    "research_status": "MANUAL_RECONCILIATION_PENDING",
     "historical_bet_claimed_for_recovered_scores": false,
     "timestamp_is_not_a_research_validity_failure": true
   },
