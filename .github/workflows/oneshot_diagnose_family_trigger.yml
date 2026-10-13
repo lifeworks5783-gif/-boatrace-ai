@@ -1,0 +1,41 @@
+name: Diagnose actual family refresh button endpoint once
+on:
+  push:
+    branches: ["ops/diagnose-family-button-trigger-20261013"]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Observe Render health and submit one real button POST
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,time,urllib.request,urllib.error
+          base="https://boatrace-family-trigger.onrender.com"
+          headers={"User-Agent":"curl/8.7.1","Accept":"application/json"}
+          for attempt in range(2):
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(base+"/health",headers=headers),timeout=35) as r:
+                      print("RENDER_HEALTH",r.status,r.read(700).decode())
+                  break
+              except Exception as e:
+                  print("HEALTH_ERROR",repr(e))
+                  if attempt:raise
+                  time.sleep(3)
+          req=urllib.request.Request(base+"/trigger",data=b"{}",method="POST",
+              headers={"Origin":"https://lifeworks5783-gif.github.io",
+              "Content-Type":"application/json","Accept":"application/json","User-Agent":"curl/8.7.1"})
+          try:
+              with urllib.request.urlopen(req,timeout=40) as r:
+                  body=r.read(900).decode()
+                  print("FAMILY_TRIGGER_HTTP",r.status,"RESPONSE",body)
+                  assert r.status==202
+          except urllib.error.HTTPError as e:
+              print("FAMILY_TRIGGER_FAILED",e.code,e.read(900).decode())
+              raise
+          PY
