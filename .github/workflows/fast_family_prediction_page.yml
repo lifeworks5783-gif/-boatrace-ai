@@ -45,8 +45,18 @@ jobs:
           [[ "$DAY" =~ ^20[0-9]{6}$ ]] || { echo "Invalid date: $DAY"; exit 1; }
           FILE="predictions/${DAY:0:4}/${DAY:4:2}/${DAY:6:2}/live/formation_predictions_final_$DAY.json"
           if ! test -s "$FILE"; then
-            echo "Missing canonical: $FILE; latest page is unchanged" >&2
-            exit 1
+            # At JST day rollover, before the new morning data exists,
+            # display the previous fully finished day instead of failing.
+            MORNING="predictions/${DAY:0:4}/${DAY:4:2}/${DAY:6:2}/morning_predictions_$DAY.json"
+            PREV=$(date -u -d "${DAY:0:4}-${DAY:4:2}-${DAY:6:2} -1 day" +%Y%m%d)
+            PREV_FILE="predictions/${PREV:0:4}/${PREV:4:2}/${PREV:6:2}/live/formation_predictions_final_$PREV.json"
+            if [ -z "$INPUT_DATE" ] && ! test -s "$MORNING" && test -s "$PREV_FILE"; then
+              DAY="$PREV"; FILE="$PREV_FILE"
+              echo "No new morning canonical yet; render completed previous day $DAY"
+            else
+              echo "Missing canonical: $FILE; latest page is unchanged" >&2
+              exit 1
+            fi
           fi
           echo "TARGET_DATE=$DAY" >> "$GITHUB_ENV"
           echo "CANONICAL_FILE=$FILE" >> "$GITHUB_ENV"
