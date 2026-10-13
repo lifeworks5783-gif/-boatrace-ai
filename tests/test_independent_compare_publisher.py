@@ -14,6 +14,11 @@ class IndependentComparePublicationContract(unittest.TestCase):
         self.assertNotIn("collectors/evaluate_fujin_raijin_history.py", w)
         self.assertNotIn("collectors/audit_signal_consistency.py", w)
         self.assertIn("cancel-in-progress: false", w)
+        # A one-day-behind canonical replay must never roll back the current
+        # live comparison page after today's morning predictions are available.
+        self.assertIn('TODAY_MORNING=', w)
+        self.assertIn('if [ "$DAY" != "$TODAY" ] && test -s "$TODAY_MORNING"; then', w)
+        self.assertIn('DAY="$TODAY"', w)
 
     def test_result_save_dispatches_before_canonical_reconciliation(self):
         w = (ROOT / ".github/workflows/intraday_compare.yml").read_text(encoding="utf-8")
