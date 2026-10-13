@@ -44,6 +44,8 @@ jobs:
           fi
           if [[ ! "$TARGET_DATE" =~ ^[0-9]{8}$ ]]; then echo "Invalid target date"; exit 1; fi
           echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
+      - name: Regression tests for independent modeling and settlement
+        run: python -m unittest discover -s tests -p test_chatgpt_independent_pdca.py -v
       - name: Run independent model and race evidence
         run: |
           python -m py_compile collectors/evaluate_chatgpt_independent_pdca.py
