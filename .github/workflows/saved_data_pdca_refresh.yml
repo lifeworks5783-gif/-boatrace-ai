@@ -198,6 +198,9 @@ jobs:
           import json,os
           from pathlib import Path
           d=os.environ["TARGET_DATE"]
+          audit_file=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+          audit=json.loads(audit_file.read_text(encoding="utf-8"))
+          expected=int(audit["complete_races"])
           for folder in ("signal_pdca_cross","raijin_v2_signal_pdca_cross"):
               p=Path("evaluations")/folder/"latest/summary.json"
               j=json.loads(p.read_text(encoding="utf-8"))
@@ -206,8 +209,8 @@ jobs:
                   raise SystemExit(f"{folder}: no date {d}")
               combos=day["combination_methods"]
               total=sum(x["races"] for x in combos.values())
-              if len(combos)!=16 or total!=132:
-                  raise SystemExit(f"{folder}: expected 16 combinations with 132 races, got {len(combos)}, {total}")
+              if len(combos)!=16 or total!=expected:
+                  raise SystemExit(f"{folder}: expected 16 combinations with {expected} races, got {len(combos)}, {total}")
               for k,x in combos.items():
                   if set(x["methods"])!={"formation","top3_box","normal_ai","signal_ai24"}:
                       raise SystemExit(f"{folder}: incomplete method list for {k}")
