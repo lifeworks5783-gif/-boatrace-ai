@@ -250,6 +250,26 @@ jobs:
       - name: 4日累積PDCAを再計算
         run: python -u collectors/evaluate_pdca_incremental_4day.py
 
+      - name: ChatGPT独自スコア・シグナル・三連単買い目の根拠付きPDCA
+        run: |
+          python -m py_compile collectors/evaluate_chatgpt_independent_pdca.py
+          python -u collectors/evaluate_chatgpt_independent_pdca.py --date "$TARGET_DATE"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          q=json.loads((Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json").read_text(encoding="utf-8"))
+          p=Path("evaluations/chatgpt_independent_pdca/daily")/d
+          summary=json.loads((p/"summary.json").read_text(encoding="utf-8"))
+          assert summary["date"]==d
+          assert summary["research_only"] is True and summary["never_modify_production"] is True
+          assert summary["quality"][d]["official"]==q["result_races"]
+          assert summary["quality"][d]["included"]>0
+          assert (p/"race_evidence.jsonl").is_file()
+          assert len((p/"race_evidence.jsonl").read_text(encoding="utf-8").splitlines())==summary["quality"][d]["included"]
+          print("CHATGPT_INDEPENDENT_PDCA_EVIDENCE_PASS",d,summary["quality"][d]["included"])
+          PY
+
       - name: 評価結果だけ保存
         run: |
           git config user.name "github-actions[bot]"
