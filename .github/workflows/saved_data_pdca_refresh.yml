@@ -188,6 +188,46 @@ jobs:
           test -s evaluations/signal_rank_research/v1/race_diagnostics.csv
           test -s evaluations/signal_rank_research/v1/daily/${TARGET_DATE}/summary.json
 
+      - name: 全16分類×4買い方の旧保存シグナルと新雷神V2を別々に集計
+        run: |
+          python -u collectors/evaluate_signal_pdca_cross.py
+          python -u collectors/evaluate_signal_pdca_cross.py --raijin-v2
+          test -s evaluations/signal_pdca_cross/latest/summary.json
+          test -s evaluations/raijin_v2_signal_pdca_cross/latest/summary.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          for folder in ("signal_pdca_cross","raijin_v2_signal_pdca_cross"):
+              p=Path("evaluations")/folder/"latest/summary.json"
+              j=json.loads(p.read_text(encoding="utf-8"))
+              day=j["per_date"].get(d)
+              if not day:
+                  raise SystemExit(f"{folder}: no date {d}")
+              combos=day["combination_methods"]
+              total=sum(x["races"] for x in combos.values())
+              if len(combos)!=16 or total!=132:
+                  raise SystemExit(f"{folder}: expected 16 combinations with 132 races, got {len(combos)}, {total}")
+              for k,x in combos.items():
+                  if set(x["methods"])!={"formation","top3_box","normal_ai","signal_ai24"}:
+                      raise SystemExit(f"{folder}: incomplete method list for {k}")
+              print("CROSS_PDCA_READY",folder,d,total,"16 classifications")
+          PY
+
+      - name: 買い方1・2・3の累積と最新日ホールドアウトを再集計
+        run: |
+          python -u collectors/evaluate_buying_strategy_pdca.py
+          test -s evaluations/pdca_buying_strategy/latest/summary.json
+
+      - name: 単体要素と直前要素の分析を日別保存
+        run: |
+          python -u collectors/prepare_live_analysis_input.py --date "$TARGET_DATE"
+          python -u collectors/analyze_score_components.py --date "$TARGET_DATE"
+          python -u collectors/analyze_live_factors.py --date "$TARGET_DATE"
+          EVAL_DIR="evaluations/$YEAR/$MONTH/$DAY"
+          test -s "$EVAL_DIR/score_component_analysis_${TARGET_DATE}.json"
+          test -s "$EVAL_DIR/live_factor_analysis_${TARGET_DATE}.json"
+
       - name: 4日累積PDCAを再計算
         run: python -u collectors/evaluate_pdca_incremental_4day.py
 
