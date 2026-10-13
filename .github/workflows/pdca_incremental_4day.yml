@@ -164,6 +164,13 @@ jobs:
 
       - name: Run expanding PDCA
         run: python -u collectors/evaluate_pdca_incremental_4day.py
+      - name: ChatGPT独立仮説のスコア・シグナル・買い目と実レース根拠
+        run: |
+          python -m py_compile collectors/evaluate_chatgpt_independent_pdca.py
+          python -u collectors/evaluate_chatgpt_independent_pdca.py --date "$TARGET_DATE"
+          test -s "evaluations/chatgpt_independent_pdca/daily/$TARGET_DATE/summary.json"
+          test -s "evaluations/chatgpt_independent_pdca/daily/$TARGET_DATE/REPORT.md"
+          test -s "evaluations/chatgpt_independent_pdca/daily/$TARGET_DATE/race_evidence.jsonl"
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
