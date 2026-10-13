@@ -11,6 +11,8 @@ import json
 import re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 from collectors import cloudflare_missing_only_bridge as bridge
 from collectors import today_beforeinfo as official
 
@@ -23,7 +25,14 @@ def complete(entries,rid):
       str(x.get("is_miss","")).lower() in ("true","1","yes") or all(
         str(x.get(k,"")).strip() for k in ("exhibition_course","exhibition_time","exhibition_st_raw")
       )) for x in a)
-def import_missing_only(root,day,now,endpoint=URL,fetch=bridge.fetch_batch):
+def fetch_public(endpoint,_unused_token,day,ids):
+    query=urlencode({"date":day,"race_ids":",".join(ids)})
+    req=Request(endpoint+"?"+query,headers={"Accept":"application/json","User-Agent":"curl/8.7.1"})
+    with urlopen(req,timeout=12) as resp: raw=resp.read(650000)
+    if len(raw)>640000:raise ValueError("public_response_too_large")
+    return json.loads(raw)
+
+def import_missing_only(root,day,now,endpoint=URL,fetch=fetch_public):
     if not re.fullmatch(r"\d{8}",day) or day!=now.strftime("%Y%m%d"):
         raise ValueError("current_jst_day_only")
     data=root/"data"
