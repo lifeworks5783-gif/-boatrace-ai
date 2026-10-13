@@ -124,7 +124,7 @@ def make_rows(s, row):
 def fetch_batch(url,token,day,ids):
     query=urlencode({"date":day,"race_ids":",".join(ids)})
     request=Request(url+"?"+query,headers={"Authorization":"Bearer "+token,
-        "Accept":"application/json","User-Agent":"BoatraceMissingOnlyBridge/1"})
+        "Accept":"application/json","User-Agent":"curl/8.7.1"})
     with urlopen(request,timeout=12) as reply: raw=reply.read(650000)
     if len(raw)>640000: raise RuntimeError("response_too_large")
     data=json.loads(raw)
