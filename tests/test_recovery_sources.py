@@ -1,11 +1,12 @@
 """Official retry must remain cumulative and replayable after later batches."""
+import csv
 import json
 import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "collectors"))
 
-from recover_missing_live_for_analysis import merge_official_snapshots
+from recover_missing_live_for_analysis import merge_official_snapshots, unverified_canonical_race_ids
 from recovery_live_overlay import load_verified_recovered_live, ROOT
 
 
@@ -25,6 +26,19 @@ class RecoverySourceTest(unittest.TestCase):
         self.assertEqual(len(scratched), 1)
         self.assertEqual(scratched[0]["is_miss"], "True")
 
+    def test_canonical_morning_or_fallback_enters_recovery_queue(self):
+        rows = [
+            {"race_id": "20261013-04-06", "prediction_type": "朝", "quality_status": "normal"},
+            {"race_id": "20261013-11-05", "prediction_type": "朝", "quality_status": "normal"},
+            {"race_id": "20261013-12-12", "prediction_type": "直前", "quality_status": "fallback"},
+            {"race_id": "20261013-19-05", "prediction_type": "直前", "quality_status": "fallback"},
+            {"race_id": "20261013-19-12", "prediction_type": "直前", "quality_status": "normal"},
+            {"race_id": "20261013-04-03", "prediction_type": "直前", "quality_status": "recovered_observation"},
+        ]
+        self.assertEqual(unverified_canonical_race_ids(rows), {
+            "202610130406", "202610131105", "202610131212", "202610131905"
+        })
+
     def test_current_verified_recovery_has_all_manifest_races(self):
         date = "20261009"
         folder = ROOT / "evaluations" / "2026" / "10" / "09" / "recovery"
@@ -34,10 +48,23 @@ class RecoverySourceTest(unittest.TestCase):
             {"".join(c for c in key if c.isdigit()) for key in recovered},
             set(manifest["recovered_races"]),
         )
-        self.assertEqual(
-            recovered["20261009-23-03"]["prediction_quality"]["verified_scratched_boats"],
-            [4],
-        )
+        # Evidence must survive even when the saved canonical now treats
+        # this race as a genuine original rather than retrospective recovery.
+        entries_path = folder / "official_retry_beforeinfo_entries_20261009.csv"
+        with entries_path.open(encoding="utf-8-sig", newline="") as stream:
+            entries = list(csv.DictReader(stream))
+        scratched = [r for r in entries
+                     if r.get("race_id") == "20261009-23-03"
+                     and r.get("boat") == "4"
+                     and r.get("is_miss") == "True"
+                     and str(r.get("source_url") or "").startswith(
+                         "https://www.boatrace.jp/owpc/pc/race/beforeinfo?")]
+        self.assertEqual(len(scratched), 1)
+        if "202610092303" in manifest["recovered_races"]:
+            self.assertEqual(
+                recovered["20261009-23-03"]["prediction_quality"]["verified_scratched_boats"],
+                [4],
+            )
 
 
 if __name__ == "__main__":

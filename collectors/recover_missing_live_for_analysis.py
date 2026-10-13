@@ -36,6 +36,19 @@ def partial_race_ids(rows):
     }
 
 
+def unverified_canonical_race_ids(rows):
+    """An existing live CSV alone cannot certify a canonical morning/fallback."""
+    pending = set()
+    for row in rows:
+        rid = normalize_race_id(row.get("race_id"))
+        if not rid:
+            continue
+        stage = str(row.get("prediction_type") or "").strip()
+        quality = str(row.get("quality_status") or "").strip().lower()
+        if stage != "直前" or quality in {"fallback", "provisional_fallback"}:
+            pending.add(rid)
+    return pending
+
 def run(script: str, *args: str):
     cmd = [sys.executable, "-u", script, *args]
     print("RUN", " ".join(cmd), flush=True)
@@ -116,10 +129,22 @@ def main():
     # evidence is obtained; a stored 0-delta placeholder is not success.
     partial_ids = partial_race_ids(original_rows)
     verified_original = original - partial_ids
+    # Cross-check the actual canonical publication. A complete original
+    # live-score CSV does not prove the canonical saved prediction was
+    # accepted: some races still carry morning or fallback placeholders.
+    # Re-open only those finished races for official retrospective recovery.
+    canonical_file = Path("predictions") / y / m / day / "live" / f"formation_predictions_final_{d}.csv"
+    canonical_unverified = unverified_canonical_race_ids(
+        read_csv(canonical_file) if canonical_file.is_file() else []
+    )
     # Recover only finished races; future races never count as an inactive signal.
     result_path = Path("archive") / y / m / day / f"results_{d}_all.csv"
     finished = (race_ids(read_csv(result_path)) & expected) if result_path.is_file() else set()
-    missing_before = sorted(finished - verified_original)
+    missing_before = sorted((finished - verified_original) |
+                            (canonical_unverified & finished))
+    if canonical_unverified & finished:
+        print("UNVERIFIED_CANONICAL_RECOVERY_TARGETS",
+              sorted(canonical_unverified & finished), flush=True)
 
     out_dir = Path("evaluations") / y / m / day / "recovery"
     out_dir.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,67 @@
+name: Recover four unverified Oct 13 canonical races
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/recover_unverified_20261013.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: recover-unverified-20261013
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing research recovery dependencies
+        run: pip install -q requests beautifulsoup4 pandas scipy lhafile
+      - name: Prove recovery queue preserves valid real predictions
+        run: python -m unittest discover -s tests -p 'test_recovery_sources.py' -v
+      - name: Recheck Oct 13 official live evidence, research only
+        run: |
+          set -euo pipefail
+          python -u collectors/recover_missing_live_for_analysis.py --date 20261013
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('evaluations/2026/10/13/recovery/live_recovery_manifest_20261013.json')
+          m=json.loads(path.read_text(encoding='utf-8'))
+          wanted={'202610130406','202610131105','202610131212','202610131905'}
+          done=set(m.get('recovered_races') or [])
+          print('OCT13_CANONICAL_UNVERIFIED_RECOVERY',
+                {'expected':len(wanted),'verified':sorted(wanted & done),
+                 'still_missing':m.get('still_missing'),'errors':m.get('official_retry_errors')},flush=True)
+          assert m.get('result_leakage') is False
+          assert not m.get('still_missing'),m
+          assert wanted.issubset(done), 'Do not publish unverified 4-race recovery'
+          PY
+      - name: Persist only verified official recovery evidence
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add evaluations/2026/10/13/recovery/
+          if git diff --cached --quiet; then
+            echo "Official recovery evidence already persisted"
+          else
+            git commit -m 'Verify October 13 four residual official live races for retrospective audit'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Update canonical signals and result comparison from verified input
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run canonical_recovery_reconcile.yml --repo "$GITHUB_REPOSITORY" --ref main -f target_date=20261013
+          echo "OCT13_CANONICAL_RECONCILIATION_REQUESTED"
