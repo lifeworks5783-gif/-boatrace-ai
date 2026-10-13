@@ -1,6 +1,6 @@
 {
   "target_date": "20261013",
-  "generated_at": "2026-10-13T09:04:11.777671+09:00",
+  "generated_at": "2026-10-13T09:11:29+09:00",
   "formation_model": "formation_gap_flow_v2",
   "upcoming_race_count": 129,
   "races": [
@@ -13,115 +13,80 @@
       "deadline": "2026-10-13T09:13:00+09:00",
       "prediction_type": "直前",
       "prediction_quality": {
-        "status": "fallback",
-        "mark": "⚠",
-        "label": "補完あり",
-        "recovery_needed": true,
-        "reason": [
-          "締切前の直前情報が未確定または未保存"
-        ],
-        "fallback_source": "saved_morning_prediction",
-        "signal_blocked": true,
-        "boat_fallbacks": [
-          {
-            "boat": 1,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 3,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 5,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 4,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 2,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 6,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          }
-        ],
-        "recorded_at": "2026-10-13T09:04:11.777671+09:00"
+        "status": "normal",
+        "mark": "",
+        "label": "正常",
+        "recovery_needed": false,
+        "signal_blocked": false,
+        "verified_scratched_boats": [],
+        "boat_fallbacks": [],
+        "reason": [],
+        "fallback_source": null,
+        "request_started_before_deadline": true,
+        "request_grace_used": false,
+        "recorded_at": "2026-10-13T09:11:29+09:00"
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 1,
           "racer_name": "高倉孝太",
-          "score": 76.8,
+          "score": 77.84,
           "morning_score_reference": 76.8,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
+          "score_fallback": false,
+          "score_fallback_reasons": [],
           "grade": "A2",
           "registration_no": 4520,
           "motor_no": 68,
           "boat_no": 15,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 1,
+          "exhibition_time": 7.0,
+          "exhibition_st": 0.02,
+          "exhibition_f": false,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.92
+              "raw_score_0_1": 0.92,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.8
+              "raw_score_0_1": 0.8,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.6
+              "raw_score_0_1": 0.6,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.6
+              "raw_score_0_1": 0.6,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.6
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.768,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.4,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 1.0,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -132,6 +97,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 23,
               "finish_samples": 23,
@@ -278,7 +244,75 @@
                 }
               }
             },
-            "course_used": 1,
+            "racer_course": {
+              "available": true,
+              "current_course": 1,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 2,
+                  "finish_samples": 2,
+                  "avg_finish": 1.5,
+                  "win_rate": 0.5,
+                  "top2_rate": 1.0,
+                  "top3_rate": 1.0,
+                  "st_samples": 2,
+                  "avg_st": 0.165,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 2,
+                  "avg_exhibition": 6.79
+                },
+                "d90": {
+                  "starts": 12,
+                  "finish_samples": 12,
+                  "avg_finish": 2.33333,
+                  "win_rate": 0.41667,
+                  "top2_rate": 0.66667,
+                  "top3_rate": 0.75,
+                  "st_samples": 12,
+                  "avg_st": 0.19,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 12,
+                  "avg_exhibition": 6.76583
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.08333,
+                  "top2_rate_30v90": 0.33333,
+                  "top3_rate_30v90": 0.25,
+                  "avg_finish_30v90": -0.83333,
+                  "avg_st_30v90": -0.025,
+                  "avg_exhibition_30v90": 0.02417
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 1,
+              "exhibition_time": 7.0,
+              "exhibition_st_raw": ".02",
+              "exhibition_st": 0.02,
+              "exhibition_f": false,
+              "tilt": -0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 23.0,
+                "water_temperature_c": 24.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 3,
+                "wind_direction": "北東",
+                "wave_height_cm": 4.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -317,8 +351,20 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 23.0,
+                    "water_temperature_c": 24.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 3,
+                    "wind_direction": "北東",
+                    "wave_height_cm": 4.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
@@ -326,286 +372,63 @@
         },
         {
           "rank": 2,
-          "boat": 3,
-          "racer_name": "芝田浩治",
-          "score": 66.3,
-          "morning_score_reference": 66.3,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
-          "grade": "A2",
-          "registration_no": 3484,
-          "motor_no": 16,
-          "boat_no": 26,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
-          "components": {
-            "racer_course": {
-              "weight": 40,
-              "raw_score_0_1": 0.8
-            },
-            "grade": {
-              "weight": 20,
-              "raw_score_0_1": 0.6
-            },
-            "motor": {
-              "weight": 20,
-              "raw_score_0_1": 0.24
-            },
-            "boat": {
-              "weight": 5,
-              "raw_score_0_1": 0.5
-            },
-            "national_top2": {
-              "weight": 15,
-              "raw_score_0_1": 1.0
-            }
-          },
-          "input_trace": {
-            "history_feature_manifest": {
-              "as_of_date": "20261013",
-              "history_min_date": "20260621",
-              "history_max_date": "20261012",
-              "history_stale_days": 0,
-              "leakage_guard": "Only rows with result date < as_of_date are used."
-            },
-            "racer_30d": {
-              "starts": 28,
-              "finish_samples": 28,
-              "avg_finish": 2.96429,
-              "win_rate": 0.32143,
-              "top2_rate": 0.46429,
-              "top3_rate": 0.60714,
-              "st_samples": 18,
-              "avg_st": 0.15,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 18,
-              "avg_exhibition": 6.88167
-            },
-            "racer_90d": {
-              "starts": 70,
-              "finish_samples": 70,
-              "avg_finish": 2.85714,
-              "win_rate": 0.25714,
-              "top2_rate": 0.54286,
-              "top3_rate": 0.67143,
-              "st_samples": 60,
-              "avg_st": 0.16767,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 60,
-              "avg_exhibition": 6.87967
-            },
-            "motor_30d": {
-              "unique_racers": 2,
-              "starts": 10,
-              "finish_samples": 10,
-              "avg_finish": 4.4,
-              "win_rate": 0.0,
-              "top2_rate": 0.2,
-              "top3_rate": 0.3,
-              "st_samples": 10,
-              "avg_st": 0.162,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 10,
-              "avg_exhibition": 6.893
-            },
-            "motor_90d": {
-              "unique_racers": 6,
-              "starts": 44,
-              "finish_samples": 44,
-              "avg_finish": 4.0,
-              "win_rate": 0.06818,
-              "top2_rate": 0.25,
-              "top3_rate": 0.40909,
-              "st_samples": 44,
-              "avg_st": 0.17636,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 44,
-              "avg_exhibition": 6.99705
-            },
-            "boat_30d": {
-              "unique_racers": 3,
-              "starts": 10,
-              "finish_samples": 10,
-              "avg_finish": 3.9,
-              "win_rate": 0.0,
-              "top2_rate": 0.3,
-              "top3_rate": 0.3,
-              "st_samples": 9,
-              "avg_st": 0.14889,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 9,
-              "avg_exhibition": 6.92778
-            },
-            "boat_90d": {
-              "unique_racers": 8,
-              "starts": 56,
-              "finish_samples": 55,
-              "avg_finish": 3.54545,
-              "win_rate": 0.17857,
-              "top2_rate": 0.33929,
-              "top3_rate": 0.46429,
-              "st_samples": 54,
-              "avg_st": 0.16074,
-              "f_count": 1,
-              "f_rate": 0.01786,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 55,
-              "avg_exhibition": 6.95891
-            },
-            "racer_venue": {
-              "available": true,
-              "venue_code": "18",
-              "features": {
-                "d30": {
-                  "starts": 5,
-                  "finish_samples": 5,
-                  "avg_finish": 3.6,
-                  "win_rate": 0.4,
-                  "top2_rate": 0.4,
-                  "top3_rate": 0.4,
-                  "st_samples": 1,
-                  "avg_st": 0.16,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 1,
-                  "avg_exhibition": 6.92
-                },
-                "d90": {
-                  "starts": 5,
-                  "finish_samples": 5,
-                  "avg_finish": 3.6,
-                  "win_rate": 0.4,
-                  "top2_rate": 0.4,
-                  "top3_rate": 0.4,
-                  "st_samples": 1,
-                  "avg_st": 0.16,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 1,
-                  "avg_exhibition": 6.92
-                },
-                "trend_30v90": {
-                  "win_rate_30v90": 0.0,
-                  "top2_rate_30v90": 0.0,
-                  "top3_rate_30v90": 0.0,
-                  "avg_finish_30v90": 0.0,
-                  "avg_st_30v90": 0.0,
-                  "avg_exhibition_30v90": 0.0
-                }
-              }
-            },
-            "course_used": 3,
-            "official_f_count": null,
-            "official_l_count": null,
-            "official_avg_st": null,
-            "official_fl_available": false,
-            "candidate_components": {
-              "f_l_holdings": {
-                "available": false,
-                "f_count": null,
-                "l_count": null,
-                "active_in_score": false
-              },
-              "motor_30d": {
-                "available": true,
-                "features": {
-                  "unique_racers": 2,
-                  "starts": 10,
-                  "finish_samples": 10,
-                  "avg_finish": 4.4,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.2,
-                  "top3_rate": 0.3,
-                  "st_samples": 10,
-                  "avg_st": 0.162,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 10,
-                  "avg_exhibition": 6.893
-                },
-                "active_in_score": false
-              },
-              "parts_exchange": {
-                "available": false,
-                "value": "",
-                "active_in_score": false
-              },
-              "weather_water": {
-                "available": false,
-                "value": {},
-                "active_in_score": false
-              }
-            }
-          }
-        },
-        {
-          "rank": 3,
           "boat": 5,
           "racer_name": "上條嘉嗣",
-          "score": 57.3,
+          "score": 74.88,
           "morning_score_reference": 57.3,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
+          "score_fallback": false,
+          "score_fallback_reasons": [],
           "grade": "A1",
           "registration_no": 4514,
           "motor_no": 26,
           "boat_no": 71,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 4,
+          "exhibition_time": 6.95,
+          "exhibition_st": 0.12,
+          "exhibition_f": false,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.34
+              "raw_score_0_1": 0.66,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 1.0
+              "raw_score_0_1": 1.0,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.56
+              "raw_score_0_1": 0.56,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.1
+              "raw_score_0_1": 0.1,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.8
+              "raw_score_0_1": 0.8,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.701,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.8,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 1.0,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -616,6 +439,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 25,
               "finish_samples": 25,
@@ -762,7 +586,75 @@
                 }
               }
             },
-            "course_used": 5,
+            "racer_course": {
+              "available": true,
+              "current_course": 4,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 2,
+                  "finish_samples": 2,
+                  "avg_finish": 2.5,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.5,
+                  "top3_rate": 1.0,
+                  "st_samples": 2,
+                  "avg_st": 0.21,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 2,
+                  "avg_exhibition": 6.895
+                },
+                "d90": {
+                  "starts": 7,
+                  "finish_samples": 7,
+                  "avg_finish": 2.85714,
+                  "win_rate": 0.28571,
+                  "top2_rate": 0.57143,
+                  "top3_rate": 0.71429,
+                  "st_samples": 7,
+                  "avg_st": 0.21857,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 7,
+                  "avg_exhibition": 6.80714
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": -0.28571,
+                  "top2_rate_30v90": -0.07143,
+                  "top3_rate_30v90": 0.28571,
+                  "avg_finish_30v90": -0.35714,
+                  "avg_st_30v90": -0.00857,
+                  "avg_exhibition_30v90": 0.08786
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 4,
+              "exhibition_time": 6.95,
+              "exhibition_st_raw": ".12",
+              "exhibition_st": 0.12,
+              "exhibition_f": false,
+              "tilt": -0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 23.0,
+                "water_temperature_c": 24.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 3,
+                "wind_direction": "北東",
+                "wave_height_cm": 4.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -801,53 +693,84 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 23.0,
+                    "water_temperature_c": 24.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 3,
+                    "wind_direction": "北東",
+                    "wave_height_cm": 4.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
           }
         },
         {
-          "rank": 4,
-          "boat": 4,
-          "racer_name": "宇田川信",
-          "score": 55.1,
-          "morning_score_reference": 55.1,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
-          "grade": "B1",
-          "registration_no": 4660,
-          "motor_no": 14,
-          "boat_no": 72,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "rank": 3,
+          "boat": 3,
+          "racer_name": "芝田浩治",
+          "score": 59.84,
+          "morning_score_reference": 66.3,
+          "score_fallback": false,
+          "score_fallback_reasons": [],
+          "grade": "A2",
+          "registration_no": 3484,
+          "motor_no": 16,
+          "boat_no": 26,
+          "exhibition_course": 3,
+          "exhibition_time": 7.01,
+          "exhibition_st": -0.01,
+          "exhibition_f": true,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.54
+              "raw_score_0_1": 0.8,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.2
+              "raw_score_0_1": 0.6,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 1.0
+              "raw_score_0_1": 0.24,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.7
+              "raw_score_0_1": 0.5,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.4
+              "raw_score_0_1": 1.0,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.663,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.2,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 0.4,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -858,141 +781,142 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
-              "starts": 21,
-              "finish_samples": 19,
-              "avg_finish": 4.36842,
-              "win_rate": 0.04762,
-              "top2_rate": 0.14286,
-              "top3_rate": 0.28571,
-              "st_samples": 9,
-              "avg_st": 0.21778,
+              "starts": 28,
+              "finish_samples": 28,
+              "avg_finish": 2.96429,
+              "win_rate": 0.32143,
+              "top2_rate": 0.46429,
+              "top3_rate": 0.60714,
+              "st_samples": 18,
+              "avg_st": 0.15,
               "f_count": 0,
               "f_rate": 0.0,
               "l_count": 0,
               "l_rate": 0.0,
-              "exhibition_samples": 9,
-              "avg_exhibition": 6.72556
+              "exhibition_samples": 18,
+              "avg_exhibition": 6.88167
             },
             "racer_90d": {
-              "starts": 35,
-              "finish_samples": 33,
-              "avg_finish": 4.15152,
-              "win_rate": 0.11429,
-              "top2_rate": 0.2,
-              "top3_rate": 0.34286,
-              "st_samples": 23,
-              "avg_st": 0.21435,
+              "starts": 70,
+              "finish_samples": 70,
+              "avg_finish": 2.85714,
+              "win_rate": 0.25714,
+              "top2_rate": 0.54286,
+              "top3_rate": 0.67143,
+              "st_samples": 60,
+              "avg_st": 0.16767,
               "f_count": 0,
               "f_rate": 0.0,
               "l_count": 0,
               "l_rate": 0.0,
-              "exhibition_samples": 23,
-              "avg_exhibition": 6.81
+              "exhibition_samples": 60,
+              "avg_exhibition": 6.87967
             },
             "motor_30d": {
-              "unique_racers": 3,
-              "starts": 17,
-              "finish_samples": 16,
-              "avg_finish": 3.0625,
-              "win_rate": 0.29412,
-              "top2_rate": 0.47059,
-              "top3_rate": 0.58824,
-              "st_samples": 17,
-              "avg_st": 0.10941,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 17,
-              "avg_exhibition": 6.90706
-            },
-            "motor_90d": {
-              "unique_racers": 6,
-              "starts": 47,
-              "finish_samples": 46,
-              "avg_finish": 3.19565,
-              "win_rate": 0.25532,
-              "top2_rate": 0.44681,
-              "top3_rate": 0.59574,
-              "st_samples": 47,
-              "avg_st": 0.14468,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 47,
-              "avg_exhibition": 6.94766
-            },
-            "boat_30d": {
-              "unique_racers": 3,
-              "starts": 12,
-              "finish_samples": 11,
-              "avg_finish": 3.09091,
-              "win_rate": 0.08333,
-              "top2_rate": 0.41667,
-              "top3_rate": 0.5,
+              "unique_racers": 2,
+              "starts": 10,
+              "finish_samples": 10,
+              "avg_finish": 4.4,
+              "win_rate": 0.0,
+              "top2_rate": 0.2,
+              "top3_rate": 0.3,
               "st_samples": 10,
-              "avg_st": 0.106,
+              "avg_st": 0.162,
               "f_count": 0,
               "f_rate": 0.0,
               "l_count": 0,
               "l_rate": 0.0,
               "exhibition_samples": 10,
-              "avg_exhibition": 6.916
+              "avg_exhibition": 6.893
             },
-            "boat_90d": {
-              "unique_racers": 8,
-              "starts": 57,
-              "finish_samples": 56,
-              "avg_finish": 3.30357,
-              "win_rate": 0.14035,
-              "top2_rate": 0.35088,
-              "top3_rate": 0.52632,
-              "st_samples": 55,
-              "avg_st": 0.14509,
+            "motor_90d": {
+              "unique_racers": 6,
+              "starts": 44,
+              "finish_samples": 44,
+              "avg_finish": 4.0,
+              "win_rate": 0.06818,
+              "top2_rate": 0.25,
+              "top3_rate": 0.40909,
+              "st_samples": 44,
+              "avg_st": 0.17636,
               "f_count": 0,
               "f_rate": 0.0,
               "l_count": 0,
               "l_rate": 0.0,
+              "exhibition_samples": 44,
+              "avg_exhibition": 6.99705
+            },
+            "boat_30d": {
+              "unique_racers": 3,
+              "starts": 10,
+              "finish_samples": 10,
+              "avg_finish": 3.9,
+              "win_rate": 0.0,
+              "top2_rate": 0.3,
+              "top3_rate": 0.3,
+              "st_samples": 9,
+              "avg_st": 0.14889,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 9,
+              "avg_exhibition": 6.92778
+            },
+            "boat_90d": {
+              "unique_racers": 8,
+              "starts": 56,
+              "finish_samples": 55,
+              "avg_finish": 3.54545,
+              "win_rate": 0.17857,
+              "top2_rate": 0.33929,
+              "top3_rate": 0.46429,
+              "st_samples": 54,
+              "avg_st": 0.16074,
+              "f_count": 1,
+              "f_rate": 0.01786,
+              "l_count": 0,
+              "l_rate": 0.0,
               "exhibition_samples": 55,
-              "avg_exhibition": 6.97073
+              "avg_exhibition": 6.95891
             },
             "racer_venue": {
               "available": true,
               "venue_code": "18",
               "features": {
                 "d30": {
-                  "starts": 4,
-                  "finish_samples": 3,
-                  "avg_finish": 5.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.6,
+                  "win_rate": 0.4,
+                  "top2_rate": 0.4,
+                  "top3_rate": 0.4,
                   "st_samples": 1,
-                  "avg_st": 0.19,
+                  "avg_st": 0.16,
                   "f_count": 0,
                   "f_rate": 0.0,
                   "l_count": 0,
                   "l_rate": 0.0,
                   "exhibition_samples": 1,
-                  "avg_exhibition": 6.95
+                  "avg_exhibition": 6.92
                 },
                 "d90": {
-                  "starts": 4,
-                  "finish_samples": 3,
-                  "avg_finish": 5.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 3.6,
+                  "win_rate": 0.4,
+                  "top2_rate": 0.4,
+                  "top3_rate": 0.4,
                   "st_samples": 1,
-                  "avg_st": 0.19,
+                  "avg_st": 0.16,
                   "f_count": 0,
                   "f_rate": 0.0,
                   "l_count": 0,
                   "l_rate": 0.0,
                   "exhibition_samples": 1,
-                  "avg_exhibition": 6.95
+                  "avg_exhibition": 6.92
                 },
                 "trend_30v90": {
                   "win_rate_30v90": 0.0,
@@ -1004,7 +928,75 @@
                 }
               }
             },
-            "course_used": 4,
+            "racer_course": {
+              "available": true,
+              "current_course": 3,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 4,
+                  "finish_samples": 4,
+                  "avg_finish": 3.25,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.25,
+                  "top3_rate": 0.75,
+                  "st_samples": 4,
+                  "avg_st": 0.14,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 4,
+                  "avg_exhibition": 6.895
+                },
+                "d90": {
+                  "starts": 12,
+                  "finish_samples": 12,
+                  "avg_finish": 2.5,
+                  "win_rate": 0.16667,
+                  "top2_rate": 0.58333,
+                  "top3_rate": 0.83333,
+                  "st_samples": 12,
+                  "avg_st": 0.16833,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 12,
+                  "avg_exhibition": 6.87583
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": -0.16667,
+                  "top2_rate_30v90": -0.33333,
+                  "top3_rate_30v90": -0.08333,
+                  "avg_finish_30v90": 0.75,
+                  "avg_st_30v90": -0.02833,
+                  "avg_exhibition_30v90": 0.01917
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 3,
+              "exhibition_time": 7.01,
+              "exhibition_st_raw": "F.01",
+              "exhibition_st": -0.01,
+              "exhibition_f": true,
+              "tilt": 0.0,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 23.0,
+                "water_temperature_c": 24.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 3,
+                "wind_direction": "北東",
+                "wave_height_cm": 4.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -1019,21 +1011,21 @@
               "motor_30d": {
                 "available": true,
                 "features": {
-                  "unique_racers": 3,
-                  "starts": 17,
-                  "finish_samples": 16,
-                  "avg_finish": 3.0625,
-                  "win_rate": 0.29412,
-                  "top2_rate": 0.47059,
-                  "top3_rate": 0.58824,
-                  "st_samples": 17,
-                  "avg_st": 0.10941,
+                  "unique_racers": 2,
+                  "starts": 10,
+                  "finish_samples": 10,
+                  "avg_finish": 4.4,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.2,
+                  "top3_rate": 0.3,
+                  "st_samples": 10,
+                  "avg_st": 0.162,
                   "f_count": 0,
                   "f_rate": 0.0,
                   "l_count": 0,
                   "l_rate": 0.0,
-                  "exhibition_samples": 17,
-                  "avg_exhibition": 6.90706
+                  "exhibition_samples": 10,
+                  "avg_exhibition": 6.893
                 },
                 "active_in_score": false
               },
@@ -1043,53 +1035,84 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 23.0,
+                    "water_temperature_c": 24.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 3,
+                    "wind_direction": "北東",
+                    "wave_height_cm": 4.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
           }
         },
         {
-          "rank": 5,
+          "rank": 4,
           "boat": 2,
           "racer_name": "林祐介",
-          "score": 35.1,
+          "score": 47.44,
           "morning_score_reference": 35.1,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
+          "score_fallback": false,
+          "score_fallback_reasons": [],
           "grade": "B1",
           "registration_no": 4214,
           "motor_no": 67,
           "boat_no": 18,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 2,
+          "exhibition_time": 6.94,
+          "exhibition_st": 0.04,
+          "exhibition_f": false,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.4
+              "raw_score_0_1": 0.38,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.4
+              "raw_score_0_1": 0.4,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.28
+              "raw_score_0_1": 0.28,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.5
+              "raw_score_0_1": 0.5,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.2
+              "raw_score_0_1": 0.2,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.343,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 1.0,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 1.0,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -1100,6 +1123,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 4,
               "finish_samples": 4,
@@ -1246,7 +1270,75 @@
                 }
               }
             },
-            "course_used": 2,
+            "racer_course": {
+              "available": true,
+              "current_course": 2,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 0,
+                  "finish_samples": 0,
+                  "avg_finish": null,
+                  "win_rate": null,
+                  "top2_rate": null,
+                  "top3_rate": null,
+                  "st_samples": 0,
+                  "avg_st": null,
+                  "f_count": 0,
+                  "f_rate": null,
+                  "l_count": 0,
+                  "l_rate": null,
+                  "exhibition_samples": 0,
+                  "avg_exhibition": null
+                },
+                "d90": {
+                  "starts": 6,
+                  "finish_samples": 6,
+                  "avg_finish": 3.16667,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.16667,
+                  "top3_rate": 0.66667,
+                  "st_samples": 6,
+                  "avg_st": 0.22833,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 6,
+                  "avg_exhibition": 6.82167
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": null,
+                  "top2_rate_30v90": null,
+                  "top3_rate_30v90": null,
+                  "avg_finish_30v90": null,
+                  "avg_st_30v90": null,
+                  "avg_exhibition_30v90": null
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 2,
+              "exhibition_time": 6.94,
+              "exhibition_st_raw": ".04",
+              "exhibition_st": 0.04,
+              "exhibition_f": false,
+              "tilt": -0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 23.0,
+                "water_temperature_c": 24.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 3,
+                "wind_direction": "北東",
+                "wave_height_cm": 4.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -1285,53 +1377,84 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 23.0,
+                    "water_temperature_c": 24.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 3,
+                    "wind_direction": "北東",
+                    "wave_height_cm": 4.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
           }
         },
         {
-          "rank": 6,
-          "boat": 6,
-          "racer_name": "知念伶奈",
-          "score": 9.4,
-          "morning_score_reference": 9.4,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
-          "grade": "B2",
-          "registration_no": 5451,
-          "motor_no": 63,
-          "boat_no": 62,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "rank": 5,
+          "boat": 4,
+          "racer_name": "宇田川信",
+          "score": 40.08,
+          "morning_score_reference": 55.1,
+          "score_fallback": false,
+          "score_fallback_reasons": [],
+          "grade": "B1",
+          "registration_no": 4660,
+          "motor_no": 14,
+          "boat_no": 72,
+          "exhibition_course": 5,
+          "exhibition_time": 7.03,
+          "exhibition_st": -0.01,
+          "exhibition_f": true,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.0
+              "raw_score_0_1": 0.24,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.0
+              "raw_score_0_1": 0.2,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.32
+              "raw_score_0_1": 1.0,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.6
+              "raw_score_0_1": 0.7,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.0
+              "raw_score_0_1": 0.4,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.431,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 0.4,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -1342,6 +1465,349 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
+            "racer_30d": {
+              "starts": 21,
+              "finish_samples": 19,
+              "avg_finish": 4.36842,
+              "win_rate": 0.04762,
+              "top2_rate": 0.14286,
+              "top3_rate": 0.28571,
+              "st_samples": 9,
+              "avg_st": 0.21778,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 9,
+              "avg_exhibition": 6.72556
+            },
+            "racer_90d": {
+              "starts": 35,
+              "finish_samples": 33,
+              "avg_finish": 4.15152,
+              "win_rate": 0.11429,
+              "top2_rate": 0.2,
+              "top3_rate": 0.34286,
+              "st_samples": 23,
+              "avg_st": 0.21435,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 23,
+              "avg_exhibition": 6.81
+            },
+            "motor_30d": {
+              "unique_racers": 3,
+              "starts": 17,
+              "finish_samples": 16,
+              "avg_finish": 3.0625,
+              "win_rate": 0.29412,
+              "top2_rate": 0.47059,
+              "top3_rate": 0.58824,
+              "st_samples": 17,
+              "avg_st": 0.10941,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 17,
+              "avg_exhibition": 6.90706
+            },
+            "motor_90d": {
+              "unique_racers": 6,
+              "starts": 47,
+              "finish_samples": 46,
+              "avg_finish": 3.19565,
+              "win_rate": 0.25532,
+              "top2_rate": 0.44681,
+              "top3_rate": 0.59574,
+              "st_samples": 47,
+              "avg_st": 0.14468,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 47,
+              "avg_exhibition": 6.94766
+            },
+            "boat_30d": {
+              "unique_racers": 3,
+              "starts": 12,
+              "finish_samples": 11,
+              "avg_finish": 3.09091,
+              "win_rate": 0.08333,
+              "top2_rate": 0.41667,
+              "top3_rate": 0.5,
+              "st_samples": 10,
+              "avg_st": 0.106,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 10,
+              "avg_exhibition": 6.916
+            },
+            "boat_90d": {
+              "unique_racers": 8,
+              "starts": 57,
+              "finish_samples": 56,
+              "avg_finish": 3.30357,
+              "win_rate": 0.14035,
+              "top2_rate": 0.35088,
+              "top3_rate": 0.52632,
+              "st_samples": 55,
+              "avg_st": 0.14509,
+              "f_count": 0,
+              "f_rate": 0.0,
+              "l_count": 0,
+              "l_rate": 0.0,
+              "exhibition_samples": 55,
+              "avg_exhibition": 6.97073
+            },
+            "racer_venue": {
+              "available": true,
+              "venue_code": "18",
+              "features": {
+                "d30": {
+                  "starts": 4,
+                  "finish_samples": 3,
+                  "avg_finish": 5.0,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 1,
+                  "avg_st": 0.19,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 1,
+                  "avg_exhibition": 6.95
+                },
+                "d90": {
+                  "starts": 4,
+                  "finish_samples": 3,
+                  "avg_finish": 5.0,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 1,
+                  "avg_st": 0.19,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 1,
+                  "avg_exhibition": 6.95
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": 0.0,
+                  "avg_st_30v90": 0.0,
+                  "avg_exhibition_30v90": 0.0
+                }
+              }
+            },
+            "racer_course": {
+              "available": true,
+              "current_course": 5,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 1,
+                  "finish_samples": 1,
+                  "avg_finish": 5.0,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 1,
+                  "avg_st": 0.18,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 1,
+                  "avg_exhibition": 6.74
+                },
+                "d90": {
+                  "starts": 3,
+                  "finish_samples": 3,
+                  "avg_finish": 4.33333,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.33333,
+                  "st_samples": 3,
+                  "avg_st": 0.19667,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.82333
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": -0.33333,
+                  "avg_finish_30v90": 0.66667,
+                  "avg_st_30v90": -0.01667,
+                  "avg_exhibition_30v90": -0.08333
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 5,
+              "exhibition_time": 7.03,
+              "exhibition_st_raw": "F.01",
+              "exhibition_st": -0.01,
+              "exhibition_f": true,
+              "tilt": 0.0,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 23.0,
+                "water_temperature_c": 24.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 3,
+                "wind_direction": "北東",
+                "wave_height_cm": 4.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
+            "official_f_count": null,
+            "official_l_count": null,
+            "official_avg_st": null,
+            "official_fl_available": false,
+            "candidate_components": {
+              "f_l_holdings": {
+                "available": false,
+                "f_count": null,
+                "l_count": null,
+                "active_in_score": false
+              },
+              "motor_30d": {
+                "available": true,
+                "features": {
+                  "unique_racers": 3,
+                  "starts": 17,
+                  "finish_samples": 16,
+                  "avg_finish": 3.0625,
+                  "win_rate": 0.29412,
+                  "top2_rate": 0.47059,
+                  "top3_rate": 0.58824,
+                  "st_samples": 17,
+                  "avg_st": 0.10941,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 17,
+                  "avg_exhibition": 6.90706
+                },
+                "active_in_score": false
+              },
+              "parts_exchange": {
+                "available": false,
+                "value": "",
+                "active_in_score": false
+              },
+              "weather_water": {
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 23.0,
+                    "water_temperature_c": 24.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 3,
+                    "wind_direction": "北東",
+                    "wave_height_cm": 4.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
+                "active_in_score": false
+              }
+            }
+          }
+        },
+        {
+          "rank": 6,
+          "boat": 6,
+          "racer_name": "知念伶奈",
+          "score": 16.72,
+          "morning_score_reference": 9.4,
+          "score_fallback": false,
+          "score_fallback_reasons": [],
+          "grade": "B2",
+          "registration_no": 5451,
+          "motor_no": 63,
+          "boat_no": 62,
+          "exhibition_course": 6,
+          "exhibition_time": 6.98,
+          "exhibition_st": -0.02,
+          "exhibition_f": true,
+          "components": {
+            "racer_course": {
+              "weight": 40,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "grade": {
+              "weight": 20,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "motor": {
+              "weight": 20,
+              "raw_score_0_1": 0.32,
+              "available": true
+            },
+            "boat": {
+              "weight": 5,
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "national_top2": {
+              "weight": 15,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.094,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 0.4,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
+            }
+          },
+          "input_trace": {
+            "history_feature_manifest": {
+              "as_of_date": "20261013",
+              "history_min_date": "20260621",
+              "history_max_date": "20261012",
+              "history_stale_days": 0,
+              "leakage_guard": "Only rows with result date < as_of_date are used."
+            },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 20,
               "finish_samples": 20,
@@ -1488,7 +1954,75 @@
                 }
               }
             },
-            "course_used": 6,
+            "racer_course": {
+              "available": true,
+              "current_course": 6,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 14,
+                  "finish_samples": 14,
+                  "avg_finish": 5.78571,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 14,
+                  "avg_st": 0.225,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 14,
+                  "avg_exhibition": 6.86143
+                },
+                "d90": {
+                  "starts": 29,
+                  "finish_samples": 29,
+                  "avg_finish": 5.86207,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.0,
+                  "top3_rate": 0.0,
+                  "st_samples": 29,
+                  "avg_st": 0.27103,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 29,
+                  "avg_exhibition": 6.86345
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.0,
+                  "top3_rate_30v90": 0.0,
+                  "avg_finish_30v90": -0.07636,
+                  "avg_st_30v90": -0.04603,
+                  "avg_exhibition_30v90": -0.00202
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 6,
+              "exhibition_time": 6.98,
+              "exhibition_st_raw": "F.02",
+              "exhibition_st": -0.02,
+              "exhibition_f": true,
+              "tilt": 0.0,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "晴",
+                "air_temperature_c": 23.0,
+                "water_temperature_c": 24.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 3,
+                "wind_direction": "北東",
+                "wave_height_cm": 4.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -1527,8 +2061,20 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "晴",
+                    "air_temperature_c": 23.0,
+                    "water_temperature_c": 24.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 3,
+                    "wind_direction": "北東",
+                    "wave_height_cm": 4.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
@@ -1537,43 +2083,36 @@
       ],
       "formation": {
         "model_version": "formation_gap_flow_v2",
-        "formation_type": "1着固定＋相手流し",
-        "gap_1_2": 10.5,
-        "gap_2_3": 9.0,
-        "gap_3_4": 2.2,
+        "formation_type": "1・2着折返し＋3着流し",
+        "gap_1_2": 2.96,
+        "gap_2_3": 15.04,
+        "gap_3_4": 12.4,
         "first_candidates": [
-          1
+          1,
+          5
         ],
         "second_candidates": [
-          3,
-          5,
-          4,
-          2,
-          6
+          1,
+          5
         ],
         "third_candidates": [
           3,
-          5,
-          4,
           2,
+          4,
           6
         ],
         "combinations": [
-          "1-3-5",
-          "1-3-4",
           "1-5-3",
-          "1-4-3",
-          "1-5-4",
-          "1-4-5",
-          "1-3-2",
           "1-5-2",
-          "1-2-3",
-          "1-4-2",
-          "1-2-5",
-          "1-3-6"
+          "1-5-4",
+          "1-5-6",
+          "5-1-3",
+          "5-1-2",
+          "5-1-4",
+          "5-1-6"
         ],
-        "points": 12,
-        "investment_100yen": 1200
+        "points": 8,
+        "investment_100yen": 800
       },
       "morning_formation": {
         "model_version": "formation_gap_flow_v2",
@@ -3007,1067 +3546,1789 @@
         "position_scores": [
           {
             "boat": 1,
-            "first_score": 77.82,
-            "second_score": 75.02,
-            "third_score": 71.98
+            "first_score": 78.43,
+            "second_score": 77.31,
+            "third_score": 76.06
           },
           {
             "boat": 2,
-            "first_score": 35.94,
-            "second_score": 34.88,
-            "third_score": 34.28
+            "first_score": 57.95,
+            "second_score": 51.38,
+            "third_score": 46.13
           },
           {
             "boat": 3,
-            "first_score": 66.59,
-            "second_score": 65.01,
-            "third_score": 62.21
+            "first_score": 54.59,
+            "second_score": 57.62,
+            "third_score": 59.93
           },
           {
             "boat": 4,
-            "first_score": 53.92,
-            "second_score": 54.22,
-            "third_score": 58.24
+            "first_score": 37.5,
+            "second_score": 38.61,
+            "third_score": 39.26
           },
           {
             "boat": 5,
-            "first_score": 56.55,
-            "second_score": 60.13,
-            "third_score": 58.55
+            "first_score": 78.62,
+            "second_score": 76.03,
+            "third_score": 73.84
           },
           {
             "boat": 6,
-            "first_score": 9.17,
-            "second_score": 10.73,
-            "third_score": 14.73
+            "first_score": 22.66,
+            "second_score": 19.2,
+            "third_score": 16.55
           }
         ],
         "first_candidates": [
+          5,
           1,
-          3,
-          5
+          2
         ],
         "second_candidates": [
           1,
-          3,
           5,
-          4
+          3,
+          2
         ],
         "third_candidates": [
           1,
-          3,
           5,
-          4,
-          2
+          3,
+          2,
+          4
         ],
         "boundary_gaps": {},
         "combinations": [
           {
-            "combination": "1-3-5",
-            "score": 66.66
-          },
-          {
-            "combination": "1-3-4",
-            "score": 66.542
-          },
-          {
-            "combination": "3-1-5",
-            "score": 66.38
+            "combination": "5-1-3",
+            "score": 71.417
           },
           {
             "combination": "1-5-3",
-            "score": 66.275
-          },
-          {
-            "combination": "3-1-4",
-            "score": 66.263
-          },
-          {
-            "combination": "3-5-1",
-            "score": 66.055
-          },
-          {
-            "combination": "1-5-4",
-            "score": 64.834
+            "score": 70.964
           },
           {
             "combination": "5-3-1",
-            "score": 64.201
+            "score": 70.106
+          },
+          {
+            "combination": "2-5-1",
+            "score": 69.459
+          },
+          {
+            "combination": "1-3-5",
+            "score": 69.361
+          },
+          {
+            "combination": "2-1-5",
+            "score": 69.161
+          },
+          {
+            "combination": "3-5-1",
+            "score": 68.09
+          },
+          {
+            "combination": "3-1-5",
+            "score": 67.797
           }
         ],
         "base_120_combinations": [
           {
-            "combination": "1-3-5",
-            "score": 66.66
-          },
-          {
-            "combination": "1-3-4",
-            "score": 66.542
-          },
-          {
-            "combination": "3-1-5",
-            "score": 66.38
+            "combination": "5-1-3",
+            "score": 71.417
           },
           {
             "combination": "1-5-3",
-            "score": 66.275
-          },
-          {
-            "combination": "3-1-4",
-            "score": 66.263
-          },
-          {
-            "combination": "3-5-1",
-            "score": 66.055
-          },
-          {
-            "combination": "1-5-4",
-            "score": 64.834
+            "score": 70.964
           },
           {
             "combination": "5-3-1",
-            "score": 64.201
-          },
-          {
-            "combination": "5-1-3",
-            "score": 64.144
-          },
-          {
-            "combination": "1-4-3",
-            "score": 64.028
-          },
-          {
-            "combination": "3-4-1",
-            "score": 63.816
-          },
-          {
-            "combination": "4-3-1",
-            "score": 63.19
-          },
-          {
-            "combination": "4-1-3",
-            "score": 63.134
-          },
-          {
-            "combination": "5-1-4",
-            "score": 62.75
-          },
-          {
-            "combination": "1-4-5",
-            "score": 62.747
-          },
-          {
-            "combination": "4-1-5",
-            "score": 61.871
-          },
-          {
-            "combination": "4-5-1",
-            "score": 61.567
-          },
-          {
-            "combination": "3-5-4",
-            "score": 61.552
-          },
-          {
-            "combination": "5-4-1",
-            "score": 60.432
-          },
-          {
-            "combination": "5-3-4",
-            "score": 59.824
-          },
-          {
-            "combination": "3-4-5",
-            "score": 59.571
-          },
-          {
-            "combination": "4-3-5",
-            "score": 58.986
-          },
-          {
-            "combination": "4-5-3",
-            "score": 58.645
-          },
-          {
-            "combination": "5-4-3",
-            "score": 57.564
-          },
-          {
-            "combination": "1-3-2",
-            "score": 55.766
-          },
-          {
-            "combination": "3-1-2",
-            "score": 55.532
-          },
-          {
-            "combination": "1-2-3",
-            "score": 55.273
-          },
-          {
-            "combination": "2-3-1",
-            "score": 55.198
-          },
-          {
-            "combination": "2-1-3",
-            "score": 55.149
-          },
-          {
-            "combination": "3-2-1",
-            "score": 55.089
-          },
-          {
-            "combination": "1-5-2",
-            "score": 54.334
-          },
-          {
-            "combination": "1-2-5",
-            "score": 54.167
-          },
-          {
-            "combination": "1-2-4",
-            "score": 54.071
-          },
-          {
-            "combination": "2-1-5",
-            "score": 54.046
-          },
-          {
-            "combination": "2-1-4",
-            "score": 53.95
+            "score": 70.106
           },
           {
             "combination": "2-5-1",
-            "score": 53.781
+            "score": 69.459
           },
           {
-            "combination": "5-1-2",
-            "score": 52.588
+            "combination": "1-3-5",
+            "score": 69.361
           },
           {
-            "combination": "1-4-2",
-            "score": 52.492
+            "combination": "2-1-5",
+            "score": 69.161
+          },
+          {
+            "combination": "3-5-1",
+            "score": 68.09
+          },
+          {
+            "combination": "3-1-5",
+            "score": 67.797
           },
           {
             "combination": "5-2-1",
-            "score": 52.168
+            "score": 67.478
           },
           {
-            "combination": "2-4-1",
-            "score": 51.958
+            "combination": "1-2-5",
+            "score": 66.761
           },
           {
-            "combination": "4-1-2",
-            "score": 51.759
+            "combination": "5-1-2",
+            "score": 65.451
           },
           {
-            "combination": "3-5-2",
-            "score": 51.584
+            "combination": "1-5-2",
+            "score": 65.035
           },
           {
-            "combination": "2-3-5",
-            "score": 51.526
-          },
-          {
-            "combination": "2-3-4",
-            "score": 51.435
-          },
-          {
-            "combination": "3-2-5",
-            "score": 51.425
-          },
-          {
-            "combination": "4-2-1",
-            "score": 51.347
-          },
-          {
-            "combination": "3-2-4",
-            "score": 51.334
+            "combination": "2-1-3",
+            "score": 64.513
           },
           {
             "combination": "2-5-3",
-            "score": 51.228
+            "score": 64.155
           },
           {
-            "combination": "5-3-2",
-            "score": 50.136
+            "combination": "2-3-1",
+            "score": 63.328
           },
           {
-            "combination": "2-5-4",
-            "score": 50.115
-          },
-          {
-            "combination": "3-4-2",
-            "score": 49.835
+            "combination": "2-3-5",
+            "score": 62.706
           },
           {
             "combination": "5-2-3",
-            "score": 49.692
+            "score": 62.324
           },
           {
-            "combination": "2-4-3",
-            "score": 49.492
+            "combination": "1-2-3",
+            "score": 62.274
           },
           {
-            "combination": "4-3-2",
-            "score": 49.347
+            "combination": "5-1-4",
+            "score": 62.026
           },
           {
-            "combination": "4-2-3",
-            "score": 48.91
+            "combination": "1-5-4",
+            "score": 61.632
           },
           {
-            "combination": "5-2-4",
-            "score": 48.612
+            "combination": "5-4-1",
+            "score": 61.347
+          },
+          {
+            "combination": "1-4-5",
+            "score": 60.696
+          },
+          {
+            "combination": "4-5-1",
+            "score": 60.079
+          },
+          {
+            "combination": "4-1-5",
+            "score": 59.821
+          },
+          {
+            "combination": "3-2-1",
+            "score": 59.752
+          },
+          {
+            "combination": "5-3-2",
+            "score": 59.342
+          },
+          {
+            "combination": "1-3-2",
+            "score": 59.294
+          },
+          {
+            "combination": "3-2-5",
+            "score": 59.165
+          },
+          {
+            "combination": "3-1-2",
+            "score": 57.958
+          },
+          {
+            "combination": "3-5-2",
+            "score": 57.636
+          },
+          {
+            "combination": "5-4-3",
+            "score": 56.662
+          },
+          {
+            "combination": "1-4-3",
+            "score": 56.616
+          },
+          {
+            "combination": "5-3-4",
+            "score": 56.237
+          },
+          {
+            "combination": "1-3-4",
+            "score": 56.191
+          },
+          {
+            "combination": "2-1-4",
+            "score": 56.029
+          },
+          {
+            "combination": "4-1-3",
+            "score": 55.8
+          },
+          {
+            "combination": "2-5-4",
+            "score": 55.718
+          },
+          {
+            "combination": "4-5-3",
+            "score": 55.491
+          },
+          {
+            "combination": "2-4-1",
+            "score": 55.416
+          },
+          {
+            "combination": "3-1-4",
+            "score": 54.925
           },
           {
             "combination": "2-4-5",
-            "score": 48.501
+            "score": 54.872
           },
           {
-            "combination": "4-5-2",
-            "score": 48.08
+            "combination": "4-3-1",
+            "score": 54.776
+          },
+          {
+            "combination": "3-5-4",
+            "score": 54.62
+          },
+          {
+            "combination": "3-4-1",
+            "score": 54.324
+          },
+          {
+            "combination": "4-3-5",
+            "score": 54.237
+          },
+          {
+            "combination": "5-2-4",
+            "score": 54.128
+          },
+          {
+            "combination": "1-2-4",
+            "score": 54.085
+          },
+          {
+            "combination": "3-4-5",
+            "score": 53.79
+          },
+          {
+            "combination": "4-2-1",
+            "score": 52.722
           },
           {
             "combination": "4-2-5",
-            "score": 47.931
+            "score": 52.204
           },
           {
             "combination": "5-4-2",
-            "score": 47.193
+            "score": 51.928
           },
           {
-            "combination": "1-3-6",
-            "score": 42.082
+            "combination": "1-4-2",
+            "score": 51.887
           },
           {
-            "combination": "3-1-6",
-            "score": 41.905
+            "combination": "2-4-3",
+            "score": 51.184
           },
           {
-            "combination": "1-5-6",
-            "score": 41.001
+            "combination": "4-1-2",
+            "score": 51.139
           },
           {
-            "combination": "5-1-6",
-            "score": 39.683
+            "combination": "4-5-2",
+            "score": 50.855
           },
           {
-            "combination": "1-4-6",
-            "score": 39.611
-          },
-          {
-            "combination": "4-1-6",
-            "score": 39.058
-          },
-          {
-            "combination": "3-5-6",
-            "score": 38.926
-          },
-          {
-            "combination": "5-3-6",
-            "score": 37.833
-          },
-          {
-            "combination": "3-4-6",
-            "score": 37.606
-          },
-          {
-            "combination": "1-6-3",
-            "score": 37.312
-          },
-          {
-            "combination": "4-3-6",
-            "score": 37.237
-          },
-          {
-            "combination": "3-6-1",
-            "score": 37.188
-          },
-          {
-            "combination": "1-6-5",
-            "score": 36.566
-          },
-          {
-            "combination": "1-6-4",
-            "score": 36.501
-          },
-          {
-            "combination": "4-5-6",
-            "score": 36.281
-          },
-          {
-            "combination": "5-4-6",
-            "score": 35.612
-          },
-          {
-            "combination": "5-6-1",
-            "score": 35.217
-          },
-          {
-            "combination": "6-3-1",
-            "score": 35.01
-          },
-          {
-            "combination": "6-1-3",
-            "score": 34.979
-          },
-          {
-            "combination": "3-6-5",
-            "score": 34.715
-          },
-          {
-            "combination": "4-6-1",
-            "score": 34.662
-          },
-          {
-            "combination": "3-6-4",
-            "score": 34.653
-          },
-          {
-            "combination": "6-1-5",
-            "score": 34.279
-          },
-          {
-            "combination": "6-1-4",
-            "score": 34.218
-          },
-          {
-            "combination": "1-2-6",
-            "score": 34.195
-          },
-          {
-            "combination": "2-1-6",
-            "score": 34.118
+            "combination": "2-3-4",
+            "score": 50.799
           },
           {
             "combination": "6-5-1",
-            "score": 34.111
+            "score": 50.793
           },
           {
-            "combination": "5-6-3",
-            "score": 33.545
+            "combination": "6-1-5",
+            "score": 50.574
           },
           {
-            "combination": "4-6-3",
-            "score": 33.017
+            "combination": "4-2-3",
+            "score": 48.696
           },
           {
-            "combination": "6-4-1",
-            "score": 32.954
+            "combination": "5-6-1",
+            "score": 48.603
           },
           {
-            "combination": "5-6-4",
-            "score": 32.816
+            "combination": "1-6-5",
+            "score": 48.087
           },
           {
-            "combination": "6-3-5",
-            "score": 32.681
+            "combination": "3-2-4",
+            "score": 47.931
           },
           {
-            "combination": "6-3-4",
-            "score": 32.623
-          },
-          {
-            "combination": "2-3-6",
-            "score": 32.528
+            "combination": "6-1-3",
+            "score": 47.175
           },
           {
             "combination": "6-5-3",
-            "score": 32.492
+            "score": 46.913
           },
           {
-            "combination": "3-2-6",
-            "score": 32.464
+            "combination": "5-1-6",
+            "score": 46.507
           },
           {
-            "combination": "4-6-5",
-            "score": 32.356
+            "combination": "4-3-2",
+            "score": 46.366
           },
           {
-            "combination": "6-5-4",
-            "score": 31.785
+            "combination": "6-3-1",
+            "score": 46.309
           },
           {
-            "combination": "2-5-6",
-            "score": 31.693
+            "combination": "1-5-6",
+            "score": 46.212
           },
           {
-            "combination": "6-4-3",
-            "score": 31.39
+            "combination": "3-4-2",
+            "score": 45.983
           },
           {
-            "combination": "6-4-5",
-            "score": 30.762
+            "combination": "6-3-5",
+            "score": 45.854
           },
           {
-            "combination": "5-2-6",
-            "score": 30.742
+            "combination": "5-6-3",
+            "score": 44.891
           },
           {
-            "combination": "2-4-6",
-            "score": 30.618
-          },
-          {
-            "combination": "1-6-2",
-            "score": 30.59
-          },
-          {
-            "combination": "2-6-1",
-            "score": 30.278
-          },
-          {
-            "combination": "4-2-6",
-            "score": 30.258
-          },
-          {
-            "combination": "3-6-2",
-            "score": 29.041
-          },
-          {
-            "combination": "2-6-3",
-            "score": 28.841
-          },
-          {
-            "combination": "6-1-2",
-            "score": 28.677
+            "combination": "1-6-3",
+            "score": 44.855
           },
           {
             "combination": "6-2-1",
-            "score": 28.448
-          },
-          {
-            "combination": "2-6-5",
-            "score": 28.264
-          },
-          {
-            "combination": "2-6-4",
-            "score": 28.214
-          },
-          {
-            "combination": "5-6-2",
-            "score": 27.502
-          },
-          {
-            "combination": "6-3-2",
-            "score": 27.34
-          },
-          {
-            "combination": "6-2-3",
-            "score": 27.098
-          },
-          {
-            "combination": "4-6-2",
-            "score": 27.068
-          },
-          {
-            "combination": "6-5-2",
-            "score": 26.638
+            "score": 44.573
           },
           {
             "combination": "6-2-5",
-            "score": 26.556
+            "score": 44.135
+          },
+          {
+            "combination": "2-6-1",
+            "score": 43.904
+          },
+          {
+            "combination": "2-6-5",
+            "score": 43.473
+          },
+          {
+            "combination": "6-1-2",
+            "score": 43.234
+          },
+          {
+            "combination": "3-6-1",
+            "score": 43.038
+          },
+          {
+            "combination": "6-5-2",
+            "score": 42.994
+          },
+          {
+            "combination": "3-6-5",
+            "score": 42.616
+          },
+          {
+            "combination": "5-3-6",
+            "score": 42.167
+          },
+          {
+            "combination": "1-3-6",
+            "score": 42.133
+          },
+          {
+            "combination": "2-1-6",
+            "score": 42.011
+          },
+          {
+            "combination": "2-5-6",
+            "score": 41.778
+          },
+          {
+            "combination": "3-1-6",
+            "score": 41.183
+          },
+          {
+            "combination": "6-2-3",
+            "score": 41.169
+          },
+          {
+            "combination": "5-6-2",
+            "score": 41.141
+          },
+          {
+            "combination": "1-6-2",
+            "score": 41.108
+          },
+          {
+            "combination": "6-1-4",
+            "score": 40.972
+          },
+          {
+            "combination": "3-5-6",
+            "score": 40.954
+          },
+          {
+            "combination": "6-5-4",
+            "score": 40.744
+          },
+          {
+            "combination": "5-2-6",
+            "score": 40.586
+          },
+          {
+            "combination": "1-2-6",
+            "score": 40.553
+          },
+          {
+            "combination": "2-6-3",
+            "score": 40.551
+          },
+          {
+            "combination": "6-4-1",
+            "score": 40.523
+          },
+          {
+            "combination": "6-4-5",
+            "score": 40.125
+          },
+          {
+            "combination": "6-3-2",
+            "score": 39.199
+          },
+          {
+            "combination": "5-6-4",
+            "score": 38.988
+          },
+          {
+            "combination": "1-6-4",
+            "score": 38.956
+          },
+          {
+            "combination": "2-3-6",
+            "score": 38.09
+          },
+          {
+            "combination": "4-6-1",
+            "score": 37.975
+          },
+          {
+            "combination": "4-6-5",
+            "score": 37.602
+          },
+          {
+            "combination": "6-4-3",
+            "score": 37.428
+          },
+          {
+            "combination": "6-3-4",
+            "score": 37.147
+          },
+          {
+            "combination": "5-4-6",
+            "score": 36.899
+          },
+          {
+            "combination": "1-4-6",
+            "score": 36.869
+          },
+          {
+            "combination": "3-6-2",
+            "score": 36.431
+          },
+          {
+            "combination": "4-1-6",
+            "score": 36.337
+          },
+          {
+            "combination": "4-5-6",
+            "score": 36.136
+          },
+          {
+            "combination": "3-2-6",
+            "score": 35.939
           },
           {
             "combination": "6-2-4",
-            "score": 26.509
+            "score": 35.755
+          },
+          {
+            "combination": "2-6-4",
+            "score": 35.218
+          },
+          {
+            "combination": "4-6-3",
+            "score": 35.075
+          },
+          {
+            "combination": "3-6-4",
+            "score": 34.524
           },
           {
             "combination": "6-4-2",
-            "score": 25.735
+            "score": 34.302
+          },
+          {
+            "combination": "2-4-6",
+            "score": 33.331
+          },
+          {
+            "combination": "4-3-6",
+            "score": 32.946
+          },
+          {
+            "combination": "3-4-6",
+            "score": 32.674
+          },
+          {
+            "combination": "4-6-2",
+            "score": 32.144
+          },
+          {
+            "combination": "4-2-6",
+            "score": 31.711
           }
         ],
         "all_120_combinations": [
           {
-            "combination": "1-3-5",
-            "score": 66.66
-          },
-          {
-            "combination": "1-3-4",
-            "score": 66.542
-          },
-          {
-            "combination": "3-1-5",
-            "score": 66.38
+            "combination": "5-1-3",
+            "score": 71.417
           },
           {
             "combination": "1-5-3",
-            "score": 66.275
-          },
-          {
-            "combination": "3-1-4",
-            "score": 66.263
-          },
-          {
-            "combination": "3-5-1",
-            "score": 66.055
-          },
-          {
-            "combination": "1-5-4",
-            "score": 64.834
+            "score": 70.964
           },
           {
             "combination": "5-3-1",
-            "score": 64.201
-          },
-          {
-            "combination": "5-1-3",
-            "score": 64.144
-          },
-          {
-            "combination": "1-4-3",
-            "score": 64.028
-          },
-          {
-            "combination": "3-4-1",
-            "score": 63.816
-          },
-          {
-            "combination": "4-3-1",
-            "score": 63.19
-          },
-          {
-            "combination": "4-1-3",
-            "score": 63.134
-          },
-          {
-            "combination": "5-1-4",
-            "score": 62.75
-          },
-          {
-            "combination": "1-4-5",
-            "score": 62.747
-          },
-          {
-            "combination": "4-1-5",
-            "score": 61.871
-          },
-          {
-            "combination": "4-5-1",
-            "score": 61.567
-          },
-          {
-            "combination": "3-5-4",
-            "score": 61.552
-          },
-          {
-            "combination": "5-4-1",
-            "score": 60.432
-          },
-          {
-            "combination": "5-3-4",
-            "score": 59.824
-          },
-          {
-            "combination": "3-4-5",
-            "score": 59.571
-          },
-          {
-            "combination": "4-3-5",
-            "score": 58.986
-          },
-          {
-            "combination": "4-5-3",
-            "score": 58.645
-          },
-          {
-            "combination": "5-4-3",
-            "score": 57.564
-          },
-          {
-            "combination": "1-3-2",
-            "score": 55.766
-          },
-          {
-            "combination": "3-1-2",
-            "score": 55.532
-          },
-          {
-            "combination": "1-2-3",
-            "score": 55.273
-          },
-          {
-            "combination": "2-3-1",
-            "score": 55.198
-          },
-          {
-            "combination": "2-1-3",
-            "score": 55.149
-          },
-          {
-            "combination": "3-2-1",
-            "score": 55.089
-          },
-          {
-            "combination": "1-5-2",
-            "score": 54.334
-          },
-          {
-            "combination": "1-2-5",
-            "score": 54.167
-          },
-          {
-            "combination": "1-2-4",
-            "score": 54.071
-          },
-          {
-            "combination": "2-1-5",
-            "score": 54.046
-          },
-          {
-            "combination": "2-1-4",
-            "score": 53.95
+            "score": 70.106
           },
           {
             "combination": "2-5-1",
-            "score": 53.781
+            "score": 69.459
           },
           {
-            "combination": "5-1-2",
-            "score": 52.588
+            "combination": "1-3-5",
+            "score": 69.361
           },
           {
-            "combination": "1-4-2",
-            "score": 52.492
+            "combination": "2-1-5",
+            "score": 69.161
+          },
+          {
+            "combination": "3-5-1",
+            "score": 68.09
+          },
+          {
+            "combination": "3-1-5",
+            "score": 67.797
           },
           {
             "combination": "5-2-1",
-            "score": 52.168
+            "score": 67.478
           },
           {
-            "combination": "2-4-1",
-            "score": 51.958
+            "combination": "1-2-5",
+            "score": 66.761
           },
           {
-            "combination": "4-1-2",
-            "score": 51.759
+            "combination": "5-1-2",
+            "score": 65.451
           },
           {
-            "combination": "3-5-2",
-            "score": 51.584
+            "combination": "1-5-2",
+            "score": 65.035
           },
           {
-            "combination": "2-3-5",
-            "score": 51.526
-          },
-          {
-            "combination": "2-3-4",
-            "score": 51.435
-          },
-          {
-            "combination": "3-2-5",
-            "score": 51.425
-          },
-          {
-            "combination": "4-2-1",
-            "score": 51.347
-          },
-          {
-            "combination": "3-2-4",
-            "score": 51.334
+            "combination": "2-1-3",
+            "score": 64.513
           },
           {
             "combination": "2-5-3",
-            "score": 51.228
+            "score": 64.155
           },
           {
-            "combination": "5-3-2",
-            "score": 50.136
+            "combination": "2-3-1",
+            "score": 63.328
           },
           {
-            "combination": "2-5-4",
-            "score": 50.115
-          },
-          {
-            "combination": "3-4-2",
-            "score": 49.835
+            "combination": "2-3-5",
+            "score": 62.706
           },
           {
             "combination": "5-2-3",
-            "score": 49.692
+            "score": 62.324
           },
           {
-            "combination": "2-4-3",
-            "score": 49.492
+            "combination": "1-2-3",
+            "score": 62.274
           },
           {
-            "combination": "4-3-2",
-            "score": 49.347
+            "combination": "5-1-4",
+            "score": 62.026
           },
           {
-            "combination": "4-2-3",
-            "score": 48.91
+            "combination": "1-5-4",
+            "score": 61.632
           },
           {
-            "combination": "5-2-4",
-            "score": 48.612
+            "combination": "5-4-1",
+            "score": 61.347
+          },
+          {
+            "combination": "1-4-5",
+            "score": 60.696
+          },
+          {
+            "combination": "4-5-1",
+            "score": 60.079
+          },
+          {
+            "combination": "4-1-5",
+            "score": 59.821
+          },
+          {
+            "combination": "3-2-1",
+            "score": 59.752
+          },
+          {
+            "combination": "5-3-2",
+            "score": 59.342
+          },
+          {
+            "combination": "1-3-2",
+            "score": 59.294
+          },
+          {
+            "combination": "3-2-5",
+            "score": 59.165
+          },
+          {
+            "combination": "3-1-2",
+            "score": 57.958
+          },
+          {
+            "combination": "3-5-2",
+            "score": 57.636
+          },
+          {
+            "combination": "5-4-3",
+            "score": 56.662
+          },
+          {
+            "combination": "1-4-3",
+            "score": 56.616
+          },
+          {
+            "combination": "5-3-4",
+            "score": 56.237
+          },
+          {
+            "combination": "1-3-4",
+            "score": 56.191
+          },
+          {
+            "combination": "2-1-4",
+            "score": 56.029
+          },
+          {
+            "combination": "4-1-3",
+            "score": 55.8
+          },
+          {
+            "combination": "2-5-4",
+            "score": 55.718
+          },
+          {
+            "combination": "4-5-3",
+            "score": 55.491
+          },
+          {
+            "combination": "2-4-1",
+            "score": 55.416
+          },
+          {
+            "combination": "3-1-4",
+            "score": 54.925
           },
           {
             "combination": "2-4-5",
-            "score": 48.501
+            "score": 54.872
           },
           {
-            "combination": "4-5-2",
-            "score": 48.08
+            "combination": "4-3-1",
+            "score": 54.776
+          },
+          {
+            "combination": "3-5-4",
+            "score": 54.62
+          },
+          {
+            "combination": "3-4-1",
+            "score": 54.324
+          },
+          {
+            "combination": "4-3-5",
+            "score": 54.237
+          },
+          {
+            "combination": "5-2-4",
+            "score": 54.128
+          },
+          {
+            "combination": "1-2-4",
+            "score": 54.085
+          },
+          {
+            "combination": "3-4-5",
+            "score": 53.79
+          },
+          {
+            "combination": "4-2-1",
+            "score": 52.722
           },
           {
             "combination": "4-2-5",
-            "score": 47.931
+            "score": 52.204
           },
           {
             "combination": "5-4-2",
-            "score": 47.193
+            "score": 51.928
           },
           {
-            "combination": "1-3-6",
-            "score": 42.082
+            "combination": "1-4-2",
+            "score": 51.887
           },
           {
-            "combination": "3-1-6",
-            "score": 41.905
+            "combination": "2-4-3",
+            "score": 51.184
           },
           {
-            "combination": "1-5-6",
-            "score": 41.001
+            "combination": "4-1-2",
+            "score": 51.139
           },
           {
-            "combination": "5-1-6",
-            "score": 39.683
+            "combination": "4-5-2",
+            "score": 50.855
           },
           {
-            "combination": "1-4-6",
-            "score": 39.611
-          },
-          {
-            "combination": "4-1-6",
-            "score": 39.058
-          },
-          {
-            "combination": "3-5-6",
-            "score": 38.926
-          },
-          {
-            "combination": "5-3-6",
-            "score": 37.833
-          },
-          {
-            "combination": "3-4-6",
-            "score": 37.606
-          },
-          {
-            "combination": "1-6-3",
-            "score": 37.312
-          },
-          {
-            "combination": "4-3-6",
-            "score": 37.237
-          },
-          {
-            "combination": "3-6-1",
-            "score": 37.188
-          },
-          {
-            "combination": "1-6-5",
-            "score": 36.566
-          },
-          {
-            "combination": "1-6-4",
-            "score": 36.501
-          },
-          {
-            "combination": "4-5-6",
-            "score": 36.281
-          },
-          {
-            "combination": "5-4-6",
-            "score": 35.612
-          },
-          {
-            "combination": "5-6-1",
-            "score": 35.217
-          },
-          {
-            "combination": "6-3-1",
-            "score": 35.01
-          },
-          {
-            "combination": "6-1-3",
-            "score": 34.979
-          },
-          {
-            "combination": "3-6-5",
-            "score": 34.715
-          },
-          {
-            "combination": "4-6-1",
-            "score": 34.662
-          },
-          {
-            "combination": "3-6-4",
-            "score": 34.653
-          },
-          {
-            "combination": "6-1-5",
-            "score": 34.279
-          },
-          {
-            "combination": "6-1-4",
-            "score": 34.218
-          },
-          {
-            "combination": "1-2-6",
-            "score": 34.195
-          },
-          {
-            "combination": "2-1-6",
-            "score": 34.118
+            "combination": "2-3-4",
+            "score": 50.799
           },
           {
             "combination": "6-5-1",
-            "score": 34.111
+            "score": 50.793
           },
           {
-            "combination": "5-6-3",
-            "score": 33.545
+            "combination": "6-1-5",
+            "score": 50.574
           },
           {
-            "combination": "4-6-3",
-            "score": 33.017
+            "combination": "4-2-3",
+            "score": 48.696
           },
           {
-            "combination": "6-4-1",
-            "score": 32.954
+            "combination": "5-6-1",
+            "score": 48.603
           },
           {
-            "combination": "5-6-4",
-            "score": 32.816
+            "combination": "1-6-5",
+            "score": 48.087
           },
           {
-            "combination": "6-3-5",
-            "score": 32.681
+            "combination": "3-2-4",
+            "score": 47.931
           },
           {
-            "combination": "6-3-4",
-            "score": 32.623
-          },
-          {
-            "combination": "2-3-6",
-            "score": 32.528
+            "combination": "6-1-3",
+            "score": 47.175
           },
           {
             "combination": "6-5-3",
-            "score": 32.492
+            "score": 46.913
           },
           {
-            "combination": "3-2-6",
-            "score": 32.464
+            "combination": "5-1-6",
+            "score": 46.507
           },
           {
-            "combination": "4-6-5",
-            "score": 32.356
+            "combination": "4-3-2",
+            "score": 46.366
           },
           {
-            "combination": "6-5-4",
-            "score": 31.785
+            "combination": "6-3-1",
+            "score": 46.309
           },
           {
-            "combination": "2-5-6",
-            "score": 31.693
+            "combination": "1-5-6",
+            "score": 46.212
           },
           {
-            "combination": "6-4-3",
-            "score": 31.39
+            "combination": "3-4-2",
+            "score": 45.983
           },
           {
-            "combination": "6-4-5",
-            "score": 30.762
+            "combination": "6-3-5",
+            "score": 45.854
           },
           {
-            "combination": "5-2-6",
-            "score": 30.742
+            "combination": "5-6-3",
+            "score": 44.891
           },
           {
-            "combination": "2-4-6",
-            "score": 30.618
-          },
-          {
-            "combination": "1-6-2",
-            "score": 30.59
-          },
-          {
-            "combination": "2-6-1",
-            "score": 30.278
-          },
-          {
-            "combination": "4-2-6",
-            "score": 30.258
-          },
-          {
-            "combination": "3-6-2",
-            "score": 29.041
-          },
-          {
-            "combination": "2-6-3",
-            "score": 28.841
-          },
-          {
-            "combination": "6-1-2",
-            "score": 28.677
+            "combination": "1-6-3",
+            "score": 44.855
           },
           {
             "combination": "6-2-1",
-            "score": 28.448
-          },
-          {
-            "combination": "2-6-5",
-            "score": 28.264
-          },
-          {
-            "combination": "2-6-4",
-            "score": 28.214
-          },
-          {
-            "combination": "5-6-2",
-            "score": 27.502
-          },
-          {
-            "combination": "6-3-2",
-            "score": 27.34
-          },
-          {
-            "combination": "6-2-3",
-            "score": 27.098
-          },
-          {
-            "combination": "4-6-2",
-            "score": 27.068
-          },
-          {
-            "combination": "6-5-2",
-            "score": 26.638
+            "score": 44.573
           },
           {
             "combination": "6-2-5",
-            "score": 26.556
+            "score": 44.135
+          },
+          {
+            "combination": "2-6-1",
+            "score": 43.904
+          },
+          {
+            "combination": "2-6-5",
+            "score": 43.473
+          },
+          {
+            "combination": "6-1-2",
+            "score": 43.234
+          },
+          {
+            "combination": "3-6-1",
+            "score": 43.038
+          },
+          {
+            "combination": "6-5-2",
+            "score": 42.994
+          },
+          {
+            "combination": "3-6-5",
+            "score": 42.616
+          },
+          {
+            "combination": "5-3-6",
+            "score": 42.167
+          },
+          {
+            "combination": "1-3-6",
+            "score": 42.133
+          },
+          {
+            "combination": "2-1-6",
+            "score": 42.011
+          },
+          {
+            "combination": "2-5-6",
+            "score": 41.778
+          },
+          {
+            "combination": "3-1-6",
+            "score": 41.183
+          },
+          {
+            "combination": "6-2-3",
+            "score": 41.169
+          },
+          {
+            "combination": "5-6-2",
+            "score": 41.141
+          },
+          {
+            "combination": "1-6-2",
+            "score": 41.108
+          },
+          {
+            "combination": "6-1-4",
+            "score": 40.972
+          },
+          {
+            "combination": "3-5-6",
+            "score": 40.954
+          },
+          {
+            "combination": "6-5-4",
+            "score": 40.744
+          },
+          {
+            "combination": "5-2-6",
+            "score": 40.586
+          },
+          {
+            "combination": "1-2-6",
+            "score": 40.553
+          },
+          {
+            "combination": "2-6-3",
+            "score": 40.551
+          },
+          {
+            "combination": "6-4-1",
+            "score": 40.523
+          },
+          {
+            "combination": "6-4-5",
+            "score": 40.125
+          },
+          {
+            "combination": "6-3-2",
+            "score": 39.199
+          },
+          {
+            "combination": "5-6-4",
+            "score": 38.988
+          },
+          {
+            "combination": "1-6-4",
+            "score": 38.956
+          },
+          {
+            "combination": "2-3-6",
+            "score": 38.09
+          },
+          {
+            "combination": "4-6-1",
+            "score": 37.975
+          },
+          {
+            "combination": "4-6-5",
+            "score": 37.602
+          },
+          {
+            "combination": "6-4-3",
+            "score": 37.428
+          },
+          {
+            "combination": "6-3-4",
+            "score": 37.147
+          },
+          {
+            "combination": "5-4-6",
+            "score": 36.899
+          },
+          {
+            "combination": "1-4-6",
+            "score": 36.869
+          },
+          {
+            "combination": "3-6-2",
+            "score": 36.431
+          },
+          {
+            "combination": "4-1-6",
+            "score": 36.337
+          },
+          {
+            "combination": "4-5-6",
+            "score": 36.136
+          },
+          {
+            "combination": "3-2-6",
+            "score": 35.939
           },
           {
             "combination": "6-2-4",
-            "score": 26.509
+            "score": 35.755
+          },
+          {
+            "combination": "2-6-4",
+            "score": 35.218
+          },
+          {
+            "combination": "4-6-3",
+            "score": 35.075
+          },
+          {
+            "combination": "3-6-4",
+            "score": 34.524
           },
           {
             "combination": "6-4-2",
-            "score": 25.735
+            "score": 34.302
+          },
+          {
+            "combination": "2-4-6",
+            "score": 33.331
+          },
+          {
+            "combination": "4-3-6",
+            "score": 32.946
+          },
+          {
+            "combination": "3-4-6",
+            "score": 32.674
+          },
+          {
+            "combination": "4-6-2",
+            "score": 32.144
+          },
+          {
+            "combination": "4-2-6",
+            "score": 31.711
           }
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
-      "signal_ai_prediction": null,
+      "signal_ai_prediction": {
+        "model_version": "signal_ai_revalue_v1_20261008",
+        "logic_effective_date": "20261008",
+        "logic_config_source": "config/signal_ai/signal_ai_corrections_v1_20261008.json",
+        "correction_config_sha256": "009d151b299697c581e1d7dc97db5005b918c24887acb9537a614d6fffbec0ba",
+        "logic_identity": {
+          "model_version": "fujin_raijin_pipeline_v2_20261011",
+          "config_path": "config/logic/fujin_raijin.json",
+          "config_sha256": "30261bb494bf3784f5082218d67c0c68cac6796b0ab12d4bec3e3ecc0e2db6cb",
+          "effective_date": "20261011"
+        },
+        "status": "active_signal_ai",
+        "normal_prediction_unchanged": true,
+        "signal_key": "F0R3",
+        "fujin_level": 0,
+        "raijin_level": 3,
+        "rule": {
+          "fujin": null,
+          "raijin": {
+            "multiplier": 1.75,
+            "level_profile": "linear",
+            "rank_attenuation": "soft"
+          },
+          "source": "best_20260930_20261007"
+        },
+        "points": 24,
+        "investment_100yen": 2400,
+        "boat_scores": [
+          {
+            "boat": 1,
+            "normal_rank": 1,
+            "normal_score": 77.84,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 77.84,
+            "morning_to_current_delta": 1.04,
+            "signal_ai_rank": 3
+          },
+          {
+            "boat": 2,
+            "normal_rank": 4,
+            "normal_score": 47.44,
+            "signal_adjustment": 43.19,
+            "signal_ai_score": 90.63,
+            "morning_to_current_delta": 12.34,
+            "signal_ai_rank": 2
+          },
+          {
+            "boat": 3,
+            "normal_rank": 3,
+            "normal_score": 59.84,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 59.84,
+            "morning_to_current_delta": -6.46,
+            "signal_ai_rank": 4
+          },
+          {
+            "boat": 4,
+            "normal_rank": 5,
+            "normal_score": 40.08,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 40.08,
+            "morning_to_current_delta": -15.02,
+            "signal_ai_rank": 5
+          },
+          {
+            "boat": 5,
+            "normal_rank": 2,
+            "normal_score": 74.88,
+            "signal_adjustment": 61.53,
+            "signal_ai_score": 136.41,
+            "morning_to_current_delta": 17.58,
+            "signal_ai_rank": 1
+          },
+          {
+            "boat": 6,
+            "normal_rank": 6,
+            "normal_score": 16.72,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 16.72,
+            "morning_to_current_delta": 7.32,
+            "signal_ai_rank": 6
+          }
+        ],
+        "signal_ai_ranking": [
+          {
+            "boat": 5,
+            "normal_rank": 2,
+            "normal_score": 74.88,
+            "signal_adjustment": 61.53,
+            "signal_ai_score": 136.41,
+            "morning_to_current_delta": 17.58,
+            "signal_ai_rank": 1
+          },
+          {
+            "boat": 2,
+            "normal_rank": 4,
+            "normal_score": 47.44,
+            "signal_adjustment": 43.19,
+            "signal_ai_score": 90.63,
+            "morning_to_current_delta": 12.34,
+            "signal_ai_rank": 2
+          },
+          {
+            "boat": 1,
+            "normal_rank": 1,
+            "normal_score": 77.84,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 77.84,
+            "morning_to_current_delta": 1.04,
+            "signal_ai_rank": 3
+          },
+          {
+            "boat": 3,
+            "normal_rank": 3,
+            "normal_score": 59.84,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 59.84,
+            "morning_to_current_delta": -6.46,
+            "signal_ai_rank": 4
+          },
+          {
+            "boat": 4,
+            "normal_rank": 5,
+            "normal_score": 40.08,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 40.08,
+            "morning_to_current_delta": -15.02,
+            "signal_ai_rank": 5
+          },
+          {
+            "boat": 6,
+            "normal_rank": 6,
+            "normal_score": 16.72,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 16.72,
+            "morning_to_current_delta": 7.32,
+            "signal_ai_rank": 6
+          }
+        ],
+        "combinations": [
+          {
+            "combination": "5-2-1",
+            "score": 110.962
+          },
+          {
+            "combination": "5-1-2",
+            "score": 109.683
+          },
+          {
+            "combination": "5-2-3",
+            "score": 107.362
+          },
+          {
+            "combination": "5-3-2",
+            "score": 104.283
+          },
+          {
+            "combination": "5-1-3",
+            "score": 103.525
+          },
+          {
+            "combination": "5-2-4",
+            "score": 103.41
+          },
+          {
+            "combination": "2-5-1",
+            "score": 101.806
+          },
+          {
+            "combination": "5-3-1",
+            "score": 101.725
+          },
+          {
+            "combination": "5-1-4",
+            "score": 99.573
+          },
+          {
+            "combination": "5-2-6",
+            "score": 98.738
+          },
+          {
+            "combination": "5-4-2",
+            "score": 98.355
+          },
+          {
+            "combination": "2-5-3",
+            "score": 98.206
+          },
+          {
+            "combination": "1-5-2",
+            "score": 97.969
+          },
+          {
+            "combination": "2-1-5",
+            "score": 95.949
+          },
+          {
+            "combination": "5-4-1",
+            "score": 95.797
+          },
+          {
+            "combination": "5-1-6",
+            "score": 94.901
+          },
+          {
+            "combination": "2-5-4",
+            "score": 94.254
+          },
+          {
+            "combination": "5-3-4",
+            "score": 94.173
+          },
+          {
+            "combination": "1-2-5",
+            "score": 93.391
+          },
+          {
+            "combination": "5-4-3",
+            "score": 92.197
+          },
+          {
+            "combination": "1-5-3",
+            "score": 91.811
+          },
+          {
+            "combination": "5-6-2",
+            "score": 91.347
+          },
+          {
+            "combination": "2-3-5",
+            "score": 90.549
+          },
+          {
+            "combination": "2-5-6",
+            "score": 89.582
+          }
+        ],
+        "all_120_combinations": [
+          {
+            "combination": "5-2-1",
+            "score": 110.962
+          },
+          {
+            "combination": "5-1-2",
+            "score": 109.683
+          },
+          {
+            "combination": "5-2-3",
+            "score": 107.362
+          },
+          {
+            "combination": "5-3-2",
+            "score": 104.283
+          },
+          {
+            "combination": "5-1-3",
+            "score": 103.525
+          },
+          {
+            "combination": "5-2-4",
+            "score": 103.41
+          },
+          {
+            "combination": "2-5-1",
+            "score": 101.806
+          },
+          {
+            "combination": "5-3-1",
+            "score": 101.725
+          },
+          {
+            "combination": "5-1-4",
+            "score": 99.573
+          },
+          {
+            "combination": "5-2-6",
+            "score": 98.738
+          },
+          {
+            "combination": "5-4-2",
+            "score": 98.355
+          },
+          {
+            "combination": "2-5-3",
+            "score": 98.206
+          },
+          {
+            "combination": "1-5-2",
+            "score": 97.969
+          },
+          {
+            "combination": "2-1-5",
+            "score": 95.949
+          },
+          {
+            "combination": "5-4-1",
+            "score": 95.797
+          },
+          {
+            "combination": "5-1-6",
+            "score": 94.901
+          },
+          {
+            "combination": "2-5-4",
+            "score": 94.254
+          },
+          {
+            "combination": "5-3-4",
+            "score": 94.173
+          },
+          {
+            "combination": "1-2-5",
+            "score": 93.391
+          },
+          {
+            "combination": "5-4-3",
+            "score": 92.197
+          },
+          {
+            "combination": "1-5-3",
+            "score": 91.811
+          },
+          {
+            "combination": "5-6-2",
+            "score": 91.347
+          },
+          {
+            "combination": "2-3-5",
+            "score": 90.549
+          },
+          {
+            "combination": "2-5-6",
+            "score": 89.582
+          },
+          {
+            "combination": "5-3-6",
+            "score": 89.501
+          },
+          {
+            "combination": "3-5-2",
+            "score": 88.969
+          },
+          {
+            "combination": "5-6-1",
+            "score": 88.789
+          },
+          {
+            "combination": "1-5-4",
+            "score": 87.859
+          },
+          {
+            "combination": "3-5-1",
+            "score": 86.411
+          },
+          {
+            "combination": "5-6-3",
+            "score": 85.189
+          },
+          {
+            "combination": "2-4-5",
+            "score": 84.621
+          },
+          {
+            "combination": "3-2-5",
+            "score": 84.391
+          },
+          {
+            "combination": "1-3-5",
+            "score": 84.154
+          },
+          {
+            "combination": "5-4-6",
+            "score": 83.573
+          },
+          {
+            "combination": "1-5-6",
+            "score": 83.187
+          },
+          {
+            "combination": "5-6-4",
+            "score": 81.237
+          },
+          {
+            "combination": "2-1-3",
+            "score": 80.635
+          },
+          {
+            "combination": "3-1-5",
+            "score": 80.554
+          },
+          {
+            "combination": "4-5-2",
+            "score": 79.089
+          },
+          {
+            "combination": "3-5-4",
+            "score": 78.859
+          },
+          {
+            "combination": "2-3-1",
+            "score": 78.835
+          },
+          {
+            "combination": "1-4-5",
+            "score": 78.226
+          },
+          {
+            "combination": "1-2-3",
+            "score": 78.077
+          },
+          {
+            "combination": "2-6-5",
+            "score": 77.613
+          },
+          {
+            "combination": "2-1-4",
+            "score": 76.683
+          },
+          {
+            "combination": "4-5-1",
+            "score": 76.531
+          },
+          {
+            "combination": "1-3-2",
+            "score": 74.998
+          },
+          {
+            "combination": "4-2-5",
+            "score": 74.511
+          },
+          {
+            "combination": "3-5-6",
+            "score": 74.187
+          },
+          {
+            "combination": "1-2-4",
+            "score": 74.125
+          },
+          {
+            "combination": "4-5-3",
+            "score": 72.931
+          },
+          {
+            "combination": "2-4-1",
+            "score": 72.907
+          },
+          {
+            "combination": "3-2-1",
+            "score": 72.677
+          },
+          {
+            "combination": "2-1-6",
+            "score": 72.011
+          },
+          {
+            "combination": "3-1-2",
+            "score": 71.398
+          },
+          {
+            "combination": "2-3-4",
+            "score": 71.283
+          },
+          {
+            "combination": "1-6-5",
+            "score": 71.218
+          },
+          {
+            "combination": "4-1-5",
+            "score": 70.674
+          },
+          {
+            "combination": "1-2-6",
+            "score": 69.453
+          },
+          {
+            "combination": "2-4-3",
+            "score": 69.307
+          },
+          {
+            "combination": "3-4-5",
+            "score": 69.226
+          },
+          {
+            "combination": "1-4-2",
+            "score": 69.07
+          },
+          {
+            "combination": "6-5-2",
+            "score": 67.409
+          },
+          {
+            "combination": "2-3-6",
+            "score": 66.611
+          },
+          {
+            "combination": "2-6-1",
+            "score": 65.899
+          },
+          {
+            "combination": "4-3-5",
+            "score": 65.274
+          },
+          {
+            "combination": "3-2-4",
+            "score": 65.125
+          },
+          {
+            "combination": "1-3-4",
+            "score": 64.888
+          },
+          {
+            "combination": "6-5-1",
+            "score": 64.851
+          },
+          {
+            "combination": "4-5-6",
+            "score": 64.307
+          },
+          {
+            "combination": "1-4-3",
+            "score": 62.912
+          },
+          {
+            "combination": "6-2-5",
+            "score": 62.831
+          },
+          {
+            "combination": "4-2-1",
+            "score": 62.797
+          },
+          {
+            "combination": "2-6-3",
+            "score": 62.299
+          },
+          {
+            "combination": "3-6-5",
+            "score": 62.218
+          },
+          {
+            "combination": "1-6-2",
+            "score": 62.062
+          },
+          {
+            "combination": "4-1-2",
+            "score": 61.518
+          },
+          {
+            "combination": "3-1-4",
+            "score": 61.288
+          },
+          {
+            "combination": "6-5-3",
+            "score": 61.251
+          },
+          {
+            "combination": "2-4-6",
+            "score": 60.683
+          },
+          {
+            "combination": "3-2-6",
+            "score": 60.453
+          },
+          {
+            "combination": "1-3-6",
+            "score": 60.216
+          },
+          {
+            "combination": "3-4-2",
+            "score": 60.07
+          },
+          {
+            "combination": "4-2-3",
+            "score": 59.197
+          },
+          {
+            "combination": "6-1-5",
+            "score": 58.994
+          },
+          {
+            "combination": "2-6-4",
+            "score": 58.347
+          },
+          {
+            "combination": "3-4-1",
+            "score": 57.512
+          },
+          {
+            "combination": "6-5-4",
+            "score": 57.299
+          },
+          {
+            "combination": "3-1-6",
+            "score": 56.616
+          },
+          {
+            "combination": "4-3-2",
+            "score": 56.118
+          },
+          {
+            "combination": "1-6-3",
+            "score": 55.904
+          },
+          {
+            "combination": "4-1-3",
+            "score": 55.36
+          },
+          {
+            "combination": "1-4-6",
+            "score": 54.288
+          },
+          {
+            "combination": "6-3-5",
+            "score": 53.594
+          },
+          {
+            "combination": "4-3-1",
+            "score": 53.56
+          },
+          {
+            "combination": "3-6-2",
+            "score": 53.062
+          },
+          {
+            "combination": "4-6-5",
+            "score": 52.338
+          },
+          {
+            "combination": "1-6-4",
+            "score": 51.952
+          },
+          {
+            "combination": "6-2-1",
+            "score": 51.117
+          },
+          {
+            "combination": "4-2-6",
+            "score": 50.573
+          },
+          {
+            "combination": "3-6-1",
+            "score": 50.504
+          },
+          {
+            "combination": "6-1-2",
+            "score": 49.838
+          },
+          {
+            "combination": "6-4-5",
+            "score": 47.666
+          },
+          {
+            "combination": "6-2-3",
+            "score": 47.517
+          },
+          {
+            "combination": "4-1-6",
+            "score": 46.736
+          },
+          {
+            "combination": "3-4-6",
+            "score": 45.288
+          },
+          {
+            "combination": "6-3-2",
+            "score": 44.438
+          },
+          {
+            "combination": "6-1-3",
+            "score": 43.68
+          },
+          {
+            "combination": "6-2-4",
+            "score": 43.565
+          },
+          {
+            "combination": "4-6-2",
+            "score": 43.182
+          },
+          {
+            "combination": "3-6-4",
+            "score": 42.952
+          },
+          {
+            "combination": "6-3-1",
+            "score": 41.88
+          },
+          {
+            "combination": "4-3-6",
+            "score": 41.336
+          },
+          {
+            "combination": "4-6-1",
+            "score": 40.624
+          },
+          {
+            "combination": "6-1-4",
+            "score": 39.728
+          },
+          {
+            "combination": "6-4-2",
+            "score": 38.51
+          },
+          {
+            "combination": "4-6-3",
+            "score": 37.024
+          },
+          {
+            "combination": "6-4-1",
+            "score": 35.952
+          },
+          {
+            "combination": "6-3-4",
+            "score": 34.328
+          },
+          {
+            "combination": "6-4-3",
+            "score": 32.352
+          }
+        ],
+        "valid_combination_count": 120,
+        "combination_method": "first 0.50 + second 0.30 + third 0.20",
+        "note": "通常予測は変更せず、風神雷神シグナル別補正で6艇を再評価した買い目専用AI。全シグナル組合せで上位24通りを候補保存。"
+      },
       "up_signal": {
         "available": true,
-        "active": false,
-        "level": 0,
+        "active": true,
+        "level": 3,
         "rule_version": "raijin_signal_v1_20261008",
         "system_name": "風神雷神シグナル",
         "signal_name": "雷神",
@@ -4081,22 +5342,61 @@
           "outside_live_top3": false,
           "level3_priority": true
         },
-        "candidates": [],
-        "max_rise": null,
-        "has_score50_candidate": false,
+        "candidates": [
+          {
+            "boat": 5,
+            "rank": 2,
+            "rise": 17.58,
+            "score": 74.88
+          },
+          {
+            "boat": 2,
+            "rank": 4,
+            "rise": 12.34,
+            "score": 47.44
+          }
+        ],
+        "max_rise": 17.58,
+        "has_score50_candidate": true,
         "ai_effect": false,
         "formation_effect": false,
-        "status": "provisional_fallback",
-        "uses_fallback": true,
-        "unverified_non_trigger": true
+        "status": "provisional_analysis_only",
+        "uses_fallback": false,
+        "unverified_non_trigger": false
       },
       "down_signal": {
-        "available": false,
+        "available": true,
         "active": false,
         "level": 0,
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
-        "suppressed_reason": "missing_morning_reference"
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.04,
+          "top3_delta_sum": 12.16,
+          "gap_1_2": 2.96
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only",
+        "uses_fallback": false,
+        "unverified_non_trigger": false
       },
       "signal_system_name": "風神雷神シグナル",
       "signal_logic_identity": {
@@ -4134,7 +5434,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -8150,7 +9450,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -12154,7 +13454,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -16184,7 +17484,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -20214,7 +21514,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -24244,7 +25544,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -28274,7 +29574,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -32140,7 +33440,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -36158,7 +37458,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -40012,7 +41312,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -44030,7 +45330,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -48048,7 +49348,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -51806,7 +53106,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -55822,7 +57122,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -59852,7 +61152,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -63677,7 +64977,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -67707,7 +69007,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -71737,7 +73037,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -75741,7 +77041,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -79759,7 +81059,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -83681,7 +84981,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -87535,7 +88835,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -91565,7 +92865,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -95595,7 +96895,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -99625,7 +100925,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -103643,7 +104943,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -107661,7 +108961,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -111513,7 +112813,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -115379,7 +116679,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -119395,7 +120695,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -123425,7 +124725,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -127441,7 +128741,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -131471,7 +132771,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -135475,7 +136775,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -139341,7 +140641,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -143371,7 +144671,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -147196,7 +148496,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -151214,7 +152514,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -155244,7 +156544,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -159274,7 +160574,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -163181,7 +164481,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -167197,7 +168497,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -171037,7 +172337,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -175041,7 +176341,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -179059,7 +180359,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -183077,7 +184377,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -187107,7 +188407,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -190932,7 +192232,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -194716,7 +196016,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -198746,7 +200046,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -202776,7 +204076,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -206780,7 +208080,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -210810,7 +212110,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -214814,7 +216114,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -218707,7 +220007,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -222532,7 +223832,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -226562,7 +227862,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -230580,7 +231880,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -234610,7 +235910,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -238614,7 +239914,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -242644,7 +243944,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -246469,7 +247769,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -250309,7 +251609,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -254339,7 +255639,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -258357,7 +259657,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -262375,7 +263675,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -266200,7 +267500,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -270230,7 +271530,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -274070,7 +275370,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -278100,7 +279400,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -282130,7 +283430,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -286134,7 +287434,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -289988,7 +291288,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -293992,7 +295292,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -297832,7 +299132,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -301862,7 +303162,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -305661,7 +306961,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -309679,7 +310979,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -313695,7 +314995,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -317725,7 +319025,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -321618,7 +322918,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -325634,7 +326934,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -329474,7 +330774,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -333478,7 +334778,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -337494,7 +338794,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -341524,7 +342824,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -345417,7 +346717,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -349201,7 +350501,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -353205,7 +354505,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -357235,7 +358535,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -361239,7 +362539,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -365257,7 +366557,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -369015,7 +370315,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -373033,7 +374333,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -377063,7 +378363,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -380929,7 +382229,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -384947,7 +386247,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -388951,7 +390251,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -392955,7 +394255,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -396754,7 +398054,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -400772,7 +402072,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -404802,7 +406102,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -408820,7 +410120,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -412590,7 +413890,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -416620,7 +417920,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -420636,7 +421936,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -424666,7 +425966,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -428559,7 +429859,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -432589,7 +433889,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -436607,7 +437907,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -440637,7 +441937,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -444544,7 +445844,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -448562,7 +449862,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -452566,7 +453866,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -456596,7 +457896,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -460462,7 +461762,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -464478,7 +465778,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -468482,7 +469782,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -472486,7 +473786,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -476244,7 +477544,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -480274,7 +481574,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -484278,7 +485578,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -488308,7 +489608,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -492148,7 +493448,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -496178,7 +497478,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -500208,7 +501508,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -504212,7 +505512,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
@@ -508216,7 +509516,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-13T09:04:11.777671+09:00",
+      "generated_at": "2026-10-13T09:11:29+09:00",
       "boats": [
         {
           "rank": 1,
