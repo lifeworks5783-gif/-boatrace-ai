@@ -9,7 +9,7 @@ import unittest
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
 from unittest.mock import patch
-from collectors.v4_pipeline import plan_live,fetch_one,decode_manifest,capture_morning,JST
+from collectors.v4_pipeline import plan_live,fetch_one,decode_manifest,capture_morning,JST,exhibition_is_complete
 
 class FakeReply:
     status_code=200
@@ -91,6 +91,38 @@ class V4ContractTests(unittest.TestCase):
         self.assertIn("v4-stage2-receipt-v1",files[1])
         self.assertIn("v4-stage3-receipt-v1",files[2])
         self.assertNotIn('sleep "$DELAY"',files[0])
+    def test_http_200_without_exhibition_is_not_ready_for_scoring(self):
+        rows=[{"boat":n,"registration_no":str(4000+n),
+               "exhibition_course":None,"exhibition_time":None,
+               "exhibition_st_raw":None,"is_miss":False} for n in range(1,7)]
+        self.assertFalse(exhibition_is_complete(rows))
+        for row in rows:
+            row["exhibition_course"]=int(row["boat"])
+            row["exhibition_time"]=6.8
+            row["exhibition_st_raw"]=".00"
+        self.assertTrue(exhibition_is_complete(rows))
+        rows[5]["exhibition_time"]=None
+        self.assertFalse(exhibition_is_complete(rows))
+        rows[5]["is_miss"]=True
+        self.assertTrue(exhibition_is_complete(rows))
+        rows.pop(4)
+        self.assertFalse(exhibition_is_complete(rows))  # missing boat is not an inferred scratch
+        self.assertFalse(exhibition_is_complete(rows+[rows[0]]))  # duplicate boat identity
+
+    def test_unready_automatically_dispatches_missing_only_bounded_collector(self):
+        root=Path(__file__).resolve().parents[1]
+        decode=(root/"collectors/v4_pipeline.py").read_text(encoding="utf-8")
+        stage2=(root/".github/workflows/v4_stage2_decode.yml").read_text(encoding="utf-8")
+        collector=(root/".github/workflows/fast_live_collection_v3.yml").read_text(encoding="utf-8")
+        self.assertIn('"official_exhibition_not_ready"',decode)
+        self.assertIn('"after_deadline_observation"',decode)
+        self.assertIn('if not exhibition_is_complete(bb):',decode)
+        self.assertIn('gh workflow run fast_live_collection_v3.yml',stage2)
+        self.assertIn("30 < (cutoff-now).total_seconds() <= 25*60",stage2)
+        self.assertIn('V4_RETRY_ALREADY_QUEUED_OR_RECENT',stage2)
+        self.assertIn('cloudflare_button_fallback',collector)
+        self.assertIn('RETRIES=2',collector)
+
     def test_beforeinfo_recording_timestamp_is_not_decode_timestamp(self):
         code=(Path(__file__).resolve().parents[1]/"collectors/v4_pipeline.py").read_text(encoding="utf-8")
         self.assertIn('"collected_at":x["received_at"]',code)
