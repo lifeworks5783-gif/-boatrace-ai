@@ -6,6 +6,7 @@ evaluation; never regenerates, changes, or selects the predictions using truth.
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 from collections import Counter, defaultdict
@@ -16,6 +17,8 @@ ROOT = Path("evaluations")
 BACKTEST = ROOT / "fujin_raijin/latest/backtest_details.csv"
 SIGNAL_AI = ROOT / "signal_ai/latest/details.csv"
 OUT = ROOT / "signal_pdca_cross/latest"
+V2_REPLAY = ROOT / "raijin_all_rank_v2_replay/details.csv"
+V2_OUT = ROOT / "raijin_v2_signal_pdca_cross/latest"
 METHODS = ("formation", "top3_box", "normal_ai", "signal_ai24")
 BINS = (
     ("under_1000", 0, 1000), ("1000_1999", 1000, 2000),
@@ -149,10 +152,15 @@ def high_analysis(rows_in):
 
 
 def main():
-    raw = rows(BACKTEST)
+    parser = argparse.ArgumentParser(description="Saved 16 x 4 PDCA; optionally use the all-rank Raijin V2 retrospective signal")
+    parser.add_argument("--raijin-v2", action="store_true", help="Research-only V2 retrospective, separate from historical live signals")
+    args = parser.parse_args()
+    signal_source = V2_REPLAY if args.raijin_v2 else BACKTEST
+    out_dir = V2_OUT if args.raijin_v2 else OUT
+    raw = rows(signal_source)
     if not raw:
-        raise RuntimeError(f"Required saved signal history absent: {BACKTEST}")
-    ai_map = {(str(x.get("date")),rid(x.get("race_id"))):x for x in rows(SIGNAL_AI)}
+        raise RuntimeError(f"Required saved signal history absent: {signal_source}")
+    ai_map = {} if args.raijin_v2 else {(str(x.get("date")),rid(x.get("race_id"))):x for x in rows(SIGNAL_AI)}
     dates = sorted(set(str(x["date"]) for x in raw))
     by_method = {}
     for d in dates:
@@ -163,12 +171,17 @@ def main():
             }
 
     compiled = []
+    seen = set()
     for x in raw:
         d = str(x["date"])
         race = rid(x.get("race_id"))
         if not race:
             continue
-        f,r = num(x.get("fujin_level")),num(x.get("raijin_level"))
+        key = (d, race)
+        if key in seen:
+            raise ValueError(f"Duplicate signal race in {signal_source}: {key}")
+        seen.add(key)
+        f,r = num(x.get("fujin_level")),num(x.get("new_raijin_level") if args.raijin_v2 else x.get("raijin_level"))
         if f not in range(4) or r not in range(4):
             continue
         sample = dict(
@@ -180,8 +193,14 @@ def main():
         for method in METHODS[:3]:
             sample["methods"][method] = method_result(
                 by_method[d][method].get(race),method)
+        # The V2 retrospective uses its OWN frozen 120-combination rank, never
+        # the legacy signal AI's (possibly different) F/R classification.
+        signal_record = ({"actual_combo_rank":x.get("new_actual_rank"),"payout":x.get("payout")}
+                         if args.raijin_v2 else ai_map.get((d,race)))
+        if args.raijin_v2 and (f or r) and not x.get("new_actual_rank"):
+            raise ValueError(f"Active V2 signal missing all-120 rank: {d} {race}")
         sample["methods"]["signal_ai24"] = method_result(
-            ai_map.get((d,race)),"signal_ai24") if (f or r) else None
+            signal_record,"signal_ai24") if (f or r) else None
         compiled.append(sample)
 
     per_date = {}
@@ -195,7 +214,10 @@ def main():
     week_dates = {(anchor - timedelta(days=k)).strftime("%Y%m%d") for k in range(7)}
     last7 = [x for x in compiled if x["date"] in week_dates]
     output = dict(
-        schema_version=1,
+        schema_version=2 if args.raijin_v2 else 1,
+        source_signal_version=("fujin_raijin_pipeline_v2_20261011" if args.raijin_v2 else "historical_saved_signal"),
+        research_only=bool(args.raijin_v2),
+        retrospective_not_original_purchase=bool(args.raijin_v2),
         definition="F0R0..F3R3 x saved formation / saved TOP3 BOX / saved normal AI / saved signal-only AI top24; 100 yen per combo",
         latest_date=dates[-1], available_dates=dates,
         total_races=len(compiled), model_note="method-specific missing entries not counted as losses; report missing per method",
@@ -206,10 +228,10 @@ def main():
         cumulative=dict(races=len(compiled),high_analysis=high_analysis(compiled),
                         combination_methods=cross(compiled)),
     )
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "summary.json").write_text(
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "summary.json").write_text(
         json.dumps(output,ensure_ascii=False,indent=2),encoding="utf-8")
-    with (OUT / "details.csv").open("w",encoding="utf-8",newline="") as f:
+    with (out_dir / "details.csv").open("w",encoding="utf-8",newline="") as f:
         cols = ["date","race_id","signal_key","payout","formation_hit",
                 "top3_box_hit","normal_ai_hit","signal_ai24_hit"]
         w = csv.DictWriter(f,fieldnames=cols)
