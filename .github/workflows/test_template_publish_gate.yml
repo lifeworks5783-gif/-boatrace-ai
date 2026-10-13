@@ -1,0 +1,33 @@
+name: Rebuild latest page when template changes test
+on:
+  push:
+    branches: ["fix/rebuild-latest-page-when-template-changes-20261013"]
+  pull_request:
+    paths:
+      - ".github/workflows/fast_family_prediction_page.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m pip install -q pyyaml
+      - name: Verify both canonical and template blob SHA gate publication
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          source=Path(".github/workflows/fast_family_prediction_page.yml").read_text(encoding="utf-8")
+          steps=yaml.safe_load(source)["jobs"]["fast-publish"]["steps"]
+          assert 'git rev-parse HEAD:collectors/build_family_prediction_page.py' in source
+          assert source.count('$CANONICAL_SHA:$PAGE_BUILDER_SHA')==2
+          assert "'page_builder_blob_sha':os.environ['PAGE_BUILDER_SHA']" in source
+          assert 'other_tabs_untouched' in source
+          # Catch unparseable template-hash fingerprint comparison before deploy.
+          assert any('PAGE_BUILDER_SHA' in x.get('run','') for x in steps)
+          print("TEMPLATE_AND_DATA_CHANGE_PUBLISH_TEST=PASS")
+          PY
