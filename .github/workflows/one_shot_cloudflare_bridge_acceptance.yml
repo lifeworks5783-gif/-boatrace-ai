@@ -20,7 +20,7 @@ jobs:
           import json,urllib.request
           root="https://boatrace-v2-collector.life-works5782.workers.dev"
           for path in ("/health/collection","/health/audit"):
-            with urllib.request.urlopen(root+path,timeout=12) as r:
+            with urllib.request.urlopen(urllib.request.Request(root+path,headers={"User-Agent":"curl/8.7.1","Accept":"application/json"}),timeout=12) as r:
               d=json.load(r)
               print(path, "status",d.get("status"),"date",d.get("date"))
               if path.endswith("collection"):
@@ -33,7 +33,7 @@ jobs:
           python - <<'PY'
           import urllib.request,urllib.error
           url="https://boatrace-v2-collector.life-works5782.workers.dev/admin/research-beforeinfo?date=20261013&race_ids=20261013-14-02"
-          try: urllib.request.urlopen(url,timeout=12);raise RuntimeError("SECURITY_FAILURE_anonymous_export")
+          try: urllib.request.urlopen(urllib.request.Request(url,headers={"User-Agent":"curl/8.7.1","Accept":"application/json"}),timeout=12);raise RuntimeError("SECURITY_FAILURE_anonymous_export")
           except urllib.error.HTTPError as e:
             print("PROTECTED_EXPORT_HTTP",e.code)
             if e.code!=401:raise
@@ -50,7 +50,7 @@ jobs:
           python - <<'PY'
           import json,os,urllib.request
           url="https://boatrace-v2-collector.life-works5782.workers.dev/admin/research-beforeinfo?date=20261013&race_ids=20261013-14-02"
-          req=urllib.request.Request(url,headers={"Authorization":"Bearer "+os.environ["CLOUDFLARE_BACKUP_TOKEN"]})
+          req=urllib.request.Request(url,headers={"Authorization":"Bearer "+os.environ["CLOUDFLARE_BACKUP_TOKEN"],"User-Agent":"curl/8.7.1","Accept":"application/json"})
           with urllib.request.urlopen(req,timeout=12) as r: d=json.load(r)
           print("AUTHORIZED_EXPORT",d.get("schema"),"SAVED",len(d.get("snapshots",[])),"MISSING",len(d.get("missing_ids",[])),"REJECTED",len(d.get("rejected",[])))
           if d.get("schema")!="boatrace-research-beforeinfo-bridge-v1":raise RuntimeError("unexpected_export_schema")
