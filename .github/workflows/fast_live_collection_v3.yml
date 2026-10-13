@@ -56,6 +56,10 @@ jobs:
             find "$LATEST_RAW" -maxdepth 1 -type f -name "beforeinfo_*$TARGET_DATE*" -exec cp {} data/ \;
           fi
           python -u collectors/today_beforeinfo.py --mode live
+          # Button-only backup: consult Cloudflare's already saved official
+          # data for missing six-boat exhibitions. Primary official data wins.
+          # Backup network issues never stop the established collection route.
+          python -u -m collectors.cloudflare_button_fallback --date "$TARGET_DATE" || echo "::warning::Cloudflare secondary official source unavailable; primary collection preserved"
 
           read_validation_count() {
             python - "$1" <<'PY'
@@ -96,6 +100,7 @@ jobs:
             echo "未取得の直前情報 ${UNREADY}R を再確認 (${ATTEMPT}/${RETRIES})"
             sleep "$DELAY"
             python -u collectors/today_beforeinfo.py --mode live
+            python -u -m collectors.cloudflare_button_fallback --date "$TARGET_DATE" || echo "::warning::Cloudflare secondary retry unavailable"
             READY_NOW=$(read_validation_count new_ready_races)
             UNREADY=$(read_validation_count unready_new_count)
             TOTAL_READY=$((TOTAL_READY + READY_NOW))
@@ -117,6 +122,8 @@ jobs:
           git config user.name "boatrace-fast-live-bot"
           git config user.email "boatrace-fast-live-bot@users.noreply.github.com"
           git add "$DEST"
+          BRIDGE_ROOT="daily_inputs/$YEAR/$MONTH/$DAY/live/cloudflare_bridge"
+          if [ -d "$BRIDGE_ROOT" ]; then git add "$BRIDGE_ROOT"; fi
           if ! git diff --cached --quiet; then
             git commit -m "Fast beforeinfo cumulative snapshot $STAMP"
             git pull --rebase origin main || true
