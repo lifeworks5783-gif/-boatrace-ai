@@ -1,0 +1,58 @@
+name: One-shot Cloudflare official backup integration acceptance
+on:
+  push:
+    branches: ["ops/probe-cloudflare-missing-bridge-20261013"]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Safeguard regression and current stored Worker proof
+        run: |
+          python -m unittest discover -s tests -p test_cloudflare_missing_only_bridge.py -q
+          python - <<'PY'
+          import json,urllib.request
+          root="https://boatrace-v2-collector.life-works5782.workers.dev"
+          for path in ("/health/collection","/health/audit"):
+            with urllib.request.urlopen(root+path,timeout=12) as r:
+              d=json.load(r)
+              print(path, "status",d.get("status"),"date",d.get("date"))
+              if path.endswith("collection"):
+                print("COLLECTION_ENABLED",d.get("collection_enabled"),"D1_SAVED",d.get("snapshots_collected"),"LAST_RUN", (d.get("last_run") or {}).get("status"))
+              else:
+                print("D1_INTEGRITY",d.get("violations"),"D1_MISSED",d.get("missed"))
+          PY
+      - name: Verify protected export route is deployed and anonymous calls rejected
+        run: |
+          python - <<'PY'
+          import urllib.request,urllib.error
+          url="https://boatrace-v2-collector.life-works5782.workers.dev/admin/research-beforeinfo?date=20261013&race_ids=20261013-14-02"
+          try: urllib.request.urlopen(url,timeout=12);raise RuntimeError("SECURITY_FAILURE_anonymous_export")
+          except urllib.error.HTTPError as e:
+            print("PROTECTED_EXPORT_HTTP",e.code)
+            if e.code!=401:raise
+          PY
+      - name: Prove authenticated backup endpoint and stage missing race if present
+        env:
+          CLOUDFLARE_BACKUP_TOKEN: ${{ secrets.CLOUDFLARE_BACKUP_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_BACKUP_TOKEN" ]; then
+            echo "::warning::Cloudflare backup GH secret not configured: authorized E2E cannot run"
+            echo "AUTH_ACCEPTANCE=BLOCKED_MISSING_SECRET"
+            exit 0
+          fi
+          python - <<'PY'
+          import json,os,urllib.request
+          url="https://boatrace-v2-collector.life-works5782.workers.dev/admin/research-beforeinfo?date=20261013&race_ids=20261013-14-02"
+          req=urllib.request.Request(url,headers={"Authorization":"Bearer "+os.environ["CLOUDFLARE_BACKUP_TOKEN"]})
+          with urllib.request.urlopen(req,timeout=12) as r: d=json.load(r)
+          print("AUTHORIZED_EXPORT",d.get("schema"),"SAVED",len(d.get("snapshots",[])),"MISSING",len(d.get("missing_ids",[])),"REJECTED",len(d.get("rejected",[])))
+          if d.get("schema")!="boatrace-research-beforeinfo-bridge-v1":raise RuntimeError("unexpected_export_schema")
+          PY
+          python -m collectors.cloudflare_missing_only_bridge
