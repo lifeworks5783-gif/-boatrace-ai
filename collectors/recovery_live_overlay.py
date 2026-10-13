@@ -140,6 +140,47 @@ def load_verified_recovered_live(date: str, root: Path = ROOT) -> dict:
     return result
 
 
+def unverified_canonical_allows_retrospective(old: dict, recovered: dict, race_id: str, date: str, root: Path) -> bool:
+    """Restore verified official scores only when the displayed canonical is unverified.
+
+    A rolling live JSON may be labeled 'normal' even though it was scored
+    AFTER its cutoff and the actual canonical still displays morning/fallback.
+    Genuine timely predictions and identity-mismatched records stay intact.
+    """
+    from datetime import datetime, timedelta, timezone
+    canonical_csv = (root / 'predictions' / date[:4] / date[4:6] / date[6:8]
+                     / 'live' / f'formation_predictions_final_{date}.csv')
+    if not canonical_csv.is_file():
+        return False
+    with canonical_csv.open(encoding='utf-8-sig', newline='') as stream:
+        rows = [r for r in csv.DictReader(stream) if r.get('race_id') == race_id]
+    if len(rows) != 1:
+        return False
+    row = rows[0]
+    if (row.get('prediction_type') == '直前'
+            and row.get('quality_status') not in {'fallback', 'provisional_fallback'}):
+        return False
+    def moment(value):
+        try:
+            x = datetime.fromisoformat(str(value or '').replace('Z', '+00:00'))
+            return x if x.tzinfo else x.replace(tzinfo=timezone(timedelta(hours=9)))
+        except (ValueError, TypeError):
+            return None
+    generated = moment(old.get('generated_at'))
+    cutoff = moment(row.get('deadline'))
+    if not generated or not cutoff or generated <= cutoff:
+        return False
+    existing_boats = {str(b.get('boat')): str(b.get('registration_no') or '')
+                      for b in old.get('boats') or [] if isinstance(b, dict)}
+    recovered_boats = {str(b.get('boat')): str(b.get('registration_no') or '')
+                       for b in recovered.get('boats') or [] if isinstance(b, dict)}
+    if not existing_boats or any(
+        not reg or not recovered_boats.get(boat) or reg != recovered_boats[boat]
+        for boat, reg in existing_boats.items()
+    ):
+        return False
+    return True
+
 def join_verified_recovery(existing_live: dict, date: str, root: Path = ROOT) -> tuple[dict, list[str]]:
     """Never overwrite genuine pre-deadline live data with retrospective scores."""
     joined = dict(existing_live)
@@ -148,7 +189,8 @@ def join_verified_recovery(existing_live: dict, date: str, root: Path = ROOT) ->
         old = joined.get(race_id)
         quality = (old or {}).get("prediction_quality") or {}
         if old and quality.get("status") not in {"fallback", "recovered_observation"}:
-            continue
+            if not unverified_canonical_allows_retrospective(old, recovered, race_id, date, root):
+                continue
         joined[race_id] = recovered
         patched.append(race_id)
     return joined, patched
