@@ -1,0 +1,55 @@
+name: One-shot production public Cloudflare fallback smoke
+on:
+  push:
+    branches: ["ops/smoke-public-cloudflare-button-20261013"]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q requests beautifulsoup4
+      - name: Check current Cloudflare D1 collection and official-only public route
+        run: |
+          python - <<'PY'
+          import json,os
+          from datetime import datetime,timedelta,timezone
+          from urllib.parse import urlencode
+          from urllib.request import Request,urlopen
+          from pathlib import Path
+          from collectors import cloudflare_button_fallback as bridge_button
+          from collectors import cloudflare_missing_only_bridge as bridge
+          JST=timezone(timedelta(hours=9));now=datetime.now(JST)
+          date=now.strftime("%Y%m%d")
+          base="https://boatrace-v2-collector.life-works5782.workers.dev"
+          def get(url):
+              with urlopen(Request(url,headers={"Accept":"application/json","User-Agent":"curl/8.7.1"}),timeout=12) as r:return json.load(r)
+          h=get(base+"/health/collection")
+          a=get(base+"/health/audit")
+          print("CLOUDFLARE_LIVE",json.dumps({"date":h["date"],"mode":h.get("mode"),"snapshots_collected":h.get("snapshots_collected"),"last_run_status":(h.get("last_run") or {}).get("status"),"violations":a.get("violations"),"missed":a.get("missed")}))
+          if not h.get("collection_enabled") or h.get("date")!=date or a.get("violations")!=0:raise RuntimeError("cloudflare_source_not_ready")
+          program=bridge.read_csv(Path("daily_inputs")/date[:4]/date[4:6]/date[6:]/"base"/("program_races_"+date+".csv"))
+          races=[]
+          for x in program:
+              try: cutoff=datetime.strptime(date+" "+x["deadline"],"%Y%m%d %H:%M").replace(tzinfo=JST)
+              except (KeyError,ValueError):continue
+              if 15<(cutoff-now).total_seconds()<28*60:races.append(x)
+          races=sorted(races,key=lambda x:x["deadline"])[:4]
+          if not races:print("PUBLIC_SMOKE no eligible future races at this instant");raise SystemExit(0)
+          args=urlencode({"date":date,"race_ids":",".join(x["race_id"] for x in races)})
+          data=get(base+"/public/official-beforeinfo?"+args)
+          print("PUBLIC_RESULT",json.dumps({"schema":data.get("schema"),"requested":len(races),"found":len(data.get("snapshots",[])),"missing":data.get("missing_ids"),"ineligible":data.get("not_eligible_ids"),"rejected":data.get("rejected")}))
+          assert data.get("schema")=="boatrace-public-official-beforeinfo-v1"
+          if data.get("rejected"):raise RuntimeError("public_backup_rejected_saved_d1")
+          byid={x["race_id"]:x for x in races}
+          for item in data.get("snapshots",[]):
+              parsed=bridge.validate(item,byid[item["race_id"]],date,datetime.now(JST))
+              print("VERIFIED_OFFICIAL",item["race_id"],len(parsed["entries"]),parsed["collected_ms"],parsed["deadline_ms"])
+          print("PUBLIC_OFFICIAL_SMOKE_PASS")
+          PY
+      - name: Recheck button-only merge regression on main
+        run: python -m unittest discover -s tests -p "test_cloudflare_button_fallback.py" -v
