@@ -54,6 +54,9 @@ jobs:
             echo "Official recovery evidence already persisted"
           else
             git commit -m 'Verify October 13 four residual official live races for retrospective audit'
+            # Scoring creates untracked temp/data artifacts. They must never
+            # block the evidence-only commit or enter the public repository.
+            git stash push -u -m oct13-recovery-ephemeral-data || true
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
