@@ -36,6 +36,31 @@ class FastFamilyPublishContract(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, fast)
 
+    def test_expired_race_never_stays_visible_when_static_html_is_old(self):
+        from build_family_prediction_page import build_race_pair
+        race = {
+            "race_id": "20261013-19-12", "venue_name": "下関", "race": 12,
+            "deadline": "2026-10-13T22:45:00+09:00",
+            "prediction_type": "朝", "boats": [],
+        }
+        card = build_race_pair(race, 1)
+        self.assertIn('data-deadline-at="2026-10-13T22:45:00+09:00"', card)
+        builder = (ROOT / "collectors/build_family_prediction_page.py").read_text(encoding="utf-8")
+        self.assertIn("applyDeadlineVisibility", builder)
+        self.assertIn("Date.parse(pair.dataset.deadlineAt", builder)
+        self.assertIn("liveFinishedNotice", builder)
+        self.assertNotIn('http-equiv="refresh"', builder)
+        self.assertIn("if (!button || !status) return;", builder)
+
+    def test_zero_new_collection_still_forces_view_publication(self):
+        fast = (ROOT / ".github/workflows/fast_family_prediction_page.yml").read_text(encoding="utf-8")
+        collector = (ROOT / ".github/workflows/fast_live_collection_v3.yml").read_text(encoding="utf-8")
+        self.assertIn("force_refresh:", fast)
+        self.assertIn("FORCE_REFRESH", fast)
+        self.assertIn("no_new_official_data_rechecked", fast)
+        self.assertIn("env.HAS_READY_BEFOREINFO == 'false'", collector)
+        self.assertIn("force_refresh=true", collector)
+
     def test_v4_keeps_scoring_and_dispatches_fast_publisher(self):
         stage3 = (ROOT / ".github/workflows/v4_stage3_predict.yml").read_text(encoding="utf-8")
         assert "python -u collectors/build_live_prediction.py" in stage3
