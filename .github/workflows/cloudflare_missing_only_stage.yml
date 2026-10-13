@@ -1,0 +1,60 @@
+name: Cloudflare missing-only beforeinfo bridge (staging)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: cloudflare-missing-only-stage
+  cancel-in-progress: false
+jobs:
+  stage-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify bridge safety with offline fixtures
+        run: python -m unittest tests.test_cloudflare_missing_only_bridge
+      - name: Import ONLY missing, verified Cloudflare observations to isolated staging
+        env:
+          CLOUDFLARE_BACKUP_TOKEN: ${{ secrets.CLOUDFLARE_BACKUP_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CLOUDFLARE_BACKUP_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_BACKUP_TOKEN is not configured; no import attempted"
+            exit 1
+          fi
+          python -m collectors.cloudflare_missing_only_bridge > /tmp/cloudflare-bridge-result.json
+          cat /tmp/cloudflare-bridge-result.json
+          python - <<'PY'
+          import json
+          x=json.load(open("/tmp/cloudflare-bridge-result.json"))
+          if x.get("status") not in ("staged_only","waiting_verified_cloudflare_snapshot","nothing_missing_in_window"):
+              raise SystemExit("unexpected backup status")
+          if x.get("prediction_generated") or x.get("canonical_modified"):
+              raise SystemExit("unexpected canonical mutation")
+          PY
+      - name: Commit only standalone input staging, never canonical predictions
+        run: |
+          set -euo pipefail
+          DATE=$(TZ=Asia/Tokyo date +%Y/%m/%d)
+          STAGING="daily_inputs/$DATE/live/cloudflare_bridge"
+          if [ ! -d "$STAGING" ]; then echo "Nothing new to stage"; exit 0; fi
+          git add -- "$STAGING"
+          if git diff --cached --quiet; then echo "No new observations"; exit 0; fi
+          git config user.name "cloudflare-bridge-bot"
+          git config user.email "cloudflare-bridge-bot@users.noreply.github.com"
+          git commit -m "Stage isolated Cloudflare verified missing-only predeadline beforeinfo"
+          for ATTEMPT in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            git fetch origin main
+            git rebase origin/main || { git rebase --abort || true; exit 1; }
+            sleep 2
+          done
+          echo "::error::Cloudflare fallback staging push failed"
+          exit 1
