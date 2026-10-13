@@ -56,11 +56,15 @@ jobs:
                               "mode":"live","records":[result]}),encoding="utf-8")
               decoded=decode_manifest(root/"raw",root/"decoded",Path("."))
               assert decoded["observed_races"]==1,decoded
-              assert decoded["decoded_races"]==1,decoded
-              print("V4_ACTUAL_OFFICIAL_RAW_DECODE_PASS",{
+              # The real HTTP body is now fetched on a DIFFERENT day.
+              # Its source SHA and content are research evidence, not a
+              # prediction that existed before the October 12 deadline.
+              assert decoded["decoded_races"]==0,decoded
+              assert decoded["unparsed_races"][0]["reason"]=="after_deadline_observation",decoded
+              print("V4_ACTUAL_OFFICIAL_RAW_RESEARCH_ONLY_PASS",{
                   "race_id":result["race_id"],"sha256":result["sha256"],
                   "decoded_races":decoded["decoded_races"],
-                  "retrospective_research_only":True})
+                  "cutoff_enforced":True,"retrospective_research_only":True})
           PY
       - name: Recheck all saved predictions (official gap already checked in run 38240929058)
         run: |
