@@ -38,7 +38,9 @@ def jst_now():
 
 def source_complete(day_dir, day, race_id):
     """Ignore superficial HTTP success: six exhibition times/ST are needed."""
-    for file in (day_dir/"live"/"v4_decoded").glob("*/beforeinfo_entries_"+day+".csv"):
+    files=list((day_dir/"live"/"v4_decoded").glob("*/beforeinfo_entries_"+day+".csv"))
+    files+=list((day_dir/"live"/"cloudflare_bridge").glob("*/beforeinfo_entries_"+day+".csv"))
+    for file in files:
         rows=[r for r in read_csv(file) if r.get("race_id")==race_id]
         if len(rows)==6 and len({r.get("boat") for r in rows})==6 and all(
                 r.get("exhibition_time") and r.get("exhibition_course") and
