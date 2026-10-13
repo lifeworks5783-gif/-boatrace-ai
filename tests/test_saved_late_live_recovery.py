@@ -1,13 +1,16 @@
 """Prove predeadline official exhibition + late scoring is retrospective, not a bet."""
+import csv
 import json
 import sys
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "collectors"))
 
-from recovery_live_overlay import join_verified_late_saved_live
+from recovery_live_overlay import join_verified_late_saved_live, join_verified_recovery, unverified_canonical_allows_retrospective
 from build_latest_prediction_view import build_up_signal, build_down_signal
 from prediction_history_guard import preserve_closed_prediction
 from datetime import datetime, timezone, timedelta
@@ -81,6 +84,61 @@ class SavedLateLiveRecoveryTests(unittest.TestCase):
         joined, patched = join_verified_late_saved_live({"20261010-18-09": altered}, DATE)
         self.assertEqual(patched, [])
         self.assertIs(joined["20261010-18-09"], altered)
+
+    def test_verified_late_overlay_only_replaces_unverified_canonical(self):
+        race_id = '20261013-04-06'
+        day = '20261013'
+        original = {
+            'race_id': race_id, 'generated_at': '2026-10-13T13:04:00+09:00',
+            'prediction_quality': {'status': 'normal'},
+            'boats': [{'boat': x, 'registration_no': f'123{x}'} for x in range(1, 7)]
+        }
+        recovered = {
+            'race_id': race_id,
+            'boats': [{'boat': x, 'registration_no': f'123{x}', 'score': 60.0} for x in range(1, 7)],
+            'prediction_quality': {'status': 'recovered_observation',
+                                   'retrospective_simulation_only': True}
+        }
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            dest = root / 'predictions/2026/10/13/live'
+            dest.mkdir(parents=True)
+            csv_file = dest / 'formation_predictions_final_20261013.csv'
+            with csv_file.open('w', encoding='utf-8', newline='') as stream:
+                writer = csv.DictWriter(stream, fieldnames=['race_id', 'deadline',
+                                      'prediction_type', 'quality_status'])
+                writer.writeheader()
+                writer.writerow({'race_id': race_id, 'deadline': '2026-10-13T12:53:00+09:00',
+                                 'prediction_type': '朝', 'quality_status': 'normal'})
+            with patch('recovery_live_overlay.load_verified_recovered_live', return_value={race_id: recovered}):
+                joined, changed = join_verified_recovery({race_id: original}, day, root)
+                self.assertEqual(changed, [race_id])
+                self.assertEqual(joined[race_id], recovered)
+                # Genuine predictions produced before deadline must remain untouched.
+                timely = dict(original, generated_at='2026-10-13T12:52:00+09:00')
+                preserved, changed = join_verified_recovery({race_id: timely}, day, root)
+                self.assertEqual(changed, [])
+                self.assertIs(preserved[race_id], timely)
+                # An already validated canonical cannot be downgraded.
+                with csv_file.open('w', encoding='utf-8', newline='') as stream:
+                    writer = csv.DictWriter(stream, fieldnames=['race_id','deadline','prediction_type','quality_status'])
+                    writer.writeheader()
+                    writer.writerow({'race_id':race_id,'deadline':'2026-10-13T12:53:00+09:00',
+                                     'prediction_type':'直前','quality_status':'normal'})
+                existing, changed = join_verified_recovery({race_id: original}, day, root)
+                self.assertEqual(changed, [])
+                self.assertIs(existing[race_id], original)
+                # A mismatched starter is never certified even for fallback canonical.
+                with csv_file.open('w', encoding='utf-8', newline='') as stream:
+                    writer = csv.DictWriter(stream, fieldnames=['race_id','deadline','prediction_type','quality_status'])
+                    writer.writeheader()
+                    writer.writerow({'race_id':race_id,'deadline':'2026-10-13T12:53:00+09:00',
+                                     'prediction_type':'直前','quality_status':'fallback'})
+                bad = dict(original, boats=[dict(b) for b in original['boats']])
+                bad['boats'][0]['registration_no']='WRONG'
+                unchanged, changed = join_verified_recovery({race_id: bad}, day, root)
+                self.assertEqual(changed, [])
+                self.assertIs(unchanged[race_id], bad)
 
     def test_guard_accepts_verified_recovery_but_not_unverified_late_score(self):
         previous = {
