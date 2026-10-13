@@ -1,4 +1,5 @@
 """Official retry must remain cumulative and replayable after later batches."""
+import csv
 import json
 import sys
 import unittest
@@ -47,10 +48,23 @@ class RecoverySourceTest(unittest.TestCase):
             {"".join(c for c in key if c.isdigit()) for key in recovered},
             set(manifest["recovered_races"]),
         )
-        self.assertEqual(
-            recovered["20261009-23-03"]["prediction_quality"]["verified_scratched_boats"],
-            [4],
-        )
+        # Evidence must survive even when the saved canonical now treats
+        # this race as a genuine original rather than retrospective recovery.
+        entries_path = folder / "official_retry_beforeinfo_entries_20261009.csv"
+        with entries_path.open(encoding="utf-8-sig", newline="") as stream:
+            entries = list(csv.DictReader(stream))
+        scratched = [r for r in entries
+                     if r.get("race_id") == "20261009-23-03"
+                     and r.get("boat") == "4"
+                     and r.get("is_miss") == "True"
+                     and str(r.get("source_url") or "").startswith(
+                         "https://www.boatrace.jp/owpc/pc/race/beforeinfo?")]
+        self.assertEqual(len(scratched), 1)
+        if "202610092303" in manifest["recovered_races"]:
+            self.assertEqual(
+                recovered["20261009-23-03"]["prediction_quality"]["verified_scratched_boats"],
+                [4],
+            )
 
 
 if __name__ == "__main__":
