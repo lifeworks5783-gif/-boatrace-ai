@@ -110,7 +110,7 @@ jobs:
 
           if [ "$READY" -le 0 ]; then
             echo "HAS_READY_BEFOREINFO=false" >> "$GITHUB_ENV"
-            echo "今回新たに確定した直前情報なし。保存・予測起動はせず次回確認へ"
+            echo "今回新たに確定した直前情報なし。保存済み予測の締切表示を再評価して公開します"
             exit 0
           fi
 
@@ -129,6 +129,19 @@ jobs:
             git pull --rebase origin main || true
             git push origin HEAD:main
           fi
+      # No new official data is a successful check, not a stuck job.
+      # Re-render only the stored canonical to expire the last race; avoid
+      # unnecessary scoring or changing the saved predictions.
+      - name: 新規直前0件でも締切判定を再公開
+        if: env.HAS_READY_BEFOREINFO == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh workflow run fast_family_prediction_page.yml --repo "$GH_REPO" --ref main -f force_refresh=true
+          echo "New official data: 0; queued saved-prediction view refresh"
+
       # Release the collector runner immediately. The prediction workflow has
       # its own concurrency guard and publishes via its workflow_run trigger.
       - name: 新規直前情報から予測を非同期起動

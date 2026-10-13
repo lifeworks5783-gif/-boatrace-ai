@@ -336,7 +336,7 @@ def build_race_pair(race, index):
     venue = esc(race.get("venue_name") or race.get("venue_code") or "会場不明")
     race_no = esc(race.get("race"))
     return f"""
-    <div class="race-pair" data-race-id="{race_id}">
+    <div class="race-pair" data-race-id="{race_id}" data-deadline-at="{esc(race.get('deadline'))}">
       <div class="race-local-tabs" role="group" aria-label="{venue} {race_no}Rの予測切替">
         <button type="button" class="race-local-tab active" data-local-view="normal" aria-pressed="true">通常予測</button>
         <button type="button" class="race-local-tab" data-local-view="ai" aria-pressed="false">AI予測</button>
@@ -596,6 +596,25 @@ def main():
         </div>
         """
 
+    if upcoming_races:
+        # Keep the public page safe even if the last prediction build preceded
+        # the final deadline: the browser will reveal this without a new deploy.
+        cards += """
+        <div id="liveFinishedNotice" class="empty all-finished" style="display:none">
+          <div class="finished-title">本日の全レースは終了しました。</div>
+          <div class="finished-copy">
+            最終予測はレース照合に保存されています。翌日の番組情報は朝取得で更新できます。
+          </div>
+          <button id="morningCollectionButton"
+                  class="refresh-button morning-collection-button" type="button">
+            朝のレース情報を取得
+          </button>
+          <div id="morningCollectionStatus" class="refresh-status">
+            朝の番組表・選手・モーター情報を取得して朝予測を更新します。
+          </div>
+        </div>
+        """
+
     if not cards:
         cards = """
         <div class="empty">
@@ -620,10 +639,7 @@ def main():
     content="noindex,nofollow"
   >
 
-  <meta
-    http-equiv="refresh"
-    content="60"
-  >
+  <!-- Refresh only while idle; never interrupt a manual update wait. -->
 
   <title>
     ボートレースAI 最新予想
@@ -1202,7 +1218,7 @@ def main():
           最終更新 {esc(updated)} JST
         </span>
 
-        <span>
+        <span id="upcomingRaceCount">
           締切前 {len(upcoming_races)}レース
         </span>
 
@@ -1219,7 +1235,7 @@ def main():
         最新データに更新して予測
       </button>
       <div id="refreshStatus" class="refresh-status">
-        通常は直前情報を約5分間隔で自動取得し、レース終了後の照合も定期更新します。手動更新ボタンでは取得・予測・照合・AI分析・公開を順番に再実行できます。公開まで時間差があります。
+        直前情報は自動取得を行います。手動更新では公式データを再確認し、新規情報があれば予測を再計算します。追加情報がない場合も表示を再確認して公開状態を更新します。
       </div>
     </div>
 
@@ -1320,6 +1336,32 @@ def main():
         }}));
       }});
 
+      // Client-side deadline gate is independent of GitHub/Pages publication.
+      // Every displayed race has a full offset-aware deadline, never just HH:mm.
+      const applyDeadlineVisibility = () => {{
+        const pairs = Array.from(document.querySelectorAll(
+          "#normalPredictionPanel > .race-pair[data-deadline-at]"
+        ));
+        let active = 0;
+        for (const pair of pairs) {{
+          const cutoff = Date.parse(pair.dataset.deadlineAt || "");
+          const closed = Number.isFinite(cutoff) && Date.now() >= cutoff;
+          pair.style.display = closed ? "none" : "";
+          if (!closed) active++;
+        }}
+        if (pairs.length) {{
+          const summary = document.getElementById("upcomingRaceCount");
+          if (summary) summary.textContent = "締切前 " + active + "レース";
+          const endNotice = document.getElementById("liveFinishedNotice");
+          if (endNotice) endNotice.style.display = active === 0 ? "" : "none";
+          const refreshPanel = document.querySelector(".refresh-panel");
+          if (refreshPanel) refreshPanel.style.display = active === 0 ? "none" : "";
+        }}
+      }};
+      applyDeadlineVisibility();
+      window.setInterval(applyDeadlineVisibility, 15000);
+      document.addEventListener("visibilitychange", applyDeadlineVisibility);
+
       const button = document.getElementById("refreshPredictionButton");
       const status = document.getElementById("refreshStatus");
       const endpoint = "https://boatrace-family-trigger.onrender.com/trigger";
@@ -1344,8 +1386,6 @@ def main():
       const morningButton = document.getElementById("morningCollectionButton");
       const morningStatus = document.getElementById("morningCollectionStatus");
 
-      if (!button || !status) return;
-
       if (morningButton && morningStatus) {{
         morningButton.addEventListener("click", async () => {{
           if (!window.confirm("朝のレース情報を取得して朝予測を更新します。実行しますか？")) return;
@@ -1365,6 +1405,13 @@ def main():
           }}
         }});
       }}
+
+      // Live data still refreshes periodically, but not during the button's
+      // 6-minute publication check. The old 60s meta refresh interrupted it.
+      window.setInterval(() => {{
+        if (!button || !button.disabled) window.location.reload();
+      }}, 120000);
+      if (!button || !status) return;
 
       button.addEventListener("click", async () => {{
         if (!window.confirm("最新の直前情報を収集して予測を更新します。実行しますか？")) return;

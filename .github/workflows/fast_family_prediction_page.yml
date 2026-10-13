@@ -8,6 +8,11 @@ on:
         description: "JST date YYYYMMDD; empty means today"
         required: false
         type: string
+      force_refresh:
+        description: "Rebuild availability and receipt when no new official data is found"
+        required: false
+        default: false
+        type: boolean
   # One-time bootstrap on first merge and explicit manual recovery markers.
   # V4 normal dispatch remains the main path; no periodic polling.
   push:
@@ -40,14 +45,25 @@ jobs:
           [[ "$DAY" =~ ^20[0-9]{6}$ ]] || { echo "Invalid date: $DAY"; exit 1; }
           FILE="predictions/${DAY:0:4}/${DAY:4:2}/${DAY:6:2}/live/formation_predictions_final_$DAY.json"
           if ! test -s "$FILE"; then
-            echo "Missing canonical: $FILE; latest page is unchanged" >&2
-            exit 1
+            # At JST day rollover, before the new morning data exists,
+            # display the previous fully finished day instead of failing.
+            MORNING="predictions/${DAY:0:4}/${DAY:4:2}/${DAY:6:2}/morning_predictions_$DAY.json"
+            PREV=$(date -u -d "${DAY:0:4}-${DAY:4:2}-${DAY:6:2} -1 day" +%Y%m%d)
+            PREV_FILE="predictions/${PREV:0:4}/${PREV:4:2}/${PREV:6:2}/live/formation_predictions_final_$PREV.json"
+            if [ -z "$INPUT_DATE" ] && ! test -s "$MORNING" && test -s "$PREV_FILE"; then
+              DAY="$PREV"; FILE="$PREV_FILE"
+              echo "No new morning canonical yet; render completed previous day $DAY"
+            else
+              echo "Missing canonical: $FILE; latest page is unchanged" >&2
+              exit 1
+            fi
           fi
           echo "TARGET_DATE=$DAY" >> "$GITHUB_ENV"
           echo "CANONICAL_FILE=$FILE" >> "$GITHUB_ENV"
           echo "CANONICAL_SHA=$(git rev-parse HEAD:$FILE)" >> "$GITHUB_ENV"
           echo "PAGE_BUILDER_SHA=$(git rev-parse HEAD:collectors/build_family_prediction_page.py)" >> "$GITHUB_ENV"
           echo "PUBLISH_SKIP=false" >> "$GITHUB_ENV"
+          echo "FORCE_REFRESH=${{ inputs.force_refresh || false }}" >> "$GITHUB_ENV"
       - name: Read public repository without overwriting the other tabs
         if: env.PUBLISH_SKIP == 'false'
         uses: actions/checkout@v4
@@ -73,7 +89,7 @@ jobs:
               print('')
           PY
           )
-          if [ "$PUBLISHED" = "$CANONICAL_SHA:$PAGE_BUILDER_SHA" ] && test -s family_public/index.html; then
+          if [ "$FORCE_REFRESH" != "true" ] && [ "$PUBLISHED" = "$CANONICAL_SHA:$PAGE_BUILDER_SHA" ] && test -s family_public/index.html; then
             echo "Already published exact canonical $CANONICAL_SHA"
             echo "PUBLISH_SKIP=true" >> "$GITHUB_ENV"
           fi
@@ -135,7 +151,7 @@ jobs:
               print('')
           PY
             )
-            if [ "$PUBLISHED" = "$CANONICAL_SHA:$PAGE_BUILDER_SHA" ] && test -s family_public/index.html; then
+            if [ "$FORCE_REFRESH" != "true" ] && [ "$PUBLISHED" = "$CANONICAL_SHA:$PAGE_BUILDER_SHA" ] && test -s family_public/index.html; then
               echo "Published by another run; no duplicate"
               exit 0
             fi
@@ -162,6 +178,7 @@ jobs:
               'scope':'latest_prediction_index_only',
               'other_tabs_untouched':True,
               'pages_deployment_verified':False,
+              'refresh_result': 'no_new_official_data_rechecked' if os.environ.get('FORCE_REFRESH')=='true' else 'canonical_publication',
           }
           Path('family_public/fast_publish_status.json').write_text(
               json.dumps(marker,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
