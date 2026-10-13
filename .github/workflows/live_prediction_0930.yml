@@ -565,6 +565,20 @@ jobs:
 
           echo "家族共有ページ更新開始: PASS"
 
+      - name: ボタン予測保存後に最新情報だけ優先公開
+        # RAW_READY=true is the user's update-and-predict button path.
+        # Publishing only the latest tab does not mutate result/PDCA tabs.
+        if: env.PRIVATE_CHANGED == 'true' && env.RAW_READY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run fast_family_prediction_page.yml \
+            --repo "$GITHUB_REPOSITORY" --ref main \
+            -f target_date="$TARGET_DATE"
+          echo "BUTTON_FAST_PUBLICATION_REQUESTED date=$TARGET_DATE"
+
       - name: 直前予測をArtifactへ短期保存
         if: env.HAS_LIVE_PREDICTION == 'true'
         uses: actions/upload-artifact@v4
