@@ -157,7 +157,9 @@ def exhibition_is_complete(entries):
     Never infer official scratches from absent boat rows; preserve incomplete
     exact-source captures for retry rather than scoring neutral placeholders.
     """
-    if not (3 <= len(entries) <= 6):
+    # Six boat identities are mandatory; a five-starter race needs an
+    # explicit sixth is_miss row, never an inferred scratch.
+    if len(entries) != 6:
         return False
     numbers=[str(row.get("boat") or "") for row in entries]
     if len(set(numbers)) != len(numbers) or any(x not in {"1","2","3","4","5","6"} for x in numbers):
