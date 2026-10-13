@@ -106,10 +106,8 @@ class V4ContractTests(unittest.TestCase):
         rows[5]["is_miss"]=True
         self.assertTrue(exhibition_is_complete(rows))
         rows.pop(4)
-        self.assertFalse(exhibition_is_complete(rows) if False else False)  # no assumed scratches
-        rows.pop(4)
-        self.assertEqual(len(rows),4)
-        self.assertFalse(exhibition_is_complete(rows+[rows[0]]))
+        self.assertFalse(exhibition_is_complete(rows))  # missing boat is not an inferred scratch
+        self.assertFalse(exhibition_is_complete(rows+[rows[0]]))  # duplicate boat identity
 
     def test_unready_automatically_dispatches_missing_only_bounded_collector(self):
         root=Path(__file__).resolve().parents[1]
