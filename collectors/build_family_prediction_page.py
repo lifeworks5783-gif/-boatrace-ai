@@ -330,6 +330,23 @@ def build_card(race, index, is_completed=False):
     """
 
 
+def build_race_pair(race, index):
+    """Per-race navigation without leaving the current scroll position."""
+    race_id = esc(race.get("race_id"))
+    venue = esc(race.get("venue_name") or race.get("venue_code") or "会場不明")
+    race_no = esc(race.get("race"))
+    return f"""
+    <div class="race-pair" data-race-id="{race_id}">
+      <div class="race-local-tabs" role="group" aria-label="{venue} {race_no}Rの予測切替">
+        <button type="button" class="race-local-tab active" data-local-view="normal" aria-pressed="true">通常予測</button>
+        <button type="button" class="race-local-tab" data-local-view="ai" aria-pressed="false">AI予測</button>
+      </div>
+      <div class="race-local-normal">{build_card(race, index)}</div>
+      <div class="race-local-ai" hidden></div>
+    </div>
+    """
+
+
 def _ai_boat_name_map(race):
     name_map = {}
     sources = [
@@ -361,7 +378,7 @@ def build_ai_card(race, index):
     # An active signal with missing/mismatched tickets is never normal AI.
     if integrity["signal_key"] and integrity["signal_ai_status"] != "ready":
         return f"""
-        <article class="race-card">
+        <article class="race-card" data-race-id="{esc(race.get('race_id'))}">
           <div class="race-head">
             <div class="race-order">{index}</div>
             <div class="race-main">
@@ -388,8 +405,8 @@ def build_ai_card(race, index):
             '</tr>'
             for x in position
         )
-        # The 24 saved purchase candidates must be visible without opening
-        # details. Ranks 25-50 are reference-only and remain collapsed.
+        # Purchase ranks 1-24 and reference ranks 25-50 are independent
+        # nested disclosures; both start collapsed.
         combo_rows = "".join(
             '<div class="ai-combo">'
             f'<b>{i}位 {esc(x.get("combination"))}</b>'
@@ -406,7 +423,7 @@ def build_ai_card(race, index):
         )
         signal_key = text(ai.get("signal_key"))
         return f"""
-        <article class="race-card">
+        <article class="race-card" data-race-id="{esc(race.get('race_id'))}">
           <div class="race-head">
             <div class="race-order">{index}</div>
             <div class="race-main">
@@ -423,12 +440,15 @@ def build_ai_card(race, index):
               <tbody>{score_rows}</tbody>
             </table>
           </div>
-          <div class="formation-title signal-ai-purchase-title">シグナル専用3連単予測・上位24点（検証用・各100円／計2,400円）</div>
-          <div class="ai-note">風神雷神の補正後スコアで評価した24点です。通常予測の買い目とは別集計です。</div>
-          <div class="ai-combos signal-ai-purchase-list" aria-label="シグナル専用3連単上位24点">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
-          <details class="ai-combo-details">
-            <summary>参考順位25〜50位を見る（購入対象外）</summary>
-            <div class="ai-combos">{reference_rows or "参考順位はありません。"}</div>
+          <div class="formation-title signal-ai-purchase-title">シグナル専用3連単予測</div>
+          <details class="ai-combo-details signal-ai-purchase-details">
+            <summary>1〜24位を見る（検証用・各100円／計2,400円）</summary>
+            <div class="ai-note">風神雷神の補正後スコアで評価した24点です。通常予測の買い目とは別集計です。</div>
+            <div class="ai-combos signal-ai-purchase-list" aria-label="シグナル専用3連単上位24点">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
+            <details class="ai-combo-details signal-ai-reference-details">
+              <summary>参考順位25〜50位を見る（購入対象外）</summary>
+              <div class="ai-combos">{reference_rows or "参考順位はありません。"}</div>
+            </details>
           </details>
           <div class="ai-note">購入額・回収率は従来どおり上位24点で計算します。25〜50位は検証用の参考順位です。全120通りの順位データは保存済みです。</div>
         </article>
@@ -477,7 +497,7 @@ def build_ai_card(race, index):
         for i, x in enumerate(combos, 1)
     )
     return f"""
-    <article class="race-card">
+    <article class="race-card" data-race-id="{esc(race.get('race_id'))}">
       <div class="race-head">
         <div class="race-order">{index}</div>
         <div class="race-main">
@@ -546,7 +566,7 @@ def main():
     completed_races = [race for race in races if completed(race)]
 
     cards = "".join(
-        build_card(race, index, False)
+        build_race_pair(race, index)
         for index, race in enumerate(upcoming_races, start=1)
     )
     ai_cards = "".join(
@@ -746,6 +766,15 @@ def main():
       margin-top: 4px;
     }}
 
+    .race-pair {{ margin-bottom: 14px; }}
+    .race-local-tabs {{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px; }}
+    .race-local-tab {{
+      min-height:44px; border:1px solid var(--line); border-radius:10px;
+      background:var(--card); color:var(--text); font-size:14px; font-weight:800; cursor:pointer;
+    }}
+    .race-local-tab.active {{ background:var(--primary); color:#fff; border-color:var(--primary); }}
+    .race-local-normal[hidden], .race-local-ai[hidden] {{ display:none !important; }}
+    .race-local-normal > .race-card, .race-local-ai > .race-card {{ margin-bottom:0; }}
     .prediction-tabs {{
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -777,6 +806,11 @@ def main():
     .ai-combos {{ display: grid; gap: 6px; }}
     .signal-ai-purchase-title {{ margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }}
     .signal-ai-purchase-list {{ margin-top: 10px; }}
+    .signal-ai-purchase-details > summary, .signal-ai-reference-details > summary {{
+      display:list-item; padding:9px 7px; min-height:40px;
+      border-radius:8px; background:var(--score-row);
+    }}
+    .signal-ai-reference-details {{ margin-top:12px; }}
     .signal-ai-purchase-list .ai-combo {{ border-left: 3px solid var(--live-accent); }}
     .ai-combo {{
       display: flex;
@@ -1189,11 +1223,6 @@ def main():
       </div>
     </div>
 
-    <div class="prediction-tabs">
-      <button class="prediction-tab active" data-tab="normal" type="button">通常予測</button>
-      <button class="prediction-tab" data-tab="ai" type="button">AIスコア予測</button>
-    </div>
-
     <div class="notice">
 
       最新予想には締切前レースだけを表示します。終了済みレースの予測データはPDCA・結果検証用として保存しています。
@@ -1212,9 +1241,9 @@ def main():
     <div id="normalPredictionPanel" class="prediction-panel active">
       {cards}
     </div>
-    <div id="aiPredictionPanel" class="prediction-panel">
+    <template id="aiPredictionTemplates">
       {ai_cards}
-    </div>
+    </template>
 
     <footer>
 
@@ -1228,15 +1257,53 @@ def main():
 
   <script>
     (() => {{
-      const tabs = document.querySelectorAll(".prediction-tab");
-      const normalPanel = document.getElementById("normalPredictionPanel");
-      const aiPanel = document.getElementById("aiPredictionPanel");
-      tabs.forEach(tab => tab.addEventListener("click", () => {{
-        const ai = tab.dataset.tab === "ai";
-        tabs.forEach(x => x.classList.toggle("active", x === tab));
-        if (normalPanel) normalPanel.classList.toggle("active", !ai);
-        if (aiPanel) aiPanel.classList.toggle("active", ai);
-      }}));
+      const aiTemplates = document.getElementById("aiPredictionTemplates");
+      const readChoice = key => {{
+        try {{ return window.sessionStorage.getItem(key); }}
+        catch (error) {{ return null; }}
+      }};
+      const saveChoice = (key, value) => {{
+        try {{ window.sessionStorage.setItem(key, value); }}
+        catch (error) {{ /* Tab switching also works without storage. */ }}
+      }};
+
+      // Render only the selected race's saved AI prediction at the same spot.
+      document.querySelectorAll(".race-pair").forEach(pair => {{
+        const normal = pair.querySelector(".race-local-normal");
+        const ai = pair.querySelector(".race-local-ai");
+        const buttons = pair.querySelectorAll(".race-local-tab");
+        const choiceKey = "boatrace-race-view:" + pair.dataset.raceId;
+        const ensureAi = () => {{
+          if (ai.firstElementChild || ai.textContent.trim()) return;
+          const sources = aiTemplates ? aiTemplates.content.querySelectorAll(".race-card") : [];
+          const source = Array.from(sources).find(card => card.dataset.raceId === pair.dataset.raceId);
+          if (!source) {{
+            ai.textContent = "このレースのAI予測を表示できません。";
+            return;
+          }}
+          ai.appendChild(source.cloneNode(true));
+          ai.querySelectorAll("details").forEach((detail, i) => {{
+            const key = "boatrace-race-details:" + pair.dataset.raceId + ":" + i;
+            detail.open = readChoice(key) === "open";
+            detail.addEventListener("toggle", () => saveChoice(key, detail.open ? "open" : "closed"));
+          }});
+        }};
+        const activate = (showAi, persist) => {{
+          if (showAi) ensureAi();
+          normal.hidden = showAi;
+          ai.hidden = !showAi;
+          buttons.forEach(button => {{
+            const active = (button.dataset.localView === "ai") === showAi;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+          }});
+          if (persist) saveChoice(choiceKey, showAi ? "ai" : "normal");
+        }};
+        buttons.forEach(button => button.addEventListener("click", () => {{
+          activate(button.dataset.localView === "ai", true);
+        }}));
+        if (readChoice(choiceKey) === "ai") activate(true, false);
+      }});
 
       document.querySelectorAll(".race-card").forEach(card => {{
         const viewTabs = card.querySelectorAll(".race-view-tab");
