@@ -20,15 +20,17 @@
    - 従来：`evaluations/signal_pdca_cross/latest/summary.json`
    - 新雷神V2：`evaluations/raijin_v2_signal_pdca_cross/latest/summary.json`
    - V2の専用AI24点はV2独自の `new_actual_rank` で精算し、旧シグナル補正の結果を代用しない。
-2. `.github/workflows/saved_data_pdca_refresh.yml` に、両方の16×4集計、買い方1/2/3再比較、日別単体要素・直前要素分析を追加。
-3. 出力の16区分・4方式・対象日の監査済みレース数をチェックするゲートを設定。F0R0の専用AIは対象外（0%扱い不可）。
-4. 評価専用出力をGitHubへ保存する既存フローは維持。実行途中で本番の補正・予測・買い目には触れない。
+2. 新雷神V2同一順位の6/8/12/18/24点比較 `collectors/evaluate_raijin_v2_points_pdca.py` を追加。専用AI24点の件数・的中・投資・払戻が再構成正本と一致しない場合は停止。
+3. `.github/workflows/saved_data_pdca_refresh.yml` に、両方の16×4集計、V2五段階点数、買い方1/2/3再比較、日別単体要素・直前要素分析を追加。
+4. 出力の16区分・4方式・対象日の監査済みレース数をチェックするゲートを設定。F0R0の専用AIは対象外（0%扱い不可）。
+5. 評価専用出力をGitHubへ保存する既存フローは維持。実行途中で本番の補正・予測・買い目には触れない。
 
 ## 「フルPDCA準備完了」の判定条件
 下記ファイルの内容を読み、日別132R・累計モデル別母数・回収率・分類を照合してから準備完了と報告する。
 - `evaluations/raijin_all_rank_v2_replay/daily/20261013/summary.json`
 - `evaluations/signal_ai/latest/summary.json` の `source_dates` に20261013を含む
 - `evaluations/raijin_v2_signal_pdca_cross/latest/summary.json`
+- `evaluations/raijin_v2_points_pdca/latest/summary.json`（6/8/12/18/24点、24点の正本一致）
 - `evaluations/signal_pdca_cross/latest/summary.json`
 - `evaluations/pdca_buying_strategy/latest/summary.json` の最新日
 - `evaluations/2026/10/13/score_component_analysis_20261013.json`
