@@ -9,6 +9,10 @@ from tempfile import TemporaryDirectory
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "collectors"))
 
+# The fast publisher runs this test module before updating the public page.
+# Import the display regression suite so each publish validates its top-24 UI.
+from test_signal_ai_purchase_visibility import SignalAiPurchaseVisibilityTest
+
 
 class FastFamilyPublishContract(unittest.TestCase):
     def test_fast_lane_uses_saved_canonical_without_research(self):
