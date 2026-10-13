@@ -151,6 +151,26 @@ def capture_morning(root,day,out):
     dump(out/"manifest.json",manifest)
     return manifest
 
+def exhibition_is_complete(entries):
+    """HTTP 200 is not a finished exhibition: all active starters need fields.
+
+    Never infer official scratches from absent boat rows; preserve incomplete
+    exact-source captures for retry rather than scoring neutral placeholders.
+    """
+    if not (3 <= len(entries) <= 6):
+        return False
+    numbers=[str(row.get("boat") or "") for row in entries]
+    if len(set(numbers)) != len(numbers) or any(x not in {"1","2","3","4","5","6"} for x in numbers):
+        return False
+    for row in entries:
+        if not str(row.get("registration_no") or "").strip():
+            return False
+        scratched=str(row.get("is_miss") or "").lower() in {"true","1","yes"}
+        if not scratched and any(row.get(k) is None or not str(row.get(k)).strip()
+                   for k in ("exhibition_course","exhibition_time","exhibition_st_raw")):
+            return False
+    return sum(str(x.get("is_miss") or "").lower() not in {"true","1","yes"} for x in entries) >= 3
+
 def decode_manifest(source,out,root):
     """Interpret AFTER capture artifact exists, never discard immutable raw body."""
     source=Path(source);out=Path(out);root=Path(root)
@@ -158,7 +178,8 @@ def decode_manifest(source,out,root):
     day=manifest["date"];mode=manifest["mode"]
     result={"schema":"boatrace-v4-decoded-v1","date":day,"mode":mode,
             "observed_races":0,"decoded_races":0,"unparsed_races":[],
-            "snapshot_path":None,"raw_storage":"temporary_github_actions_artifact_only"}
+            "unready_races":[], "snapshot_path":None,
+            "raw_storage":"temporary_github_actions_artifact_only"}
     if mode=="morning":
         raw=manifest.get("raw_archive")
         if raw:
@@ -217,6 +238,25 @@ def decode_manifest(source,out,root):
                 entry.update({"requested_at":x["requested_at"],
                               "collected_at":x["received_at"],
                               "source_url":x["source_url"]})
+            # An official HTTP response with six names but blank ST/exhibition
+            # is valid evidence, not a usable pre-deadline LIVE prediction.
+            if not exhibition_is_complete(bb):
+                result["unready_races"].append({
+                    "race_id":x["race_id"],"deadline":x.get("deadline"),
+                    "reason":"official_exhibition_not_ready",
+                    "collected_at":x["received_at"],"source_sha256":x["sha256"]
+                })
+                continue
+            # Decoding is not proof of being timely. A source received after
+            # deadline is retained only in the raw archive (research replay).
+            cutoff=parse_clock(day,x.get("deadline"))
+            received=parse_now(x["received_at"])
+            if cutoff is None or received >= cutoff:
+                result["unparsed_races"].append({
+                    "race_id":x["race_id"],"reason":"after_deadline_observation",
+                    "collected_at":x["received_at"],"source_sha256":x["sha256"]
+                })
+                continue
             races.append(r);boats.extend(bb)
             result["decoded_races"]+=1
         except Exception as exc:
