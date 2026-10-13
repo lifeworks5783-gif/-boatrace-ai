@@ -181,6 +181,22 @@ jobs:
           test -s evaluations/raijin_all_rank_v2_replay/summary.json
           test -s evaluations/raijin_all_rank_v2_replay/details.csv
 
+      - name: 新雷神V2の上位6・8・12・18・24点を同一120順位で比較
+        run: |
+          python -u collectors/evaluate_raijin_v2_points_pdca.py
+          test -s evaluations/raijin_v2_points_pdca/latest/summary.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          x=json.loads(Path("evaluations/raijin_v2_points_pdca/latest/summary.json").read_text(encoding="utf-8"))
+          assert x["latest_date"]==d, (x["latest_date"],d)
+          assert set(x["per_date"][d]["points"])=={"6","8","12","18","24"}
+          assert len(x["per_date"][d]["by_signal_16"])==16
+          assert all(x["validation"].values()), x["validation"]
+          print("RAIJIN_V2_5_POINT_COUNTS_VERIFIED",d,x["per_date"][d]["active_races"])
+          PY
+
       - name: 120通りの実着順位を朝・直前・シグナル補正で分解し研究データを更新
         run: |
           python -u collectors/evaluate_signal_rank_research.py
