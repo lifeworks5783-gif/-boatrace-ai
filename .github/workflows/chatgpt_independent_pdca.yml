@@ -1,0 +1,83 @@
+name: ChatGPT independent PDCA (research only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "collectors/evaluate_chatgpt_independent_pdca.py"
+      - "config/research/chatgpt_independent_strategy_v1.json"
+      - "config/run_chatgpt_pdca_*.txt"
+      - ".github/workflows/chatgpt_independent_pdca.yml"
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "Research PDCA date YYYYMMDD"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chatgpt-independent-research
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout source and archived official results
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Set audited research date
+        shell: bash
+        run: |
+          TARGET_DATE="${{ github.event.inputs.target_date }}"
+          if [ -z "$TARGET_DATE" ]; then
+            TARGET_DATE=$(find archive -type f -name 'results_????????_all.csv' | sed -n 's/.*results_\([0-9]\{8\}\)_all\.csv/\1/p' | sort | tail -1)
+          fi
+          if [[ ! "$TARGET_DATE" =~ ^[0-9]{8}$ ]]; then echo "Invalid target date"; exit 1; fi
+          echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
+      - name: Run independent model and race evidence
+        run: |
+          python -m py_compile collectors/evaluate_chatgpt_independent_pdca.py
+          python -u collectors/evaluate_chatgpt_independent_pdca.py --date "$TARGET_DATE"
+      - name: Verify all official races and paper-bet provenance
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=os.environ["TARGET_DATE"]
+          p=Path("evaluations/chatgpt_independent_pdca/daily")/d
+          summary=json.loads((p/"summary.json").read_text(encoding="utf-8"))
+          actual=summary["quality"][d]
+          audit=Path("evaluations")/d[:4]/d[4:6]/d[6:8]/"data_quality"/f"completeness_{d}.json"
+          if audit.is_file():
+              a=json.loads(audit.read_text(encoding="utf-8"))
+              assert a["result_races"]==actual["official"],(a["result_races"],actual["official"])
+          count=len((p/"race_evidence.jsonl").read_text(encoding="utf-8").splitlines())
+          assert count == actual["included"] and count > 0
+          assert summary["historical_paper_bets_only"] is True
+          assert summary["never_modify_production"] is True
+          assert all(k in summary["latest_day"] for k in ("signals","adaptive","proposed_tickets","baseline_tickets"))
+          assert (p/"REPORT.md").stat().st_size>0
+          print("CHATGPT_INDEPENDENT_PDCA_VERIFIED",d,actual,count)
+          PY
+      - name: Commit only evidence and analytical output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evaluations/chatgpt_independent_pdca/
+          if git diff --cached --quiet; then
+            echo "No new research differences"
+            exit 0
+          fi
+          git commit -m "Save independently evaluated ChatGPT PDCA $TARGET_DATE"
+          git pull --rebase origin main
+          git push origin HEAD:main
