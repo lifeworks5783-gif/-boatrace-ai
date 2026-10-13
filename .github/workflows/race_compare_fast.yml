@@ -32,6 +32,14 @@ jobs:
           set -euo pipefail
           DAY="${REQUEST_DATE:-$(TZ=Asia/Tokyo date +%Y%m%d)}"
           [[ "$DAY" =~ ^[0-9]{8}$ ]] || { echo "::error::Bad target_date"; exit 1; }
+          TODAY="$(TZ=Asia/Tokyo date +%Y%m%d)"
+          TODAY_MORNING="predictions/${TODAY:0:4}/${TODAY:4:2}/${TODAY:6:2}/morning_predictions_${TODAY}.json"
+          # Historical recovery must never replace today's already-running
+          # race comparison with yesterday's completed card list.
+          if [ "$DAY" != "$TODAY" ] && test -s "$TODAY_MORNING"; then
+            echo "::notice::Historical recovery $DAY; preserve today's comparison ($TODAY)"
+            DAY="$TODAY"
+          fi
           echo "TARGET_DATE=$DAY" >> "$GITHUB_ENV"
           python -u collectors/build_family_race_compare_page.py \
             --date "$DAY" --predictions-root predictions --output-dir _race_compare_fast
