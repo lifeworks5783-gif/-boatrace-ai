@@ -1,0 +1,20 @@
+name: Button Cloudflare fallback regression
+on:
+  push:
+    branches: ["feature/button-dual-source-cloudflare-fallback-20261013"]
+  pull_request:
+    paths: ["collectors/cloudflare_button_fallback.py",".github/workflows/fast_live_collection_v3.yml","tests/test_cloudflare_button_fallback.py"]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q requests beautifulsoup4
+      - run: python -m unittest discover -s tests -p "test_cloudflare*bridge.py" -v
+      - run: python -m unittest discover -s tests -p "test_cloudflare_button_fallback.py" -v
+      - run: python -m py_compile collectors/cloudflare_button_fallback.py
