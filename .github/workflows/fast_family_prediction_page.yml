@@ -46,6 +46,7 @@ jobs:
           echo "TARGET_DATE=$DAY" >> "$GITHUB_ENV"
           echo "CANONICAL_FILE=$FILE" >> "$GITHUB_ENV"
           echo "CANONICAL_SHA=$(git rev-parse HEAD:$FILE)" >> "$GITHUB_ENV"
+          echo "PAGE_BUILDER_SHA=$(git rev-parse HEAD:collectors/build_family_prediction_page.py)" >> "$GITHUB_ENV"
           echo "PUBLISH_SKIP=false" >> "$GITHUB_ENV"
       - name: Read public repository without overwriting the other tabs
         if: env.PUBLISH_SKIP == 'false'
@@ -67,12 +68,12 @@ jobs:
           path=Path('family_public/fast_publish_status.json')
           try:
               record=json.loads(path.read_text(encoding='utf-8'))
-              print(record.get('canonical_blob_sha',''))
+              print(record.get('canonical_blob_sha','') + ':' + record.get('page_builder_blob_sha',''))
           except (OSError,ValueError):
               print('')
           PY
           )
-          if [ "$PUBLISHED" = "$CANONICAL_SHA" ] && test -s family_public/index.html; then
+          if [ "$PUBLISHED" = "$CANONICAL_SHA:$PAGE_BUILDER_SHA" ] && test -s family_public/index.html; then
             echo "Already published exact canonical $CANONICAL_SHA"
             echo "PUBLISH_SKIP=true" >> "$GITHUB_ENV"
           fi
@@ -128,12 +129,13 @@ jobs:
           import json
           from pathlib import Path
           try:
-              print(json.loads(Path('family_public/fast_publish_status.json').read_text()).get('canonical_blob_sha',''))
+              record=json.loads(Path('family_public/fast_publish_status.json').read_text())
+              print(record.get('canonical_blob_sha','') + ':' + record.get('page_builder_blob_sha',''))
           except (OSError,ValueError):
               print('')
           PY
             )
-            if [ "$PUBLISHED" = "$CANONICAL_SHA" ] && test -s family_public/index.html; then
+            if [ "$PUBLISHED" = "$CANONICAL_SHA:$PAGE_BUILDER_SHA" ] && test -s family_public/index.html; then
               echo "Published by another run; no duplicate"
               exit 0
             fi
@@ -150,6 +152,7 @@ jobs:
               'schema_version':1,
               'target_date':os.environ['TARGET_DATE'],
               'canonical_blob_sha':os.environ['CANONICAL_SHA'],
+              'page_builder_blob_sha':os.environ['PAGE_BUILDER_SHA'],
               'canonical_path':os.environ['CANONICAL_FILE'],
               'prediction_commit_at_utc':source.isoformat(),
               'published_commit_prepared_at_utc':timestamp.isoformat(),
