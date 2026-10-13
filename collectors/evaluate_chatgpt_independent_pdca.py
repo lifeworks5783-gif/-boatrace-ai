@@ -159,8 +159,11 @@ def summarize(records):
         hits=sum(x[key+"_hit"] for x in rows)
         invest=sum(x[key+"_stake"] for x in rows)
         returns=sum(x[key+"_return"] for x in rows)
+        payouts=sorted((x[key+"_return"] for x in rows if x[key+"_hit"]),reverse=True)
         return {"races":total,"hits":hits,"hit_pct":rate(hits,total),
-                "invested":invest,"returned":returns,"profit":returns-invest,"roi_pct":rate(returns,invest)}
+                "invested":invest,"returned":returns,"profit":returns-invest,"roi_pct":rate(returns,invest),
+                "biggest_win_yen":payouts[0] if payouts else 0,
+                "roi_excluding_biggest_win_pct":rate(returns-(payouts[0] if payouts else 0),invest)}
     cnt=len(records)
     signal_names=("consensus_axis","upset_watch","neutral_or_uncertain")
     return {"races":cnt,"first_pct":rate(sum(x["first_hit"] for x in records),cnt),
@@ -237,6 +240,25 @@ def main():
             "", "| 区分 | R数 | 8点的中 | 8点ROI | 条件分岐ROI |","|---|---:|---:|---:|---:|"]
     for s,b in z["signals"].items():
         lines.append(f"| {s} | {b['count']} | {b['fixed8']['hits']} | {b['fixed8']['roi_pct']}% | {b['adaptive']['roi_pct']}% |")
+    improved=sorted((x for x in today if x["proposed8_hit"] and not x["baseline8_hit"]),
+                    key=lambda x:(-x["payout_yen"],x["race_id"]))
+    worsened=sorted((x for x in today if x["baseline8_hit"] and not x["proposed8_hit"]),
+                    key=lambda x:(-x["payout_yen"],x["race_id"]))
+    lines+=["", "## 同一レースでの改善・悪化（反証も省略しない）",
+            f"独自8点のみ的中 {len(improved)}R、既存直前スコアPL8点のみ的中 {len(worsened)}R。"]
+    for label,examples in (("独自案のみ的中",improved[:3]),("独自案のみ外れ",worsened[:3])):
+        for x in examples:
+            boat=x["score_evidence"][0]
+            lines.append(f"- {label}：{x['race_id']} 実着{x['actual']}／公式払戻{x['payout_yen']}円。"
+                         f"独自上位艇{boat['boat']}号艇：朝{boat['morning']:.2f}点、直前{boat['live']:.2f}点、"
+                         f"展示タイム補正{boat['exhibition_bonus']:+.2f}点、独自総合{boat['score']:.2f}点。"
+                         f"上位8点 {', '.join(x['proposed8_tickets'])}。")
+    lines+=["",f"独自上位8点で最大の的中払戻1件を除いた場合のROI：{z['proposed_tickets']['8']['roi_excluding_biggest_win_pct']}%。",
+            "※ 最大払戻を除外しても投資総額は同一とした感応度分析。", "",
+            "## 公式保存結果と予測の出典",
+            f"- https://github.com/lifeworks5783-gif/-boatrace-ai/blob/main/archive/{target[:4]}/{target[4:6]}/{target[6:8]}/results_{target}_all.csv",
+            f"- https://github.com/lifeworks5783-gif/-boatrace-ai/blob/main/predictions/{target[:4]}/{target[4:6]}/{target[6:8]}/morning_predictions_{target}.csv",
+            f"- https://github.com/lifeworks5783-gif/-boatrace-ai/blob/main/evaluations/{target[:4]}/{target[4:6]}/{target[6:8]}/recovery/merged_live_predictions_{target}.csv"]
     lines+=["", f"直近7日上位8点ROI：{data['rolling7']['proposed_tickets']['8']['roi_pct']}%。",
             f"保存期間全体上位8点ROI：{data['cumulative']['proposed_tickets']['8']['roi_pct']}%。",
             "前日以前・当日を分離。同日最適化なし。ただし検証者が当日結果を既に知っている場合、真の未知データ検証ではない。",
