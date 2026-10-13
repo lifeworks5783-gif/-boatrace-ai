@@ -1,0 +1,76 @@
+# Race-comparison-only publisher: no PDCA, AI analysis or full-day audit gate.
+name: Race Compare Fast Independent Publish
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "YYYYMMDD in JST; blank means today"
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: race-compare-fast-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compare page builder dependencies
+        run: python -m pip install -q requests beautifulsoup4
+      - name: Build comparison only from saved scores and official results
+        env:
+          REQUEST_DATE: ${{ inputs.target_date }}
+        run: |
+          set -euo pipefail
+          DAY="${REQUEST_DATE:-$(TZ=Asia/Tokyo date +%Y%m%d)}"
+          [[ "$DAY" =~ ^[0-9]{8}$ ]] || { echo "::error::Bad target_date"; exit 1; }
+          echo "TARGET_DATE=$DAY" >> "$GITHUB_ENV"
+          python -u collectors/build_family_race_compare_page.py \
+            --date "$DAY" --predictions-root predictions --output-dir _race_compare_fast
+          test -s _race_compare_fast/race_compare.html
+          # This publisher must NEVER mark a post-result recovered prediction
+          # as a bet known at deadline; provenance remains in the renderer.
+          python - <<'PY'
+          from pathlib import Path
+          s=Path("_race_compare_fast/race_compare.html").read_text(encoding="utf-8")
+          assert "<article class=\"race-card\">" in s or "確定 0R" in s or "確定\n" in s
+          assert "レース照合" in s
+          print("RACE_COMPARE_GENERATION_PASS")
+          PY
+      - name: Read public pages for compare-only update
+        uses: actions/checkout@v4
+        with:
+          repository: lifeworks5783-gif/boatrace-family-view
+          ref: main
+          token: ${{ secrets.FAMILY_VIEW_TOKEN }}
+          path: family_public
+          fetch-depth: 0
+      - name: Commit and publish race_compare.html only
+        working-directory: family_public
+        run: |
+          set -euo pipefail
+          git config user.name "boatrace-compare-bot"
+          git config user.email "boatrace-compare-bot@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp ../_race_compare_fast/race_compare.html race_compare.html
+            git add -- race_compare.html
+            if git diff --cached --quiet; then
+              echo "RACE_COMPARE_ALREADY_CURRENT"; exit 0
+            fi
+            git commit -m "Publish independent race comparison $TARGET_DATE"
+            if git push origin HEAD:main; then
+              echo "RACE_COMPARE_FAST_PUBLISHED"; exit 0
+            fi
+            sleep "$((attempt*2))"
+          done
+          echo "::error::Race compare publication push failed"; exit 1
