@@ -1,0 +1,37 @@
+name: Family button accurate publication status regression
+on:
+  push:
+    branches: ["fix/manual-button-published-status-20261013"]
+  pull_request:
+    paths:
+      - "collectors/build_family_prediction_page.py"
+      - ".github/workflows/test_button_publication_marker.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check that button polls real latest publication and limits waiting
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path("collectors/build_family_prediction_page.py").read_text(encoding="utf-8")
+          assert 'statusUrls = ["./fast_publish_status.json", "./manual_refresh_status.json"]' in text
+          assert 'previousMarkers = new Set' in text
+          assert 'publishedAt >= requestStartedAt - 30000' in text
+          assert 'if (checks < 30)' in text
+          assert 'current.manual_refresh_completed' not in text
+          assert '"./manual_refresh_status.json"' in text
+          print("BUTTON_PUBLICATION_STATUS_GUARD=PASS")
+          PY
+      - run: python -m py_compile collectors/build_family_prediction_page.py
+      - name: Check full-page markup with saved latest prediction
+        run: |
+          python -m pip install -q requests beautifulsoup4
+          python -m unittest discover -s tests -p 'test_fast_family_publication.py' -v
