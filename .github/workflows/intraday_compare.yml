@@ -215,6 +215,18 @@ jobs:
           gh workflow run saved_data_pdca_refresh.yml --repo "$GITHUB_REPOSITORY" --ref main -f target_date="$TARGET_DATE"
           echo "Full-day audited PDCA dispatched for $TARGET_DATE"
 
+      # Publish verified comparison records independently; do not wait for the
+      # potentially failing cumulative signal audit or slow PDCA publisher.
+      - name: 更新済みレース照合を独立公開（AI分析・PDCAを待たない）
+        if: env.RESULT_COUNT != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run race_compare_fast.yml --repo "$GITHUB_REPOSITORY" \
+            --ref main -f target_date="$TARGET_DATE"
+          echo "INDEPENDENT_RACE_COMPARE_DISPATCHED $TARGET_DATE"
+
       - name: 復元済み直前スコアを共通予測正本に同期してから家族ページを公開
         # Button orchestrator waits for this workflow to finish, then
         # launches canonical reconciliation and publication IN SEQUENCE.
