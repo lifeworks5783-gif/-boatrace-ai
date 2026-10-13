@@ -2799,8 +2799,18 @@ def render_html(
         checked = audit_race(original) if original else {
             "signal_key": None, "signal_ai_status": "prediction_missing"
         }
+        quality = original.get("prediction_quality") or {}
+        # Preserve truthful origin on the published results page: an official
+        # exhibition score reconstructed after cutoff is a retrospective
+        # research signal, not an alert or ticket available at deadline.
+        reconstructed = (
+            quality.get("retrospective_simulation_only") is True
+            or quality.get("status") == "recovered_observation"
+        )
         record["_canonical_signal"] = {
-            **checked, "signal_ai_prediction": original.get("signal_ai_prediction") or {}
+            **checked,
+            "signal_ai_prediction": original.get("signal_ai_prediction") or {},
+            "recovered_after_result": reconstructed,
         }
         replay = corrected.get(record["race_code"])
         if replay is not None:
