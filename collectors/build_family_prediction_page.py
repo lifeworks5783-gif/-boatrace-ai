@@ -1241,17 +1241,22 @@ def main():
       const button = document.getElementById("refreshPredictionButton");
       const status = document.getElementById("refreshStatus");
       const endpoint = "https://boatrace-family-trigger.onrender.com/trigger";
-      // This file is updated ONLY after the manual refresh has completed
-      // live scoring, results comparison, canonical sync and public deployment.
-      const statusUrl = "./manual_refresh_status.json";
+      // The live button publishes the index through fast_publish_status.json.
+      // A separate full research refresh may update manual_refresh_status.json.
+      // Check both: the old full-pipeline marker alone can remain stale for days.
+      const statusUrls = ["./fast_publish_status.json", "./manual_refresh_status.json"];
       const readManualPublish = async () => {{
-        try {{
-          const response = await fetch(statusUrl + "?check=" + Date.now(), {{ cache: "no-store" }});
-          if (!response.ok) return null;
-          return await response.json();
-        }} catch (error) {{
-          return null;
-        }}
+        const entries = await Promise.all(statusUrls.map(async (url) => {{
+          try {{
+            const response = await fetch(url + "?check=" + Date.now(), {{ cache: "no-store" }});
+            if (!response.ok) return null;
+            const item = await response.json();
+            return {{ ...item, marker_file: url }};
+          }} catch (error) {{
+            return null;
+          }}
+        }}));
+        return entries.filter(Boolean);
       }};
 
       const morningButton = document.getElementById("morningCollectionButton");
@@ -1287,7 +1292,9 @@ def main():
 
         // Compare the server-side published run, not a hard-coded 65s timer.
         const baseline = await readManualPublish();
-        const lastPublishedRun = baseline ? String(baseline.publisher_run_id || "") : "";
+        const previousMarkers = new Set(baseline.map(item =>
+          item.marker_file + ":" + String(item.publisher_run_id || "")));
+        const requestStartedAt = Date.now();
         try {{
           const response = await fetch(endpoint, {{
             method: "POST",
@@ -1297,22 +1304,26 @@ def main():
 
           if (response.status !== 202) throw new Error("request_failed");
 
-          status.textContent = "更新指示を受け付けました。直前情報→予測→最新の公式結果→レース照合→AI分析→公開の順に更新します。全工程が終わる前は古い表示のままです。";
+          status.textContent = "更新指示を受け付けました。公式直前情報→不足分のCloudflare補完→予測計算→最新予想の公開を確認します。展示情報が未発表の場合は予測が変わらないことがあります。";
           let checks = 0;
           const checkForPublishedResult = async () => {{
             const current = await readManualPublish();
-            if (current && current.manual_refresh_completed &&
-                String(current.publisher_run_id || "") !== lastPublishedRun) {{
-              status.textContent = "公式直前・結果照合・監査・公開を完了しました。結果取得 " +
-                String(current.result_races_saved ?? "—") + "R。画面を最新に切り替えます。";
+            const published = current.find(item => {{
+              const runId = String(item.publisher_run_id || "");
+              const publishedAt = Date.parse(item.published_at_jst || "");
+              return runId && !previousMarkers.has(item.marker_file + ":" + runId) &&
+                Number.isFinite(publishedAt) && publishedAt >= requestStartedAt - 30000;
+            }});
+            if (published) {{
+              status.textContent = "最新の公開データを確認しました。画面を更新します。";
               window.location.reload();
               return;
             }}
             checks++;
-            if (checks < 360) {{
+            if (checks < 30) {{
               window.setTimeout(checkForPublishedResult, 12000);
             }} else {{
-              status.textContent = "公開完了の確認ができていません。レース照合画面か実行履歴を確認してください。";
+              status.textContent = "新しい公開データをまだ確認できません。展示未発表・新規確定データなし、または処理遅延の可能性があります。少し時間をおいて最新表示を確認してください。";
               button.disabled = false;
             }}
           }};
