@@ -217,6 +217,12 @@ jobs:
           test -s evaluations/signal_24_temporal_holdout/latest/summary.json
           python -m unittest discover -s tests -p test_signal_24_temporal_holdout.py -v
 
+      - name: 買い見送り14案の時系列分割・高配当逸失監査（研究のみ）
+        run: |
+          python -u collectors/evaluate_signal_buy_skip_holdout.py
+          test -s evaluations/signal_buy_skip_holdout/latest/summary.json
+          python -m unittest discover -s tests -p test_signal_buy_skip_holdout.py -v
+
       - name: 全16分類×4買い方の旧保存シグナルと新雷神V2を別々に集計
         run: |
           python -u collectors/evaluate_signal_pdca_cross.py
