@@ -108,20 +108,61 @@ class PairedCumulativeRateTests(unittest.TestCase):
                 self.assertIn(f'data-signal="{k}"', badge)
                 self.assertIn(f'data-history-high5="{group["high5"]}"', badge)
 
-    def test_live_signal_marker_one_paired_rate_only(self):
-        # Imports normal page builder only to verify the same badge is adjacent
-        # to the exact icons reused in normal and research AI race headers.
-        from build_family_prediction_page import signal_marker
+    def test_signal_icons_remain_in_race_title_history_stays_below(self):
+        from build_family_prediction_page import (
+            signal_marker, signal_high5_history_line, build_card, build_ai_card,
+        )
         h = parse_cumulative(synthetic())
+        race = {
+            "race_id": "202610140101", "venue_name": "桐生", "race": 7,
+            "deadline": "2026-10-14T18:00:00+09:00",
+            "prediction_type": "直前",
+            "down_signal": {"level": 2, "metrics": {}},
+            "up_signal": {"level": 1, "candidates": []},
+        }
         with patch("build_family_prediction_page.load_cumulative", return_value=h):
-            marker = signal_marker({
-                "down_signal": {"level": 2, "metrics": {}},
-                "up_signal": {"level": 1, "candidates": []}
-            })
-        self.assertIn("💨", marker)
-        self.assertIn("⚡", marker)
-        self.assertIn('data-signal="F2R1"', marker)
-        self.assertEqual(marker.count("signal-high5-history"), 1)
+            icons = signal_marker(race)
+            history = signal_high5_history_line(race)
+            normal = build_card(race, 1)
+            with patch("build_family_prediction_page.audit_race", return_value={
+                "signal_key": "F2R1", "signal_ai_status": "ready"
+            }):
+                ai = build_ai_card(race, 1)
+            with patch("build_family_prediction_page.audit_race", return_value={
+                "signal_key": "F2R1", "signal_ai_status": "repair_needed"
+            }):
+                ai_repair = build_ai_card(race, 1)
+        self.assertIn("💨", icons)
+        self.assertIn("⚡", icons)
+        self.assertIn("fujin-raijin-stack", icons)
+        self.assertNotIn("signal-high5-history", icons)
+        self.assertNotIn("37.0%", icons)
+        self.assertIn('class="signal-history-line"', history)
+        self.assertIn('data-signal="F2R1"', history)
+
+        import re
+        # Marker stays WITHIN title, separate history block is immediately
+        # AFTER title in its original race-main (not part of icon group).
+        for page in (normal, ai, ai_repair):
+            pattern = (
+                r'<div class="race-name">[^<]*桐生 7R'
+                r'(?:(?!</div>).)*</div>\s*<div class="signal-history-line">'
+                r'<span class="signal-high5-history[^"]*".*?'
+                r'data-signal="F2R1"'
+            )
+            self.assertRegex(page, re.compile(pattern, re.DOTALL))
+            self.assertEqual(page.count('class="signal-history-line"'), 1)
+            self.assertEqual(page.count('data-signal="F2R1"'), 1)
+            # Title must be closed before historic rate starts.
+            title = page.split('<div class="race-name">', 1)[1].split('</div>', 1)[0]
+            self.assertIn("fujin-raijin-stack", title)
+            self.assertNotIn("signal-high5-history", title)
+
+    def test_no_signal_does_not_add_a_history_line(self):
+        from build_family_prediction_page import signal_marker, signal_high5_history_line
+        race = {"up_signal": {"level": 0}, "down_signal": {"level": 0}}
+        self.assertEqual(signal_marker(race), "")
+        self.assertEqual(signal_high5_history_line(race), "")
 
 
 if __name__ == "__main__":
