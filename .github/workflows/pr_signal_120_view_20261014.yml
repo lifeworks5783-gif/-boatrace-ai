@@ -21,7 +21,20 @@ jobs:
         run: python -m py_compile collectors/build_family_prediction_page.py
       - name: Render historical saved full UI without publishing
         run: |
-          python collectors/build_family_prediction_page.py --input predictions/latest_by_deadline.json --output-dir _signal_ui_smoke
+          # Historical UI fixtures must remain visible even when CI runs after
+          # all real races have ended. Never mutate the canonical input JSON.
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=json.loads(Path("predictions/latest_by_deadline.json").read_text(encoding="utf-8"))
+          assert src.get("races"), "No archived race data available for UI fixture"
+          for race in src["races"]:
+              race["deadline"]="2099-01-01T12:00:00+09:00"
+          Path("_signal_ui_smoke").mkdir(exist_ok=True)
+          Path("_signal_ui_smoke/fixture.json").write_text(
+              json.dumps(src, ensure_ascii=False), encoding="utf-8")
+          PY
+          python collectors/build_family_prediction_page.py --input _signal_ui_smoke/fixture.json --output-dir _signal_ui_smoke
           python - <<'PY'
           from pathlib import Path
           html=Path("_signal_ui_smoke/index.html").read_text(encoding="utf-8")
