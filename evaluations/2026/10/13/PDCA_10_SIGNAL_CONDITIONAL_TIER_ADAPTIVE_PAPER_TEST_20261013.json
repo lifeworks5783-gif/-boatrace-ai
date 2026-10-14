@@ -1,0 +1,2601 @@
+{
+  "schema": 1,
+  "study": "signal_conditioned_tier_allocation",
+  "status": "research_only_no_production_change",
+  "date": "2026-10-14",
+  "model": "fujin_raijin_pipeline_v2_20261011",
+  "unit_yen": 100,
+  "training_dates": [
+    "20261007",
+    "20261008",
+    "20261009",
+    "20261010",
+    "20261011"
+  ],
+  "review_dates": [
+    "20261012",
+    "20261013"
+  ],
+  "notice": "Review dates already examined in prior PDCA; NOT truly untouched holdout. Candidate formulas also informed by prior observed dates, so NO out-of-sample profitability claim.",
+  "tier_names": [
+    {
+      "name": "強本線",
+      "lo": 1,
+      "hi": 6
+    },
+    {
+      "name": "本線",
+      "lo": 7,
+      "hi": 12
+    },
+    {
+      "name": "準本線",
+      "lo": 13,
+      "hi": 24
+    },
+    {
+      "name": "中穴",
+      "lo": 25,
+      "hi": 48
+    },
+    {
+      "name": "穴",
+      "lo": 49,
+      "hi": 72
+    },
+    {
+      "name": "大穴",
+      "lo": 73,
+      "hi": 120
+    }
+  ],
+  "parameter": {
+    "prior_equivalent_races": 60,
+    "min_class_races": 40,
+    "capped_payout_yen": 20000,
+    "capped_utility_high5_bonus_yen": 3000,
+    "base_min_quota": [
+      4,
+      4,
+      3,
+      2,
+      1,
+      1
+    ],
+    "caps": [
+      6,
+      6,
+      10,
+      8,
+      6,
+      4
+    ],
+    "fallback_quotas": [
+      6,
+      6,
+      7,
+      3,
+      1,
+      1
+    ],
+    "selection_method": "tiers S1-S3 choose first quota rank; S4-S6 choose evenly spaced rank including endpoints, with 60-option fallback to earliest unselected ranks"
+  },
+  "profiles": {
+    "high5_density": {
+      "F0R1": {
+        "signal_class": "F0R1",
+        "training_n": 47,
+        "source": "class_smoothed_training",
+        "quota": [
+          4,
+          5,
+          6,
+          5,
+          3,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          7,
+          8,
+          9,
+          10,
+          11,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          25,
+          30,
+          36,
+          42,
+          48,
+          49,
+          60,
+          72,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.002549,
+            "expectedCappedPayYenPerPosition": 58.39,
+            "weight": 25.488530161427352
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.00354,
+            "expectedCappedPayYenPerPosition": 73.62,
+            "weight": 35.40073633531577
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.004319,
+            "expectedCappedPayYenPerPosition": 62.05,
+            "weight": 43.18889832908525
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.004319,
+            "expectedCappedPayYenPerPosition": 59.15,
+            "weight": 43.18889832908525
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003575,
+            "expectedCappedPayYenPerPosition": 55.67,
+            "weight": 35.75474369866893
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.002248,
+            "expectedCappedPayYenPerPosition": 35.65,
+            "weight": 22.47946757292552
+          }
+        ]
+      },
+      "F0R2": {
+        "signal_class": "F0R2",
+        "training_n": 211,
+        "source": "class_smoothed_training",
+        "quota": [
+          4,
+          6,
+          4,
+          5,
+          4,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          25,
+          30,
+          36,
+          42,
+          48,
+          49,
+          56,
+          64,
+          72,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001006,
+            "expectedCappedPayYenPerPosition": 60.37,
+            "weight": 10.063737001006373
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.004473,
+            "expectedCappedPayYenPerPosition": 78.52,
+            "weight": 44.727720004472765
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.002935,
+            "expectedCappedPayYenPerPosition": 58.13,
+            "weight": 29.352566252935254
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003858,
+            "expectedCappedPayYenPerPosition": 57.8,
+            "weight": 38.57765850385776
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.00341,
+            "expectedCappedPayYenPerPosition": 53.73,
+            "weight": 34.104886503410484
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001349,
+            "expectedCappedPayYenPerPosition": 22.95,
+            "weight": 13.488203063848822
+          }
+        ]
+      },
+      "F0R3": {
+        "signal_class": "F0R3",
+        "training_n": 168,
+        "source": "class_smoothed_training",
+        "quota": [
+          4,
+          6,
+          5,
+          3,
+          5,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          25,
+          36,
+          48,
+          49,
+          54,
+          60,
+          66,
+          72,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.002658,
+            "expectedCappedPayYenPerPosition": 65.31,
+            "weight": 26.581605528973952
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003854,
+            "expectedCappedPayYenPerPosition": 74.91,
+            "weight": 38.54332801701223
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003489,
+            "expectedCappedPayYenPerPosition": 65.16,
+            "weight": 34.888357256778306
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003123,
+            "expectedCappedPayYenPerPosition": 50.99,
+            "weight": 31.23338649654439
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.004236,
+            "expectedCappedPayYenPerPosition": 57.54,
+            "weight": 42.36443381180223
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001512,
+            "expectedCappedPayYenPerPosition": 20.65,
+            "weight": 15.118288144603934
+          }
+        ]
+      },
+      "F1R0": {
+        "signal_class": "F1R0",
+        "training_n": 25,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001248,
+            "expectedCappedPayYenPerPosition": 62.7,
+            "weight": 12.4777183600713
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.002496,
+            "expectedCappedPayYenPerPosition": 61.47,
+            "weight": 24.9554367201426
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003476,
+            "expectedCappedPayYenPerPosition": 68.7,
+            "weight": 34.75935828877005
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003476,
+            "expectedCappedPayYenPerPosition": 50.16,
+            "weight": 34.75935828877005
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.004991,
+            "expectedCappedPayYenPerPosition": 66.62,
+            "weight": 49.9108734402852
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001359,
+            "expectedCappedPayYenPerPosition": 22.43,
+            "weight": 13.591800356506239
+          }
+        ]
+      },
+      "F1R1": {
+        "signal_class": "F1R1",
+        "training_n": 16,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001396,
+            "expectedCappedPayYenPerPosition": 60.04,
+            "weight": 13.955342902711324
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.002791,
+            "expectedCappedPayYenPerPosition": 71.73,
+            "weight": 27.91068580542265
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.002791,
+            "expectedCappedPayYenPerPosition": 56.64,
+            "weight": 27.91068580542265
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.004436,
+            "expectedCappedPayYenPerPosition": 56.84,
+            "weight": 44.358054226475275
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003389,
+            "expectedCappedPayYenPerPosition": 55.58,
+            "weight": 33.89154704944179
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001246,
+            "expectedCappedPayYenPerPosition": 19.61,
+            "weight": 12.46012759170654
+          }
+        ]
+      },
+      "F1R2": {
+        "signal_class": "F1R2",
+        "training_n": 48,
+        "source": "class_smoothed_training",
+        "quota": [
+          4,
+          4,
+          8,
+          5,
+          2,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          7,
+          8,
+          9,
+          10,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          25,
+          30,
+          36,
+          42,
+          48,
+          49,
+          72,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.000982,
+            "expectedCappedPayYenPerPosition": 54.73,
+            "weight": 9.820426487093155
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.001964,
+            "expectedCappedPayYenPerPosition": 74.38,
+            "weight": 19.64085297418631
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.004279,
+            "expectedCappedPayYenPerPosition": 78.65,
+            "weight": 42.789001122334454
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003507,
+            "expectedCappedPayYenPerPosition": 46.9,
+            "weight": 35.072951739618404
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.002771,
+            "expectedCappedPayYenPerPosition": 42.55,
+            "weight": 27.707631874298542
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.000877,
+            "expectedCappedPayYenPerPosition": 13.8,
+            "weight": 8.768237934904603
+          }
+        ]
+      },
+      "F1R3": {
+        "signal_class": "F1R3",
+        "training_n": 35,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001116,
+            "expectedCappedPayYenPerPosition": 60.73,
+            "weight": 11.164274322169058
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003987,
+            "expectedCappedPayYenPerPosition": 81.91,
+            "weight": 39.87240829346092
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.00311,
+            "expectedCappedPayYenPerPosition": 73.27,
+            "weight": 31.10047846889952
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.00311,
+            "expectedCappedPayYenPerPosition": 41.59,
+            "weight": 31.10047846889952
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.004027,
+            "expectedCappedPayYenPerPosition": 57.71,
+            "weight": 40.271132376395535
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001655,
+            "expectedCappedPayYenPerPosition": 26.88,
+            "weight": 16.547049441786285
+          }
+        ]
+      },
+      "F2R0": {
+        "signal_class": "F2R0",
+        "training_n": 29,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001192,
+            "expectedCappedPayYenPerPosition": 59.26,
+            "weight": 11.916922029281581
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.002383,
+            "expectedCappedPayYenPerPosition": 64.48,
+            "weight": 23.833844058563162
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.00332,
+            "expectedCappedPayYenPerPosition": 66.44,
+            "weight": 33.19713993871297
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003788,
+            "expectedCappedPayYenPerPosition": 62.97,
+            "weight": 37.878787878787875
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.002894,
+            "expectedCappedPayYenPerPosition": 43.63,
+            "weight": 28.941096356826694
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001766,
+            "expectedCappedPayYenPerPosition": 27.82,
+            "weight": 17.66258086482806
+          }
+        ]
+      },
+      "F2R1": {
+        "signal_class": "F2R1",
+        "training_n": 11,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001494,
+            "expectedCappedPayYenPerPosition": 55.06,
+            "weight": 14.938113529662825
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.002988,
+            "expectedCappedPayYenPerPosition": 63.9,
+            "weight": 29.87622705932565
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.002988,
+            "expectedCappedPayYenPerPosition": 66.76,
+            "weight": 29.87622705932565
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.004161,
+            "expectedCappedPayYenPerPosition": 55.95,
+            "weight": 41.613316261203586
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.004802,
+            "expectedCappedPayYenPerPosition": 72.59,
+            "weight": 48.015364916773365
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001627,
+            "expectedCappedPayYenPerPosition": 26.85,
+            "weight": 16.271873666239863
+          }
+        ]
+      },
+      "F2R2": {
+        "signal_class": "F2R2",
+        "training_n": 32,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.002964,
+            "expectedCappedPayYenPerPosition": 63.65,
+            "weight": 29.644268774703555
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.004117,
+            "expectedCappedPayYenPerPosition": 92.45,
+            "weight": 41.1725955204216
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.004117,
+            "expectedCappedPayYenPerPosition": 75.21,
+            "weight": 41.1725955204216
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.002759,
+            "expectedCappedPayYenPerPosition": 38.86,
+            "weight": 27.585638998682477
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.002347,
+            "expectedCappedPayYenPerPosition": 35.54,
+            "weight": 23.468379446640316
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.002388,
+            "expectedCappedPayYenPerPosition": 38.37,
+            "weight": 23.880105401844535
+          }
+        ]
+      },
+      "F2R3": {
+        "signal_class": "F2R3",
+        "training_n": 22,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.003326,
+            "expectedCappedPayYenPerPosition": 62.05,
+            "weight": 33.25942350332594
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.004619,
+            "expectedCappedPayYenPerPosition": 86.81,
+            "weight": 46.19364375461936
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.005636,
+            "expectedCappedPayYenPerPosition": 87.95,
+            "weight": 56.35624538063562
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003095,
+            "expectedCappedPayYenPerPosition": 47.19,
+            "weight": 30.949741315594977
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003649,
+            "expectedCappedPayYenPerPosition": 54.67,
+            "weight": 36.4929785661493
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001663,
+            "expectedCappedPayYenPerPosition": 25.23,
+            "weight": 16.62971175166297
+          }
+        ]
+      },
+      "F3R0": {
+        "signal_class": "F3R0",
+        "training_n": 5,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001632,
+            "expectedCappedPayYenPerPosition": 69.45,
+            "weight": 16.317016317016318
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003263,
+            "expectedCappedPayYenPerPosition": 69.8,
+            "weight": 32.634032634032636
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003263,
+            "expectedCappedPayYenPerPosition": 62.42,
+            "weight": 32.634032634032636
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003263,
+            "expectedCappedPayYenPerPosition": 47.72,
+            "weight": 32.634032634032636
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003322,
+            "expectedCappedPayYenPerPosition": 51.22,
+            "weight": 33.21678321678322
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001457,
+            "expectedCappedPayYenPerPosition": 22.92,
+            "weight": 14.56876456876457
+          }
+        ]
+      },
+      "F3R1": {
+        "signal_class": "F3R1",
+        "training_n": 3,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001684,
+            "expectedCappedPayYenPerPosition": 64.15,
+            "weight": 16.835016835016834
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003367,
+            "expectedCappedPayYenPerPosition": 72.01,
+            "weight": 33.67003367003367
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003367,
+            "expectedCappedPayYenPerPosition": 63.45,
+            "weight": 33.67003367003367
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003367,
+            "expectedCappedPayYenPerPosition": 49.24,
+            "weight": 33.67003367003367
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003427,
+            "expectedCappedPayYenPerPosition": 50.93,
+            "weight": 34.27128427128427
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001834,
+            "expectedCappedPayYenPerPosition": 26.73,
+            "weight": 18.33814333814334
+          }
+        ]
+      },
+      "F3R2": {
+        "signal_class": "F3R2",
+        "training_n": 7,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001583,
+            "expectedCappedPayYenPerPosition": 58.8,
+            "weight": 15.829941203075531
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003166,
+            "expectedCappedPayYenPerPosition": 85.38,
+            "weight": 31.659882406151063
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003166,
+            "expectedCappedPayYenPerPosition": 63.41,
+            "weight": 31.659882406151063
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003166,
+            "expectedCappedPayYenPerPosition": 46.3,
+            "weight": 31.659882406151063
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003223,
+            "expectedCappedPayYenPerPosition": 47.89,
+            "weight": 32.22523744911805
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001724,
+            "expectedCappedPayYenPerPosition": 28.56,
+            "weight": 17.24332881049299
+          }
+        ]
+      },
+      "F3R3": {
+        "signal_class": "F3R3",
+        "training_n": 1,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001739,
+            "expectedCappedPayYenPerPosition": 60.13,
+            "weight": 17.386984600099353
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003477,
+            "expectedCappedPayYenPerPosition": 74.37,
+            "weight": 34.77396920019871
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003477,
+            "expectedCappedPayYenPerPosition": 65.53,
+            "weight": 34.77396920019871
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003477,
+            "expectedCappedPayYenPerPosition": 50.85,
+            "weight": 34.77396920019871
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003539,
+            "expectedCappedPayYenPerPosition": 53.76,
+            "weight": 35.39493293591654
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001552,
+            "expectedCappedPayYenPerPosition": 24.43,
+            "weight": 15.524093392945852
+          }
+        ]
+      }
+    },
+    "capped_ev": {
+      "F0R1": {
+        "signal_class": "F0R1",
+        "training_n": 47,
+        "source": "class_smoothed_training",
+        "quota": [
+          5,
+          6,
+          5,
+          4,
+          3,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          25,
+          32,
+          40,
+          48,
+          49,
+          60,
+          72,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.002549,
+            "expectedCappedPayYenPerPosition": 58.39,
+            "weight": 66.03794958935146
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.00354,
+            "expectedCappedPayYenPerPosition": 73.62,
+            "weight": 84.23534409515717
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.004319,
+            "expectedCappedPayYenPerPosition": 62.05,
+            "weight": 75.00495610308695
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.004319,
+            "expectedCappedPayYenPerPosition": 59.15,
+            "weight": 72.1017417162277
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003575,
+            "expectedCappedPayYenPerPosition": 55.67,
+            "weight": 66.39691305579156
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.002248,
+            "expectedCappedPayYenPerPosition": 35.65,
+            "weight": 42.39238176154063
+          }
+        ]
+      },
+      "F0R2": {
+        "signal_class": "F0R2",
+        "training_n": 211,
+        "source": "class_smoothed_training",
+        "quota": [
+          5,
+          6,
+          5,
+          4,
+          3,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          25,
+          32,
+          40,
+          48,
+          49,
+          60,
+          72,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001006,
+            "expectedCappedPayYenPerPosition": 60.37,
+            "weight": 63.39259756233926
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.004473,
+            "expectedCappedPayYenPerPosition": 78.52,
+            "weight": 91.94286033769428
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.002935,
+            "expectedCappedPayYenPerPosition": 58.13,
+            "weight": 66.93922621044392
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003858,
+            "expectedCappedPayYenPerPosition": 57.8,
+            "weight": 69.37534943531253
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.00341,
+            "expectedCappedPayYenPerPosition": 53.73,
+            "weight": 63.964832830146484
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001349,
+            "expectedCappedPayYenPerPosition": 22.95,
+            "weight": 26.998560326512354
+          }
+        ]
+      },
+      "F0R3": {
+        "signal_class": "F0R3",
+        "training_n": 168,
+        "source": "class_smoothed_training",
+        "quota": [
+          6,
+          6,
+          5,
+          3,
+          3,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          25,
+          36,
+          48,
+          49,
+          60,
+          72,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.002658,
+            "expectedCappedPayYenPerPosition": 65.31,
+            "weight": 73.28681552365764
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003854,
+            "expectedCappedPayYenPerPosition": 74.91,
+            "weight": 86.46863370547581
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003489,
+            "expectedCappedPayYenPerPosition": 65.16,
+            "weight": 75.63098086124401
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003123,
+            "expectedCappedPayYenPerPosition": 50.99,
+            "weight": 60.36317118553961
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.004236,
+            "expectedCappedPayYenPerPosition": 57.54,
+            "weight": 70.25169457735247
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001512,
+            "expectedCappedPayYenPerPosition": 20.65,
+            "weight": 25.180671850079747
+          }
+        ]
+      },
+      "F1R0": {
+        "signal_class": "F1R0",
+        "training_n": 25,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001248,
+            "expectedCappedPayYenPerPosition": 62.7,
+            "weight": 66.44385026737969
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.002496,
+            "expectedCappedPayYenPerPosition": 61.47,
+            "weight": 68.9590017825312
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003476,
+            "expectedCappedPayYenPerPosition": 68.7,
+            "weight": 79.12388591800357
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003476,
+            "expectedCappedPayYenPerPosition": 50.16,
+            "weight": 60.59180035650624
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.004991,
+            "expectedCappedPayYenPerPosition": 66.62,
+            "weight": 81.59670231729055
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001359,
+            "expectedCappedPayYenPerPosition": 22.43,
+            "weight": 26.509135472370765
+          }
+        ]
+      },
+      "F1R1": {
+        "signal_class": "F1R1",
+        "training_n": 16,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001396,
+            "expectedCappedPayYenPerPosition": 60.04,
+            "weight": 64.22448165869218
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.002791,
+            "expectedCappedPayYenPerPosition": 71.73,
+            "weight": 80.10765550239235
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.002791,
+            "expectedCappedPayYenPerPosition": 56.64,
+            "weight": 65.01794258373205
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.004436,
+            "expectedCappedPayYenPerPosition": 56.84,
+            "weight": 70.15201355661881
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003389,
+            "expectedCappedPayYenPerPosition": 55.58,
+            "weight": 65.74411881977672
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001246,
+            "expectedCappedPayYenPerPosition": 19.61,
+            "weight": 23.343550637958533
+          }
+        ]
+      },
+      "F1R2": {
+        "signal_class": "F1R2",
+        "training_n": 48,
+        "source": "class_smoothed_training",
+        "quota": [
+          5,
+          6,
+          8,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.000982,
+            "expectedCappedPayYenPerPosition": 54.73,
+            "weight": 57.67957351290685
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.001964,
+            "expectedCappedPayYenPerPosition": 74.38,
+            "weight": 80.27637485970818
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.004279,
+            "expectedCappedPayYenPerPosition": 78.65,
+            "weight": 91.48639169472503
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003507,
+            "expectedCappedPayYenPerPosition": 46.9,
+            "weight": 57.42564534231201
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.002771,
+            "expectedCappedPayYenPerPosition": 42.55,
+            "weight": 50.86314534231201
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.000877,
+            "expectedCappedPayYenPerPosition": 13.8,
+            "weight": 16.426943041526375
+          }
+        ]
+      },
+      "F1R3": {
+        "signal_class": "F1R3",
+        "training_n": 35,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001116,
+            "expectedCappedPayYenPerPosition": 60.73,
+            "weight": 64.08133971291866
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003987,
+            "expectedCappedPayYenPerPosition": 81.91,
+            "weight": 93.8755980861244
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.00311,
+            "expectedCappedPayYenPerPosition": 73.27,
+            "weight": 82.60207336523125
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.00311,
+            "expectedCappedPayYenPerPosition": 41.59,
+            "weight": 50.92424242424243
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.004027,
+            "expectedCappedPayYenPerPosition": 57.71,
+            "weight": 69.792663476874
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001655,
+            "expectedCappedPayYenPerPosition": 26.88,
+            "weight": 31.845893141945773
+          }
+        ]
+      },
+      "F2R0": {
+        "signal_class": "F2R0",
+        "training_n": 29,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001192,
+            "expectedCappedPayYenPerPosition": 59.26,
+            "weight": 62.839632277834525
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.002383,
+            "expectedCappedPayYenPerPosition": 64.48,
+            "weight": 71.6275110657133
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.00332,
+            "expectedCappedPayYenPerPosition": 66.44,
+            "weight": 76.40108954715697
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003788,
+            "expectedCappedPayYenPerPosition": 62.97,
+            "weight": 74.32924753149473
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.002894,
+            "expectedCappedPayYenPerPosition": 43.63,
+            "weight": 52.31613891726251
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001766,
+            "expectedCappedPayYenPerPosition": 27.82,
+            "weight": 33.117339121552604
+          }
+        ]
+      },
+      "F2R1": {
+        "signal_class": "F2R1",
+        "training_n": 11,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001494,
+            "expectedCappedPayYenPerPosition": 55.06,
+            "weight": 59.54545454545455
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.002988,
+            "expectedCappedPayYenPerPosition": 63.9,
+            "weight": 72.86171574903969
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.002988,
+            "expectedCappedPayYenPerPosition": 66.76,
+            "weight": 75.72343149807939
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.004161,
+            "expectedCappedPayYenPerPosition": 55.95,
+            "weight": 68.4314980793854
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.004802,
+            "expectedCappedPayYenPerPosition": 72.59,
+            "weight": 86.99957319675629
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001627,
+            "expectedCappedPayYenPerPosition": 26.85,
+            "weight": 31.736288945795987
+          }
+        ]
+      },
+      "F2R2": {
+        "signal_class": "F2R2",
+        "training_n": 32,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.002964,
+            "expectedCappedPayYenPerPosition": 63.65,
+            "weight": 72.54776021080369
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.004117,
+            "expectedCappedPayYenPerPosition": 92.45,
+            "weight": 104.79907773386034
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.004117,
+            "expectedCappedPayYenPerPosition": 75.21,
+            "weight": 87.56011198945981
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.002759,
+            "expectedCappedPayYenPerPosition": 38.86,
+            "weight": 47.13191699604743
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.002347,
+            "expectedCappedPayYenPerPosition": 35.54,
+            "weight": 42.57575757575757
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.002388,
+            "expectedCappedPayYenPerPosition": 38.37,
+            "weight": 45.533802700922266
+          }
+        ]
+      },
+      "F2R3": {
+        "signal_class": "F2R3",
+        "training_n": 22,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.003326,
+            "expectedCappedPayYenPerPosition": 62.05,
+            "weight": 72.02512934220252
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.004619,
+            "expectedCappedPayYenPerPosition": 86.81,
+            "weight": 100.66888396156689
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.005636,
+            "expectedCappedPayYenPerPosition": 87.95,
+            "weight": 104.85402808573541
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003095,
+            "expectedCappedPayYenPerPosition": 47.19,
+            "weight": 56.472191426459716
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003649,
+            "expectedCappedPayYenPerPosition": 54.67,
+            "weight": 65.61853288987434
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001663,
+            "expectedCappedPayYenPerPosition": 25.23,
+            "weight": 30.217803030303028
+          }
+        ]
+      },
+      "F3R0": {
+        "signal_class": "F3R0",
+        "training_n": 5,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001632,
+            "expectedCappedPayYenPerPosition": 69.45,
+            "weight": 74.34965034965035
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003263,
+            "expectedCappedPayYenPerPosition": 69.8,
+            "weight": 79.58741258741259
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003263,
+            "expectedCappedPayYenPerPosition": 62.42,
+            "weight": 72.2132867132867
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003263,
+            "expectedCappedPayYenPerPosition": 47.72,
+            "weight": 57.51107226107226
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003322,
+            "expectedCappedPayYenPerPosition": 51.22,
+            "weight": 61.184149184149184
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001457,
+            "expectedCappedPayYenPerPosition": 22.92,
+            "weight": 27.29399766899767
+          }
+        ]
+      },
+      "F3R1": {
+        "signal_class": "F3R1",
+        "training_n": 3,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001684,
+            "expectedCappedPayYenPerPosition": 64.15,
+            "weight": 69.1967291967292
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003367,
+            "expectedCappedPayYenPerPosition": 72.01,
+            "weight": 82.11399711399712
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003367,
+            "expectedCappedPayYenPerPosition": 63.45,
+            "weight": 73.55339105339105
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003367,
+            "expectedCappedPayYenPerPosition": 49.24,
+            "weight": 59.33682058682059
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003427,
+            "expectedCappedPayYenPerPosition": 50.93,
+            "weight": 61.208513708513706
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001834,
+            "expectedCappedPayYenPerPosition": 26.73,
+            "weight": 32.2279341029341
+          }
+        ]
+      },
+      "F3R2": {
+        "signal_class": "F3R2",
+        "training_n": 7,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001583,
+            "expectedCappedPayYenPerPosition": 58.8,
+            "weight": 63.54816824966079
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003166,
+            "expectedCappedPayYenPerPosition": 85.38,
+            "weight": 94.87336047037539
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003166,
+            "expectedCappedPayYenPerPosition": 63.41,
+            "weight": 72.9059249208503
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003166,
+            "expectedCappedPayYenPerPosition": 46.3,
+            "weight": 55.794323835368616
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003223,
+            "expectedCappedPayYenPerPosition": 47.89,
+            "weight": 57.55427408412483
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001724,
+            "expectedCappedPayYenPerPosition": 28.56,
+            "weight": 33.730495251017636
+          }
+        ]
+      },
+      "F3R3": {
+        "signal_class": "F3R3",
+        "training_n": 1,
+        "source": "fallback_low_sample",
+        "quota": [
+          6,
+          6,
+          7,
+          3,
+          1,
+          1
+        ],
+        "positions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          25,
+          36,
+          48,
+          49,
+          73
+        ],
+        "rank_tier_utility": [
+          {
+            "tier": "強本線",
+            "pHighPerPosition": 0.001739,
+            "expectedCappedPayYenPerPosition": 60.13,
+            "weight": 65.34525583705911
+          },
+          {
+            "tier": "本線",
+            "pHighPerPosition": 0.003477,
+            "expectedCappedPayYenPerPosition": 74.37,
+            "weight": 84.80625931445604
+          },
+          {
+            "tier": "準本線",
+            "pHighPerPosition": 0.003477,
+            "expectedCappedPayYenPerPosition": 65.53,
+            "weight": 75.96497764530551
+          },
+          {
+            "tier": "中穴",
+            "pHighPerPosition": 0.003477,
+            "expectedCappedPayYenPerPosition": 50.85,
+            "weight": 61.28229011425733
+          },
+          {
+            "tier": "穴",
+            "pHighPerPosition": 0.003539,
+            "expectedCappedPayYenPerPosition": 53.76,
+            "weight": 64.3833830104322
+          },
+          {
+            "tier": "大穴",
+            "pHighPerPosition": 0.001552,
+            "expectedCappedPayYenPerPosition": 24.43,
+            "weight": 29.083768007948336
+          }
+        ]
+      }
+    }
+  },
+  "aggregate_results": {
+    "training": {
+      "top24": {
+        "races": 660,
+        "hits": 365,
+        "hit_pct": 55.3,
+        "returned_yen": 1192330,
+        "investment_yen": 1584000,
+        "profit_yen": -391670,
+        "roi_pct": 75.27,
+        "high5_hits": 49,
+        "manshu_hits": 19,
+        "rank25plus_hits": 0
+      },
+      "hybrid": {
+        "races": 660,
+        "hits": 350,
+        "hit_pct": 53.03,
+        "returned_yen": 1308630,
+        "investment_yen": 1584000,
+        "profit_yen": -275370,
+        "roi_pct": 82.62,
+        "high5_hits": 47,
+        "manshu_hits": 21,
+        "rank25plus_hits": 30
+      },
+      "high5_density": {
+        "races": 660,
+        "hits": 305,
+        "hit_pct": 46.21,
+        "returned_yen": 1151200,
+        "investment_yen": 1584000,
+        "profit_yen": -432800,
+        "roi_pct": 72.68,
+        "high5_hits": 48,
+        "manshu_hits": 22,
+        "rank25plus_hits": 37
+      },
+      "capped_ev": {
+        "races": 660,
+        "hits": 323,
+        "hit_pct": 48.94,
+        "returned_yen": 1266210,
+        "investment_yen": 1584000,
+        "profit_yen": -317790,
+        "roi_pct": 79.94,
+        "high5_hits": 46,
+        "manshu_hits": 22,
+        "rank25plus_hits": 27
+      }
+    },
+    "review": {
+      "top24": {
+        "races": 259,
+        "hits": 150,
+        "hit_pct": 57.92,
+        "returned_yen": 408910,
+        "investment_yen": 621600,
+        "profit_yen": -212690,
+        "roi_pct": 65.78,
+        "high5_hits": 18,
+        "manshu_hits": 4,
+        "rank25plus_hits": 0
+      },
+      "hybrid": {
+        "races": 259,
+        "hits": 134,
+        "hit_pct": 51.74,
+        "returned_yen": 406990,
+        "investment_yen": 621600,
+        "profit_yen": -214610,
+        "roi_pct": 65.47,
+        "high5_hits": 20,
+        "manshu_hits": 6,
+        "rank25plus_hits": 8
+      },
+      "high5_density": {
+        "races": 259,
+        "hits": 125,
+        "hit_pct": 48.26,
+        "returned_yen": 413720,
+        "investment_yen": 621600,
+        "profit_yen": -207880,
+        "roi_pct": 66.56,
+        "high5_hits": 18,
+        "manshu_hits": 8,
+        "rank25plus_hits": 11
+      },
+      "capped_ev": {
+        "races": 259,
+        "hits": 129,
+        "hit_pct": 49.81,
+        "returned_yen": 377040,
+        "investment_yen": 621600,
+        "profit_yen": -244560,
+        "roi_pct": 60.66,
+        "high5_hits": 18,
+        "manshu_hits": 6,
+        "rank25plus_hits": 8
+      }
+    },
+    "all7": {
+      "top24": {
+        "races": 919,
+        "hits": 515,
+        "hit_pct": 56.04,
+        "returned_yen": 1601240,
+        "investment_yen": 2205600,
+        "profit_yen": -604360,
+        "roi_pct": 72.6,
+        "high5_hits": 67,
+        "manshu_hits": 23,
+        "rank25plus_hits": 0
+      },
+      "hybrid": {
+        "races": 919,
+        "hits": 484,
+        "hit_pct": 52.67,
+        "returned_yen": 1715620,
+        "investment_yen": 2205600,
+        "profit_yen": -489980,
+        "roi_pct": 77.78,
+        "high5_hits": 67,
+        "manshu_hits": 27,
+        "rank25plus_hits": 38
+      },
+      "high5_density": {
+        "races": 919,
+        "hits": 430,
+        "hit_pct": 46.79,
+        "returned_yen": 1564920,
+        "investment_yen": 2205600,
+        "profit_yen": -640680,
+        "roi_pct": 70.95,
+        "high5_hits": 66,
+        "manshu_hits": 30,
+        "rank25plus_hits": 48
+      },
+      "capped_ev": {
+        "races": 919,
+        "hits": 452,
+        "hit_pct": 49.18,
+        "returned_yen": 1643250,
+        "investment_yen": 2205600,
+        "profit_yen": -562350,
+        "roi_pct": 74.5,
+        "high5_hits": 64,
+        "manshu_hits": 28,
+        "rank25plus_hits": 35
+      }
+    },
+    "day13": {
+      "top24": {
+        "races": 114,
+        "hits": 71,
+        "hit_pct": 62.28,
+        "returned_yen": 200270,
+        "investment_yen": 273600,
+        "profit_yen": -73330,
+        "roi_pct": 73.2,
+        "high5_hits": 9,
+        "manshu_hits": 3,
+        "rank25plus_hits": 0
+      },
+      "hybrid": {
+        "races": 114,
+        "hits": 61,
+        "hit_pct": 53.51,
+        "returned_yen": 174840,
+        "investment_yen": 273600,
+        "profit_yen": -98760,
+        "roi_pct": 63.9,
+        "high5_hits": 8,
+        "manshu_hits": 3,
+        "rank25plus_hits": 2
+      },
+      "high5_density": {
+        "races": 114,
+        "hits": 62,
+        "hit_pct": 54.39,
+        "returned_yen": 226830,
+        "investment_yen": 273600,
+        "profit_yen": -46770,
+        "roi_pct": 82.91,
+        "high5_hits": 9,
+        "manshu_hits": 5,
+        "rank25plus_hits": 6
+      },
+      "capped_ev": {
+        "races": 114,
+        "hits": 64,
+        "hit_pct": 56.14,
+        "returned_yen": 188210,
+        "investment_yen": 273600,
+        "profit_yen": -85390,
+        "roi_pct": 68.79,
+        "high5_hits": 9,
+        "manshu_hits": 3,
+        "rank25plus_hits": 3
+      }
+    }
+  }
+}
