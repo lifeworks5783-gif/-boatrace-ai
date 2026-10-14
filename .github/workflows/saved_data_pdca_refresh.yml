@@ -204,6 +204,13 @@ jobs:
           test -s evaluations/signal_rank_research/v1/race_diagnostics.csv
           test -s evaluations/signal_rank_research/v1/daily/${TARGET_DATE}/summary.json
 
+      - name: 風神雷神16分類×120順位の5千円以上・万舟分布を全保存履歴と直近7日で再集計
+        run: |
+          python -u collectors/evaluate_signal_payout_rank_distribution.py
+          test -s evaluations/signal_payout_rank_distribution/latest/summary.json
+          test -s evaluations/signal_payout_rank_distribution/latest/race_evidence.csv
+          test -s evaluations/signal_payout_rank_distribution/latest/rank_distribution.csv
+
       - name: 全16分類×4買い方の旧保存シグナルと新雷神V2を別々に集計
         run: |
           python -u collectors/evaluate_signal_pdca_cross.py
