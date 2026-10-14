@@ -522,6 +522,129 @@ def rank_research_panel(root: Path) -> str:
 
 
 
+def signal_buy_skip_holdout_panel(root: Path) -> str:
+    """Research-only pre-result signal intensity buy/skip with chronological holdout."""
+    d = load_json(root / "signal_buy_skip_holdout/latest/summary.json")
+    heading = "買い・見送りの時系列検証（風神雷神16分類・研究用）"
+    if d.get("model_version") != "signal_buy_skip_holdout_v1_20261014":
+        return ('<section class="card" id="signal-buy-skip-holdout">'
+                f'<h2>{heading}</h2><div class="empty">'
+                '検証レポートを生成中です。本番の買い・見送りは変更しません。</div></section>')
+    labels = {
+        "all_signal": "全シグナル購入（現行）", "fujin_any": "風神Lv1以上のみ",
+        "raijin_any": "雷神Lv1以上のみ",
+        "strong_any": "風神または雷神Lv2以上",
+        "sum_ge2": "風神+雷神≧2", "sum_ge3": "風神+雷神≧3",
+        "sum_ge4": "風神+雷神≧4", "fujin_and_raijin": "風神・雷神両方発動",
+        "fujin_only": "風神のみ発動", "raijin_only": "雷神のみ発動",
+        "exclude_F0R3": "風0雷3を除外", "exclude_R3": "雷神Lv3を除外",
+        "exclude_F0R2": "風0雷2を除外", "exclude_F0R1": "風0雷1を除外",
+    }
+    comp = d.get("comparison") or {}
+    base = comp.get("holdout_baseline") or {}
+    cand = comp.get("holdout_candidate") or {}
+    train = comp.get("train_candidate") or {}
+    locked = d.get("locked_rule") or "all_signal"
+    rows = []
+    for f_level in range(4):
+        for r_level in range(4):
+            key = f"F{f_level}R{r_level}"
+            x = (d.get("by_signal") or {}).get(key) or {}
+            b = x.get("holdout_baseline") or {}
+            v = x.get("holdout_candidate") or {}
+            status = {"buy": "研究候補：買い", "skip": "研究候補：見送り",
+                      "not_applicable": "非発動：対象外"}.get(x.get("proposed_decision"), "未判定")
+            rows.append(
+                f'<tr><td>{key}</td><td>{html.escape(status)}</td>'
+                f'<td>{n(x.get("train_races"),0)}</td>'
+                f'<td>{n(x.get("holdout_races"),0)}</td>'
+                f'<td>{pct(b.get("roi_pct"))}</td>'
+                f'<td>{pct(v.get("roi_pct"))}</td>'
+                f'<td>{n(v.get("wins24"),0)}</td>'
+                f'<td>{n(v.get("skipped_wins24"),0)}</td>'
+                f'<td>{yen(v.get("skipped_wins24_return_yen"))}</td></tr>'
+            )
+    daily = []
+    for date, x in sorted((d.get("holdout_by_date") or {}).items()):
+        b = x.get("baseline") or {}
+        c = x.get("candidate") or {}
+        daily.append(
+            f'<tr><td>{html.escape(date)}</td><td>{n(b.get("eligible_races"),0)}</td>'
+            f'<td>{n(c.get("purchased_races"),0)}</td>'
+            f'<td>{n(c.get("skipped_races"),0)}</td>'
+            f'<td>{pct(b.get("roi_pct"))}</td>'
+            f'<td>{pct(c.get("roi_pct"))}</td>'
+            f'<td>{yen(b.get("profit_yen"))}</td>'
+            f'<td>{yen(c.get("profit_yen"))}</td>'
+            f'<td>{n(c.get("skipped_payout_ge5000_races"),0)}</td>'
+            f'<td>{n(c.get("skipped_payout_ge10000_races"),0)}</td></tr>'
+        )
+    methods = []
+    for name, value in (d.get("all_predeclared_rule_comparisons") or {}).items():
+        tr, te = value.get("train") or {}, value.get("holdout") or {}
+        methods.append(
+            f'<tr><td>{html.escape(labels.get(name,name))}</td>'
+            f'<td>{n(tr.get("purchased_races"),0)}</td>'
+            f'<td>{pct(tr.get("roi_pct"))}</td>'
+            f'<td>{n(te.get("purchased_races"),0)}</td>'
+            f'<td>{pct(te.get("hit_rate_pct"))}</td>'
+            f'<td>{pct(te.get("roi_pct"))}</td></tr>'
+        )
+    check = d.get("data_audit") or {}
+    denom = base.get("eligible_races")
+    return (
+        '<section class="card" id="signal-buy-skip-holdout">'
+        f'<h2>{heading}</h2>'
+        '<p class="note">予測時点で判定できる風神・雷神のLvのみを判断材料にし、'
+        '事前登録した14種類の見送り条件を前半データだけで比較しました。'
+        '後半データは候補選定に一切使用していません。'
+        '各購入レースは現行AIの上位24点を100円ずつ仮想購入。'
+        '見送ったレースの投資と払戻はともに0円で計算します。</p>'
+        f'<p class="note">学習：{html.escape(str((d.get("training_dates") or ["—"])[0]))}〜'
+        f'{html.escape(str((d.get("training_dates") or ["—"])[-1]))}、'
+        f'未使用検証：{html.escape(str((d.get("holdout_dates") or ["—"])[0]))}〜'
+        f'{html.escape(str((d.get("holdout_dates") or ["—"])[-1]))}。'
+        f'前半から選んだ研究候補：<strong>{html.escape(labels.get(locked,locked))}</strong>。'
+        'なお、実際の購入・配信シグナルは現行のままです。</p>'
+        '<div class="metrics">'
+        + card("後半：現行すべて購入ROI", pct(base.get("roi_pct")),
+               f'{n(denom,0)}R購入')
+        + card("後半：見送り研究候補ROI", pct(cand.get("roi_pct")),
+               f'{n(cand.get("purchased_races"),0)}R購入')
+        + card("後半：候補の回収差額", yen(cand.get("profit_yen")),
+               f'支出{yen(cand.get("investment_yen"))}')
+        + card("購入回避した資金", yen(cand.get("avoided_stakes_yen")),
+               f'後半{n(cand.get("skipped_races"),0)}Rを見送り')
+        + card("見送りによる24点的中の取り逃し", n(cand.get("skipped_wins24"),0),
+               f'該当払戻の合計{yen(cand.get("skipped_wins24_return_yen"))}')
+        + card("見送った高配当発生", n(cand.get("skipped_payout_ge5000_races"),0),
+               f'うち万舟{n(cand.get("skipped_payout_ge10000_races"),0)}R')
+        + '</div>'
+        '<h3>風神×雷神16分類別：買い／見送り研究候補</h3>'
+        '<div class="table-wrap"><table><thead><tr><th>F×R</th><th>研究判断</th>'
+        '<th>学習R</th><th>検証R</th><th>全購入ROI</th><th>候補ROI</th>'
+        '<th>候補的中</th><th>見送り逸失的中</th><th>逸失払戻</th>'
+        '</tr></thead><tbody>' + "".join(rows) + '</tbody></table></div>'
+        '<h3>未使用後半期間：日別の投資・損益</h3>'
+        '<div class="table-wrap"><table><thead><tr><th>日付</th><th>発動R</th>'
+        '<th>購入R</th><th>見送りR</th><th>全購入ROI</th><th>候補ROI</th>'
+        '<th>全購入損益</th><th>候補損益</th><th>見送り5千円+</th><th>見送り万舟</th>'
+        '</tr></thead><tbody>' + "".join(daily) + '</tbody></table></div>'
+        '<details><summary><strong>14種類の買い・見送り条件をすべて表示</strong></summary>'
+        '<div class="table-wrap"><table><thead><tr><th>条件</th><th>前半購入R</th>'
+        '<th>前半ROI</th><th>後半購入R</th><th>後半的中率</th><th>後半ROI</th>'
+        '</tr></thead><tbody>' + "".join(methods) + '</tbody></table></div></details>'
+        f'<p class="note">総監査{n(check.get("all_rows"),0)}R。'
+        f'収集期限の証明が不十分なレース{n(check.get("missing_predeadline_proof"),0)}R。'
+        '一部データは事後復元であり、厳密なレース前収益の実績ではありません。'
+        'また14候補からの選択による過学習の可能性があります。'
+        '後半のROIが100%未満なら、見送りを取り入れてもその購入群は赤字です。'
+        '高配当の取り逃しや見送りによる購入削減を同時に検証してください。'
+        '新たな未使用データで再確認するまで本番反映しません。</p>'
+        '</section>'
+    )
+
+
 def signal_24_temporal_holdout_panel(root: Path) -> str:
     """Historical split evaluation, isolated from production purchase accounting."""
     d = load_json(root / "signal_24_temporal_holdout/latest/summary.json")
@@ -861,6 +984,8 @@ def build_page(root: Path) -> str:
 {signal_payout_rank_distribution_panel(root)}
 
 {signal_24_temporal_holdout_panel(root)}
+
+{signal_buy_skip_holdout_panel(root)}
 
 <section class="card"><h2>旧版・当時記録の比較集計</h2><p class="note">以下の過去保存版の数値は元の判定・買い目の監査用です。新ルールのPDCAは上の「雷神・修正版PDCA」を参照してください。</p><div class="metrics">{metrics}</div></section>
 
