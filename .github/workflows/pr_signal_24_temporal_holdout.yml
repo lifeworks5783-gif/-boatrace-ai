@@ -50,7 +50,7 @@ jobs:
           assert "F0R0" in s and "F3R3" in s
           assert "後半：現行24点ROI" in s
           assert "前半的中率" in s
-          assert s.count("<tr>") >= 16 * 9, "All 16 signals and 8 method rows expected"
+          assert s.count("<tr>") >= 16 + 15 * 8, "16 signal rows plus 8 methods for 15 active signal types expected"
           assert "本番買い方は変更なし" in s
           print("SIGNAL_24_HOLDOUT_UI_PASS",len(s))
           PY
