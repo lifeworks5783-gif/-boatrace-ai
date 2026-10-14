@@ -1,0 +1,60 @@
+name: Signal buy-skip chronological holdout safety
+on:
+  pull_request:
+    paths:
+      - "collectors/evaluate_signal_buy_skip_holdout.py"
+      - "collectors/build_family_signal_analysis_page.py"
+      - "tests/test_signal_buy_skip_holdout.py"
+      - ".github/workflows/family_prediction_page.yml"
+      - ".github/workflows/saved_data_pdca_refresh.yml"
+      - ".github/workflows/pr_signal_buy_skip_holdout.yml"
+permissions:
+  contents: read
+jobs:
+  isolated-evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile new modules
+        run: |
+          python -m py_compile collectors/evaluate_signal_buy_skip_holdout.py collectors/build_family_signal_analysis_page.py tests/test_signal_buy_skip_holdout.py
+      - name: Research-only train-lock, missed payout and no-risk production tests
+        run: |
+          python -m unittest discover -s tests -p test_signal_buy_skip_holdout.py -v
+          python -m unittest discover -s tests -p test_signal_24_temporal_holdout.py -v
+      - name: Produce historical buy-skip holdout evidence with separate holdout dates
+        run: |
+          python collectors/evaluate_signal_buy_skip_holdout.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("evaluations/signal_buy_skip_holdout/latest/summary.json").read_text(encoding="utf-8"))
+          assert x["model_version"]=="signal_buy_skip_holdout_v1_20261014"
+          assert x["training_dates"][-1]<x["holdout_dates"][0]
+          assert len(x["all_predeclared_rule_comparisons"])==14
+          assert len(x["by_signal"])==16
+          assert x["data_audit"]["f0r0_nonpurchases"]>0
+          assert x["comparison"]["holdout_candidate"]["investment_yen"]+x["comparison"]["holdout_candidate"]["avoided_stakes_yen"]==x["comparison"]["holdout_baseline"]["investment_yen"]
+          assert x["configuration"]["decision_features"]==["fujin_level","raijin_level"]
+          print("SIGNAL_BUY_SKIP_HOLDOUT_VALID",x["locked_rule"],x["comparison"])
+          PY
+      - name: Render the AI analysis section (no public mutation)
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,"collectors")
+          from build_family_signal_analysis_page import signal_buy_skip_holdout_panel
+          html=signal_buy_skip_holdout_panel(Path("evaluations"))
+          assert "買い・見送りの時系列検証" in html
+          assert "F0R0" in html and "F3R3" in html
+          assert "見送りによる24点的中の取り逃し" in html
+          assert "14種類の買い・見送り条件" in html
+          assert html.count("<tr>") >= 16 + 14 + 7
+          assert "実際の購入・配信シグナルは現行のまま" in html
+          print("SIGNAL_BUY_SKIP_UI_VALID",len(html))
+          PY
