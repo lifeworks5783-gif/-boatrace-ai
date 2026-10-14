@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from build_family_analysis_page import neutral_recovery_pdca_html
+from signal_high_payout_display import load_cumulative, combination_table
 
 
 def load_json(path: Path) -> Dict[str, Any]:
@@ -980,6 +981,8 @@ def build_page(root: Path) -> str:
 {raijin_v2_pdca_section(root)}
 
 {rank_research_panel(root)}
+
+{combination_table(load_cumulative(root / "signal_payout_rank_distribution/latest/summary.json"))}
 
 {signal_payout_rank_distribution_panel(root)}
 
