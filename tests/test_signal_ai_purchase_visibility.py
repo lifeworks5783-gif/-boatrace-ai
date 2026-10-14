@@ -48,7 +48,7 @@ def signal_race():
 
 
 class SignalAiPurchaseVisibilityTest(unittest.TestCase):
-    def test_two_stage_disclosure_24_then_25_to_50(self):
+    def test_two_stage_disclosure_24_then_25_to_120(self):
         race = signal_race()
         before = copy.deepcopy(race)
         card = build_ai_card(race, 1)
@@ -57,25 +57,42 @@ class SignalAiPurchaseVisibilityTest(unittest.TestCase):
         self.assertIn('class="ai-combo-details signal-ai-purchase-details">', card)
         self.assertIn('class="ai-combo-details signal-ai-reference-details">', card)
         outer = card.index('<details class="ai-combo-details signal-ai-purchase-details">')
-        purchase = card.index('class="ai-combos signal-ai-purchase-list"')
+        purchase = card.index('class="signal-ai-purchase-list"')
         inner = card.index('<details class="ai-combo-details signal-ai-reference-details">')
-        inner_end = card.index("</details>", inner)
-        outer_end = card.index("</details>", inner_end + len("</details>"))
         self.assertLess(outer, purchase)
         self.assertLess(purchase, inner)
-        self.assertLess(inner, inner_end)
-        self.assertLess(inner_end, outer_end)
         self.assertNotIn(" open", card[outer:inner])
         visible = card[purchase:inner]
-        reference = card[inner:inner_end]
-        self.assertEqual(visible.count('<div class="ai-combo">'), 24)
-        self.assertEqual(reference.count('<div class="ai-combo">'), 26)
+        reference = card[inner:card.index("</article>", inner)]
+        self.assertEqual(visible.count('class="signal-ai-ticket"'), 24)
+        self.assertEqual(reference.count('class="signal-ai-ticket"'), 96)
+        self.assertEqual(visible.count(" checked"), 24)
+        self.assertEqual(reference.count(" checked"), 0)
+        self.assertEqual(reference.count('class="ai-combo-details signal-ai-tier"'), 3)
         self.assertIn("1位 1-2-3", visible)
         self.assertIn("24位", visible)
         self.assertNotIn("25位", visible)
         self.assertIn("25位", reference)
-        self.assertIn("50位", reference)
+        self.assertIn("120位", reference)
         self.assertNotIn("24位", reference)
+        for tier in ("強本線", "本線", "準本線", "中穴", "穴", "大穴"):
+            self.assertIn(tier, card)
+
+    def test_shortened_race_rank_range_has_no_fabricated_120th_ticket(self):
+        race = signal_race()
+        race["signal_ai_prediction"]["all_120_combinations"] = race["signal_ai_prediction"]["all_120_combinations"][:60]
+        html = build_ai_card(race, 1)
+        self.assertEqual(html.count('class="signal-ai-ticket"'), 60)
+        self.assertNotIn('data-rank="120"', html)
+        self.assertIn('data-rank="60"', html)
+
+    def test_local_research_ticket_choice_never_changes_scored_24(self):
+        source = (ROOT / "collectors" / "build_family_prediction_page.py").read_text(encoding="utf-8")
+        self.assertIn("initSignalTickets(ai, pair.dataset.raceId)", source)
+        self.assertIn("selected.size >= 24", source)
+        self.assertIn("boatrace-signal-ticket-selection:v1:", source)
+        self.assertIn("上位24点に戻す", source)
+        self.assertIn("従来の24点成績計算・補正ロジック・自動購入は変更しません", source)
 
     def test_per_race_tabs_and_same_race_lookup(self):
         race = signal_race()
