@@ -233,17 +233,25 @@ def signal_marker(race):
         else '<span class="signal-row fujin empty-signal">&nbsp;</span>'
     )
 
-    # Present one historical empirical rate for the COMBINED F/R level.
-    # No per-signal marginal rate, no current-race guaranteed probability.
+    # Keep the original two-row icon immediately after the race name.
     return (
-        '<span class="fujin-raijin-group">'
-        + '<span class="fujin-raijin-stack" title="風神雷神シグナル">'
+        '<span class="fujin-raijin-stack" title="風神雷神シグナル">'
         + top
         + bottom
         + "</span>"
-        + combined_badge(fujin_level, raijin_level, load_cumulative())
-        + "</span>"
     )
+
+
+def signal_high5_history_line(race):
+    """Separate block under the race name; never move the original icons."""
+    raijin_level = int((race.get("up_signal") or {}).get("level") or 0)
+    fujin_level = int((race.get("down_signal") or {}).get("level") or 0)
+    if not (raijin_level or fujin_level):
+        return ""
+    badge = combined_badge(fujin_level, raijin_level, load_cumulative())
+    return f'<div class="signal-history-line">{badge}</div>'
+
+
 def neutral_boat_marker(boat):
     """▲ on each affected racer only; reasons are accessible by tap/tooltip."""
     if not boat.get("score_fallback"):
@@ -325,7 +333,7 @@ def build_card(race, index, is_completed=False):
     <article class="race-card">
       <div class="race-head">
         <div class="race-order">{index}</div>
-        <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div></div>
+        <div class="race-main"><div class="deadline">{esc(time_label(race.get("deadline")))}</div><div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>{signal_high5_history_line(race)}</div>
         {status_html}
         <div class="badge-wrap">{live_data_marker(race)}<div class="badge {badge_class}">{esc(badge_label)}</div></div>
       </div>
@@ -390,6 +398,7 @@ def build_ai_card(race, index):
             <div class="race-main">
               <div class="deadline">{esc(deadline)}</div>
               <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}</div>
+              {signal_high5_history_line(race)}
             </div>
           </div>
           <div class="formation-title">風神雷神専用AI24点・データ修復対象</div>
@@ -444,6 +453,7 @@ def build_ai_card(race, index):
             <div class="race-main">
               <div class="deadline">{esc(deadline)}</div>
               <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>
+              {signal_high5_history_line(race)}
             </div>
             <div class="badge live">シグナルAI</div>
           </div>
@@ -522,6 +532,7 @@ def build_ai_card(race, index):
         <div class="race-main">
           <div class="deadline">{esc(deadline)}</div>
           <div class="race-name">{esc(venue)} {esc(race.get("race"))}R{signal_marker(race)}{quality_warning_marker(race)}</div>
+          {signal_high5_history_line(race)}
         </div>
         <div class="badge live">通常AI</div>
       </div>
@@ -995,13 +1006,10 @@ def main():
     .badge-wrap {{display:flex;align-items:center;gap:5px}}
     .data-ok {{font-size:13px;color:#2e7d32}}
     .data-ng {{font-size:14px;color:#b26a00;font-weight:800}}
-    .fujin-raijin-group {{
-      display:inline-flex;
-      align-items:center;
-      flex-wrap:wrap;
-      vertical-align:middle;
-      gap:4px;
-      margin-left:4px;
+    .signal-history-line {{
+      display:block;
+      margin-top:3px;
+      line-height:1.25;
       max-width:100%;
     }}
     .signal-high5-history {{
