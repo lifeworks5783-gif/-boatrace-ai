@@ -29,6 +29,7 @@ on:
       - "collectors/build_family_results_page.py"
       - "collectors/build_family_analysis_page.py"
       - "collectors/build_family_signal_analysis_page.py"
+      - "collectors/signal_high_payout_display.py"
       - "evaluations/fujin_raijin/**"
       - "evaluations/raijin_all_rank_v2_replay/**"
       - "evaluations/signal_rank_research/**"
@@ -194,6 +195,28 @@ jobs:
           test -s evaluations/signal_pdca_cross/latest/summary.json
           echo "シグナルAI24点と高配当・16x4分析: PASS"
 
+      - name: 風神雷神16組の累計高配当実績を最新シグナル横へ反映
+        run: |
+          # Re-render after latest saved outcome research aggregation, preventing
+          # first-stage index.html from carrying an older historical percentage.
+          python -u collectors/build_family_prediction_page.py \
+            --input predictions/latest_by_deadline.json \
+            --output-dir _family_site
+          test -s _family_site/index.html
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "collectors")
+          from signal_high_payout_display import load_cumulative
+          rates = load_cumulative()
+          assert rates is not None and len(rates["groups"]) == 16
+          assert rates["n"] == sum(x["n"] for x in rates["groups"].values())
+          html = Path("_family_site/index.html").read_text(encoding="utf-8")
+          assert "5千円以上実績" in html
+          assert "今回のレースの確定確率" in html
+          print("PAIRED_SIGNAL_CUMULATIVE_BADGE_VERIFIED", rates["dates"], rates["n"])
+          PY
+
       - name: 結果・成績ページを生成
         run: |
           python -u collectors/build_family_results_page.py \
@@ -221,6 +244,9 @@ jobs:
           grep -q 'シグナル別・全120順位の高配当分布' _family_site/analysis.html
           grep -q 'シグナル別24点配分・時系列ホールドアウト比較' _family_site/analysis.html
           grep -q '買い・見送りの時系列検証' _family_site/analysis.html
+          grep -q '風神×雷神16組・5,000円以上発生実績（累計）' _family_site/analysis.html
+          grep -q 'data-signal="F0R0"' _family_site/analysis.html
+          grep -q 'data-signal="F3R3"' _family_site/analysis.html
           grep -q 'dist-rank-payload' _family_site/analysis.html
           python - <<'PY'
           import json
