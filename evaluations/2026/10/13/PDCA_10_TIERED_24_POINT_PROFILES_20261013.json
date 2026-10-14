@@ -1,0 +1,423 @@
+{
+  "schema_version": 1,
+  "analysis_date": "2026-10-14",
+  "target_race_date": "2026-10-13",
+  "status": "research_only_no_production_update",
+  "model": "fujin_raijin_pipeline_v2_20261011",
+  "ticket_unit_yen": 100,
+  "selection_basis": "signal_ai rank among 3連単 possible combinations (NOT actual popularity / odds)",
+  "ticket_investment_yen": 2400,
+  "selection_policy": "rank-only fixed pick positions, settled using real result only after selection",
+  "less_than_120_combinations": "for 5-boat/60-combo races remove ranks > available combos, then fill unused positions starting with smallest remaining rank until 24",
+  "research_note": "4/5/6-tier and Hybrid strategies are hypotheses generated after past-data inspection; do not treat backtests as prospectively validated",
+  "profiles": [
+    {
+      "profile_id": "T4_BALANCED",
+      "profile_name": "4層・本線重視",
+      "total_tickets": 24,
+      "tiers": [
+        {
+          "tier_no": 1,
+          "tier_name": "本線",
+          "rank_min": 1,
+          "rank_max": 12,
+          "ticket_count": 10,
+          "selected_ranks": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            8,
+            9,
+            10,
+            12
+          ]
+        },
+        {
+          "tier_no": 2,
+          "tier_name": "準軸",
+          "rank_min": 13,
+          "rank_max": 24,
+          "ticket_count": 6,
+          "selected_ranks": [
+            13,
+            15,
+            17,
+            19,
+            21,
+            24
+          ]
+        },
+        {
+          "tier_no": 3,
+          "tier_name": "穴",
+          "rank_min": 25,
+          "rank_max": 48,
+          "ticket_count": 5,
+          "selected_ranks": [
+            25,
+            30,
+            36,
+            42,
+            48
+          ]
+        },
+        {
+          "tier_no": 4,
+          "tier_name": "大穴",
+          "rank_min": 49,
+          "rank_max": 120,
+          "ticket_count": 3,
+          "selected_ranks": [
+            49,
+            84,
+            120
+          ]
+        }
+      ],
+      "ordered_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9,
+        10,
+        12,
+        13,
+        15,
+        17,
+        19,
+        21,
+        24,
+        25,
+        30,
+        36,
+        42,
+        48,
+        49,
+        84,
+        120
+      ]
+    },
+    {
+      "profile_id": "T5_BALANCED",
+      "profile_name": "5層・中穴独立",
+      "total_tickets": 24,
+      "tiers": [
+        {
+          "tier_no": 1,
+          "tier_name": "本線",
+          "rank_min": 1,
+          "rank_max": 8,
+          "ticket_count": 6,
+          "selected_ranks": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            8
+          ]
+        },
+        {
+          "tier_no": 2,
+          "tier_name": "準本線",
+          "rank_min": 9,
+          "rank_max": 18,
+          "ticket_count": 6,
+          "selected_ranks": [
+            9,
+            10,
+            12,
+            14,
+            16,
+            18
+          ]
+        },
+        {
+          "tier_no": 3,
+          "tier_name": "中穴",
+          "rank_min": 19,
+          "rank_max": 36,
+          "ticket_count": 5,
+          "selected_ranks": [
+            19,
+            23,
+            27,
+            31,
+            36
+          ]
+        },
+        {
+          "tier_no": 4,
+          "tier_name": "穴",
+          "rank_min": 37,
+          "rank_max": 60,
+          "ticket_count": 4,
+          "selected_ranks": [
+            37,
+            44,
+            52,
+            60
+          ]
+        },
+        {
+          "tier_no": 5,
+          "tier_name": "大穴",
+          "rank_min": 61,
+          "rank_max": 120,
+          "ticket_count": 3,
+          "selected_ranks": [
+            61,
+            90,
+            120
+          ]
+        }
+      ],
+      "ordered_ranks": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        10,
+        12,
+        14,
+        16,
+        18,
+        19,
+        23,
+        27,
+        31,
+        36,
+        37,
+        44,
+        52,
+        60,
+        61,
+        90,
+        120
+      ]
+    },
+    {
+      "profile_id": "T6_BALANCED",
+      "profile_name": "6層・上位と大穴を細分化",
+      "total_tickets": 24,
+      "tiers": [
+        {
+          "tier_no": 1,
+          "tier_name": "強本線",
+          "rank_min": 1,
+          "rank_max": 6,
+          "ticket_count": 5,
+          "selected_ranks": [
+            1,
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "tier_no": 2,
+          "tier_name": "本線",
+          "rank_min": 7,
+          "rank_max": 12,
+          "ticket_count": 5,
+          "selected_ranks": [
+            7,
+            8,
+            9,
+            10,
+            12
+          ]
+        },
+        {
+          "tier_no": 3,
+          "tier_name": "準本線",
+          "rank_min": 13,
+          "rank_max": 24,
+          "ticket_count": 5,
+          "selected_ranks": [
+            13,
+            15,
+            18,
+            21,
+            24
+          ]
+        },
+        {
+          "tier_no": 4,
+          "tier_name": "中穴",
+          "rank_min": 25,
+          "rank_max": 48,
+          "ticket_count": 4,
+          "selected_ranks": [
+            25,
+            32,
+            40,
+            48
+          ]
+        },
+        {
+          "tier_no": 5,
+          "tier_name": "穴",
+          "rank_min": 49,
+          "rank_max": 72,
+          "ticket_count": 3,
+          "selected_ranks": [
+            49,
+            60,
+            72
+          ]
+        },
+        {
+          "tier_no": 6,
+          "tier_name": "大穴",
+          "rank_min": 73,
+          "rank_max": 120,
+          "ticket_count": 2,
+          "selected_ranks": [
+            73,
+            120
+          ]
+        }
+      ],
+      "ordered_ranks": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12,
+        13,
+        15,
+        18,
+        21,
+        24,
+        25,
+        32,
+        40,
+        48,
+        49,
+        60,
+        72,
+        73,
+        120
+      ]
+    },
+    {
+      "profile_id": "HYBRID_16_8",
+      "profile_name": "本線16点＋穴8点（研究候補）",
+      "total_tickets": 24,
+      "tiers": [
+        {
+          "tier_no": 1,
+          "tier_name": "本線",
+          "rank_min": 1,
+          "rank_max": 16,
+          "ticket_count": 16,
+          "selected_ranks": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "tier_no": 2,
+          "tier_name": "準本線",
+          "rank_min": 17,
+          "rank_max": 24,
+          "ticket_count": 3,
+          "selected_ranks": [
+            17,
+            20,
+            23
+          ]
+        },
+        {
+          "tier_no": 3,
+          "tier_name": "中穴",
+          "rank_min": 25,
+          "rank_max": 48,
+          "ticket_count": 3,
+          "selected_ranks": [
+            25,
+            32,
+            40
+          ]
+        },
+        {
+          "tier_no": 4,
+          "tier_name": "穴",
+          "rank_min": 49,
+          "rank_max": 72,
+          "ticket_count": 1,
+          "selected_ranks": [
+            49
+          ]
+        },
+        {
+          "tier_no": 5,
+          "tier_name": "大穴",
+          "rank_min": 73,
+          "rank_max": 120,
+          "ticket_count": 1,
+          "selected_ranks": [
+            73
+          ]
+        }
+      ],
+      "ordered_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        20,
+        23,
+        25,
+        32,
+        40,
+        49,
+        73
+      ]
+    }
+  ]
+}
