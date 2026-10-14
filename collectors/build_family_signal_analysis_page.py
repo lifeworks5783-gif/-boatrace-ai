@@ -521,6 +521,151 @@ def rank_research_panel(root: Path) -> str:
     )
 
 
+
+def signal_payout_rank_distribution_panel(root: Path) -> str:
+    """Read-only 16-signal by 120-rank PDCA; never changes production tickets."""
+    payload = load_json(root / "signal_payout_rank_distribution" / "latest" / "summary.json")
+    if not payload or payload.get("model_version") != "fujin_raijin_pipeline_v2_20261011":
+        return (
+            '<section class="card" id="signal-payout-rank-distribution">'
+            '<h2>シグナル別・全120順位の高配当分布（7日間・累計）</h2>'
+            '<p class="note">保存済み全期間の順位分布を集計中です。'
+            '不完全な情報を0%として表示しません。</p></section>'
+        )
+    last7 = (payload.get("periods") or {}).get("last7") or {}
+    all_time = (payload.get("periods") or {}).get("all") or {}
+    coverage = payload.get("source_coverage") or {}
+    if not last7.get("by_signal") or not all_time.get("by_signal"):
+        return '<section class="card"><h2>シグナル別・全120順位の高配当分布</h2>集計データがありません。</section>'
+    encoded = json.dumps({
+        "periods": {"last7": last7, "all": all_time},
+        "coverage": {"from": coverage.get("from"), "to": coverage.get("to"),
+                     "days": coverage.get("available_date_count")},
+    }, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    panel = """
+<section class="card" id="signal-payout-rank-distribution">
+<h2>シグナル別・全120順位の高配当分布（7日間・累計）</h2>
+<p class="note">研究用の風神Lv0〜3 × 雷神Lv0〜3の16分類を、過去の実着3連単の評価順位1〜120位で集計。
+5,000円以上と万舟（10,000円以上）を別表示します。<strong>この数値は過去の割合であり、個別レースの確定予測ではありません。</strong></p>
+<div class="dist-controls">
+<label>集計期間 <select id="dist-period">
+<option value="last7">直近7日間</option><option value="all">累計・保存済み全期間</option>
+</select></label>
+<label>シグナル <select id="dist-signal"></select></label>
+</div>
+<p id="dist-coverage" class="note" aria-live="polite"></p>
+<div class="metrics" id="dist-summary"></div>
+<h3>16シグナル別：5,000円以上・万舟の発生率／順位帯</h3>
+<p class="note">順位帯6列の数値は「そのシグナルが出た全レースのうち、5,000円以上の実着3連単が当該帯に入った割合」。帯全体の割合で、数点だけ購入した的中率とは異なります。行を選ぶと120順位の詳細を表示します。</p>
+<div class="table-wrap dist-scroll"><table id="dist-overview"><thead><tr>
+<th>シグナル</th><th>対象R</th><th>5千円以上</th><th>万舟</th>
+<th>強本線 1-6</th><th>本線 7-12</th><th>準本線 13-24</th>
+<th>中穴 25-48</th><th>穴 49-72</th><th>大穴 73-120</th>
+</tr></thead><tbody></tbody></table></div>
+<h3 id="dist-title">120順位の分布図</h3>
+<p class="note">色が濃い順位ほど、過去のその順位で高配当の実着が多かったことを示します。スクロールで120位まで確認できます。色は買い目指定ではありません。</p>
+<div id="dist-high5" class="dist-chart"><strong>5,000円以上</strong><div class="dist-heat-wrap"><div class="dist-heat" aria-label="5千円以上の1位から120位"></div></div></div>
+<div id="dist-manshu" class="dist-chart"><strong>万舟（1万円以上）</strong><div class="dist-heat-wrap"><div class="dist-heat" aria-label="万舟の1位から120位"></div></div></div>
+<div class="table-wrap"><table id="dist-tiers"><thead><tr><th>帯</th><th>予測順位</th><th>帯幅</th><th>実着数</th><th>5千円以上</th><th>万舟</th><th>5千円以上の帯的中率</th><th>万舟の帯的中率</th><th>1順位あたり5千円率（参考）</th></tr></thead><tbody></tbody></table></div>
+<details class="dist-rank-details"><summary>このシグナルの120順位すべての件数・過去割合を開く</summary>
+<div class="table-wrap"><table id="dist-exact"><thead><tr><th>AI順位</th><th>所属帯</th><th>全配当実着</th><th>5千円以上実着</th><th>万舟実着</th><th>5千円以上・過去同時発生率</th><th>万舟・過去同時発生率</th></tr></thead><tbody></tbody></table></div>
+</details>
+<p class="note">累計は評価可能なV2再生・監査済み履歴のみです（保存以前のCloudflare D1限定履歴は未算入）。
+F0R0はシグナル専用AIの順位対象外です。未発動を的中率0%と混同しません。
+結果後に復元した予測が含まれ、実購入・締切前の予測成績ではありません。小標本の確率は参考値です。</p>
+</section>
+<style>
+#signal-payout-rank-distribution .dist-controls{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+#signal-payout-rank-distribution select{margin-left:5px;padding:8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#111827}
+#signal-payout-rank-distribution .dist-scroll{max-height:510px}
+#signal-payout-rank-distribution #dist-overview tbody tr{cursor:pointer}
+#signal-payout-rank-distribution #dist-overview tbody tr:hover{background:#eef6ff}
+#signal-payout-rank-distribution #dist-overview tbody tr.dist-selected{outline:2px solid #155eef;outline-offset:-2px;background:#e8f0ff}
+#signal-payout-rank-distribution .dist-chart{margin:18px 0}
+#signal-payout-rank-distribution .dist-heat-wrap{overflow-x:auto;padding:10px 0 14px;border:1px solid #e2e8f0;border-radius:9px}
+#signal-payout-rank-distribution .dist-heat{display:grid;grid-template-columns:repeat(120,16px);gap:1px;width:max-content;margin:0 10px}
+#signal-payout-rank-distribution .dist-rank{width:16px;height:36px;border:1px solid #cbd5e1;border-radius:2px;position:relative;cursor:help}
+#signal-payout-rank-distribution .dist-rank[data-edge="yes"]{border-left:3px solid #334155}
+#signal-payout-rank-distribution .dist-rank span{position:absolute;top:39px;font-size:9px;white-space:nowrap;color:#475569}
+#signal-payout-rank-distribution .dist-rank-details{margin:20px 0}
+#signal-payout-rank-distribution .dist-rank-details summary{cursor:pointer;font-weight:700}
+#signal-payout-rank-distribution .dist-na{background:#f1f5f9;text-align:center;color:#64748b;padding:14px}
+</style>
+<script type="application/json" id="dist-rank-payload">__DATA__</script>
+<script>
+(function(){
+  'use strict';
+  const root=document.getElementById('signal-payout-rank-distribution');
+  if(!root)return;
+  const DATA=JSON.parse(document.getElementById('dist-rank-payload').textContent);
+  const period=document.getElementById('dist-period'),signal=document.getElementById('dist-signal');
+  const keys=Array.from({length:16},(_,i)=>'F'+Math.floor(i/4)+'R'+i%4);
+  keys.forEach(k=>{const op=document.createElement('option');op.value=k;op.textContent=k;signal.appendChild(op);});
+  function p(a,b){return b?(100*a/b).toFixed(2)+'%':'—';}
+  function textcell(tr,value){const td=document.createElement('td');td.textContent=String(value);tr.appendChild(td);return td;}
+  function row(table,values){let tr=document.createElement('tr');values.forEach(v=>textcell(tr,v));table.appendChild(tr);return tr;}
+  const tiers=[['強本線',1,6],['本線',7,12],['準本線',13,24],['中穴',25,48],['穴',49,72],['大穴',73,120]];
+  function drawHeat(id,source,k,n,color){
+    const el=document.querySelector('#'+id+' .dist-heat');el.replaceChildren();
+    if(k==='F0R0'){el.textContent='シグナル専用AIは未適用';return;}
+    const arr=source;
+    for(let j=0;j<120;j++){
+      let cell=document.createElement('span');cell.className='dist-rank';
+      const h=arr[j]||0,ratio=n?h/n:0;
+      cell.style.background=h?color+Math.round((.23+Math.min(.72,ratio*32))*255).toString(16).padStart(2,'0'):'#f8fafc';
+      if([0,6,12,24,48,72].includes(j))cell.dataset.edge='yes';
+      cell.title=(j+1)+'位：'+h+'R / '+n+'R ('+p(h,n)+')';
+      if([0,5,11,23,47,71,119].includes(j)){const t=document.createElement('span');t.textContent=j+1;cell.appendChild(t);}
+      el.appendChild(cell);
+    }
+  }
+  function render(){
+    const block=DATA.periods[period.value],list=block.by_signal,chosen=signal.value||'F0R1',one=list[chosen]||{};
+    let days=block.dates||[],coverage=DATA.coverage||{};
+    document.getElementById('dist-coverage').textContent=
+      (period.value==='last7'?'直近7日間':'累計')+'：'+(days[0]||'—')+'〜'+(days[days.length-1]||'—')+
+      ' ／ 評価 '+block.races+'R ／ 発動 '+block.signal_active+'R ／ 保存全期間：'+coverage.from+'〜'+coverage.to+'（'+coverage.days+'日）';
+    const m=document.getElementById('dist-summary');m.replaceChildren();
+    for(const [title,val,description] of [
+      ['評価可能レース',block.races+'R','結果確定・監査可能データ'],
+      ['シグナル発動',block.signal_active+'R','順位ヒートマップの対象'],
+      ['5千円以上発生',block.payout_ge5000+'R','全レース基準'],
+      ['万舟発生',block.payout_ge10000+'R','全レース基準'],
+      ['5千円以上の発動捕捉',block.signal_high5_captured+'R','発動≠買い目的中'],
+      ['万舟の発動捕捉',block.signal_manshu_captured+'R','発動≠買い目的中']
+    ]){let el=document.createElement('div');el.className='metric';el.innerHTML='<div class="label"></div><div class="value"></div><div class="sub"></div>';el.children[0].textContent=title;el.children[1].textContent=val;el.children[2].textContent=description;m.appendChild(el);}
+    let tb=document.querySelector('#dist-overview tbody');tb.replaceChildren();
+    for(const k of keys){
+      let s=list[k]||{},tr=row(tb,[k,s.races||0,(s.payout_ge5000||0)+'R / '+p(s.payout_ge5000,s.races),(s.payout_ge10000||0)+'R / '+p(s.payout_ge10000,s.races),
+        ...(s.tiers||[]).map(t=>k==='F0R0'?'未適用':p(t.high5_hits,s.races)+' ('+t.high5_hits+')')]);
+      if(k===chosen)tr.className='dist-selected';
+      tr.addEventListener('click',()=>{signal.value=k;render();});
+    }
+    document.getElementById('dist-title').textContent=chosen+'：実際の3連単120順位分布';
+    drawHeat('dist-high5',(one.ranks||{}).high5||[],chosen,one.races||0,'#ea580c');
+    drawHeat('dist-manshu',(one.ranks||{}).manshu||[],chosen,one.races||0,'#7e22ce');
+    let tiersbody=document.querySelector('#dist-tiers tbody');tiersbody.replaceChildren();
+    if(chosen==='F0R0')row(tiersbody,['専用AI非発動','—','—','—','—','—','未適用','未適用','未適用']);
+    else for(const t of (one.tiers||[])){
+      row(tiersbody,[t.name,t.start+'〜'+t.end,t.width,t.hits,
+        t.high5_hits,t.manshu_hits,p(t.high5_hits,one.races),p(t.manshu_hits,one.races),
+        p(t.high5_hits,one.races*t.width)]);
+    }
+    const exact=document.querySelector('#dist-exact tbody');exact.replaceChildren();
+    if(chosen==='F0R0'){row(exact,['未適用','—','—','—','—','—','—']);return;}
+    for(let ix=0;ix<120;ix++){
+      const all=one.ranks.all[ix],hi=one.ranks.high5[ix],man=one.ranks.manshu[ix],
+        label=tiers.find(t=>ix+1>=t[1]&&ix+1<=t[2])[0];
+      row(exact,[ix+1,label,all,hi,man,p(hi,one.races),p(man,one.races)]);
+    }
+  }
+  period.addEventListener('change',render);signal.addEventListener('change',render);
+  signal.value='F0R1';render();
+})();
+</script>""".replace("__DATA__", encoded)
+    return panel
+
+
 def build_page(root: Path) -> str:
     backtest = load_json(root / "fujin_raijin/latest/backtest_summary.json")
     buff = load_json(root / "fujin_raijin/buff_debuff/latest.json")
@@ -592,6 +737,8 @@ def build_page(root: Path) -> str:
 {raijin_v2_pdca_section(root)}
 
 {rank_research_panel(root)}
+
+{signal_payout_rank_distribution_panel(root)}
 
 <section class="card"><h2>旧版・当時記録の比較集計</h2><p class="note">以下の過去保存版の数値は元の判定・買い目の監査用です。新ルールのPDCAは上の「雷神・修正版PDCA」を参照してください。</p><div class="metrics">{metrics}</div></section>
 
