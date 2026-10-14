@@ -33,6 +33,8 @@ on:
       - "evaluations/raijin_all_rank_v2_replay/**"
       - "evaluations/signal_rank_research/**"
       - "collectors/evaluate_signal_rank_research.py"
+      - "collectors/evaluate_signal_payout_rank_distribution.py"
+      - "evaluations/signal_payout_rank_distribution/**"
       - "evaluations/signal_ai/**"
       - "evaluations/signal_pdca_cross/**"
       - "collectors/evaluate_signal_pdca_cross.py"
@@ -162,6 +164,11 @@ jobs:
           # daily full-120 CSV records are persisted by saved-data/replay PDCA.
           python -u collectors/evaluate_signal_rank_research.py --no-combination-details
           test -s evaluations/signal_rank_research/v1/summary.json
+          # Independent research read-model: all available historical outcomes + last seven days.
+          # Never modify production scoring/predictions or live collection.
+          python -u collectors/evaluate_signal_payout_rank_distribution.py
+          test -s evaluations/signal_payout_rank_distribution/latest/summary.json
+          test -s evaluations/signal_payout_rank_distribution/latest/rank_distribution.csv
           python - <<'PY'
           import json
           from pathlib import Path
@@ -203,6 +210,20 @@ jobs:
           grep -q '旧保存版の風神雷神16通り' _family_site/analysis.html
           grep -q '3連単120通り' _family_site/analysis.html
           grep -q '120通り・実着順位の原因研究' _family_site/analysis.html
+          grep -q 'シグナル別・全120順位の高配当分布' _family_site/analysis.html
+          grep -q 'dist-rank-payload' _family_site/analysis.html
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('evaluations/signal_payout_rank_distribution/latest/summary.json').read_text(encoding='utf-8'))
+          assert data['model_version']=='fujin_raijin_pipeline_v2_20261011'
+          assert set(data['periods'])=={'last7','all'}
+          for part in data['periods'].values():
+              assert len(part['by_signal'])==16
+              assert all(len(entry['ranks']['high5'])==120 and len(entry['ranks']['manshu'])==120 for entry in part['by_signal'].values())
+              assert sum(x['races'] for x in part['by_signal'].values())==part['races']
+          print('SIGNAL_120_HIGH_PAYOUT_PDCA_PAGE_VERIFIED')
+          PY
 
           echo "風神雷神専用AI分析ページ生成: PASS"
 
