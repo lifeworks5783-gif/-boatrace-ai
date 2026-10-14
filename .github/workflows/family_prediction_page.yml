@@ -34,6 +34,8 @@ on:
       - "evaluations/signal_rank_research/**"
       - "collectors/evaluate_signal_rank_research.py"
       - "collectors/evaluate_signal_payout_rank_distribution.py"
+      - "collectors/evaluate_signal_24_temporal_holdout.py"
+      - "evaluations/signal_24_temporal_holdout/**"
       - "evaluations/signal_payout_rank_distribution/**"
       - "evaluations/signal_ai/**"
       - "evaluations/signal_pdca_cross/**"
@@ -169,6 +171,8 @@ jobs:
           python -u collectors/evaluate_signal_payout_rank_distribution.py
           test -s evaluations/signal_payout_rank_distribution/latest/summary.json
           test -s evaluations/signal_payout_rank_distribution/latest/rank_distribution.csv
+          python -u collectors/evaluate_signal_24_temporal_holdout.py
+          test -s evaluations/signal_24_temporal_holdout/latest/summary.json
           python - <<'PY'
           import json
           from pathlib import Path
@@ -211,6 +215,7 @@ jobs:
           grep -q '3連単120通り' _family_site/analysis.html
           grep -q '120通り・実着順位の原因研究' _family_site/analysis.html
           grep -q 'シグナル別・全120順位の高配当分布' _family_site/analysis.html
+          grep -q 'シグナル別24点配分・時系列ホールドアウト比較' _family_site/analysis.html
           grep -q 'dist-rank-payload' _family_site/analysis.html
           python - <<'PY'
           import json
