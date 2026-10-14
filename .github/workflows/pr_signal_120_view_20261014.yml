@@ -1,0 +1,35 @@
+name: Signal 120-rank view UI safety
+on:
+  pull_request:
+    paths:
+      - "collectors/build_family_prediction_page.py"
+      - ".github/workflows/pr_signal_120_view_20261014.yml"
+permissions:
+  contents: read
+jobs:
+  offline-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install builder import dependencies
+        run: python -m pip install requests beautifulsoup4 lhafile pandas numpy scipy
+      - name: Compile only the display builder
+        run: python -m py_compile collectors/build_family_prediction_page.py
+      - name: Render historical saved full UI without publishing
+        run: |
+          python collectors/build_family_prediction_page.py --input predictions/latest_by_deadline.json --output-dir _signal_ui_smoke
+          python - <<'PY'
+          from pathlib import Path
+          html=Path("_signal_ui_smoke/index.html").read_text(encoding="utf-8")
+          assert "参考順位25〜120位を見る" in html
+          assert "強本線" in html and "準本線" in html and "中穴" in html and "大穴" in html
+          assert "initSignalTickets" in html
+          assert html.count('class="signal-ai-ticket"') >= 24, "No selectable signal rankings generated"
+          assert html.count('data-rank="120"') >= 1, "Full 120 missing"
+          assert html.count('class="signal-ai-selected-count"') >= 1
+          print("SIGNAL_120_UI_RENDER_PASS")
+          PY

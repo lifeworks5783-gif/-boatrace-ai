@@ -394,7 +394,7 @@ def build_ai_card(race, index):
     if integrity["signal_key"]:
         ai = signal_ai
         position = ai.get("boat_scores") or []
-        combos = (ai.get("all_120_combinations") or ai.get("combinations") or [])[:50]
+        combos = (ai.get("all_120_combinations") or ai.get("combinations") or [])[:120]
         score_rows = "".join(
             '<tr>'
             f'<td>{esc(x.get("boat"))}号艇{(" " + esc(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat"))))) if text(x.get("racer_name") or x.get("name") or x.get("player_name") or ai_name_map.get(text(x.get("boat")))) else ""}</td>'
@@ -405,22 +405,31 @@ def build_ai_card(race, index):
             '</tr>'
             for x in position
         )
-        # Purchase ranks 1-24 and reference ranks 25-50 are independent
-        # nested disclosures; both start collapsed.
-        combo_rows = "".join(
-            '<div class="ai-combo">'
-            f'<b>{i}位 {esc(x.get("combination"))}</b>'
-            f'<span>AI評価 {esc(score_label(x.get("score")))}点</span>'
-            '</div>'
-            for i, x in enumerate(combos[:24], 1)
-        )
-        reference_rows = "".join(
-            '<div class="ai-combo">'
-            f'<b>{i}位 {esc(x.get("combination"))}</b>'
-            f'<span>AI評価 {esc(score_label(x.get("score")))}点</span>'
-            '</div>'
-            for i, x in enumerate(combos[24:50], 25)
-        )
+        # Presentation-only: six rank tiers, max 24 local selections.
+        def ticket_row(i, x):
+            combo = esc(x.get("combination"))
+            return (
+                '<label class="ai-combo signal-ai-ticket-row">'
+                f'<input type="checkbox" class="signal-ai-ticket" value="{combo}" data-rank="{i}"'
+                + (" checked" if i <= 24 else "")
+                + '>'
+                f'<b>{i}位 {combo}</b>'
+                f'<span>AI評価 {esc(score_label(x.get("score")))}点</span>'
+                '</label>'
+            )
+
+        combo_rows = ""
+        for label, start, end in [("強本線", 1, 6), ("本線", 7, 12), ("準本線", 13, 24)]:
+            sub = "".join(ticket_row(i, combos[i - 1]) for i in range(start, min(end, len(combos)) + 1))
+            if sub:
+                combo_rows += f'<h4 class="signal-ai-tier-label">{label} {start}〜{min(end, len(combos))}位</h4><div class="ai-combos">{sub}</div>'
+        reference_rows = ""
+        for label, start, end in [("中穴", 25, 48), ("穴", 49, 72), ("大穴", 73, 120)]:
+            sub = "".join(ticket_row(i, combos[i - 1]) for i in range(start, min(end, len(combos)) + 1))
+            if sub:
+                reference_rows += ('<details class="ai-combo-details signal-ai-tier">'
+                                   f'<summary>{label} {start}〜{min(end, len(combos))}位</summary>'
+                                   f'<div class="ai-combos">{sub}</div></details>')
         signal_key = text(ai.get("signal_key"))
         return f"""
         <article class="race-card" data-race-id="{esc(race.get('race_id'))}">
@@ -440,17 +449,21 @@ def build_ai_card(race, index):
               <tbody>{score_rows}</tbody>
             </table>
           </div>
-          <div class="formation-title signal-ai-purchase-title">シグナル専用3連単予測</div>
+          <div class="formation-title signal-ai-purchase-title">シグナル専用3連単予測・120順位帯</div>
+          <div class="signal-ai-pick-controls">
+            <strong>選択中 <span class="signal-ai-selected-count">24</span> / 24点</strong>
+            <button type="button" class="signal-ai-reset">上位24点に戻す</button>
+          </div>
+          <div class="ai-note signal-ai-pick-message" aria-live="polite">研究用候補24点をチェックで選択できます（初期選択は上位24点）。</div>
           <details class="ai-combo-details signal-ai-purchase-details">
-            <summary>1〜24位を見る（検証用・各100円／計2,400円）</summary>
-            <div class="ai-note">風神雷神の補正後スコアで評価した24点です。通常予測の買い目とは別集計です。</div>
-            <div class="ai-combos signal-ai-purchase-list" aria-label="シグナル専用3連単上位24点">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
+            <summary>1〜24位を見る（強本線・本線・準本線）</summary>
+            <div class="signal-ai-purchase-list">{combo_rows or "シグナルAI候補はまだ生成されていません。"}</div>
             <details class="ai-combo-details signal-ai-reference-details">
-              <summary>参考順位25〜50位を見る（購入対象外）</summary>
-              <div class="ai-combos">{reference_rows or "参考順位はありません。"}</div>
+              <summary>参考順位25〜120位を見る（中穴・穴・大穴）</summary>
+              {reference_rows or "参考順位はありません。"}
             </details>
           </details>
-          <div class="ai-note">購入額・回収率は従来どおり上位24点で計算します。25〜50位は検証用の参考順位です。全120通りの順位データは保存済みです。</div>
+          <div class="ai-note">選択は研究用の端末内表示のみ。従来の24点成績計算・補正ロジック・自動購入は変更しません。5艇レース等は計算された順位まで表示します。</div>
         </article>
         """
 
@@ -827,6 +840,15 @@ def main():
       border-radius:8px; background:var(--score-row);
     }}
     .signal-ai-reference-details {{ margin-top:12px; }}
+    .signal-ai-tier {{ margin-top:10px; }}
+    .signal-ai-tier > summary {{ min-height:40px; padding:9px; background:var(--score-row); border-radius:8px; }}
+    .signal-ai-tier-label {{ font-size:13px; margin:12px 0 7px; }}
+    .signal-ai-pick-controls {{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; }}
+    .signal-ai-reset {{ border:1px solid var(--line); background:var(--score-row); border-radius:8px; padding:7px 10px; }}
+    .signal-ai-ticket-row {{ cursor:pointer; align-items:center; border-left:3px solid transparent; }}
+    .signal-ai-ticket-row input {{ accent-color:var(--live-accent); min-width:17px; min-height:17px; }}
+    .signal-ai-ticket-row b {{ flex:1; }}
+    .signal-ai-ticket-row.is-selected {{ border-left:4px solid var(--live-accent); background:rgba(20,140,130,.12); }}
     .signal-ai-purchase-list .ai-combo {{ border-left: 3px solid var(--live-accent); }}
     .ai-combo {{
       display: flex;
@@ -1283,6 +1305,48 @@ def main():
         catch (error) {{ /* Tab switching also works without storage. */ }}
       }};
 
+      // Candidate selection is local research UI, never persisted as a bet.
+      const initSignalTickets = (card, raceId) => {{
+        const inputs = Array.from(card.querySelectorAll(".signal-ai-ticket"));
+        if (!inputs.length) return;
+        const key = "boatrace-signal-ticket-selection:v1:" + raceId;
+        const available = new Set(inputs.map(x => x.value));
+        const defaults = inputs.slice(0,24).map(x => x.value);
+        let selected = new Set(defaults);
+        try {{
+          const saved = JSON.parse(readChoice(key) || "null");
+          if (Array.isArray(saved) && saved.length <= 24 && saved.every(x => available.has(x))) selected = new Set(saved);
+        }} catch (error) {{ /* Restore defaults on invalid storage. */ }}
+        const counter = card.querySelector(".signal-ai-selected-count");
+        const message = card.querySelector(".signal-ai-pick-message");
+        const render = () => {{
+          inputs.forEach(x => {{
+            x.checked = selected.has(x.value);
+            x.closest(".signal-ai-ticket-row")?.classList.toggle("is-selected", x.checked);
+          }});
+          if (counter) counter.textContent = String(selected.size);
+        }};
+        inputs.forEach(x => x.addEventListener("change", () => {{
+          if (x.checked && selected.size >= 24 && !selected.has(x.value)) {{
+            x.checked = false;
+            if (message) message.textContent = "最大24点です。先に別候補を外してください。";
+            return;
+          }}
+          if (x.checked) selected.add(x.value);
+          else selected.delete(x.value);
+          saveChoice(key, JSON.stringify(Array.from(selected)));
+          if (message) message.textContent = "候補は端末内に保存しました。実際の24点成績には反映しません。";
+          render();
+        }}));
+        card.querySelector(".signal-ai-reset")?.addEventListener("click", () => {{
+          selected = new Set(defaults);
+          saveChoice(key, JSON.stringify(defaults));
+          if (message) message.textContent = "上位24点に戻しました。";
+          render();
+        }});
+        render();
+      }};
+
       // Render only the selected race's saved AI prediction at the same spot.
       document.querySelectorAll(".race-pair").forEach(pair => {{
         const normal = pair.querySelector(".race-local-normal");
@@ -1298,6 +1362,7 @@ def main():
             return;
           }}
           ai.appendChild(source.cloneNode(true));
+          initSignalTickets(ai, pair.dataset.raceId);
           ai.querySelectorAll("details").forEach((detail, i) => {{
             const key = "boatrace-race-details:" + pair.dataset.raceId + ":" + i;
             detail.open = readChoice(key) === "open";
