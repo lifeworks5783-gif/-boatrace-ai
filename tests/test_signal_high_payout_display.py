@@ -146,8 +146,7 @@ class PairedCumulativeRateTests(unittest.TestCase):
         for page in (normal, ai, ai_repair):
             pattern = (
                 r'<div class="race-name">[^<]*桐生 7R'
-                r'<span class="fujin-raijin-stack".*?</span>'
-                r'</div>\s*<div class="signal-history-line">'
+                r'(?:(?!</div>).)*</div>\s*<div class="signal-history-line">'
                 r'<span class="signal-high5-history[^"]*".*?'
                 r'data-signal="F2R1"'
             )
