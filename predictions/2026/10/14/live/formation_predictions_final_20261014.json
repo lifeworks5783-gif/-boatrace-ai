@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "model_version": "formation_gap_flow_v2",
   "target_date": "20261014",
-  "generated_at": "2026-10-14T11:18:06+09:00",
+  "generated_at": "2026-10-14T11:35:29.841669+09:00",
   "race_count": 156,
   "simulation_rule": "3連単各組み合わせ100円固定",
   "races": [
@@ -16253,7 +16253,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -20257,7 +20257,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -24287,7 +24287,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -28317,7 +28317,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -32347,7 +32347,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -36377,7 +36377,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -40393,7 +40393,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -44397,7 +44397,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -48415,7 +48415,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -57864,25 +57864,89 @@
       "venue_name": "浜名湖",
       "race": 2,
       "deadline": "2026-10-14T11:45:00+09:00",
-      "prediction_type": "朝",
+      "prediction_type": "直前",
       "prediction_quality": {
-        "status": "normal",
-        "mark": "",
-        "label": "正常",
-        "recovery_needed": false,
-        "reason": [],
-        "fallback_source": null
+        "status": "fallback",
+        "mark": "⚠",
+        "label": "補完あり",
+        "recovery_needed": true,
+        "reason": [
+          "締切前の直前情報が未確定または未保存"
+        ],
+        "fallback_source": "saved_morning_prediction",
+        "signal_blocked": true,
+        "boat_fallbacks": [
+          {
+            "boat": 3,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 1,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 5,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 2,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 6,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 4,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          }
+        ],
+        "recorded_at": "2026-10-14T11:35:29.841669+09:00"
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 3,
           "racer_name": "吉村正明",
           "score": 75.8,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 75.8,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A1",
           "registration_no": 4108,
           "motor_no": 34,
@@ -58118,9 +58182,13 @@
           "boat": 1,
           "racer_name": "木山和幸",
           "score": 74.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 74.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 3663,
           "motor_no": 54,
@@ -58356,9 +58424,13 @@
           "boat": 5,
           "racer_name": "鈴木裕隆",
           "score": 56.0,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 56.0,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4231,
           "motor_no": 17,
@@ -58594,9 +58666,13 @@
           "boat": 2,
           "racer_name": "岡本大",
           "score": 36.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 36.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4248,
           "motor_no": 43,
@@ -58832,9 +58908,13 @@
           "boat": 6,
           "racer_name": "鳥居塚孝",
           "score": 32.8,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 32.8,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A2",
           "registration_no": 3686,
           "motor_no": 49,
@@ -59070,9 +59150,13 @@
           "boat": 4,
           "racer_name": "鈴木結平",
           "score": 24.2,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 24.2,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B2",
           "registration_no": 5378,
           "motor_no": 62,
@@ -61841,9 +61925,9 @@
         "has_score50_candidate": false,
         "ai_effect": false,
         "formation_effect": false,
-        "status": "provisional_analysis_only",
-        "uses_fallback": false,
-        "unverified_non_trigger": false
+        "status": "provisional_fallback",
+        "uses_fallback": true,
+        "unverified_non_trigger": true
       },
       "down_signal": {
         "available": false,
@@ -61889,7 +61973,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -65907,7 +65991,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -69923,7 +70007,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -73941,7 +74025,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -77971,7 +78055,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -81987,7 +82071,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -85991,7 +86075,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -90021,7 +90105,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -94051,7 +94135,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -98081,7 +98165,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -118269,25 +118353,89 @@
       "venue_name": "びわこ",
       "race": 4,
       "deadline": "2026-10-14T11:43:00+09:00",
-      "prediction_type": "朝",
+      "prediction_type": "直前",
       "prediction_quality": {
-        "status": "normal",
-        "mark": "",
-        "label": "正常",
-        "recovery_needed": false,
-        "reason": [],
-        "fallback_source": null
+        "status": "fallback",
+        "mark": "⚠",
+        "label": "補完あり",
+        "recovery_needed": true,
+        "reason": [
+          "締切前の直前情報が未確定または未保存"
+        ],
+        "fallback_source": "saved_morning_prediction",
+        "signal_blocked": true,
+        "boat_fallbacks": [
+          {
+            "boat": 1,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 4,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 2,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 3,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 5,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          },
+          {
+            "boat": 6,
+            "reasons": [
+              "exhibition_course",
+              "exhibition_time",
+              "exhibition_st"
+            ],
+            "source": "saved_morning_prediction"
+          }
+        ],
+        "recorded_at": "2026-10-14T11:35:29.841669+09:00"
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 1,
           "racer_name": "外崎悟",
           "score": 89.3,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 89.3,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A1",
           "registration_no": 4809,
           "motor_no": 34,
@@ -118523,9 +118671,13 @@
           "boat": 4,
           "racer_name": "永嶋裕一",
           "score": 66.8,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 66.8,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "A2",
           "registration_no": 4394,
           "motor_no": 53,
@@ -118761,9 +118913,13 @@
           "boat": 2,
           "racer_name": "泥谷一毅",
           "score": 62.8,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 62.8,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4119,
           "motor_no": 25,
@@ -118999,9 +119155,13 @@
           "boat": 3,
           "racer_name": "渡邊裕貴",
           "score": 55.9,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 55.9,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4625,
           "motor_no": 40,
@@ -119237,9 +119397,13 @@
           "boat": 5,
           "racer_name": "鈴木成美",
           "score": 13.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 13.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B2",
           "registration_no": 4244,
           "motor_no": 15,
@@ -119475,9 +119639,13 @@
           "boat": 6,
           "racer_name": "入澤友治",
           "score": 11.6,
-          "morning_score_reference": null,
-          "score_fallback": false,
-          "score_fallback_reasons": [],
+          "morning_score_reference": 11.6,
+          "score_fallback": true,
+          "score_fallback_reasons": [
+            "exhibition_course",
+            "exhibition_time",
+            "exhibition_st"
+          ],
           "grade": "B1",
           "registration_no": 4059,
           "motor_no": 73,
@@ -122260,9 +122428,9 @@
         "has_score50_candidate": false,
         "ai_effect": false,
         "formation_effect": false,
-        "status": "provisional_analysis_only",
-        "uses_fallback": false,
-        "unverified_non_trigger": false
+        "status": "provisional_fallback",
+        "uses_fallback": true,
+        "unverified_non_trigger": true
       },
       "down_signal": {
         "available": false,
@@ -122308,7 +122476,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -126324,7 +126492,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -130354,7 +130522,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -134343,7 +134511,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -138347,7 +138515,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -142351,7 +142519,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -146355,7 +146523,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -150385,7 +150553,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -154389,7 +154557,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -158419,7 +158587,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -162449,7 +162617,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -166453,7 +166621,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -170471,7 +170639,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -174501,7 +174669,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -178519,7 +178687,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -182535,7 +182703,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -186551,7 +186719,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -190567,7 +190735,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -194571,7 +194739,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -198575,7 +198743,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -202608,7 +202776,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -206064,1532 +206232,137 @@
     {
       "target_date": "20261014",
       "race_id": "20261014-13-02",
-      "venue_code": "13",
-      "venue_name": "尼崎",
-      "race": 2,
+      "venue_code": "",
+      "venue_name": "",
+      "race": null,
       "deadline": "2026-10-14T11:08:00+09:00",
       "prediction_type": "直前",
       "prediction_quality": {
-        "status": "fallback",
-        "mark": "⚠",
-        "label": "補完あり",
-        "recovery_needed": true,
-        "reason": [
-          "締切前の直前情報が未確定または未保存"
-        ],
-        "fallback_source": "saved_morning_prediction",
-        "signal_blocked": true,
-        "boat_fallbacks": [
-          {
-            "boat": 1,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 6,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 3,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 4,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 2,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          },
-          {
-            "boat": 5,
-            "reasons": [
-              "exhibition_course",
-              "exhibition_time",
-              "exhibition_st"
-            ],
-            "source": "saved_morning_prediction"
-          }
-        ],
-        "recorded_at": "2026-10-14T11:06:00.792407+09:00"
+        "status": "recovered_observation",
+        "provenance": "post_result_official_beforeinfo",
+        "source": "evaluations/2026/10/14/recovery/merged_live_predictions_20261014.csv",
+        "result_leakage": false,
+        "prediction_generated_after_deadline": true,
+        "retrospective_simulation_only": true,
+        "recovery_needed": false,
+        "mark": "↻",
+        "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-14T11:06:00.792407+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 1,
           "racer_name": "本田愛",
-          "score": 75.4,
+          "score": 76.82,
           "morning_score_reference": 75.4,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
+          "score_fallback": false,
+          "score_fallback_reasons": [],
           "grade": "B1",
-          "registration_no": 5248,
-          "motor_no": 32,
-          "boat_no": 40,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
-          "components": {
-            "racer_course": {
-              "weight": 40,
-              "raw_score_0_1": 0.92
-            },
-            "grade": {
-              "weight": 20,
-              "raw_score_0_1": 0.6
-            },
-            "motor": {
-              "weight": 20,
-              "raw_score_0_1": 0.88
-            },
-            "boat": {
-              "weight": 5,
-              "raw_score_0_1": 0.0
-            },
-            "national_top2": {
-              "weight": 15,
-              "raw_score_0_1": 0.6
-            }
-          },
-          "input_trace": {
-            "history_feature_manifest": {
-              "as_of_date": "20261014",
-              "history_min_date": "20260621",
-              "history_max_date": "20261013",
-              "history_stale_days": 0,
-              "leakage_guard": "Only rows with result date < as_of_date are used."
-            },
-            "racer_30d": {
-              "starts": 13,
-              "finish_samples": 13,
-              "avg_finish": 4.69231,
-              "win_rate": 0.0,
-              "top2_rate": 0.0,
-              "top3_rate": 0.23077,
-              "st_samples": 3,
-              "avg_st": 0.1,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 3,
-              "avg_exhibition": 6.94
-            },
-            "racer_90d": {
-              "starts": 48,
-              "finish_samples": 47,
-              "avg_finish": 3.82979,
-              "win_rate": 0.125,
-              "top2_rate": 0.29167,
-              "top3_rate": 0.45833,
-              "st_samples": 38,
-              "avg_st": 0.17053,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 38,
-              "avg_exhibition": 6.82132
-            },
-            "motor_30d": {
-              "unique_racers": 2,
-              "starts": 22,
-              "finish_samples": 22,
-              "avg_finish": 2.45455,
-              "win_rate": 0.31818,
-              "top2_rate": 0.59091,
-              "top3_rate": 0.77273,
-              "st_samples": 22,
-              "avg_st": 0.15864,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 22,
-              "avg_exhibition": 6.85955
-            },
-            "motor_90d": {
-              "unique_racers": 7,
-              "starts": 66,
-              "finish_samples": 66,
-              "avg_finish": 3.12121,
-              "win_rate": 0.22727,
-              "top2_rate": 0.42424,
-              "top3_rate": 0.59091,
-              "st_samples": 66,
-              "avg_st": 0.16485,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 66,
-              "avg_exhibition": 6.86
-            },
-            "boat_30d": {
-              "unique_racers": 2,
-              "starts": 17,
-              "finish_samples": 17,
-              "avg_finish": 4.41176,
-              "win_rate": 0.05882,
-              "top2_rate": 0.05882,
-              "top3_rate": 0.23529,
-              "st_samples": 17,
-              "avg_st": 0.19824,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 17,
-              "avg_exhibition": 6.86294
-            },
-            "boat_90d": {
-              "unique_racers": 7,
-              "starts": 59,
-              "finish_samples": 59,
-              "avg_finish": 3.89831,
-              "win_rate": 0.10169,
-              "top2_rate": 0.23729,
-              "top3_rate": 0.38983,
-              "st_samples": 59,
-              "avg_st": 0.17932,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 59,
-              "avg_exhibition": 6.87068
-            },
-            "racer_venue": {
-              "available": true,
-              "venue_code": "13",
-              "features": {
-                "d30": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 6.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "d90": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 6.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "trend_30v90": {
-                  "win_rate_30v90": 0.0,
-                  "top2_rate_30v90": 0.0,
-                  "top3_rate_30v90": 0.0,
-                  "avg_finish_30v90": 0.0,
-                  "avg_st_30v90": null,
-                  "avg_exhibition_30v90": null
-                }
-              }
-            },
-            "course_used": 1,
-            "official_f_count": null,
-            "official_l_count": null,
-            "official_avg_st": null,
-            "official_fl_available": false,
-            "candidate_components": {
-              "f_l_holdings": {
-                "available": false,
-                "f_count": null,
-                "l_count": null,
-                "active_in_score": false
-              },
-              "motor_30d": {
-                "available": true,
-                "features": {
-                  "unique_racers": 2,
-                  "starts": 22,
-                  "finish_samples": 22,
-                  "avg_finish": 2.45455,
-                  "win_rate": 0.31818,
-                  "top2_rate": 0.59091,
-                  "top3_rate": 0.77273,
-                  "st_samples": 22,
-                  "avg_st": 0.15864,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 22,
-                  "avg_exhibition": 6.85955
-                },
-                "active_in_score": false
-              },
-              "parts_exchange": {
-                "available": false,
-                "value": "",
-                "active_in_score": false
-              },
-              "weather_water": {
-                "available": false,
-                "value": {},
-                "active_in_score": false
-              }
-            }
-          }
+          "registration_no": "5248",
+          "motor_no": "32",
+          "boat_no": "40",
+          "exhibition_course": "1",
+          "exhibition_time": 6.78,
+          "exhibition_st": 0.12,
+          "exhibition_f": false,
+          "components": {},
+          "input_trace": {}
         },
         {
           "rank": 2,
-          "boat": 6,
-          "racer_name": "山下大輝",
-          "score": 55.2,
-          "morning_score_reference": 55.2,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
-          "grade": "A1",
-          "registration_no": 5126,
-          "motor_no": 61,
-          "boat_no": 74,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
-          "components": {
-            "racer_course": {
-              "weight": 40,
-              "raw_score_0_1": 0.1
-            },
-            "grade": {
-              "weight": 20,
-              "raw_score_0_1": 1.0
-            },
-            "motor": {
-              "weight": 20,
-              "raw_score_0_1": 0.56
-            },
-            "boat": {
-              "weight": 5,
-              "raw_score_0_1": 1.0
-            },
-            "national_top2": {
-              "weight": 15,
-              "raw_score_0_1": 1.0
-            }
-          },
-          "input_trace": {
-            "history_feature_manifest": {
-              "as_of_date": "20261014",
-              "history_min_date": "20260621",
-              "history_max_date": "20261013",
-              "history_stale_days": 0,
-              "leakage_guard": "Only rows with result date < as_of_date are used."
-            },
-            "racer_30d": {
-              "starts": 15,
-              "finish_samples": 15,
-              "avg_finish": 2.53333,
-              "win_rate": 0.4,
-              "top2_rate": 0.53333,
-              "top3_rate": 0.73333,
-              "st_samples": 4,
-              "avg_st": 0.175,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 4,
-              "avg_exhibition": 6.7475
-            },
-            "racer_90d": {
-              "starts": 48,
-              "finish_samples": 48,
-              "avg_finish": 2.75,
-              "win_rate": 0.33333,
-              "top2_rate": 0.52083,
-              "top3_rate": 0.6875,
-              "st_samples": 37,
-              "avg_st": 0.13459,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 37,
-              "avg_exhibition": 6.77757
-            },
-            "motor_30d": {
-              "unique_racers": 2,
-              "starts": 14,
-              "finish_samples": 14,
-              "avg_finish": 3.14286,
-              "win_rate": 0.07143,
-              "top2_rate": 0.42857,
-              "top3_rate": 0.5,
-              "st_samples": 10,
-              "avg_st": 0.242,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 10,
-              "avg_exhibition": 6.817
-            },
-            "motor_90d": {
-              "unique_racers": 9,
-              "starts": 69,
-              "finish_samples": 68,
-              "avg_finish": 3.07353,
-              "win_rate": 0.21739,
-              "top2_rate": 0.49275,
-              "top3_rate": 0.55072,
-              "st_samples": 65,
-              "avg_st": 0.16108,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 65,
-              "avg_exhibition": 6.81462
-            },
-            "boat_30d": {
-              "unique_racers": 2,
-              "starts": 14,
-              "finish_samples": 14,
-              "avg_finish": 2.35714,
-              "win_rate": 0.42857,
-              "top2_rate": 0.64286,
-              "top3_rate": 0.64286,
-              "st_samples": 11,
-              "avg_st": 0.17091,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 11,
-              "avg_exhibition": 6.89545
-            },
-            "boat_90d": {
-              "unique_racers": 7,
-              "starts": 59,
-              "finish_samples": 59,
-              "avg_finish": 2.88136,
-              "win_rate": 0.32203,
-              "top2_rate": 0.45763,
-              "top3_rate": 0.57627,
-              "st_samples": 56,
-              "avg_st": 0.13964,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 56,
-              "avg_exhibition": 6.86393
-            },
-            "racer_venue": {
-              "available": true,
-              "venue_code": "13",
-              "features": {
-                "d30": {
-                  "starts": 2,
-                  "finish_samples": 2,
-                  "avg_finish": 1.0,
-                  "win_rate": 1.0,
-                  "top2_rate": 1.0,
-                  "top3_rate": 1.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "d90": {
-                  "starts": 11,
-                  "finish_samples": 11,
-                  "avg_finish": 2.09091,
-                  "win_rate": 0.54545,
-                  "top2_rate": 0.63636,
-                  "top3_rate": 0.81818,
-                  "st_samples": 9,
-                  "avg_st": 0.13,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 9,
-                  "avg_exhibition": 6.82222
-                },
-                "trend_30v90": {
-                  "win_rate_30v90": 0.45455,
-                  "top2_rate_30v90": 0.36364,
-                  "top3_rate_30v90": 0.18182,
-                  "avg_finish_30v90": -1.09091,
-                  "avg_st_30v90": null,
-                  "avg_exhibition_30v90": null
-                }
-              }
-            },
-            "course_used": 6,
-            "official_f_count": null,
-            "official_l_count": null,
-            "official_avg_st": null,
-            "official_fl_available": false,
-            "candidate_components": {
-              "f_l_holdings": {
-                "available": false,
-                "f_count": null,
-                "l_count": null,
-                "active_in_score": false
-              },
-              "motor_30d": {
-                "available": true,
-                "features": {
-                  "unique_racers": 2,
-                  "starts": 14,
-                  "finish_samples": 14,
-                  "avg_finish": 3.14286,
-                  "win_rate": 0.07143,
-                  "top2_rate": 0.42857,
-                  "top3_rate": 0.5,
-                  "st_samples": 10,
-                  "avg_st": 0.242,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 10,
-                  "avg_exhibition": 6.817
-                },
-                "active_in_score": false
-              },
-              "parts_exchange": {
-                "available": false,
-                "value": "",
-                "active_in_score": false
-              },
-              "weather_water": {
-                "available": false,
-                "value": {},
-                "active_in_score": false
-              }
-            }
-          }
+          "boat": 3,
+          "racer_name": "平石和男",
+          "score": 60.08,
+          "morning_score_reference": 54.6,
+          "score_fallback": false,
+          "score_fallback_reasons": [],
+          "grade": "A2",
+          "registration_no": "3251",
+          "motor_no": "28",
+          "boat_no": "46",
+          "exhibition_course": "3",
+          "exhibition_time": 6.79,
+          "exhibition_st": 0.05,
+          "exhibition_f": false,
+          "components": {},
+          "input_trace": {}
         },
         {
           "rank": 3,
-          "boat": 3,
-          "racer_name": "平石和男",
-          "score": 54.6,
-          "morning_score_reference": 54.6,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
-          "grade": "A2",
-          "registration_no": 3251,
-          "motor_no": 28,
-          "boat_no": 46,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
-          "components": {
-            "racer_course": {
-              "weight": 40,
-              "raw_score_0_1": 0.64
-            },
-            "grade": {
-              "weight": 20,
-              "raw_score_0_1": 0.8
-            },
-            "motor": {
-              "weight": 20,
-              "raw_score_0_1": 0.0
-            },
-            "boat": {
-              "weight": 5,
-              "raw_score_0_1": 0.2
-            },
-            "national_top2": {
-              "weight": 15,
-              "raw_score_0_1": 0.8
-            }
-          },
-          "input_trace": {
-            "history_feature_manifest": {
-              "as_of_date": "20261014",
-              "history_min_date": "20260621",
-              "history_max_date": "20261013",
-              "history_stale_days": 0,
-              "leakage_guard": "Only rows with result date < as_of_date are used."
-            },
-            "racer_30d": {
-              "starts": 21,
-              "finish_samples": 21,
-              "avg_finish": 3.19048,
-              "win_rate": 0.33333,
-              "top2_rate": 0.42857,
-              "top3_rate": 0.47619,
-              "st_samples": 13,
-              "avg_st": 0.16769,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 13,
-              "avg_exhibition": 6.67923
-            },
-            "racer_90d": {
-              "starts": 68,
-              "finish_samples": 68,
-              "avg_finish": 3.0,
-              "win_rate": 0.25,
-              "top2_rate": 0.41176,
-              "top3_rate": 0.60294,
-              "st_samples": 60,
-              "avg_st": 0.18667,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 60,
-              "avg_exhibition": 6.81533
-            },
-            "motor_30d": {
-              "unique_racers": 1,
-              "starts": 10,
-              "finish_samples": 10,
-              "avg_finish": 3.9,
-              "win_rate": 0.1,
-              "top2_rate": 0.1,
-              "top3_rate": 0.3,
-              "st_samples": 10,
-              "avg_st": 0.165,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 10,
-              "avg_exhibition": 6.806
-            },
-            "motor_90d": {
-              "unique_racers": 6,
-              "starts": 48,
-              "finish_samples": 47,
-              "avg_finish": 3.46809,
-              "win_rate": 0.125,
-              "top2_rate": 0.3125,
-              "top3_rate": 0.45833,
-              "st_samples": 47,
-              "avg_st": 0.16489,
-              "f_count": 1,
-              "f_rate": 0.02083,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 48,
-              "avg_exhibition": 6.83354
-            },
-            "boat_30d": {
-              "unique_racers": 3,
-              "starts": 21,
-              "finish_samples": 21,
-              "avg_finish": 4.19048,
-              "win_rate": 0.14286,
-              "top2_rate": 0.19048,
-              "top3_rate": 0.33333,
-              "st_samples": 18,
-              "avg_st": 0.15278,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 18,
-              "avg_exhibition": 6.90444
-            },
-            "boat_90d": {
-              "unique_racers": 9,
-              "starts": 69,
-              "finish_samples": 66,
-              "avg_finish": 3.95455,
-              "win_rate": 0.15942,
-              "top2_rate": 0.24638,
-              "top3_rate": 0.3913,
-              "st_samples": 64,
-              "avg_st": 0.15219,
-              "f_count": 1,
-              "f_rate": 0.01449,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 65,
-              "avg_exhibition": 6.87169
-            },
-            "racer_venue": {
-              "available": true,
-              "venue_code": "13",
-              "features": {
-                "d30": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 1.0,
-                  "win_rate": 1.0,
-                  "top2_rate": 1.0,
-                  "top3_rate": 1.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "d90": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 1.0,
-                  "win_rate": 1.0,
-                  "top2_rate": 1.0,
-                  "top3_rate": 1.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "trend_30v90": {
-                  "win_rate_30v90": 0.0,
-                  "top2_rate_30v90": 0.0,
-                  "top3_rate_30v90": 0.0,
-                  "avg_finish_30v90": 0.0,
-                  "avg_st_30v90": null,
-                  "avg_exhibition_30v90": null
-                }
-              }
-            },
-            "course_used": 3,
-            "official_f_count": null,
-            "official_l_count": null,
-            "official_avg_st": null,
-            "official_fl_available": false,
-            "candidate_components": {
-              "f_l_holdings": {
-                "available": false,
-                "f_count": null,
-                "l_count": null,
-                "active_in_score": false
-              },
-              "motor_30d": {
-                "available": true,
-                "features": {
-                  "unique_racers": 1,
-                  "starts": 10,
-                  "finish_samples": 10,
-                  "avg_finish": 3.9,
-                  "win_rate": 0.1,
-                  "top2_rate": 0.1,
-                  "top3_rate": 0.3,
-                  "st_samples": 10,
-                  "avg_st": 0.165,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 10,
-                  "avg_exhibition": 6.806
-                },
-                "active_in_score": false
-              },
-              "parts_exchange": {
-                "available": false,
-                "value": "",
-                "active_in_score": false
-              },
-              "weather_water": {
-                "available": false,
-                "value": {},
-                "active_in_score": false
-              }
-            }
-          }
+          "boat": 6,
+          "racer_name": "山下大輝",
+          "score": 55.76,
+          "morning_score_reference": 55.2,
+          "score_fallback": false,
+          "score_fallback_reasons": [],
+          "grade": "A1",
+          "registration_no": "5126",
+          "motor_no": "61",
+          "boat_no": "74",
+          "exhibition_course": "6",
+          "exhibition_time": 6.71,
+          "exhibition_st": -0.01,
+          "exhibition_f": true,
+          "components": {},
+          "input_trace": {}
         },
         {
           "rank": 4,
-          "boat": 4,
-          "racer_name": "池上隆行",
-          "score": 44.1,
-          "morning_score_reference": 44.1,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
+          "boat": 2,
+          "racer_name": "小林礼央",
+          "score": 48.26,
+          "morning_score_reference": 43.9,
+          "score_fallback": false,
+          "score_fallback_reasons": [],
           "grade": "B1",
-          "registration_no": 3411,
-          "motor_no": 12,
-          "boat_no": 28,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
-          "components": {
-            "racer_course": {
-              "weight": 40,
-              "raw_score_0_1": 0.52
-            },
-            "grade": {
-              "weight": 20,
-              "raw_score_0_1": 0.2
-            },
-            "motor": {
-              "weight": 20,
-              "raw_score_0_1": 0.84
-            },
-            "boat": {
-              "weight": 5,
-              "raw_score_0_1": 0.5
-            },
-            "national_top2": {
-              "weight": 15,
-              "raw_score_0_1": 0.0
-            }
-          },
-          "input_trace": {
-            "history_feature_manifest": {
-              "as_of_date": "20261014",
-              "history_min_date": "20260621",
-              "history_max_date": "20261013",
-              "history_stale_days": 0,
-              "leakage_guard": "Only rows with result date < as_of_date are used."
-            },
-            "racer_30d": {
-              "starts": 11,
-              "finish_samples": 10,
-              "avg_finish": 4.2,
-              "win_rate": 0.0,
-              "top2_rate": 0.0,
-              "top3_rate": 0.27273,
-              "st_samples": 3,
-              "avg_st": 0.15333,
-              "f_count": 1,
-              "f_rate": 0.09091,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 4,
-              "avg_exhibition": 6.955
-            },
-            "racer_90d": {
-              "starts": 29,
-              "finish_samples": 28,
-              "avg_finish": 4.35714,
-              "win_rate": 0.0,
-              "top2_rate": 0.0,
-              "top3_rate": 0.24138,
-              "st_samples": 21,
-              "avg_st": 0.19333,
-              "f_count": 1,
-              "f_rate": 0.03448,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 22,
-              "avg_exhibition": 6.89682
-            },
-            "motor_30d": {
-              "unique_racers": 1,
-              "starts": 11,
-              "finish_samples": 10,
-              "avg_finish": 2.7,
-              "win_rate": 0.09091,
-              "top2_rate": 0.45455,
-              "top3_rate": 0.81818,
-              "st_samples": 11,
-              "avg_st": 0.15727,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 11,
-              "avg_exhibition": 6.82636
-            },
-            "motor_90d": {
-              "unique_racers": 7,
-              "starts": 63,
-              "finish_samples": 61,
-              "avg_finish": 2.86885,
-              "win_rate": 0.20635,
-              "top2_rate": 0.4127,
-              "top3_rate": 0.68254,
-              "st_samples": 62,
-              "avg_st": 0.15339,
-              "f_count": 1,
-              "f_rate": 0.01587,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 63,
-              "avg_exhibition": 6.83397
-            },
-            "boat_30d": {
-              "unique_racers": 2,
-              "starts": 20,
-              "finish_samples": 19,
-              "avg_finish": 3.26316,
-              "win_rate": 0.15,
-              "top2_rate": 0.3,
-              "top3_rate": 0.55,
-              "st_samples": 20,
-              "avg_st": 0.173,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 20,
-              "avg_exhibition": 6.87
-            },
-            "boat_90d": {
-              "unique_racers": 8,
-              "starts": 66,
-              "finish_samples": 65,
-              "avg_finish": 3.56923,
-              "win_rate": 0.09091,
-              "top2_rate": 0.27273,
-              "top3_rate": 0.48485,
-              "st_samples": 66,
-              "avg_st": 0.17076,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 66,
-              "avg_exhibition": 6.86348
-            },
-            "racer_venue": {
-              "available": true,
-              "venue_code": "13",
-              "features": {
-                "d30": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 5.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "d90": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 5.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "trend_30v90": {
-                  "win_rate_30v90": 0.0,
-                  "top2_rate_30v90": 0.0,
-                  "top3_rate_30v90": 0.0,
-                  "avg_finish_30v90": 0.0,
-                  "avg_st_30v90": null,
-                  "avg_exhibition_30v90": null
-                }
-              }
-            },
-            "course_used": 4,
-            "official_f_count": null,
-            "official_l_count": null,
-            "official_avg_st": null,
-            "official_fl_available": false,
-            "candidate_components": {
-              "f_l_holdings": {
-                "available": false,
-                "f_count": null,
-                "l_count": null,
-                "active_in_score": false
-              },
-              "motor_30d": {
-                "available": true,
-                "features": {
-                  "unique_racers": 1,
-                  "starts": 11,
-                  "finish_samples": 10,
-                  "avg_finish": 2.7,
-                  "win_rate": 0.09091,
-                  "top2_rate": 0.45455,
-                  "top3_rate": 0.81818,
-                  "st_samples": 11,
-                  "avg_st": 0.15727,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 11,
-                  "avg_exhibition": 6.82636
-                },
-                "active_in_score": false
-              },
-              "parts_exchange": {
-                "available": false,
-                "value": "",
-                "active_in_score": false
-              },
-              "weather_water": {
-                "available": false,
-                "value": {},
-                "active_in_score": false
-              }
-            }
-          }
+          "registration_no": "5343",
+          "motor_no": "31",
+          "boat_no": "62",
+          "exhibition_course": "2",
+          "exhibition_time": 6.75,
+          "exhibition_st": 0.14,
+          "exhibition_f": false,
+          "components": {},
+          "input_trace": {}
         },
         {
           "rank": 5,
-          "boat": 2,
-          "racer_name": "小林礼央",
-          "score": 43.9,
-          "morning_score_reference": 43.9,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
+          "boat": 4,
+          "racer_name": "池上隆行",
+          "score": 40.88,
+          "morning_score_reference": 44.1,
+          "score_fallback": false,
+          "score_fallback_reasons": [],
           "grade": "B1",
-          "registration_no": 5343,
-          "motor_no": 31,
-          "boat_no": 62,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
-          "components": {
-            "racer_course": {
-              "weight": 40,
-              "raw_score_0_1": 0.54
-            },
-            "grade": {
-              "weight": 20,
-              "raw_score_0_1": 0.4
-            },
-            "motor": {
-              "weight": 20,
-              "raw_score_0_1": 0.44
-            },
-            "boat": {
-              "weight": 5,
-              "raw_score_0_1": 0.5
-            },
-            "national_top2": {
-              "weight": 15,
-              "raw_score_0_1": 0.2
-            }
-          },
-          "input_trace": {
-            "history_feature_manifest": {
-              "as_of_date": "20261014",
-              "history_min_date": "20260621",
-              "history_max_date": "20261013",
-              "history_stale_days": 0,
-              "leakage_guard": "Only rows with result date < as_of_date are used."
-            },
-            "racer_30d": {
-              "starts": 17,
-              "finish_samples": 17,
-              "avg_finish": 3.47059,
-              "win_rate": 0.11765,
-              "top2_rate": 0.29412,
-              "top3_rate": 0.52941,
-              "st_samples": 12,
-              "avg_st": 0.115,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 12,
-              "avg_exhibition": 6.8025
-            },
-            "racer_90d": {
-              "starts": 59,
-              "finish_samples": 58,
-              "avg_finish": 3.82759,
-              "win_rate": 0.0678,
-              "top2_rate": 0.18644,
-              "top3_rate": 0.42373,
-              "st_samples": 54,
-              "avg_st": 0.15148,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 54,
-              "avg_exhibition": 6.83463
-            },
-            "motor_30d": {
-              "unique_racers": 2,
-              "starts": 14,
-              "finish_samples": 14,
-              "avg_finish": 2.42857,
-              "win_rate": 0.21429,
-              "top2_rate": 0.64286,
-              "top3_rate": 0.78571,
-              "st_samples": 11,
-              "avg_st": 0.12364,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 11,
-              "avg_exhibition": 6.81636
-            },
-            "motor_90d": {
-              "unique_racers": 8,
-              "starts": 61,
-              "finish_samples": 59,
-              "avg_finish": 3.16949,
-              "win_rate": 0.14754,
-              "top2_rate": 0.36066,
-              "top3_rate": 0.59016,
-              "st_samples": 57,
-              "avg_st": 0.16018,
-              "f_count": 1,
-              "f_rate": 0.01639,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 58,
-              "avg_exhibition": 6.81931
-            },
-            "boat_30d": {
-              "unique_racers": 2,
-              "starts": 20,
-              "finish_samples": 20,
-              "avg_finish": 3.9,
-              "win_rate": 0.25,
-              "top2_rate": 0.3,
-              "top3_rate": 0.4,
-              "st_samples": 20,
-              "avg_st": 0.156,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 20,
-              "avg_exhibition": 6.8715
-            },
-            "boat_90d": {
-              "unique_racers": 8,
-              "starts": 66,
-              "finish_samples": 65,
-              "avg_finish": 3.78462,
-              "win_rate": 0.15152,
-              "top2_rate": 0.27273,
-              "top3_rate": 0.39394,
-              "st_samples": 66,
-              "avg_st": 0.16348,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 66,
-              "avg_exhibition": 6.86212
-            },
-            "racer_venue": {
-              "available": true,
-              "venue_code": "13",
-              "features": {
-                "d30": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 4.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "d90": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 4.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "trend_30v90": {
-                  "win_rate_30v90": 0.0,
-                  "top2_rate_30v90": 0.0,
-                  "top3_rate_30v90": 0.0,
-                  "avg_finish_30v90": 0.0,
-                  "avg_st_30v90": null,
-                  "avg_exhibition_30v90": null
-                }
-              }
-            },
-            "course_used": 2,
-            "official_f_count": null,
-            "official_l_count": null,
-            "official_avg_st": null,
-            "official_fl_available": false,
-            "candidate_components": {
-              "f_l_holdings": {
-                "available": false,
-                "f_count": null,
-                "l_count": null,
-                "active_in_score": false
-              },
-              "motor_30d": {
-                "available": true,
-                "features": {
-                  "unique_racers": 2,
-                  "starts": 14,
-                  "finish_samples": 14,
-                  "avg_finish": 2.42857,
-                  "win_rate": 0.21429,
-                  "top2_rate": 0.64286,
-                  "top3_rate": 0.78571,
-                  "st_samples": 11,
-                  "avg_st": 0.12364,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 11,
-                  "avg_exhibition": 6.81636
-                },
-                "active_in_score": false
-              },
-              "parts_exchange": {
-                "available": false,
-                "value": "",
-                "active_in_score": false
-              },
-              "weather_water": {
-                "available": false,
-                "value": {},
-                "active_in_score": false
-              }
-            }
-          }
+          "registration_no": "3411",
+          "motor_no": "12",
+          "boat_no": "28",
+          "exhibition_course": "4",
+          "exhibition_time": 6.85,
+          "exhibition_st": -0.06,
+          "exhibition_f": true,
+          "components": {},
+          "input_trace": {}
         },
         {
           "rank": 6,
           "boat": 5,
           "racer_name": "熊本英一",
-          "score": 26.8,
+          "score": 28.24,
           "morning_score_reference": 26.8,
-          "score_fallback": true,
-          "score_fallback_reasons": [
-            "exhibition_course",
-            "exhibition_time",
-            "exhibition_st"
-          ],
+          "score_fallback": false,
+          "score_fallback_reasons": [],
           "grade": "B1",
-          "registration_no": 3989,
-          "motor_no": 11,
-          "boat_no": 23,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
-          "components": {
-            "racer_course": {
-              "weight": 40,
-              "raw_score_0_1": 0.28
-            },
-            "grade": {
-              "weight": 20,
-              "raw_score_0_1": 0.0
-            },
-            "motor": {
-              "weight": 20,
-              "raw_score_0_1": 0.28
-            },
-            "boat": {
-              "weight": 5,
-              "raw_score_0_1": 0.8
-            },
-            "national_top2": {
-              "weight": 15,
-              "raw_score_0_1": 0.4
-            }
-          },
-          "input_trace": {
-            "history_feature_manifest": {
-              "as_of_date": "20261014",
-              "history_min_date": "20260621",
-              "history_max_date": "20261013",
-              "history_stale_days": 0,
-              "leakage_guard": "Only rows with result date < as_of_date are used."
-            },
-            "racer_30d": {
-              "starts": 9,
-              "finish_samples": 9,
-              "avg_finish": 4.44444,
-              "win_rate": 0.0,
-              "top2_rate": 0.0,
-              "top3_rate": 0.11111,
-              "st_samples": 8,
-              "avg_st": 0.29,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 8,
-              "avg_exhibition": 6.78875
-            },
-            "racer_90d": {
-              "starts": 42,
-              "finish_samples": 42,
-              "avg_finish": 3.7619,
-              "win_rate": 0.07143,
-              "top2_rate": 0.21429,
-              "top3_rate": 0.40476,
-              "st_samples": 41,
-              "avg_st": 0.2239,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 41,
-              "avg_exhibition": 6.88634
-            },
-            "motor_30d": {
-              "unique_racers": 2,
-              "starts": 19,
-              "finish_samples": 18,
-              "avg_finish": 3.27778,
-              "win_rate": 0.21053,
-              "top2_rate": 0.36842,
-              "top3_rate": 0.52632,
-              "st_samples": 19,
-              "avg_st": 0.17368,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 19,
-              "avg_exhibition": 6.88368
-            },
-            "motor_90d": {
-              "unique_racers": 7,
-              "starts": 61,
-              "finish_samples": 58,
-              "avg_finish": 3.2931,
-              "win_rate": 0.16393,
-              "top2_rate": 0.37705,
-              "top3_rate": 0.52459,
-              "st_samples": 61,
-              "avg_st": 0.14918,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 61,
-              "avg_exhibition": 6.86262
-            },
-            "boat_30d": {
-              "unique_racers": 2,
-              "starts": 13,
-              "finish_samples": 13,
-              "avg_finish": 2.92308,
-              "win_rate": 0.15385,
-              "top2_rate": 0.38462,
-              "top3_rate": 0.61538,
-              "st_samples": 10,
-              "avg_st": 0.137,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 10,
-              "avg_exhibition": 6.792
-            },
-            "boat_90d": {
-              "unique_racers": 8,
-              "starts": 63,
-              "finish_samples": 63,
-              "avg_finish": 3.12698,
-              "win_rate": 0.1746,
-              "top2_rate": 0.39683,
-              "top3_rate": 0.57143,
-              "st_samples": 60,
-              "avg_st": 0.17,
-              "f_count": 0,
-              "f_rate": 0.0,
-              "l_count": 0,
-              "l_rate": 0.0,
-              "exhibition_samples": 60,
-              "avg_exhibition": 6.83967
-            },
-            "racer_venue": {
-              "available": true,
-              "venue_code": "13",
-              "features": {
-                "d30": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 5.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "d90": {
-                  "starts": 1,
-                  "finish_samples": 1,
-                  "avg_finish": 5.0,
-                  "win_rate": 0.0,
-                  "top2_rate": 0.0,
-                  "top3_rate": 0.0,
-                  "st_samples": 0,
-                  "avg_st": null,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 0,
-                  "avg_exhibition": null
-                },
-                "trend_30v90": {
-                  "win_rate_30v90": 0.0,
-                  "top2_rate_30v90": 0.0,
-                  "top3_rate_30v90": 0.0,
-                  "avg_finish_30v90": 0.0,
-                  "avg_st_30v90": null,
-                  "avg_exhibition_30v90": null
-                }
-              }
-            },
-            "course_used": 5,
-            "official_f_count": null,
-            "official_l_count": null,
-            "official_avg_st": null,
-            "official_fl_available": false,
-            "candidate_components": {
-              "f_l_holdings": {
-                "available": false,
-                "f_count": null,
-                "l_count": null,
-                "active_in_score": false
-              },
-              "motor_30d": {
-                "available": true,
-                "features": {
-                  "unique_racers": 2,
-                  "starts": 19,
-                  "finish_samples": 18,
-                  "avg_finish": 3.27778,
-                  "win_rate": 0.21053,
-                  "top2_rate": 0.36842,
-                  "top3_rate": 0.52632,
-                  "st_samples": 19,
-                  "avg_st": 0.17368,
-                  "f_count": 0,
-                  "f_rate": 0.0,
-                  "l_count": 0,
-                  "l_rate": 0.0,
-                  "exhibition_samples": 19,
-                  "avg_exhibition": 6.88368
-                },
-                "active_in_score": false
-              },
-              "parts_exchange": {
-                "available": false,
-                "value": "",
-                "active_in_score": false
-              },
-              "weather_water": {
-                "available": false,
-                "value": {},
-                "active_in_score": false
-              }
-            }
-          }
+          "registration_no": "3989",
+          "motor_no": "11",
+          "boat_no": "23",
+          "exhibition_course": "5",
+          "exhibition_time": 6.79,
+          "exhibition_st": -0.01,
+          "exhibition_f": true,
+          "components": {},
+          "input_trace": {}
         }
       ],
       "formation": {
@@ -210143,17 +208916,43 @@
         "has_score50_candidate": false,
         "ai_effect": false,
         "formation_effect": false,
-        "status": "provisional_fallback",
-        "uses_fallback": true,
-        "unverified_non_trigger": true
+        "status": "provisional_analysis_only",
+        "uses_fallback": false,
+        "unverified_non_trigger": false
       },
       "down_signal": {
-        "available": false,
+        "available": true,
         "active": false,
         "level": 0,
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
-        "suppressed_reason": "missing_morning_reference"
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": 1.42,
+          "top3_delta_sum": 7.46,
+          "gap_1_2": 16.74
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only",
+        "uses_fallback": false,
+        "unverified_non_trigger": false
       },
       "signal_system_name": "風神雷神シグナル",
       "signal_logic_identity": {
@@ -210173,7 +208972,12 @@
         "config_path": "config/logic/live.json",
         "config_sha256": "d4a2f10fc55d1beab3cfd19f7d73b103fdc70e3c3c4aef913987795d69905b81",
         "effective_date": "20261007"
-      }
+      },
+      "retrospective_score_recovery": true,
+      "retrospective_signal_recovery": true,
+      "signal_recovery_provenance": "post_result_official_beforeinfo",
+      "signal_detected_at_original_deadline": false,
+      "historical_bet_preserved": true
     },
     {
       "target_date": "20261014",
@@ -214209,7 +213013,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -218239,7 +217043,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -222269,7 +221073,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -226287,7 +225091,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -230317,7 +229121,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -234333,7 +233137,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -238349,7 +237153,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -242367,7 +241171,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -246397,7 +245201,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -250418,7 +249222,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -259305,7 +258109,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -283625,7 +282429,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -287629,7 +286433,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -291645,7 +290449,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -295675,7 +294479,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -299705,7 +298509,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -303709,7 +302513,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -307727,7 +306531,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -311757,7 +310561,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -315787,7 +314591,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -319817,7 +318621,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -323821,7 +322625,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -327839,7 +326643,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -331843,7 +330647,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -335861,7 +334665,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -339877,7 +338681,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -343895,7 +342699,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -347925,7 +346729,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -362768,7 +361572,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -366239,7 +365043,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -385942,7 +384746,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -389958,7 +388762,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -393988,7 +392792,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -398006,7 +396810,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -402036,7 +400840,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -406066,7 +404870,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -410084,7 +408888,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -414102,7 +412906,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -418120,7 +416924,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -422150,7 +420954,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -426154,7 +424958,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -430184,7 +428988,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -434214,7 +433018,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -438218,7 +437022,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -442248,7 +441052,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -446252,7 +445056,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -450282,7 +449086,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -454312,7 +453116,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -458342,7 +457146,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -462372,7 +461176,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -466402,7 +465206,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -470420,7 +469224,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -474436,7 +473240,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -478466,7 +477270,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -482496,7 +481300,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -486500,7 +485304,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -490504,7 +489308,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -494520,7 +493324,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -498550,7 +497354,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -518330,7 +517134,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -536630,7 +535434,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -540455,7 +539259,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -544295,7 +543099,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -548190,7 +546994,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -551989,7 +550793,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -566630,7 +565434,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -570646,7 +569450,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -574664,7 +573468,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -578682,7 +577486,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -582712,7 +581516,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -586730,7 +585534,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -590760,7 +589564,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -594764,7 +593568,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -598768,7 +597572,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -602798,7 +601602,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -606816,7 +605620,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -610588,7 +609392,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -614360,7 +613164,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -618337,7 +617141,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -622136,7 +620940,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -625949,7 +624753,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -629774,7 +628578,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -633614,7 +632418,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -637439,7 +636243,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -641238,7 +640042,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -645104,7 +643908,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
@@ -648888,7 +647692,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-14T11:18:06+09:00",
+      "generated_at": "2026-10-14T11:35:29.841669+09:00",
       "boats": [
         {
           "rank": 1,
