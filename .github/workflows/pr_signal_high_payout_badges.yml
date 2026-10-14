@@ -1,0 +1,48 @@
+name: Fujin Raijin paired cumulative high5 history safety
+on:
+  pull_request:
+    paths:
+      - "collectors/signal_high_payout_display.py"
+      - "collectors/build_family_prediction_page.py"
+      - "collectors/build_family_signal_analysis_page.py"
+      - "tests/test_signal_high_payout_display.py"
+      - ".github/workflows/family_prediction_page.yml"
+      - ".github/workflows/pr_signal_high_payout_badges.yml"
+permissions:
+  contents: read
+jobs:
+  paired-badge-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install renderer dependencies
+        run: python -m pip install requests beautifulsoup4
+      - name: Compile renderers
+        run: |
+          python -m py_compile collectors/signal_high_payout_display.py collectors/build_family_prediction_page.py collectors/build_family_signal_analysis_page.py tests/test_signal_high_payout_display.py
+      - name: Verify sixteen combined signal frequencies and small-sample display
+        run: |
+          python -m unittest discover -s tests -p test_signal_high_payout_display.py -v
+      - name: Confirm AI analysis includes 16-row cumulative panel
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,"collectors")
+          from build_family_signal_analysis_page import build_page
+          from signal_high_payout_display import load_cumulative
+          history=load_cumulative()
+          assert history is not None
+          html=build_page(Path("evaluations"))
+          section=html.split('id="fujin-raijin-high5-cumulative"',1)[1]
+          section=section.split('</section>',1)[0]
+          assert section.count('<tr data-signal="')==16
+          assert 'F0R1' in section and 'F3R3' in section
+          assert '条件付き実績割合' in section
+          assert '今回のレースの確定' not in section
+          print("16_CLASS_CUMULATIVE_RATE_PANEL_VERIFIED")
+          PY
