@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from race_prediction_store import audit_race
 from build_latest_prediction_view import signal_field_is_verified
+from signal_high_payout_display import combined_badge, load_cumulative
 
 
 JST = timezone(timedelta(hours=9))
@@ -232,10 +233,15 @@ def signal_marker(race):
         else '<span class="signal-row fujin empty-signal">&nbsp;</span>'
     )
 
+    # Present one historical empirical rate for the COMBINED F/R level.
+    # No per-signal marginal rate, no current-race guaranteed probability.
     return (
-        '<span class="fujin-raijin-stack" title="風神雷神シグナル">'
+        '<span class="fujin-raijin-group">'
+        + '<span class="fujin-raijin-stack" title="風神雷神シグナル">'
         + top
         + bottom
+        + "</span>"
+        + combined_badge(fujin_level, raijin_level, load_cumulative())
         + "</span>"
     )
 def neutral_boat_marker(boat):
@@ -989,6 +995,35 @@ def main():
     .badge-wrap {{display:flex;align-items:center;gap:5px}}
     .data-ok {{font-size:13px;color:#2e7d32}}
     .data-ng {{font-size:14px;color:#b26a00;font-weight:800}}
+    .fujin-raijin-group {{
+      display:inline-flex;
+      align-items:center;
+      flex-wrap:wrap;
+      vertical-align:middle;
+      gap:4px;
+      margin-left:4px;
+      max-width:100%;
+    }}
+    .signal-high5-history {{
+      display:inline-flex;
+      align-items:center;
+      gap:3px;
+      flex-wrap:wrap;
+      vertical-align:middle;
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:3px 5px;
+      background:var(--chip);
+      font-size:11px;
+      font-weight:650;
+      letter-spacing:normal;
+      line-height:1.2;
+      max-width:100%;
+    }}
+    .signal-high5-history strong {{font-size:13px; font-variant-numeric:tabular-nums}}
+    .signal-high5-history small {{font-size:10px;opacity:.75}}
+    .signal-high5-history.low-sample {{border-style:dashed;opacity:.82}}
+    .signal-high5-title {{font-size:10px;opacity:.88}}
     .fujin-raijin-stack {{
       display:inline-grid;
       grid-template-rows:auto auto;
@@ -1270,6 +1305,9 @@ def main():
 
       スコアは勝率ではなく
       比較用スコアです。
+
+      シグナル横の「5千円以上実績」は同じ風神Lv×雷神Lvの累積実績割合です。
+      過去の条件付き頻度であり、今回のレースの確定確率・買い推奨ではありません。
 
       フォーメーションは
       100円/点の検証用シミュレーションです。
