@@ -1,0 +1,56 @@
+name: Signal 24-ticket chronological holdout safety
+on:
+  pull_request:
+    paths:
+      - "collectors/evaluate_signal_24_temporal_holdout.py"
+      - "collectors/build_family_signal_analysis_page.py"
+      - "tests/test_signal_24_temporal_holdout.py"
+      - ".github/workflows/family_prediction_page.yml"
+      - ".github/workflows/saved_data_pdca_refresh.yml"
+      - ".github/workflows/pr_signal_24_temporal_holdout.yml"
+permissions:
+  contents: read
+jobs:
+  offline-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile modified modules
+        run: python -m py_compile collectors/evaluate_signal_24_temporal_holdout.py collectors/build_family_signal_analysis_page.py tests/test_signal_24_temporal_holdout.py
+      - name: Historical and synthetic fixed ticket tests
+        run: python -m unittest discover -s tests -p test_signal_24_temporal_holdout.py -v
+      - name: Create a reproducible holdout report from stored evidence
+        run: |
+          python collectors/evaluate_signal_24_temporal_holdout.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("evaluations/signal_24_temporal_holdout/latest/summary.json").read_text(encoding="utf-8"))
+          assert len(d["by_signal"]) == 16
+          assert len(d["policy_catalog"]) == 8
+          assert d["date_split"]["train_end"] < d["date_split"]["holdout_start"]
+          assert d["overall"]["holdout"]["baseline"]["races"] > 0
+          assert d["audit"]["has_post_result_reconstruction"]
+          assert d["overall"]["all_retrospective"]["baseline"]["stake_yen"] == 2400 * d["overall"]["all_retrospective"]["baseline"]["races"]
+          print("TEMPORAL_TICKET_EVIDENCE_PASS", d["date_split"],d["overall"]["holdout"])
+          PY
+      - name: Render new analysis panel without touching public production
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "collectors")
+          from build_family_signal_analysis_page import signal_24_temporal_holdout_panel
+          s=signal_24_temporal_holdout_panel(Path("evaluations"))
+          assert "シグナル別24点配分・時系列ホールドアウト比較" in s
+          assert "F0R0" in s and "F3R3" in s
+          assert "後半：現行24点ROI" in s
+          assert "前半的中率" in s
+          assert s.count("<tr>") >= 16 + 15 * 8, "16 signal rows plus 8 methods for 15 active signal types expected"
+          assert "本番買い方は変更なし" in s
+          print("SIGNAL_24_HOLDOUT_UI_PASS",len(s))
+          PY

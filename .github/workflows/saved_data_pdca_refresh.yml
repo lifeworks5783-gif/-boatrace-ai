@@ -211,6 +211,12 @@ jobs:
           test -s evaluations/signal_payout_rank_distribution/latest/race_evidence.csv
           test -s evaluations/signal_payout_rank_distribution/latest/rank_distribution.csv
 
+      - name: 風神雷神別24点・8方式の時系列分割PDCA（本番非採用）
+        run: |
+          python -u collectors/evaluate_signal_24_temporal_holdout.py
+          test -s evaluations/signal_24_temporal_holdout/latest/summary.json
+          python -m unittest discover -s tests -p test_signal_24_temporal_holdout.py -v
+
       - name: 全16分類×4買い方の旧保存シグナルと新雷神V2を別々に集計
         run: |
           python -u collectors/evaluate_signal_pdca_cross.py

@@ -522,6 +522,126 @@ def rank_research_panel(root: Path) -> str:
 
 
 
+def signal_24_temporal_holdout_panel(root: Path) -> str:
+    """Historical split evaluation, isolated from production purchase accounting."""
+    d = load_json(root / "signal_24_temporal_holdout/latest/summary.json")
+    heading = "シグナル別24点配分・時系列ホールドアウト比較（研究用）"
+    if d.get("model_version") != "signal_24_temporal_holdout_v1_20261014":
+        return ('<section class="card" id="signal-24-holdout"><h2>' + heading +
+                '</h2><div class="empty">過去の順位別24点検証を生成中です。本番買い目は変更しません。</div></section>')
+    train = (d.get("overall") or {}).get("train") or {}
+    test = (d.get("overall") or {}).get("holdout") or {}
+    baseline = test.get("baseline") or {}
+    candidate = test.get("candidate") or {}
+    dates = d.get("date_split") or {}
+    desc = {
+        "top24": "現行：1〜24位",
+        "head18_mid6": "1〜18・25〜30位",
+        "head12_mid12": "1〜12・25〜36位",
+        "head12_mid6_tail6": "1〜12・25〜30・49〜54位",
+        "head6_mid18": "1〜6・25〜42位",
+        "head6_mid6_tail12": "1〜6・25〜30・49〜60位",
+        "spread_6x4": "1〜6・13〜18・25〜30・49〜54位",
+        "wide_6x4": "1〜6・25〜30・49〜54・73〜78位",
+        "no_bet": "非発動・購入対象外",
+    }
+    rows = []
+    details = []
+    for f_level in range(4):
+        for r_level in range(4):
+            key = f"F{f_level}R{r_level}"
+            entry = (d.get("by_signal") or {}).get(key) or {}
+            sel = entry.get("proposed_policy") or "top24"
+            h = entry.get("holdout") or {}
+            b = h.get("baseline") or {}
+            c = h.get("candidate") or {}
+            reason = entry.get("selection_reason") or "unknown"
+            reason_jp = {
+                "no_signal": "未発動・専用AI対象外",
+                "insufficient_training_races": "学習データ不足のため現行維持",
+                "no_training_candidate_passed_gate": "変更基準未達・現行維持",
+                "training_candidate_passed_gate": "前半だけで変更基準を通過（本番未採用）",
+            }.get(reason, "検証待ち")
+            rows.append(
+                "<tr>"
+                f"<td>{key}</td>"
+                f"<td>{n(entry.get('training_races'),0)}</td>"
+                f"<td>{n(entry.get('holdout_races'),0)}</td>"
+                f"<td>{html.escape(desc.get(sel,sel))}</td>"
+                f"<td>{pct(b.get('hit_rate_pct'))}</td>"
+                f"<td>{pct(b.get('roi_pct'))}</td>"
+                f"<td>{pct(c.get('hit_rate_pct'))}</td>"
+                f"<td>{pct(c.get('roi_pct'))}</td>"
+                f"<td>{html.escape(reason_jp)}</td></tr>"
+            )
+            if key == "F0R0":
+                continue
+            comparisons = entry.get("all_fixed_policy_comparisons") or {}
+            sub = []
+            for name in (d.get("policy_catalog") or {}).keys():
+                comp = comparisons.get(name) or {}
+                ctrain = comp.get("train") or {}
+                ctest = comp.get("holdout") or {}
+                sub.append(
+                    "<tr>"
+                    f"<td>{html.escape(desc.get(name,name))}</td>"
+                    f"<td>{pct(ctrain.get('hit_rate_pct'))}</td>"
+                    f"<td>{pct(ctrain.get('roi_pct'))}</td>"
+                    f"<td>{pct(ctest.get('hit_rate_pct'))}</td>"
+                    f"<td>{pct(ctest.get('roi_pct'))}</td></tr>"
+                )
+            chosen = (d.get("policy_catalog") or {}).get(sel) or {}
+            counts = chosen.get("tier_counts") or {}
+            tiers = " / ".join(f"{html.escape(k)}{n(v,0)}点" for k,v in counts.items() if v)
+            details.append(
+                '<details class="card" style="margin:8px 0">'
+                f'<summary>{key}｜提案 {html.escape(desc.get(sel,sel))}（学習{n(entry.get("training_races"),0)}R、検証{n(entry.get("holdout_races"),0)}R）</summary>'
+                f'<p class="note">候補24点：{tiers}。当日の各レースの組番は直前スコアの順位表で決まります。結果は選択に利用していません。</p>'
+                '<div class="table-wrap"><table><thead><tr><th>固定24点方式</th><th>前半的中率</th><th>前半ROI</th><th>後半的中率</th><th>後半ROI</th></tr></thead><tbody>'
+                + "".join(sub) + "</tbody></table></div></details>"
+            )
+    coverage = d.get("audit") or {}
+    provenance = coverage.get("provenance_all") or {}
+    post = sum(v for k,v in provenance.items() if k in (
+        "post_result_official_beforeinfo", "saved_after_deadline_official_beforeinfo"))
+    gate = d.get("gate") or {}
+    return (
+        '<section class="card" id="signal-24-holdout">'
+        f'<h2>{heading}</h2>'
+        '<p class="note">8種類の固定24点配分を前半データだけで比較し、'
+        '十分な標本と変更基準を満たす場合だけ研究候補とします。'
+        '後半データは選択に一切使用しません。結果を見て後から24点を選ぶ方法とは区別します。'
+        'この提案は実際の購入・本番採用ではありません。</p>'
+        f'<p class="note">学習期間：{html.escape(str(dates.get("train_start")))}〜{html.escape(str(dates.get("train_end")))}'
+        f'（{n(dates.get("train_days"),0)}日）／検証期間：'
+        f'{html.escape(str(dates.get("holdout_start")))}〜{html.escape(str(dates.get("holdout_end")))}'
+        f'（{n(dates.get("holdout_days"),0)}日）。'
+        f'変更判定は前半{n(gate.get("min_train_races"),0)}R以上、的中{n(gate.get("min_train_wins"),0)}R以上、'
+        f'ROI差+{n(gate.get("min_roi_uplift_points"),0)}ポイント以上、的中率低下'
+        f'{n(gate.get("max_hit_rate_loss_points"),0)}ポイント以内。</p>'
+        '<div class="metrics">'
+        + card("後半：現行24点的中率", pct(baseline.get("hit_rate_pct")), f'{n(baseline.get("races"),0)}R')
+        + card("後半：現行24点ROI", pct(baseline.get("roi_pct")), f'支出{yen(baseline.get("stake_yen"))}')
+        + card("後半：研究候補的中率", pct(candidate.get("hit_rate_pct")), "全シグナル同一対象R")
+        + card("後半：研究候補ROI", pct(candidate.get("roi_pct")), "本番買い方は変更なし")
+        + "</div>"
+        '<h3>全16分類：前半で選定→後半で比較</h3>'
+        '<div class="table-wrap"><table><thead><tr><th>シグナル</th><th>学習R</th><th>検証R</th><th>候補の順位範囲</th>'
+        '<th>後半・現行的中率</th><th>後半・現行ROI</th>'
+        '<th>後半・候補的中率</th><th>後半・候補ROI</th><th>候補理由</th>'
+        '</tr></thead><tbody>' + "".join(rows) + '</tbody></table></div>'
+        '<h3>各シグナル8方式の結果（開くと表示）</h3>'
+        + "".join(details)
+        + f'<p class="note">対象全{n(coverage.get("unique_rows"),0)}R中、事後情報に基づく復元が'
+        f'少なくとも{n(post,0)}Rあります。'
+        'さらに取得時刻の未立証データも含むため、厳密なリアルタイム予測実績・実購入の回収率とは扱いません。'
+        '高配当1件の影響が大きく、検証期間の結果だけで自動採用しません。'
+        'F0R0は非発動で購入対象外です。'
+        '予測ロジック・風神雷神シグナル・現行の24点配分はすべて不変です。</p>'
+        '</section>'
+    )
+
+
 def signal_payout_rank_distribution_panel(root: Path) -> str:
     """Read-only 16-signal by 120-rank PDCA; never changes production tickets."""
     payload = load_json(root / "signal_payout_rank_distribution" / "latest" / "summary.json")
@@ -739,6 +859,8 @@ def build_page(root: Path) -> str:
 {rank_research_panel(root)}
 
 {signal_payout_rank_distribution_panel(root)}
+
+{signal_24_temporal_holdout_panel(root)}
 
 <section class="card"><h2>旧版・当時記録の比較集計</h2><p class="note">以下の過去保存版の数値は元の判定・買い目の監査用です。新ルールのPDCAは上の「雷神・修正版PDCA」を参照してください。</p><div class="metrics">{metrics}</div></section>
 
