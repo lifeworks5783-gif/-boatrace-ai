@@ -111,6 +111,7 @@ def cross(rows_in):
             group = [x for x in rows_in if x["key"] == key]
             table[key] = dict(
                 races=len(group),
+                trifecta_void=sum(x.get("trifecta_void", False) for x in group),
                 high5000=sum(x["payout"] >= 5000 for x in group),
                 manshu=sum(x["payout"] >= 10000 for x in group),
                 methods={
@@ -162,6 +163,12 @@ def main():
         raise RuntimeError(f"Required saved signal history absent: {signal_source}")
     ai_map = {} if args.raijin_v2 else {(str(x.get("date")),rid(x.get("race_id"))):x for x in rows(SIGNAL_AI)}
     dates = sorted(set(str(x["date"]) for x in raw))
+    # Research-only V2 uses official settlement, without changing historic signals.
+    if args.raijin_v2:
+        from evaluate_raijin_all_rank_replay import official_results
+        official_by_date = {d: official_results(d) for d in dates}
+    else:
+        official_by_date = {}
     by_method = {}
     for d in dates:
         by_method[d] = {}
@@ -184,23 +191,36 @@ def main():
         f,r = num(x.get("fujin_level")),num(x.get("new_raijin_level") if args.raijin_v2 else x.get("raijin_level"))
         if f not in range(4) or r not in range(4):
             continue
+        trifecta_void = False
+        if args.raijin_v2:
+            official = official_by_date[d].get(race)
+            if official is None:
+                raise ValueError(f"Missing independently verified official settlement: {d} {race}; recover official results before PDCA")
+            if official["actual"] is None:
+                if official["payout"] != 0 or x.get("actual") or num(x.get("payout")):
+                    raise ValueError(f"Inconsistent void-trifecta settlement: {d} {race}")
+                trifecta_void = True
+            elif (str(x.get("actual") or "") != official["actual"] or
+                  num(x.get("payout")) != official["payout"]):
+                raise ValueError(f"Replay disagrees with official settlement: {d} {race}")
         sample = dict(
             date=d, race_id=race, key=f"F{f}R{r}",
+            trifecta_void=trifecta_void,
             fujin_level=f, raijin_level=r,
             signal=bool(f or r), payout=num(x.get("payout")),
             methods={},
         )
         for method in METHODS[:3]:
-            sample["methods"][method] = method_result(
-                by_method[d][method].get(race),method)
+            sample["methods"][method] = (None if trifecta_void else method_result(
+                by_method[d][method].get(race),method))
         # The V2 retrospective uses its OWN frozen 120-combination rank, never
         # the legacy signal AI's (possibly different) F/R classification.
         signal_record = ({"actual_combo_rank":x.get("new_actual_rank"),"payout":x.get("payout")}
                          if args.raijin_v2 else ai_map.get((d,race)))
-        if args.raijin_v2 and (f or r) and not x.get("new_actual_rank"):
-            raise ValueError(f"Active V2 signal missing all-120 rank: {d} {race}")
-        sample["methods"]["signal_ai24"] = method_result(
-            signal_record,"signal_ai24") if (f or r) else None
+        if args.raijin_v2 and (f or r) and not x.get("new_actual_rank") and not trifecta_void:
+            raise ValueError(f"Settled V2 signal missing all-120 rank: {d} {race}")
+        sample["methods"]["signal_ai24"] = (method_result(
+            signal_record,"signal_ai24") if (f or r) and not trifecta_void else None)
         compiled.append(sample)
 
     per_date = {}
@@ -219,6 +239,8 @@ def main():
         research_only=bool(args.raijin_v2),
         retrospective_not_original_purchase=bool(args.raijin_v2),
         definition="F0R0..F3R3 x saved formation / saved TOP3 BOX / saved normal AI / saved signal-only AI top24; 100 yen per combo",
+        trifecta_void_races=sum(x.get("trifecta_void", False) for x in compiled),
+        void_settlement_policy="Trifecta not established: exclude from ticket investment and ROI, never treat refund as a loss",
         latest_date=dates[-1], available_dates=dates,
         total_races=len(compiled), model_note="method-specific missing entries not counted as losses; report missing per method",
         per_date=per_date,
@@ -232,7 +254,7 @@ def main():
     (out_dir / "summary.json").write_text(
         json.dumps(output,ensure_ascii=False,indent=2),encoding="utf-8")
     with (out_dir / "details.csv").open("w",encoding="utf-8",newline="") as f:
-        cols = ["date","race_id","signal_key","payout","formation_hit",
+        cols = ["date","race_id","signal_key","payout","trifecta_void","formation_hit",
                 "top3_box_hit","normal_ai_hit","signal_ai24_hit"]
         w = csv.DictWriter(f,fieldnames=cols)
         w.writeheader()
@@ -240,6 +262,7 @@ def main():
             w.writerow({
                 "date":row["date"],"race_id":row["race_id"],"signal_key":row["key"],
                 "payout":row["payout"],
+                "trifecta_void":int(row.get("trifecta_void", False)),
                 **{method+"_hit":(int(row["methods"][method]["hit"])
                    if row["methods"].get(method) is not None else "")
                    for method in METHODS}
