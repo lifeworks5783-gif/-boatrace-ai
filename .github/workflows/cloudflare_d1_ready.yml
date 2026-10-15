@@ -28,7 +28,7 @@ jobs:
           today=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y%m%d")
           if day!=today or not isinstance(ids,list) or not 1<=len(ids)<=4 or len(ids)!=len(set(ids)):
               raise SystemExit("Invalid or expired D1 event")
-          if any(not re.fullmatch(day+r"-\\d{2}-(0[1-9]|1[0-2])",str(x)) for x in ids):
+          if any(not re.fullmatch(day+r"-\d{2}-(0[1-9]|1[0-2])",str(x)) for x in ids):
               raise SystemExit("Invalid official race IDs")
           base="https://boatrace-v2-collector.life-works5782.workers.dev/public/official-beforeinfo"
           req=Request(base+"?"+urlencode({"date":day,"race_ids":",".join(ids)}),
@@ -39,10 +39,10 @@ jobs:
           found=[r["race_id"] for r in x.get("snapshots",[])]
           if not found:
               print("Cloudflare event expired or official data not yet transferable; no new calculation",flush=True)
-              with open(os.environ["GITHUB_OUTPUT"],"a") as f:f.write("ready=false\\n")
+              with open(os.environ["GITHUB_OUTPUT"],"a") as f:f.write("ready=false\n")
           else:
               print("CLOUDFLARE_D1_VERIFIED",day,len(found),flush=True)
-              with open(os.environ["GITHUB_OUTPUT"],"a") as f:f.write("ready=true\\n")
+              with open(os.environ["GITHUB_OUTPUT"],"a") as f:f.write("ready=true\n")
           PY
       - name: Start existing full AI and Fujin/Raijin calculation chain
         if: steps.verify.outputs.ready == 'true'
