@@ -12,12 +12,14 @@ on:
     paths: [config/v4_capture_now.txt]
   # Independently tested Stage1 -> Stage2 -> Stage3 canaries passed on Oct 12.
   # Morning retry windows (JST): 03:07, 04:32, 05:07.
-  # Live 5-minute capture (JST): 06:00 to 22:59; deadline-gated in collector.
+  # Live 5-minute capture (JST): 06:02 to 22:57; deadline-gated in collector.
+  # Stagger off the busiest :00/:05 cron boundaries to reduce schedule delay.
+  # GitHub schedule is best-effort; this is not a real-time SLA.
   schedule:
     - cron: '7 18 * * *'
     - cron: '32 19 * * *'
     - cron: '7 20 * * *'
-    - cron: '*/5 21-23,0-13 * * *'
+    - cron: '2-59/5 21-23,0-13 * * *'
 permissions:
   contents: read
 concurrency:
@@ -47,7 +49,7 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = schedule ]; then
             case "$SCHEDULE_EXPR" in
               '7 18 * * *'|'32 19 * * *'|'7 20 * * *') REQUEST_MODE=morning ;;
-              '*/5 21-23,0-13 * * *') REQUEST_MODE=live ;;
+              '2-59/5 21-23,0-13 * * *') REQUEST_MODE=live ;;
               *) echo "Unexpected cron expression"; exit 1 ;;
             esac
           fi
