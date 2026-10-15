@@ -53,6 +53,36 @@ def official_results(date):
                                    or results[key]["payout"] != payout):
                 raise ValueError(f"Conflicting official result: {key}")
             results[key] = {"actual": combo if valid else None, "payout": payout}
+    # A separately verified, immutable official-result backfill may exist when
+    # the historical K-file omitted a race. It is settlement evidence ONLY.
+    # Do not edit prediction inputs or silently overwrite conflicting results.
+    backfill = source.with_name(f"official_result_backfills_{date}.json")
+    if backfill.is_file():
+        document = json.loads(backfill.read_text(encoding="utf-8"))
+        if document.get("date") != date or not isinstance(document.get("verified_results"), list):
+            raise ValueError(f"Invalid official result backfill manifest: {backfill}")
+        for row in document["verified_results"]:
+            race = normalize_race_id(row.get("race_id"))
+            combo = str(row.get("trifecta") or "").strip()
+            parts = combo.split("-")
+            url = str(row.get("source_url") or "")
+            if (not race or not race.startswith(date) or
+                row.get("source_type") != "boatrace_official" or
+                not url.startswith("https://www.boatrace.jp/") or
+                f"hd={date}" not in url or
+                len(parts) != 3 or len(set(parts)) != 3 or
+                any(p not in {"1", "2", "3", "4", "5", "6"} for p in parts)):
+                raise ValueError(f"Unverified official result backfill: {race}")
+            try:
+                payout = int(row["trifecta_pay"])
+            except (KeyError, ValueError, TypeError) as exc:
+                raise ValueError(f"Invalid official backfill payout: {race}") from exc
+            if payout <= 0:
+                raise ValueError(f"Nonpositive official backfill payout: {race}")
+            verified = {"actual": combo, "payout": payout}
+            if race in results and results[race] != verified:
+                raise ValueError(f"Official result/backfill conflict: {race}")
+            results[race] = verified
     return results
 
 
