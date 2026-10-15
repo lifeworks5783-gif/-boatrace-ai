@@ -10,6 +10,46 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      - uses: actions/checkout@v4
+      - name: Read only previous-day Cloudflare missing IDs via existing restricted bridge
+        env:
+          CLOUDFLARE_BACKUP_TOKEN: ${{ secrets.CLOUDFLARE_BACKUP_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import csv,json,os
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request,urlopen
+          from urllib.error import HTTPError
+          token=os.environ.get("CLOUDFLARE_BACKUP_TOKEN","")
+          if not token:
+              print("AUTHENTICATED_RESEARCH_BRIDGE_TOKEN_UNAVAILABLE",flush=True)
+              raise SystemExit(0)
+          day="20261014"
+          p=Path("daily_inputs/2026/10/14/base/program_races_20261014.csv")
+          ids=sorted(set(r["race_id"] for r in csv.DictReader(p.open(encoding="utf-8-sig",newline=""))))
+          if len(ids)!=156: raise ValueError("research_reference_not_156")
+          endpoint="https://boatrace-v2-collector.life-works5782.workers.dev/admin/research-beforeinfo"
+          missing=[];unreadable=[];downloaded=0
+          for start in range(0,len(ids),8):
+              subset=ids[start:start+8]
+              req=Request(endpoint+"?"+urlencode({"date":day,"race_ids":",".join(subset)}),
+                  headers={"Authorization":"Bearer "+token,"Accept":"application/json","User-Agent":"boatrace-private-diagnostics/1"})
+              try:
+                  with urlopen(req,timeout=14) as resp: data=json.loads(resp.read(1000000))
+              except HTTPError as e:
+                  print("AUTHENTICATED_BRIDGE_HTTP_ERROR",e.code,"batch",start//8,flush=True)
+                  raise SystemExit(0)
+              if data.get("schema")!="boatrace-research-beforeinfo-bridge-v1" or data.get("date")!=day:
+                  print("AUTHENTICATED_BRIDGE_SCHEMA_MISMATCH",flush=True);raise SystemExit(0)
+              missing+=data.get("missing_ids",[])
+              unreadable+=data.get("rejected",[])
+              downloaded+=len(data.get("snapshots",[]))
+          print("PREVIOUS_DAY_BRIDGE_READ_ONLY_SUMMARY",json.dumps({
+              "date":day,"program_races":len(ids),"verified_predeadline_snapshot_ids":downloaded,
+              "missing_ids":sorted(missing),"rejected":unreadable,
+          },ensure_ascii=False),flush=True)
+          PY
       - name: Read only the Cloudflare public D1 health endpoints
         env:
           WORKER_BASE: https://boatrace-v2-collector.life-works5782.workers.dev
