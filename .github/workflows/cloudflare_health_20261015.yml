@@ -1,0 +1,44 @@
+name: Cloudflare read-only collection check 20261015
+on:
+  push:
+    branches: [diagnostics/cloudflare-health-20261015]
+    paths: [.github/workflows/cloudflare_health_20261015.yml]
+permissions:
+  contents: read
+jobs:
+  cloudflare-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read only the Cloudflare public D1 health endpoints
+        env:
+          WORKER_BASE: https://boatrace-v2-collector.life-works5782.workers.dev
+        run: |
+          python3 - <<'PY'
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+          from datetime import datetime, timezone, timedelta
+          import json, os
+          jst=timezone(timedelta(hours=9))
+          print("PROBE_TIME_JST",datetime.now(jst).isoformat(),flush=True)
+          paths=[
+              "/health",
+              "/health/db",
+              "/health/collection?date=20261015",
+              "/health/audit?date=20261015",
+              "/health/morning?date=20261015",
+              "/health/morning-model?date=20261015",
+              "/health/prediction-store?date=20261015",
+              "/health/collection?date=20261014",
+          ]
+          for path in paths:
+              try:
+                  req=Request(os.environ["WORKER_BASE"]+path,headers={"Accept":"application/json","User-Agent":"boatrace-read-only-healthcheck/1"})
+                  with urlopen(req,timeout=14) as r:
+                      val=json.loads(r.read(1000000));status=r.status
+                  print("HEALTH_ENDPOINT",path,"HTTP",status,json.dumps(val,ensure_ascii=False,sort_keys=True),flush=True)
+              except HTTPError as e:
+                  print("HEALTH_ENDPOINT",path,"HTTP_ERROR",e.code,e.read(400).decode("utf-8","replace"),flush=True)
+              except Exception as e:
+                  print("HEALTH_ENDPOINT",path,"ERROR",type(e).__name__,str(e)[:250],flush=True)
+          PY
