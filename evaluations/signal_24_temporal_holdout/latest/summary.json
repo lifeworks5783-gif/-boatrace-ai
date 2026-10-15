@@ -1,0 +1,4198 @@
+{
+  "schema_version": 1,
+  "model_version": "signal_24_temporal_holdout_v1_20261014",
+  "status": "retrospective_rank_simulation_not_live_predeadline",
+  "source": "evaluations/signal_payout_rank_distribution/latest/race_evidence.csv",
+  "date_split": {
+    "train_start": "20260930",
+    "train_end": "20261007",
+    "holdout_start": "20261008",
+    "holdout_end": "20261015",
+    "train_days": 8,
+    "holdout_days": 8
+  },
+  "policy_catalog": {
+    "top24": {
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "tier_counts": {
+        "強本線": 6,
+        "本線": 6,
+        "準本線": 12,
+        "中穴": 0,
+        "穴": 0,
+        "大穴": 0
+      }
+    },
+    "head18_mid6": {
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "tier_counts": {
+        "強本線": 6,
+        "本線": 6,
+        "準本線": 6,
+        "中穴": 6,
+        "穴": 0,
+        "大穴": 0
+      }
+    },
+    "head12_mid12": {
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36
+      ],
+      "tier_counts": {
+        "強本線": 6,
+        "本線": 6,
+        "準本線": 0,
+        "中穴": 12,
+        "穴": 0,
+        "大穴": 0
+      }
+    },
+    "head12_mid6_tail6": {
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54
+      ],
+      "tier_counts": {
+        "強本線": 6,
+        "本線": 6,
+        "準本線": 0,
+        "中穴": 6,
+        "穴": 6,
+        "大穴": 0
+      }
+    },
+    "head6_mid18": {
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42
+      ],
+      "tier_counts": {
+        "強本線": 6,
+        "本線": 0,
+        "準本線": 0,
+        "中穴": 18,
+        "穴": 0,
+        "大穴": 0
+      }
+    },
+    "head6_mid6_tail12": {
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60
+      ],
+      "tier_counts": {
+        "強本線": 6,
+        "本線": 0,
+        "準本線": 0,
+        "中穴": 6,
+        "穴": 12,
+        "大穴": 0
+      }
+    },
+    "spread_6x4": {
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54
+      ],
+      "tier_counts": {
+        "強本線": 6,
+        "本線": 0,
+        "準本線": 6,
+        "中穴": 6,
+        "穴": 6,
+        "大穴": 0
+      }
+    },
+    "wide_6x4": {
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78
+      ],
+      "tier_counts": {
+        "強本線": 6,
+        "本線": 0,
+        "準本線": 0,
+        "中穴": 6,
+        "穴": 6,
+        "大穴": 6
+      }
+    }
+  },
+  "gate": {
+    "min_train_races": 40,
+    "min_train_wins": 8,
+    "min_roi_uplift_points": 20,
+    "max_hit_rate_loss_points": 5
+  },
+  "audit": {
+    "unique_rows": 2144,
+    "all_dates": [
+      "20260930",
+      "20261001",
+      "20261002",
+      "20261003",
+      "20261004",
+      "20261005",
+      "20261006",
+      "20261007",
+      "20261008",
+      "20261009",
+      "20261010",
+      "20261011",
+      "20261012",
+      "20261013",
+      "20261014",
+      "20261015"
+    ],
+    "train_dates": [
+      "20260930",
+      "20261001",
+      "20261002",
+      "20261003",
+      "20261004",
+      "20261005",
+      "20261006",
+      "20261007"
+    ],
+    "holdout_dates": [
+      "20261008",
+      "20261009",
+      "20261010",
+      "20261011",
+      "20261012",
+      "20261013",
+      "20261014",
+      "20261015"
+    ],
+    "provenance_all": {
+      "saved_csv_unclassified": 1473,
+      "post_result_official_beforeinfo": 509,
+      "saved_pre_deadline_official_beforeinfo": 59,
+      "saved_after_deadline_official_beforeinfo": 2,
+      "saved_live": 101
+    },
+    "provenance_holdout": {
+      "saved_csv_unclassified": 473,
+      "post_result_official_beforeinfo": 444,
+      "saved_pre_deadline_official_beforeinfo": 54,
+      "saved_live": 88
+    },
+    "normal_not_purchased": 568,
+    "has_post_result_reconstruction": true
+  },
+  "overall": {
+    "train": {
+      "baseline": {
+        "races": 517,
+        "hits": 321,
+        "high5_hits": 56,
+        "manshu_hits": 17,
+        "stake_yen": 1240800,
+        "return_yen": 1047770,
+        "profit_yen": -193030,
+        "hit_rate_pct": 62.09,
+        "roi_pct": 84.44
+      },
+      "candidate": {
+        "races": 517,
+        "hits": 321,
+        "high5_hits": 56,
+        "manshu_hits": 17,
+        "stake_yen": 1240800,
+        "return_yen": 1047770,
+        "profit_yen": -193030,
+        "hit_rate_pct": 62.09,
+        "roi_pct": 84.44
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "races": 1059,
+        "hits": 569,
+        "high5_hits": 73,
+        "manshu_hits": 27,
+        "stake_yen": 2541600,
+        "return_yen": 1802560,
+        "profit_yen": -739040,
+        "hit_rate_pct": 53.73,
+        "roi_pct": 70.92
+      },
+      "candidate": {
+        "races": 1059,
+        "hits": 569,
+        "high5_hits": 73,
+        "manshu_hits": 27,
+        "stake_yen": 2541600,
+        "return_yen": 1802560,
+        "profit_yen": -739040,
+        "hit_rate_pct": 53.73,
+        "roi_pct": 70.92
+      }
+    },
+    "all_retrospective": {
+      "baseline": {
+        "races": 1576,
+        "hits": 890,
+        "high5_hits": 129,
+        "manshu_hits": 44,
+        "stake_yen": 3782400,
+        "return_yen": 2850330,
+        "profit_yen": -932070,
+        "hit_rate_pct": 56.47,
+        "roi_pct": 75.36
+      },
+      "candidate": {
+        "races": 1576,
+        "hits": 890,
+        "high5_hits": 129,
+        "manshu_hits": 44,
+        "stake_yen": 3782400,
+        "return_yen": 2850330,
+        "profit_yen": -932070,
+        "hit_rate_pct": 56.47,
+        "roi_pct": 75.36
+      }
+    }
+  },
+  "by_signal": {
+    "F0R0": {
+      "training_races": 0,
+      "holdout_races": 0,
+      "proposed_policy": "no_bet",
+      "selection_reason": "no_signal",
+      "train": {
+        "baseline": {
+          "races": 0,
+          "hits": 0,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 0,
+          "return_yen": 0,
+          "profit_yen": 0,
+          "hit_rate_pct": null,
+          "roi_pct": null
+        },
+        "candidate": null
+      },
+      "holdout": {
+        "baseline": {
+          "races": 0,
+          "hits": 0,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 0,
+          "return_yen": 0,
+          "profit_yen": 0,
+          "hit_rate_pct": null,
+          "roi_pct": null
+        },
+        "candidate": null
+      },
+      "all_fixed_policy_comparisons": {}
+    },
+    "F0R1": {
+      "training_races": 42,
+      "holdout_races": 83,
+      "proposed_policy": "top24",
+      "selection_reason": "no_training_candidate_passed_gate",
+      "train": {
+        "baseline": {
+          "races": 42,
+          "hits": 27,
+          "high5_hits": 1,
+          "manshu_hits": 0,
+          "stake_yen": 100800,
+          "return_yen": 47560,
+          "profit_yen": -53240,
+          "hit_rate_pct": 64.29,
+          "roi_pct": 47.18
+        },
+        "candidate": {
+          "races": 42,
+          "hits": 27,
+          "high5_hits": 1,
+          "manshu_hits": 0,
+          "stake_yen": 100800,
+          "return_yen": 47560,
+          "profit_yen": -53240,
+          "hit_rate_pct": 64.29,
+          "roi_pct": 47.18
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 83,
+          "hits": 51,
+          "high5_hits": 8,
+          "manshu_hits": 3,
+          "stake_yen": 199200,
+          "return_yen": 136580,
+          "profit_yen": -62620,
+          "hit_rate_pct": 61.45,
+          "roi_pct": 68.56
+        },
+        "candidate": {
+          "races": 83,
+          "hits": 51,
+          "high5_hits": 8,
+          "manshu_hits": 3,
+          "stake_yen": 199200,
+          "return_yen": 136580,
+          "profit_yen": -62620,
+          "hit_rate_pct": 61.45,
+          "roi_pct": 68.56
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 42,
+            "hits": 27,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 100800,
+            "return_yen": 47560,
+            "profit_yen": -53240,
+            "hit_rate_pct": 64.29,
+            "roi_pct": 47.18
+          },
+          "holdout": {
+            "races": 83,
+            "hits": 51,
+            "high5_hits": 8,
+            "manshu_hits": 3,
+            "stake_yen": 199200,
+            "return_yen": 136580,
+            "profit_yen": -62620,
+            "hit_rate_pct": 61.45,
+            "roi_pct": 68.56
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 42,
+            "hits": 27,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 100800,
+            "return_yen": 42290,
+            "profit_yen": -58510,
+            "hit_rate_pct": 64.29,
+            "roi_pct": 41.95
+          },
+          "holdout": {
+            "races": 83,
+            "hits": 49,
+            "high5_hits": 7,
+            "manshu_hits": 4,
+            "stake_yen": 199200,
+            "return_yen": 153890,
+            "profit_yen": -45310,
+            "hit_rate_pct": 59.04,
+            "roi_pct": 77.25
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 42,
+            "hits": 24,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 100800,
+            "return_yen": 48260,
+            "profit_yen": -52540,
+            "hit_rate_pct": 57.14,
+            "roi_pct": 47.88
+          },
+          "holdout": {
+            "races": 83,
+            "hits": 41,
+            "high5_hits": 7,
+            "manshu_hits": 2,
+            "stake_yen": 199200,
+            "return_yen": 130130,
+            "profit_yen": -69070,
+            "hit_rate_pct": 49.4,
+            "roi_pct": 65.33
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 42,
+            "hits": 23,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 100800,
+            "return_yen": 54220,
+            "profit_yen": -46580,
+            "hit_rate_pct": 54.76,
+            "roi_pct": 53.79
+          },
+          "holdout": {
+            "races": 83,
+            "hits": 40,
+            "high5_hits": 6,
+            "manshu_hits": 2,
+            "stake_yen": 199200,
+            "return_yen": 122800,
+            "profit_yen": -76400,
+            "hit_rate_pct": 48.19,
+            "roi_pct": 61.65
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 42,
+            "hits": 20,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 100800,
+            "return_yen": 44010,
+            "profit_yen": -56790,
+            "hit_rate_pct": 47.62,
+            "roi_pct": 43.66
+          },
+          "holdout": {
+            "races": 83,
+            "hits": 25,
+            "high5_hits": 6,
+            "manshu_hits": 2,
+            "stake_yen": 199200,
+            "return_yen": 103680,
+            "profit_yen": -95520,
+            "hit_rate_pct": 30.12,
+            "roi_pct": 52.05
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 42,
+            "hits": 18,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 100800,
+            "return_yen": 46130,
+            "profit_yen": -54670,
+            "hit_rate_pct": 42.86,
+            "roi_pct": 45.76
+          },
+          "holdout": {
+            "races": 83,
+            "hits": 22,
+            "high5_hits": 4,
+            "manshu_hits": 1,
+            "stake_yen": 199200,
+            "return_yen": 76810,
+            "profit_yen": -122390,
+            "hit_rate_pct": 26.51,
+            "roi_pct": 38.56
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 42,
+            "hits": 23,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 100800,
+            "return_yen": 57160,
+            "profit_yen": -43640,
+            "hit_rate_pct": 54.76,
+            "roi_pct": 56.71
+          },
+          "holdout": {
+            "races": 83,
+            "hits": 32,
+            "high5_hits": 5,
+            "manshu_hits": 3,
+            "stake_yen": 199200,
+            "return_yen": 111300,
+            "profit_yen": -87900,
+            "hit_rate_pct": 38.55,
+            "roi_pct": 55.87
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 42,
+            "hits": 18,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 100800,
+            "return_yen": 46130,
+            "profit_yen": -54670,
+            "hit_rate_pct": 42.86,
+            "roi_pct": 45.76
+          },
+          "holdout": {
+            "races": 83,
+            "hits": 22,
+            "high5_hits": 4,
+            "manshu_hits": 1,
+            "stake_yen": 199200,
+            "return_yen": 77560,
+            "profit_yen": -121640,
+            "hit_rate_pct": 26.51,
+            "roi_pct": 38.94
+          }
+        }
+      }
+    },
+    "F0R2": {
+      "training_races": 104,
+      "holdout_races": 307,
+      "proposed_policy": "top24",
+      "selection_reason": "no_training_candidate_passed_gate",
+      "train": {
+        "baseline": {
+          "races": 104,
+          "hits": 70,
+          "high5_hits": 10,
+          "manshu_hits": 2,
+          "stake_yen": 249600,
+          "return_yen": 191100,
+          "profit_yen": -58500,
+          "hit_rate_pct": 67.31,
+          "roi_pct": 76.56
+        },
+        "candidate": {
+          "races": 104,
+          "hits": 70,
+          "high5_hits": 10,
+          "manshu_hits": 2,
+          "stake_yen": 249600,
+          "return_yen": 191100,
+          "profit_yen": -58500,
+          "hit_rate_pct": 67.31,
+          "roi_pct": 76.56
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 307,
+          "hits": 172,
+          "high5_hits": 16,
+          "manshu_hits": 4,
+          "stake_yen": 736800,
+          "return_yen": 443100,
+          "profit_yen": -293700,
+          "hit_rate_pct": 56.03,
+          "roi_pct": 60.14
+        },
+        "candidate": {
+          "races": 307,
+          "hits": 172,
+          "high5_hits": 16,
+          "manshu_hits": 4,
+          "stake_yen": 736800,
+          "return_yen": 443100,
+          "profit_yen": -293700,
+          "hit_rate_pct": 56.03,
+          "roi_pct": 60.14
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 104,
+            "hits": 70,
+            "high5_hits": 10,
+            "manshu_hits": 2,
+            "stake_yen": 249600,
+            "return_yen": 191100,
+            "profit_yen": -58500,
+            "hit_rate_pct": 67.31,
+            "roi_pct": 76.56
+          },
+          "holdout": {
+            "races": 307,
+            "hits": 172,
+            "high5_hits": 16,
+            "manshu_hits": 4,
+            "stake_yen": 736800,
+            "return_yen": 443100,
+            "profit_yen": -293700,
+            "hit_rate_pct": 56.03,
+            "roi_pct": 60.14
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 104,
+            "hits": 63,
+            "high5_hits": 6,
+            "manshu_hits": 0,
+            "stake_yen": 249600,
+            "return_yen": 130980,
+            "profit_yen": -118620,
+            "hit_rate_pct": 60.58,
+            "roi_pct": 52.48
+          },
+          "holdout": {
+            "races": 307,
+            "hits": 173,
+            "high5_hits": 17,
+            "manshu_hits": 3,
+            "stake_yen": 736800,
+            "return_yen": 406550,
+            "profit_yen": -330250,
+            "hit_rate_pct": 56.35,
+            "roi_pct": 55.18
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 104,
+            "hits": 53,
+            "high5_hits": 4,
+            "manshu_hits": 1,
+            "stake_yen": 249600,
+            "return_yen": 103700,
+            "profit_yen": -145900,
+            "hit_rate_pct": 50.96,
+            "roi_pct": 41.55
+          },
+          "holdout": {
+            "races": 307,
+            "hits": 164,
+            "high5_hits": 23,
+            "manshu_hits": 5,
+            "stake_yen": 736800,
+            "return_yen": 522970,
+            "profit_yen": -213830,
+            "hit_rate_pct": 53.42,
+            "roi_pct": 70.98
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 104,
+            "hits": 51,
+            "high5_hits": 4,
+            "manshu_hits": 1,
+            "stake_yen": 249600,
+            "return_yen": 109480,
+            "profit_yen": -140120,
+            "hit_rate_pct": 49.04,
+            "roi_pct": 43.86
+          },
+          "holdout": {
+            "races": 307,
+            "hits": 153,
+            "high5_hits": 18,
+            "manshu_hits": 3,
+            "stake_yen": 736800,
+            "return_yen": 380790,
+            "profit_yen": -356010,
+            "hit_rate_pct": 49.84,
+            "roi_pct": 51.68
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 104,
+            "hits": 41,
+            "high5_hits": 5,
+            "manshu_hits": 4,
+            "stake_yen": 249600,
+            "return_yen": 197420,
+            "profit_yen": -52180,
+            "hit_rate_pct": 39.42,
+            "roi_pct": 79.09
+          },
+          "holdout": {
+            "races": 307,
+            "hits": 128,
+            "high5_hits": 22,
+            "manshu_hits": 9,
+            "stake_yen": 736800,
+            "return_yen": 513420,
+            "profit_yen": -223380,
+            "hit_rate_pct": 41.69,
+            "roi_pct": 69.68
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 104,
+            "hits": 36,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 249600,
+            "return_yen": 96640,
+            "profit_yen": -152960,
+            "hit_rate_pct": 34.62,
+            "roi_pct": 38.72
+          },
+          "holdout": {
+            "races": 307,
+            "hits": 109,
+            "high5_hits": 12,
+            "manshu_hits": 3,
+            "stake_yen": 736800,
+            "return_yen": 255650,
+            "profit_yen": -481150,
+            "hit_rate_pct": 35.5,
+            "roi_pct": 34.7
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 104,
+            "hits": 47,
+            "high5_hits": 5,
+            "manshu_hits": 1,
+            "stake_yen": 249600,
+            "return_yen": 116550,
+            "profit_yen": -133050,
+            "hit_rate_pct": 45.19,
+            "roi_pct": 46.69
+          },
+          "holdout": {
+            "races": 307,
+            "hits": 135,
+            "high5_hits": 15,
+            "manshu_hits": 4,
+            "stake_yen": 736800,
+            "return_yen": 330180,
+            "profit_yen": -406620,
+            "hit_rate_pct": 43.97,
+            "roi_pct": 44.81
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 104,
+            "hits": 36,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 249600,
+            "return_yen": 80680,
+            "profit_yen": -168920,
+            "hit_rate_pct": 34.62,
+            "roi_pct": 32.32
+          },
+          "holdout": {
+            "races": 307,
+            "hits": 115,
+            "high5_hits": 17,
+            "manshu_hits": 3,
+            "stake_yen": 736800,
+            "return_yen": 290380,
+            "profit_yen": -446420,
+            "hit_rate_pct": 37.46,
+            "roi_pct": 39.41
+          }
+        }
+      }
+    },
+    "F0R3": {
+      "training_races": 128,
+      "holdout_races": 285,
+      "proposed_policy": "top24",
+      "selection_reason": "no_training_candidate_passed_gate",
+      "train": {
+        "baseline": {
+          "races": 128,
+          "hits": 57,
+          "high5_hits": 13,
+          "manshu_hits": 4,
+          "stake_yen": 307200,
+          "return_yen": 211030,
+          "profit_yen": -96170,
+          "hit_rate_pct": 44.53,
+          "roi_pct": 68.69
+        },
+        "candidate": {
+          "races": 128,
+          "hits": 57,
+          "high5_hits": 13,
+          "manshu_hits": 4,
+          "stake_yen": 307200,
+          "return_yen": 211030,
+          "profit_yen": -96170,
+          "hit_rate_pct": 44.53,
+          "roi_pct": 68.69
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 285,
+          "hits": 121,
+          "high5_hits": 27,
+          "manshu_hits": 13,
+          "stake_yen": 684000,
+          "return_yen": 582130,
+          "profit_yen": -101870,
+          "hit_rate_pct": 42.46,
+          "roi_pct": 85.11
+        },
+        "candidate": {
+          "races": 285,
+          "hits": 121,
+          "high5_hits": 27,
+          "manshu_hits": 13,
+          "stake_yen": 684000,
+          "return_yen": 582130,
+          "profit_yen": -101870,
+          "hit_rate_pct": 42.46,
+          "roi_pct": 85.11
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 128,
+            "hits": 57,
+            "high5_hits": 13,
+            "manshu_hits": 4,
+            "stake_yen": 307200,
+            "return_yen": 211030,
+            "profit_yen": -96170,
+            "hit_rate_pct": 44.53,
+            "roi_pct": 68.69
+          },
+          "holdout": {
+            "races": 285,
+            "hits": 121,
+            "high5_hits": 27,
+            "manshu_hits": 13,
+            "stake_yen": 684000,
+            "return_yen": 582130,
+            "profit_yen": -101870,
+            "hit_rate_pct": 42.46,
+            "roi_pct": 85.11
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 128,
+            "hits": 57,
+            "high5_hits": 9,
+            "manshu_hits": 0,
+            "stake_yen": 307200,
+            "return_yen": 148300,
+            "profit_yen": -158900,
+            "hit_rate_pct": 44.53,
+            "roi_pct": 48.27
+          },
+          "holdout": {
+            "races": 285,
+            "hits": 109,
+            "high5_hits": 24,
+            "manshu_hits": 12,
+            "stake_yen": 684000,
+            "return_yen": 535040,
+            "profit_yen": -148960,
+            "hit_rate_pct": 38.25,
+            "roi_pct": 78.22
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 128,
+            "hits": 62,
+            "high5_hits": 11,
+            "manshu_hits": 0,
+            "stake_yen": 307200,
+            "return_yen": 164330,
+            "profit_yen": -142870,
+            "hit_rate_pct": 48.44,
+            "roi_pct": 53.49
+          },
+          "holdout": {
+            "races": 285,
+            "hits": 96,
+            "high5_hits": 24,
+            "manshu_hits": 11,
+            "stake_yen": 684000,
+            "return_yen": 460250,
+            "profit_yen": -223750,
+            "hit_rate_pct": 33.68,
+            "roi_pct": 67.29
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 128,
+            "hits": 56,
+            "high5_hits": 7,
+            "manshu_hits": 0,
+            "stake_yen": 307200,
+            "return_yen": 129400,
+            "profit_yen": -177800,
+            "hit_rate_pct": 43.75,
+            "roi_pct": 42.12
+          },
+          "holdout": {
+            "races": 285,
+            "hits": 92,
+            "high5_hits": 23,
+            "manshu_hits": 13,
+            "stake_yen": 684000,
+            "return_yen": 464010,
+            "profit_yen": -219990,
+            "hit_rate_pct": 32.28,
+            "roi_pct": 67.84
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 128,
+            "hits": 55,
+            "high5_hits": 14,
+            "manshu_hits": 3,
+            "stake_yen": 307200,
+            "return_yen": 211840,
+            "profit_yen": -95360,
+            "hit_rate_pct": 42.97,
+            "roi_pct": 68.96
+          },
+          "holdout": {
+            "races": 285,
+            "hits": 86,
+            "high5_hits": 21,
+            "manshu_hits": 10,
+            "stake_yen": 684000,
+            "return_yen": 397980,
+            "profit_yen": -286020,
+            "hit_rate_pct": 30.18,
+            "roi_pct": 58.18
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 128,
+            "hits": 42,
+            "high5_hits": 8,
+            "manshu_hits": 1,
+            "stake_yen": 307200,
+            "return_yen": 148690,
+            "profit_yen": -158510,
+            "hit_rate_pct": 32.81,
+            "roi_pct": 48.4
+          },
+          "holdout": {
+            "races": 285,
+            "hits": 74,
+            "high5_hits": 18,
+            "manshu_hits": 10,
+            "stake_yen": 684000,
+            "return_yen": 346450,
+            "profit_yen": -337550,
+            "hit_rate_pct": 25.96,
+            "roi_pct": 50.65
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 128,
+            "hits": 45,
+            "high5_hits": 8,
+            "manshu_hits": 0,
+            "stake_yen": 307200,
+            "return_yen": 126950,
+            "profit_yen": -180250,
+            "hit_rate_pct": 35.16,
+            "roi_pct": 41.32
+          },
+          "holdout": {
+            "races": 285,
+            "hits": 91,
+            "high5_hits": 19,
+            "manshu_hits": 11,
+            "stake_yen": 684000,
+            "return_yen": 423490,
+            "profit_yen": -260510,
+            "hit_rate_pct": 31.93,
+            "roi_pct": 61.91
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 128,
+            "hits": 42,
+            "high5_hits": 8,
+            "manshu_hits": 2,
+            "stake_yen": 307200,
+            "return_yen": 128210,
+            "profit_yen": -178990,
+            "hit_rate_pct": 32.81,
+            "roi_pct": 41.74
+          },
+          "holdout": {
+            "races": 285,
+            "hits": 69,
+            "high5_hits": 18,
+            "manshu_hits": 9,
+            "stake_yen": 684000,
+            "return_yen": 315180,
+            "profit_yen": -368820,
+            "hit_rate_pct": 24.21,
+            "roi_pct": 46.08
+          }
+        }
+      }
+    },
+    "F1R0": {
+      "training_races": 40,
+      "holdout_races": 32,
+      "proposed_policy": "top24",
+      "selection_reason": "no_training_candidate_passed_gate",
+      "train": {
+        "baseline": {
+          "races": 40,
+          "hits": 31,
+          "high5_hits": 5,
+          "manshu_hits": 1,
+          "stake_yen": 96000,
+          "return_yen": 83900,
+          "profit_yen": -12100,
+          "hit_rate_pct": 77.5,
+          "roi_pct": 87.4
+        },
+        "candidate": {
+          "races": 40,
+          "hits": 31,
+          "high5_hits": 5,
+          "manshu_hits": 1,
+          "stake_yen": 96000,
+          "return_yen": 83900,
+          "profit_yen": -12100,
+          "hit_rate_pct": 77.5,
+          "roi_pct": 87.4
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 32,
+          "hits": 16,
+          "high5_hits": 2,
+          "manshu_hits": 1,
+          "stake_yen": 76800,
+          "return_yen": 52270,
+          "profit_yen": -24530,
+          "hit_rate_pct": 50.0,
+          "roi_pct": 68.06
+        },
+        "candidate": {
+          "races": 32,
+          "hits": 16,
+          "high5_hits": 2,
+          "manshu_hits": 1,
+          "stake_yen": 76800,
+          "return_yen": 52270,
+          "profit_yen": -24530,
+          "hit_rate_pct": 50.0,
+          "roi_pct": 68.06
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 40,
+            "hits": 31,
+            "high5_hits": 5,
+            "manshu_hits": 1,
+            "stake_yen": 96000,
+            "return_yen": 83900,
+            "profit_yen": -12100,
+            "hit_rate_pct": 77.5,
+            "roi_pct": 87.4
+          },
+          "holdout": {
+            "races": 32,
+            "hits": 16,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 76800,
+            "return_yen": 52270,
+            "profit_yen": -24530,
+            "hit_rate_pct": 50.0,
+            "roi_pct": 68.06
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 40,
+            "hits": 27,
+            "high5_hits": 5,
+            "manshu_hits": 1,
+            "stake_yen": 96000,
+            "return_yen": 74800,
+            "profit_yen": -21200,
+            "hit_rate_pct": 67.5,
+            "roi_pct": 77.92
+          },
+          "holdout": {
+            "races": 32,
+            "hits": 17,
+            "high5_hits": 3,
+            "manshu_hits": 3,
+            "stake_yen": 76800,
+            "return_yen": 75720,
+            "profit_yen": -1080,
+            "hit_rate_pct": 53.12,
+            "roi_pct": 98.59
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 40,
+            "hits": 20,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 96000,
+            "return_yen": 30180,
+            "profit_yen": -65820,
+            "hit_rate_pct": 50.0,
+            "roi_pct": 31.44
+          },
+          "holdout": {
+            "races": 32,
+            "hits": 14,
+            "high5_hits": 3,
+            "manshu_hits": 3,
+            "stake_yen": 76800,
+            "return_yen": 69400,
+            "profit_yen": -7400,
+            "hit_rate_pct": 43.75,
+            "roi_pct": 90.36
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 40,
+            "hits": 22,
+            "high5_hits": 2,
+            "manshu_hits": 0,
+            "stake_yen": 96000,
+            "return_yen": 39360,
+            "profit_yen": -56640,
+            "hit_rate_pct": 55.0,
+            "roi_pct": 41.0
+          },
+          "holdout": {
+            "races": 32,
+            "hits": 13,
+            "high5_hits": 3,
+            "manshu_hits": 3,
+            "stake_yen": 76800,
+            "return_yen": 66880,
+            "profit_yen": -9920,
+            "hit_rate_pct": 40.62,
+            "roi_pct": 87.08
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 40,
+            "hits": 18,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 96000,
+            "return_yen": 27120,
+            "profit_yen": -68880,
+            "hit_rate_pct": 45.0,
+            "roi_pct": 28.25
+          },
+          "holdout": {
+            "races": 32,
+            "hits": 13,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 76800,
+            "return_yen": 56370,
+            "profit_yen": -20430,
+            "hit_rate_pct": 40.62,
+            "roi_pct": 73.4
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 40,
+            "hits": 19,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 96000,
+            "return_yen": 28760,
+            "profit_yen": -67240,
+            "hit_rate_pct": 47.5,
+            "roi_pct": 29.96
+          },
+          "holdout": {
+            "races": 32,
+            "hits": 13,
+            "high5_hits": 5,
+            "manshu_hits": 3,
+            "stake_yen": 76800,
+            "return_yen": 100100,
+            "profit_yen": 23300,
+            "hit_rate_pct": 40.62,
+            "roi_pct": 130.34
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 40,
+            "hits": 26,
+            "high5_hits": 5,
+            "manshu_hits": 1,
+            "stake_yen": 96000,
+            "return_yen": 73380,
+            "profit_yen": -22620,
+            "hit_rate_pct": 65.0,
+            "roi_pct": 76.44
+          },
+          "holdout": {
+            "races": 32,
+            "hits": 14,
+            "high5_hits": 2,
+            "manshu_hits": 2,
+            "stake_yen": 76800,
+            "return_yen": 53840,
+            "profit_yen": -22960,
+            "hit_rate_pct": 43.75,
+            "roi_pct": 70.1
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 40,
+            "hits": 19,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 96000,
+            "return_yen": 28760,
+            "profit_yen": -67240,
+            "hit_rate_pct": 47.5,
+            "roi_pct": 29.96
+          },
+          "holdout": {
+            "races": 32,
+            "hits": 10,
+            "high5_hits": 2,
+            "manshu_hits": 2,
+            "stake_yen": 76800,
+            "return_yen": 45000,
+            "profit_yen": -31800,
+            "hit_rate_pct": 31.25,
+            "roi_pct": 58.59
+          }
+        }
+      }
+    },
+    "F1R1": {
+      "training_races": 21,
+      "holdout_races": 26,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 21,
+          "hits": 16,
+          "high5_hits": 2,
+          "manshu_hits": 1,
+          "stake_yen": 50400,
+          "return_yen": 39800,
+          "profit_yen": -10600,
+          "hit_rate_pct": 76.19,
+          "roi_pct": 78.97
+        },
+        "candidate": {
+          "races": 21,
+          "hits": 16,
+          "high5_hits": 2,
+          "manshu_hits": 1,
+          "stake_yen": 50400,
+          "return_yen": 39800,
+          "profit_yen": -10600,
+          "hit_rate_pct": 76.19,
+          "roi_pct": 78.97
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 26,
+          "hits": 18,
+          "high5_hits": 1,
+          "manshu_hits": 0,
+          "stake_yen": 62400,
+          "return_yen": 34910,
+          "profit_yen": -27490,
+          "hit_rate_pct": 69.23,
+          "roi_pct": 55.95
+        },
+        "candidate": {
+          "races": 26,
+          "hits": 18,
+          "high5_hits": 1,
+          "manshu_hits": 0,
+          "stake_yen": 62400,
+          "return_yen": 34910,
+          "profit_yen": -27490,
+          "hit_rate_pct": 69.23,
+          "roi_pct": 55.95
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 21,
+            "hits": 16,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 50400,
+            "return_yen": 39800,
+            "profit_yen": -10600,
+            "hit_rate_pct": 76.19,
+            "roi_pct": 78.97
+          },
+          "holdout": {
+            "races": 26,
+            "hits": 18,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 62400,
+            "return_yen": 34910,
+            "profit_yen": -27490,
+            "hit_rate_pct": 69.23,
+            "roi_pct": 55.95
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 21,
+            "hits": 14,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 50400,
+            "return_yen": 25010,
+            "profit_yen": -25390,
+            "hit_rate_pct": 66.67,
+            "roi_pct": 49.62
+          },
+          "holdout": {
+            "races": 26,
+            "hits": 18,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 62400,
+            "return_yen": 30030,
+            "profit_yen": -32370,
+            "hit_rate_pct": 69.23,
+            "roi_pct": 48.12
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 21,
+            "hits": 13,
+            "high5_hits": 2,
+            "manshu_hits": 0,
+            "stake_yen": 50400,
+            "return_yen": 28120,
+            "profit_yen": -22280,
+            "hit_rate_pct": 61.9,
+            "roi_pct": 55.79
+          },
+          "holdout": {
+            "races": 26,
+            "hits": 14,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 62400,
+            "return_yen": 55620,
+            "profit_yen": -6780,
+            "hit_rate_pct": 53.85,
+            "roi_pct": 89.13
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 21,
+            "hits": 12,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 50400,
+            "return_yen": 19950,
+            "profit_yen": -30450,
+            "hit_rate_pct": 57.14,
+            "roi_pct": 39.58
+          },
+          "holdout": {
+            "races": 26,
+            "hits": 13,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 62400,
+            "return_yen": 23970,
+            "profit_yen": -38430,
+            "hit_rate_pct": 50.0,
+            "roi_pct": 38.41
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 21,
+            "hits": 8,
+            "high5_hits": 2,
+            "manshu_hits": 0,
+            "stake_yen": 50400,
+            "return_yen": 21270,
+            "profit_yen": -29130,
+            "hit_rate_pct": 38.1,
+            "roi_pct": 42.2
+          },
+          "holdout": {
+            "races": 26,
+            "hits": 9,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 62400,
+            "return_yen": 53620,
+            "profit_yen": -8780,
+            "hit_rate_pct": 34.62,
+            "roi_pct": 85.93
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 21,
+            "hits": 6,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 50400,
+            "return_yen": 10410,
+            "profit_yen": -39990,
+            "hit_rate_pct": 28.57,
+            "roi_pct": 20.65
+          },
+          "holdout": {
+            "races": 26,
+            "hits": 7,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 62400,
+            "return_yen": 13010,
+            "profit_yen": -49390,
+            "hit_rate_pct": 26.92,
+            "roi_pct": 20.85
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 21,
+            "hits": 8,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 50400,
+            "return_yen": 15470,
+            "profit_yen": -34930,
+            "hit_rate_pct": 38.1,
+            "roi_pct": 30.69
+          },
+          "holdout": {
+            "races": 26,
+            "hits": 12,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 62400,
+            "return_yen": 19070,
+            "profit_yen": -43330,
+            "hit_rate_pct": 46.15,
+            "roi_pct": 30.56
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 21,
+            "hits": 6,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 50400,
+            "return_yen": 10410,
+            "profit_yen": -39990,
+            "hit_rate_pct": 28.57,
+            "roi_pct": 20.65
+          },
+          "holdout": {
+            "races": 26,
+            "hits": 7,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 62400,
+            "return_yen": 13010,
+            "profit_yen": -49390,
+            "hit_rate_pct": 26.92,
+            "roi_pct": 20.85
+          }
+        }
+      }
+    },
+    "F1R2": {
+      "training_races": 41,
+      "holdout_races": 77,
+      "proposed_policy": "top24",
+      "selection_reason": "no_training_candidate_passed_gate",
+      "train": {
+        "baseline": {
+          "races": 41,
+          "hits": 29,
+          "high5_hits": 7,
+          "manshu_hits": 1,
+          "stake_yen": 98400,
+          "return_yen": 92770,
+          "profit_yen": -5630,
+          "hit_rate_pct": 70.73,
+          "roi_pct": 94.28
+        },
+        "candidate": {
+          "races": 41,
+          "hits": 29,
+          "high5_hits": 7,
+          "manshu_hits": 1,
+          "stake_yen": 98400,
+          "return_yen": 92770,
+          "profit_yen": -5630,
+          "hit_rate_pct": 70.73,
+          "roi_pct": 94.28
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 77,
+          "hits": 46,
+          "high5_hits": 2,
+          "manshu_hits": 1,
+          "stake_yen": 184800,
+          "return_yen": 113970,
+          "profit_yen": -70830,
+          "hit_rate_pct": 59.74,
+          "roi_pct": 61.67
+        },
+        "candidate": {
+          "races": 77,
+          "hits": 46,
+          "high5_hits": 2,
+          "manshu_hits": 1,
+          "stake_yen": 184800,
+          "return_yen": 113970,
+          "profit_yen": -70830,
+          "hit_rate_pct": 59.74,
+          "roi_pct": 61.67
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 41,
+            "hits": 29,
+            "high5_hits": 7,
+            "manshu_hits": 1,
+            "stake_yen": 98400,
+            "return_yen": 92770,
+            "profit_yen": -5630,
+            "hit_rate_pct": 70.73,
+            "roi_pct": 94.28
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 46,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 184800,
+            "return_yen": 113970,
+            "profit_yen": -70830,
+            "hit_rate_pct": 59.74,
+            "roi_pct": 61.67
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 41,
+            "hits": 26,
+            "high5_hits": 4,
+            "manshu_hits": 1,
+            "stake_yen": 98400,
+            "return_yen": 70700,
+            "profit_yen": -27700,
+            "hit_rate_pct": 63.41,
+            "roi_pct": 71.85
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 44,
+            "high5_hits": 4,
+            "manshu_hits": 3,
+            "stake_yen": 184800,
+            "return_yen": 153980,
+            "profit_yen": -30820,
+            "hit_rate_pct": 57.14,
+            "roi_pct": 83.32
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 41,
+            "hits": 22,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 98400,
+            "return_yen": 58370,
+            "profit_yen": -40030,
+            "hit_rate_pct": 53.66,
+            "roi_pct": 59.32
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 35,
+            "high5_hits": 4,
+            "manshu_hits": 3,
+            "stake_yen": 184800,
+            "return_yen": 131190,
+            "profit_yen": -53610,
+            "hit_rate_pct": 45.45,
+            "roi_pct": 70.99
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 41,
+            "hits": 22,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 98400,
+            "return_yen": 60390,
+            "profit_yen": -38010,
+            "hit_rate_pct": 53.66,
+            "roi_pct": 61.37
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 37,
+            "high5_hits": 4,
+            "manshu_hits": 4,
+            "stake_yen": 184800,
+            "return_yen": 156980,
+            "profit_yen": -27820,
+            "hit_rate_pct": 48.05,
+            "roi_pct": 84.95
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 41,
+            "hits": 16,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 98400,
+            "return_yen": 30820,
+            "profit_yen": -67580,
+            "hit_rate_pct": 39.02,
+            "roi_pct": 31.32
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 30,
+            "high5_hits": 7,
+            "manshu_hits": 3,
+            "stake_yen": 184800,
+            "return_yen": 137760,
+            "profit_yen": -47040,
+            "hit_rate_pct": 38.96,
+            "roi_pct": 74.55
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 41,
+            "hits": 17,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 98400,
+            "return_yen": 100210,
+            "profit_yen": 1810,
+            "hit_rate_pct": 41.46,
+            "roi_pct": 101.84
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 28,
+            "high5_hits": 6,
+            "manshu_hits": 5,
+            "stake_yen": 184800,
+            "return_yen": 169490,
+            "profit_yen": -15310,
+            "hit_rate_pct": 36.36,
+            "roi_pct": 91.72
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 41,
+            "hits": 20,
+            "high5_hits": 2,
+            "manshu_hits": 0,
+            "stake_yen": 98400,
+            "return_yen": 42270,
+            "profit_yen": -56130,
+            "hit_rate_pct": 48.78,
+            "roi_pct": 42.96
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 35,
+            "high5_hits": 5,
+            "manshu_hits": 4,
+            "stake_yen": 184800,
+            "return_yen": 160620,
+            "profit_yen": -24180,
+            "hit_rate_pct": 45.45,
+            "roi_pct": 86.92
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 41,
+            "hits": 15,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 98400,
+            "return_yen": 28170,
+            "profit_yen": -70230,
+            "hit_rate_pct": 36.59,
+            "roi_pct": 28.63
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 27,
+            "high5_hits": 5,
+            "manshu_hits": 5,
+            "stake_yen": 184800,
+            "return_yen": 230580,
+            "profit_yen": 45780,
+            "hit_rate_pct": 35.06,
+            "roi_pct": 124.77
+          }
+        }
+      }
+    },
+    "F1R3": {
+      "training_races": 34,
+      "holdout_races": 77,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 34,
+          "hits": 25,
+          "high5_hits": 2,
+          "manshu_hits": 0,
+          "stake_yen": 81600,
+          "return_yen": 61250,
+          "profit_yen": -20350,
+          "hit_rate_pct": 73.53,
+          "roi_pct": 75.06
+        },
+        "candidate": {
+          "races": 34,
+          "hits": 25,
+          "high5_hits": 2,
+          "manshu_hits": 0,
+          "stake_yen": 81600,
+          "return_yen": 61250,
+          "profit_yen": -20350,
+          "hit_rate_pct": 73.53,
+          "roi_pct": 75.06
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 77,
+          "hits": 48,
+          "high5_hits": 6,
+          "manshu_hits": 2,
+          "stake_yen": 184800,
+          "return_yen": 182900,
+          "profit_yen": -1900,
+          "hit_rate_pct": 62.34,
+          "roi_pct": 98.97
+        },
+        "candidate": {
+          "races": 77,
+          "hits": 48,
+          "high5_hits": 6,
+          "manshu_hits": 2,
+          "stake_yen": 184800,
+          "return_yen": 182900,
+          "profit_yen": -1900,
+          "hit_rate_pct": 62.34,
+          "roi_pct": 98.97
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 34,
+            "hits": 25,
+            "high5_hits": 2,
+            "manshu_hits": 0,
+            "stake_yen": 81600,
+            "return_yen": 61250,
+            "profit_yen": -20350,
+            "hit_rate_pct": 73.53,
+            "roi_pct": 75.06
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 48,
+            "high5_hits": 6,
+            "manshu_hits": 2,
+            "stake_yen": 184800,
+            "return_yen": 182900,
+            "profit_yen": -1900,
+            "hit_rate_pct": 62.34,
+            "roi_pct": 98.97
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 34,
+            "hits": 26,
+            "high5_hits": 3,
+            "manshu_hits": 0,
+            "stake_yen": 81600,
+            "return_yen": 67010,
+            "profit_yen": -14590,
+            "hit_rate_pct": 76.47,
+            "roi_pct": 82.12
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 45,
+            "high5_hits": 6,
+            "manshu_hits": 2,
+            "stake_yen": 184800,
+            "return_yen": 178580,
+            "profit_yen": -6220,
+            "hit_rate_pct": 58.44,
+            "roi_pct": 96.63
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 34,
+            "hits": 22,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 81600,
+            "return_yen": 43860,
+            "profit_yen": -37740,
+            "hit_rate_pct": 64.71,
+            "roi_pct": 53.75
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 34,
+            "high5_hits": 4,
+            "manshu_hits": 0,
+            "stake_yen": 184800,
+            "return_yen": 76960,
+            "profit_yen": -107840,
+            "hit_rate_pct": 44.16,
+            "roi_pct": 41.65
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 34,
+            "hits": 23,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 81600,
+            "return_yen": 47310,
+            "profit_yen": -34290,
+            "hit_rate_pct": 67.65,
+            "roi_pct": 57.98
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 33,
+            "high5_hits": 4,
+            "manshu_hits": 1,
+            "stake_yen": 184800,
+            "return_yen": 107940,
+            "profit_yen": -76860,
+            "hit_rate_pct": 42.86,
+            "roi_pct": 58.41
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 34,
+            "hits": 15,
+            "high5_hits": 2,
+            "manshu_hits": 0,
+            "stake_yen": 81600,
+            "return_yen": 36820,
+            "profit_yen": -44780,
+            "hit_rate_pct": 44.12,
+            "roi_pct": 45.12
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 21,
+            "high5_hits": 4,
+            "manshu_hits": 0,
+            "stake_yen": 184800,
+            "return_yen": 57350,
+            "profit_yen": -127450,
+            "hit_rate_pct": 27.27,
+            "roi_pct": 31.03
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 34,
+            "hits": 16,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 81600,
+            "return_yen": 37180,
+            "profit_yen": -44420,
+            "hit_rate_pct": 47.06,
+            "roi_pct": 45.56
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 20,
+            "high5_hits": 4,
+            "manshu_hits": 1,
+            "stake_yen": 184800,
+            "return_yen": 87710,
+            "profit_yen": -97090,
+            "hit_rate_pct": 25.97,
+            "roi_pct": 47.46
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 34,
+            "hits": 19,
+            "high5_hits": 3,
+            "manshu_hits": 0,
+            "stake_yen": 81600,
+            "return_yen": 57240,
+            "profit_yen": -24360,
+            "hit_rate_pct": 55.88,
+            "roi_pct": 70.15
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 34,
+            "high5_hits": 6,
+            "manshu_hits": 3,
+            "stake_yen": 184800,
+            "return_yen": 197310,
+            "profit_yen": 12510,
+            "hit_rate_pct": 44.16,
+            "roi_pct": 106.77
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 34,
+            "hits": 15,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 81600,
+            "return_yen": 34090,
+            "profit_yen": -47510,
+            "hit_rate_pct": 44.12,
+            "roi_pct": 41.78
+          },
+          "holdout": {
+            "races": 77,
+            "hits": 20,
+            "high5_hits": 4,
+            "manshu_hits": 2,
+            "stake_yen": 184800,
+            "return_yen": 93500,
+            "profit_yen": -91300,
+            "hit_rate_pct": 25.97,
+            "roi_pct": 50.6
+          }
+        }
+      }
+    },
+    "F2R0": {
+      "training_races": 44,
+      "holdout_races": 28,
+      "proposed_policy": "top24",
+      "selection_reason": "no_training_candidate_passed_gate",
+      "train": {
+        "baseline": {
+          "races": 44,
+          "hits": 21,
+          "high5_hits": 8,
+          "manshu_hits": 4,
+          "stake_yen": 105600,
+          "return_yen": 156330,
+          "profit_yen": 50730,
+          "hit_rate_pct": 47.73,
+          "roi_pct": 148.04
+        },
+        "candidate": {
+          "races": 44,
+          "hits": 21,
+          "high5_hits": 8,
+          "manshu_hits": 4,
+          "stake_yen": 105600,
+          "return_yen": 156330,
+          "profit_yen": 50730,
+          "hit_rate_pct": 47.73,
+          "roi_pct": 148.04
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 28,
+          "hits": 15,
+          "high5_hits": 1,
+          "manshu_hits": 1,
+          "stake_yen": 67200,
+          "return_yen": 42080,
+          "profit_yen": -25120,
+          "hit_rate_pct": 53.57,
+          "roi_pct": 62.62
+        },
+        "candidate": {
+          "races": 28,
+          "hits": 15,
+          "high5_hits": 1,
+          "manshu_hits": 1,
+          "stake_yen": 67200,
+          "return_yen": 42080,
+          "profit_yen": -25120,
+          "hit_rate_pct": 53.57,
+          "roi_pct": 62.62
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 44,
+            "hits": 21,
+            "high5_hits": 8,
+            "manshu_hits": 4,
+            "stake_yen": 105600,
+            "return_yen": 156330,
+            "profit_yen": 50730,
+            "hit_rate_pct": 47.73,
+            "roi_pct": 148.04
+          },
+          "holdout": {
+            "races": 28,
+            "hits": 15,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 67200,
+            "return_yen": 42080,
+            "profit_yen": -25120,
+            "hit_rate_pct": 53.57,
+            "roi_pct": 62.62
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 44,
+            "hits": 14,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 105600,
+            "return_yen": 70510,
+            "profit_yen": -35090,
+            "hit_rate_pct": 31.82,
+            "roi_pct": 66.77
+          },
+          "holdout": {
+            "races": 28,
+            "hits": 13,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 67200,
+            "return_yen": 32860,
+            "profit_yen": -34340,
+            "hit_rate_pct": 46.43,
+            "roi_pct": 48.9
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 44,
+            "hits": 14,
+            "high5_hits": 2,
+            "manshu_hits": 2,
+            "stake_yen": 105600,
+            "return_yen": 62760,
+            "profit_yen": -42840,
+            "hit_rate_pct": 31.82,
+            "roi_pct": 59.43
+          },
+          "holdout": {
+            "races": 28,
+            "hits": 8,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 67200,
+            "return_yen": 22830,
+            "profit_yen": -44370,
+            "hit_rate_pct": 28.57,
+            "roi_pct": 33.97
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 44,
+            "hits": 11,
+            "high5_hits": 3,
+            "manshu_hits": 3,
+            "stake_yen": 105600,
+            "return_yen": 70530,
+            "profit_yen": -35070,
+            "hit_rate_pct": 25.0,
+            "roi_pct": 66.79
+          },
+          "holdout": {
+            "races": 28,
+            "hits": 8,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 67200,
+            "return_yen": 23200,
+            "profit_yen": -44000,
+            "hit_rate_pct": 28.57,
+            "roi_pct": 34.52
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 44,
+            "hits": 10,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 105600,
+            "return_yen": 42900,
+            "profit_yen": -62700,
+            "hit_rate_pct": 22.73,
+            "roi_pct": 40.62
+          },
+          "holdout": {
+            "races": 28,
+            "hits": 11,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 67200,
+            "return_yen": 75200,
+            "profit_yen": 8000,
+            "hit_rate_pct": 39.29,
+            "roi_pct": 111.9
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 44,
+            "hits": 6,
+            "high5_hits": 2,
+            "manshu_hits": 2,
+            "stake_yen": 105600,
+            "return_yen": 46360,
+            "profit_yen": -59240,
+            "hit_rate_pct": 13.64,
+            "roi_pct": 43.9
+          },
+          "holdout": {
+            "races": 28,
+            "hits": 8,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 67200,
+            "return_yen": 20940,
+            "profit_yen": -46260,
+            "hit_rate_pct": 28.57,
+            "roi_pct": 31.16
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 44,
+            "hits": 9,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 105600,
+            "return_yen": 58670,
+            "profit_yen": -46930,
+            "hit_rate_pct": 20.45,
+            "roi_pct": 55.56
+          },
+          "holdout": {
+            "races": 28,
+            "hits": 13,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 67200,
+            "return_yen": 31350,
+            "profit_yen": -35850,
+            "hit_rate_pct": 46.43,
+            "roi_pct": 46.65
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 44,
+            "hits": 6,
+            "high5_hits": 2,
+            "manshu_hits": 2,
+            "stake_yen": 105600,
+            "return_yen": 47100,
+            "profit_yen": -58500,
+            "hit_rate_pct": 13.64,
+            "roi_pct": 44.6
+          },
+          "holdout": {
+            "races": 28,
+            "hits": 8,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 67200,
+            "return_yen": 25920,
+            "profit_yen": -41280,
+            "hit_rate_pct": 28.57,
+            "roi_pct": 38.57
+          }
+        }
+      }
+    },
+    "F2R1": {
+      "training_races": 9,
+      "holdout_races": 27,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 9,
+          "hits": 8,
+          "high5_hits": 1,
+          "manshu_hits": 0,
+          "stake_yen": 21600,
+          "return_yen": 24100,
+          "profit_yen": 2500,
+          "hit_rate_pct": 88.89,
+          "roi_pct": 111.57
+        },
+        "candidate": {
+          "races": 9,
+          "hits": 8,
+          "high5_hits": 1,
+          "manshu_hits": 0,
+          "stake_yen": 21600,
+          "return_yen": 24100,
+          "profit_yen": 2500,
+          "hit_rate_pct": 88.89,
+          "roi_pct": 111.57
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 27,
+          "hits": 13,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 64800,
+          "return_yen": 24260,
+          "profit_yen": -40540,
+          "hit_rate_pct": 48.15,
+          "roi_pct": 37.44
+        },
+        "candidate": {
+          "races": 27,
+          "hits": 13,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 64800,
+          "return_yen": 24260,
+          "profit_yen": -40540,
+          "hit_rate_pct": 48.15,
+          "roi_pct": 37.44
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 9,
+            "hits": 8,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 21600,
+            "return_yen": 24100,
+            "profit_yen": 2500,
+            "hit_rate_pct": 88.89,
+            "roi_pct": 111.57
+          },
+          "holdout": {
+            "races": 27,
+            "hits": 13,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 64800,
+            "return_yen": 24260,
+            "profit_yen": -40540,
+            "hit_rate_pct": 48.15,
+            "roi_pct": 37.44
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 9,
+            "hits": 5,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 21600,
+            "return_yen": 9740,
+            "profit_yen": -11860,
+            "hit_rate_pct": 55.56,
+            "roi_pct": 45.09
+          },
+          "holdout": {
+            "races": 27,
+            "hits": 12,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 64800,
+            "return_yen": 26130,
+            "profit_yen": -38670,
+            "hit_rate_pct": 44.44,
+            "roi_pct": 40.32
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 9,
+            "hits": 4,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 21600,
+            "return_yen": 5160,
+            "profit_yen": -16440,
+            "hit_rate_pct": 44.44,
+            "roi_pct": 23.89
+          },
+          "holdout": {
+            "races": 27,
+            "hits": 13,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 64800,
+            "return_yen": 41870,
+            "profit_yen": -22930,
+            "hit_rate_pct": 48.15,
+            "roi_pct": 64.61
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 9,
+            "hits": 4,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 21600,
+            "return_yen": 5160,
+            "profit_yen": -16440,
+            "hit_rate_pct": 44.44,
+            "roi_pct": 23.89
+          },
+          "holdout": {
+            "races": 27,
+            "hits": 12,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 64800,
+            "return_yen": 27430,
+            "profit_yen": -37370,
+            "hit_rate_pct": 44.44,
+            "roi_pct": 42.33
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 9,
+            "hits": 2,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 21600,
+            "return_yen": 1460,
+            "profit_yen": -20140,
+            "hit_rate_pct": 22.22,
+            "roi_pct": 6.76
+          },
+          "holdout": {
+            "races": 27,
+            "hits": 12,
+            "high5_hits": 4,
+            "manshu_hits": 2,
+            "stake_yen": 64800,
+            "return_yen": 50950,
+            "profit_yen": -13850,
+            "hit_rate_pct": 44.44,
+            "roi_pct": 78.63
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 9,
+            "hits": 2,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 21600,
+            "return_yen": 1460,
+            "profit_yen": -20140,
+            "hit_rate_pct": 22.22,
+            "roi_pct": 6.76
+          },
+          "holdout": {
+            "races": 27,
+            "hits": 10,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 64800,
+            "return_yen": 78810,
+            "profit_yen": 14010,
+            "hit_rate_pct": 37.04,
+            "roi_pct": 121.62
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 9,
+            "hits": 3,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 21600,
+            "return_yen": 6040,
+            "profit_yen": -15560,
+            "hit_rate_pct": 33.33,
+            "roi_pct": 27.96
+          },
+          "holdout": {
+            "races": 27,
+            "hits": 10,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 64800,
+            "return_yen": 24300,
+            "profit_yen": -40500,
+            "hit_rate_pct": 37.04,
+            "roi_pct": 37.5
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 9,
+            "hits": 2,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 21600,
+            "return_yen": 1460,
+            "profit_yen": -20140,
+            "hit_rate_pct": 22.22,
+            "roi_pct": 6.76
+          },
+          "holdout": {
+            "races": 27,
+            "hits": 10,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 64800,
+            "return_yen": 58880,
+            "profit_yen": -5920,
+            "hit_rate_pct": 37.04,
+            "roi_pct": 90.86
+          }
+        }
+      }
+    },
+    "F2R2": {
+      "training_races": 23,
+      "holdout_races": 53,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 23,
+          "hits": 18,
+          "high5_hits": 4,
+          "manshu_hits": 3,
+          "stake_yen": 55200,
+          "return_yen": 76800,
+          "profit_yen": 21600,
+          "hit_rate_pct": 78.26,
+          "roi_pct": 139.13
+        },
+        "candidate": {
+          "races": 23,
+          "hits": 18,
+          "high5_hits": 4,
+          "manshu_hits": 3,
+          "stake_yen": 55200,
+          "return_yen": 76800,
+          "profit_yen": 21600,
+          "hit_rate_pct": 78.26,
+          "roi_pct": 139.13
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 53,
+          "hits": 31,
+          "high5_hits": 6,
+          "manshu_hits": 0,
+          "stake_yen": 127200,
+          "return_yen": 74230,
+          "profit_yen": -52970,
+          "hit_rate_pct": 58.49,
+          "roi_pct": 58.36
+        },
+        "candidate": {
+          "races": 53,
+          "hits": 31,
+          "high5_hits": 6,
+          "manshu_hits": 0,
+          "stake_yen": 127200,
+          "return_yen": 74230,
+          "profit_yen": -52970,
+          "hit_rate_pct": 58.49,
+          "roi_pct": 58.36
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 23,
+            "hits": 18,
+            "high5_hits": 4,
+            "manshu_hits": 3,
+            "stake_yen": 55200,
+            "return_yen": 76800,
+            "profit_yen": 21600,
+            "hit_rate_pct": 78.26,
+            "roi_pct": 139.13
+          },
+          "holdout": {
+            "races": 53,
+            "hits": 31,
+            "high5_hits": 6,
+            "manshu_hits": 0,
+            "stake_yen": 127200,
+            "return_yen": 74230,
+            "profit_yen": -52970,
+            "hit_rate_pct": 58.49,
+            "roi_pct": 58.36
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 23,
+            "hits": 14,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 55200,
+            "return_yen": 54650,
+            "profit_yen": -550,
+            "hit_rate_pct": 60.87,
+            "roi_pct": 99.0
+          },
+          "holdout": {
+            "races": 53,
+            "hits": 30,
+            "high5_hits": 5,
+            "manshu_hits": 1,
+            "stake_yen": 127200,
+            "return_yen": 88890,
+            "profit_yen": -38310,
+            "hit_rate_pct": 56.6,
+            "roi_pct": 69.88
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 23,
+            "hits": 13,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 55200,
+            "return_yen": 37520,
+            "profit_yen": -17680,
+            "hit_rate_pct": 56.52,
+            "roi_pct": 67.97
+          },
+          "holdout": {
+            "races": 53,
+            "hits": 28,
+            "high5_hits": 5,
+            "manshu_hits": 1,
+            "stake_yen": 127200,
+            "return_yen": 82380,
+            "profit_yen": -44820,
+            "hit_rate_pct": 52.83,
+            "roi_pct": 64.76
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 23,
+            "hits": 13,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 55200,
+            "return_yen": 44210,
+            "profit_yen": -10990,
+            "hit_rate_pct": 56.52,
+            "roi_pct": 80.09
+          },
+          "holdout": {
+            "races": 53,
+            "hits": 26,
+            "high5_hits": 4,
+            "manshu_hits": 1,
+            "stake_yen": 127200,
+            "return_yen": 73910,
+            "profit_yen": -53290,
+            "hit_rate_pct": 49.06,
+            "roi_pct": 58.11
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 23,
+            "hits": 10,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 55200,
+            "return_yen": 21030,
+            "profit_yen": -34170,
+            "hit_rate_pct": 43.48,
+            "roi_pct": 38.1
+          },
+          "holdout": {
+            "races": 53,
+            "hits": 16,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 127200,
+            "return_yen": 53330,
+            "profit_yen": -73870,
+            "hit_rate_pct": 30.19,
+            "roi_pct": 41.93
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 23,
+            "hits": 10,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 55200,
+            "return_yen": 27720,
+            "profit_yen": -27480,
+            "hit_rate_pct": 43.48,
+            "roi_pct": 50.22
+          },
+          "holdout": {
+            "races": 53,
+            "hits": 15,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 127200,
+            "return_yen": 46990,
+            "profit_yen": -80210,
+            "hit_rate_pct": 28.3,
+            "roi_pct": 36.94
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 23,
+            "hits": 12,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 55200,
+            "return_yen": 48200,
+            "profit_yen": -7000,
+            "hit_rate_pct": 52.17,
+            "roi_pct": 87.32
+          },
+          "holdout": {
+            "races": 53,
+            "hits": 18,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 127200,
+            "return_yen": 59840,
+            "profit_yen": -67360,
+            "hit_rate_pct": 33.96,
+            "roi_pct": 47.04
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 23,
+            "hits": 11,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 55200,
+            "return_yen": 34610,
+            "profit_yen": -20590,
+            "hit_rate_pct": 47.83,
+            "roi_pct": 62.7
+          },
+          "holdout": {
+            "races": 53,
+            "hits": 17,
+            "high5_hits": 5,
+            "manshu_hits": 2,
+            "stake_yen": 127200,
+            "return_yen": 136650,
+            "profit_yen": 9450,
+            "hit_rate_pct": 32.08,
+            "roi_pct": 107.43
+          }
+        }
+      }
+    },
+    "F2R3": {
+      "training_races": 15,
+      "holdout_races": 35,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 15,
+          "hits": 8,
+          "high5_hits": 2,
+          "manshu_hits": 1,
+          "stake_yen": 36000,
+          "return_yen": 35380,
+          "profit_yen": -620,
+          "hit_rate_pct": 53.33,
+          "roi_pct": 98.28
+        },
+        "candidate": {
+          "races": 15,
+          "hits": 8,
+          "high5_hits": 2,
+          "manshu_hits": 1,
+          "stake_yen": 36000,
+          "return_yen": 35380,
+          "profit_yen": -620,
+          "hit_rate_pct": 53.33,
+          "roi_pct": 98.28
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 35,
+          "hits": 20,
+          "high5_hits": 3,
+          "manshu_hits": 1,
+          "stake_yen": 84000,
+          "return_yen": 60930,
+          "profit_yen": -23070,
+          "hit_rate_pct": 57.14,
+          "roi_pct": 72.54
+        },
+        "candidate": {
+          "races": 35,
+          "hits": 20,
+          "high5_hits": 3,
+          "manshu_hits": 1,
+          "stake_yen": 84000,
+          "return_yen": 60930,
+          "profit_yen": -23070,
+          "hit_rate_pct": 57.14,
+          "roi_pct": 72.54
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 15,
+            "hits": 8,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 36000,
+            "return_yen": 35380,
+            "profit_yen": -620,
+            "hit_rate_pct": 53.33,
+            "roi_pct": 98.28
+          },
+          "holdout": {
+            "races": 35,
+            "hits": 20,
+            "high5_hits": 3,
+            "manshu_hits": 1,
+            "stake_yen": 84000,
+            "return_yen": 60930,
+            "profit_yen": -23070,
+            "hit_rate_pct": 57.14,
+            "roi_pct": 72.54
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 15,
+            "hits": 6,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 36000,
+            "return_yen": 28140,
+            "profit_yen": -7860,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 78.17
+          },
+          "holdout": {
+            "races": 35,
+            "hits": 20,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 84000,
+            "return_yen": 62300,
+            "profit_yen": -21700,
+            "hit_rate_pct": 57.14,
+            "roi_pct": 74.17
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 15,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 36000,
+            "return_yen": 14100,
+            "profit_yen": -21900,
+            "hit_rate_pct": 33.33,
+            "roi_pct": 39.17
+          },
+          "holdout": {
+            "races": 35,
+            "hits": 19,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 84000,
+            "return_yen": 60690,
+            "profit_yen": -23310,
+            "hit_rate_pct": 54.29,
+            "roi_pct": 72.25
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 15,
+            "hits": 4,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 36000,
+            "return_yen": 13110,
+            "profit_yen": -22890,
+            "hit_rate_pct": 26.67,
+            "roi_pct": 36.42
+          },
+          "holdout": {
+            "races": 35,
+            "hits": 17,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 84000,
+            "return_yen": 55570,
+            "profit_yen": -28430,
+            "hit_rate_pct": 48.57,
+            "roi_pct": 66.15
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 15,
+            "hits": 6,
+            "high5_hits": 2,
+            "manshu_hits": 0,
+            "stake_yen": 36000,
+            "return_yen": 20730,
+            "profit_yen": -15270,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 57.58
+          },
+          "holdout": {
+            "races": 35,
+            "hits": 14,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 84000,
+            "return_yen": 37420,
+            "profit_yen": -46580,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 44.55
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 15,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 36000,
+            "return_yen": 15410,
+            "profit_yen": -20590,
+            "hit_rate_pct": 33.33,
+            "roi_pct": 42.81
+          },
+          "holdout": {
+            "races": 35,
+            "hits": 11,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 84000,
+            "return_yen": 31030,
+            "profit_yen": -52970,
+            "hit_rate_pct": 31.43,
+            "roi_pct": 36.94
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 15,
+            "hits": 6,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 36000,
+            "return_yen": 28140,
+            "profit_yen": -7860,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 78.17
+          },
+          "holdout": {
+            "races": 35,
+            "hits": 14,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 84000,
+            "return_yen": 37760,
+            "profit_yen": -46240,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 44.95
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 15,
+            "hits": 5,
+            "high5_hits": 2,
+            "manshu_hits": 0,
+            "stake_yen": 36000,
+            "return_yen": 20890,
+            "profit_yen": -15110,
+            "hit_rate_pct": 33.33,
+            "roi_pct": 58.03
+          },
+          "holdout": {
+            "races": 35,
+            "hits": 13,
+            "high5_hits": 3,
+            "manshu_hits": 2,
+            "stake_yen": 84000,
+            "return_yen": 45190,
+            "profit_yen": -38810,
+            "hit_rate_pct": 37.14,
+            "roi_pct": 53.8
+          }
+        }
+      }
+    },
+    "F3R0": {
+      "training_races": 10,
+      "holdout_races": 12,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 10,
+          "hits": 8,
+          "high5_hits": 1,
+          "manshu_hits": 0,
+          "stake_yen": 24000,
+          "return_yen": 22300,
+          "profit_yen": -1700,
+          "hit_rate_pct": 80.0,
+          "roi_pct": 92.92
+        },
+        "candidate": {
+          "races": 10,
+          "hits": 8,
+          "high5_hits": 1,
+          "manshu_hits": 0,
+          "stake_yen": 24000,
+          "return_yen": 22300,
+          "profit_yen": -1700,
+          "hit_rate_pct": 80.0,
+          "roi_pct": 92.92
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 12,
+          "hits": 5,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 28800,
+          "return_yen": 12510,
+          "profit_yen": -16290,
+          "hit_rate_pct": 41.67,
+          "roi_pct": 43.44
+        },
+        "candidate": {
+          "races": 12,
+          "hits": 5,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 28800,
+          "return_yen": 12510,
+          "profit_yen": -16290,
+          "hit_rate_pct": 41.67,
+          "roi_pct": 43.44
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 10,
+            "hits": 8,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 24000,
+            "return_yen": 22300,
+            "profit_yen": -1700,
+            "hit_rate_pct": 80.0,
+            "roi_pct": 92.92
+          },
+          "holdout": {
+            "races": 12,
+            "hits": 5,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 28800,
+            "return_yen": 12510,
+            "profit_yen": -16290,
+            "hit_rate_pct": 41.67,
+            "roi_pct": 43.44
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 10,
+            "hits": 7,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 24000,
+            "return_yen": 19490,
+            "profit_yen": -4510,
+            "hit_rate_pct": 70.0,
+            "roi_pct": 81.21
+          },
+          "holdout": {
+            "races": 12,
+            "hits": 3,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 28800,
+            "return_yen": 5080,
+            "profit_yen": -23720,
+            "hit_rate_pct": 25.0,
+            "roi_pct": 17.64
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 10,
+            "hits": 6,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 24000,
+            "return_yen": 18770,
+            "profit_yen": -5230,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 78.21
+          },
+          "holdout": {
+            "races": 12,
+            "hits": 4,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 28800,
+            "return_yen": 7450,
+            "profit_yen": -21350,
+            "hit_rate_pct": 33.33,
+            "roi_pct": 25.87
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 10,
+            "hits": 6,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 24000,
+            "return_yen": 18770,
+            "profit_yen": -5230,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 78.21
+          },
+          "holdout": {
+            "races": 12,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 28800,
+            "return_yen": 13330,
+            "profit_yen": -15470,
+            "hit_rate_pct": 41.67,
+            "roi_pct": 46.28
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 10,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 24000,
+            "return_yen": 13890,
+            "profit_yen": -10110,
+            "hit_rate_pct": 50.0,
+            "roi_pct": 57.88
+          },
+          "holdout": {
+            "races": 12,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 28800,
+            "return_yen": 28360,
+            "profit_yen": -440,
+            "hit_rate_pct": 41.67,
+            "roi_pct": 98.47
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 10,
+            "hits": 4,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 24000,
+            "return_yen": 11400,
+            "profit_yen": -12600,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 47.5
+          },
+          "holdout": {
+            "races": 12,
+            "hits": 6,
+            "high5_hits": 2,
+            "manshu_hits": 1,
+            "stake_yen": 28800,
+            "return_yen": 27400,
+            "profit_yen": -1400,
+            "hit_rate_pct": 50.0,
+            "roi_pct": 95.14
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 10,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 24000,
+            "return_yen": 12120,
+            "profit_yen": -11880,
+            "hit_rate_pct": 50.0,
+            "roi_pct": 50.5
+          },
+          "holdout": {
+            "races": 12,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 28800,
+            "return_yen": 13330,
+            "profit_yen": -15470,
+            "hit_rate_pct": 41.67,
+            "roi_pct": 46.28
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 10,
+            "hits": 4,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 24000,
+            "return_yen": 11400,
+            "profit_yen": -12600,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 47.5
+          },
+          "holdout": {
+            "races": 12,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 28800,
+            "return_yen": 13330,
+            "profit_yen": -15470,
+            "hit_rate_pct": 41.67,
+            "roi_pct": 46.28
+          }
+        }
+      }
+    },
+    "F3R1": {
+      "training_races": 1,
+      "holdout_races": 5,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 1,
+          "hits": 1,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 2400,
+          "return_yen": 860,
+          "profit_yen": -1540,
+          "hit_rate_pct": 100.0,
+          "roi_pct": 35.83
+        },
+        "candidate": {
+          "races": 1,
+          "hits": 1,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 2400,
+          "return_yen": 860,
+          "profit_yen": -1540,
+          "hit_rate_pct": 100.0,
+          "roi_pct": 35.83
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 5,
+          "hits": 4,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 12000,
+          "return_yen": 5200,
+          "profit_yen": -6800,
+          "hit_rate_pct": 80.0,
+          "roi_pct": 43.33
+        },
+        "candidate": {
+          "races": 5,
+          "hits": 4,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 12000,
+          "return_yen": 5200,
+          "profit_yen": -6800,
+          "hit_rate_pct": 80.0,
+          "roi_pct": 43.33
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 1,
+            "hits": 1,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 860,
+            "profit_yen": -1540,
+            "hit_rate_pct": 100.0,
+            "roi_pct": 35.83
+          },
+          "holdout": {
+            "races": 5,
+            "hits": 4,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 5200,
+            "profit_yen": -6800,
+            "hit_rate_pct": 80.0,
+            "roi_pct": 43.33
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 1,
+            "hits": 1,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 860,
+            "profit_yen": -1540,
+            "hit_rate_pct": 100.0,
+            "roi_pct": 35.83
+          },
+          "holdout": {
+            "races": 5,
+            "hits": 4,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 5200,
+            "profit_yen": -6800,
+            "hit_rate_pct": 80.0,
+            "roi_pct": 43.33
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          },
+          "holdout": {
+            "races": 5,
+            "hits": 4,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 5200,
+            "profit_yen": -6800,
+            "hit_rate_pct": 80.0,
+            "roi_pct": 43.33
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          },
+          "holdout": {
+            "races": 5,
+            "hits": 4,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 5200,
+            "profit_yen": -6800,
+            "hit_rate_pct": 80.0,
+            "roi_pct": 43.33
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          },
+          "holdout": {
+            "races": 5,
+            "hits": 3,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 3440,
+            "profit_yen": -8560,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 28.67
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          },
+          "holdout": {
+            "races": 5,
+            "hits": 3,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 3440,
+            "profit_yen": -8560,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 28.67
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 1,
+            "hits": 1,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 860,
+            "profit_yen": -1540,
+            "hit_rate_pct": 100.0,
+            "roi_pct": 35.83
+          },
+          "holdout": {
+            "races": 5,
+            "hits": 3,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 3440,
+            "profit_yen": -8560,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 28.67
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          },
+          "holdout": {
+            "races": 5,
+            "hits": 4,
+            "high5_hits": 1,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 12740,
+            "profit_yen": 740,
+            "hit_rate_pct": 80.0,
+            "roi_pct": 106.17
+          }
+        }
+      }
+    },
+    "F3R2": {
+      "training_races": 5,
+      "holdout_races": 11,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 5,
+          "hits": 2,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 12000,
+          "return_yen": 4590,
+          "profit_yen": -7410,
+          "hit_rate_pct": 40.0,
+          "roi_pct": 38.25
+        },
+        "candidate": {
+          "races": 5,
+          "hits": 2,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 12000,
+          "return_yen": 4590,
+          "profit_yen": -7410,
+          "hit_rate_pct": 40.0,
+          "roi_pct": 38.25
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 11,
+          "hits": 9,
+          "high5_hits": 1,
+          "manshu_hits": 1,
+          "stake_yen": 26400,
+          "return_yen": 37490,
+          "profit_yen": 11090,
+          "hit_rate_pct": 81.82,
+          "roi_pct": 142.01
+        },
+        "candidate": {
+          "races": 11,
+          "hits": 9,
+          "high5_hits": 1,
+          "manshu_hits": 1,
+          "stake_yen": 26400,
+          "return_yen": 37490,
+          "profit_yen": 11090,
+          "hit_rate_pct": 81.82,
+          "roi_pct": 142.01
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 5,
+            "hits": 2,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 4590,
+            "profit_yen": -7410,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 38.25
+          },
+          "holdout": {
+            "races": 11,
+            "hits": 9,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 26400,
+            "return_yen": 37490,
+            "profit_yen": 11090,
+            "hit_rate_pct": 81.82,
+            "roi_pct": 142.01
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 5,
+            "hits": 3,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 7710,
+            "profit_yen": -4290,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 64.25
+          },
+          "holdout": {
+            "races": 11,
+            "hits": 9,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 26400,
+            "return_yen": 37490,
+            "profit_yen": 11090,
+            "hit_rate_pct": 81.82,
+            "roi_pct": 142.01
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 5,
+            "hits": 3,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 7710,
+            "profit_yen": -4290,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 64.25
+          },
+          "holdout": {
+            "races": 11,
+            "hits": 8,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 26400,
+            "return_yen": 34480,
+            "profit_yen": 8080,
+            "hit_rate_pct": 72.73,
+            "roi_pct": 130.61
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 5,
+            "hits": 3,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 7710,
+            "profit_yen": -4290,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 64.25
+          },
+          "holdout": {
+            "races": 11,
+            "hits": 8,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 26400,
+            "return_yen": 34480,
+            "profit_yen": 8080,
+            "hit_rate_pct": 72.73,
+            "roi_pct": 130.61
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 5,
+            "hits": 3,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 12000,
+            "return_yen": 20020,
+            "profit_yen": 8020,
+            "hit_rate_pct": 60.0,
+            "roi_pct": 166.83
+          },
+          "holdout": {
+            "races": 11,
+            "hits": 4,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 26400,
+            "return_yen": 29150,
+            "profit_yen": 2750,
+            "hit_rate_pct": 36.36,
+            "roi_pct": 110.42
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 5,
+            "hits": 2,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 3440,
+            "profit_yen": -8560,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 28.67
+          },
+          "holdout": {
+            "races": 11,
+            "hits": 4,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 26400,
+            "return_yen": 29150,
+            "profit_yen": 2750,
+            "hit_rate_pct": 36.36,
+            "roi_pct": 110.42
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 5,
+            "hits": 2,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 3440,
+            "profit_yen": -8560,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 28.67
+          },
+          "holdout": {
+            "races": 11,
+            "hits": 5,
+            "high5_hits": 1,
+            "manshu_hits": 1,
+            "stake_yen": 26400,
+            "return_yen": 32160,
+            "profit_yen": 5760,
+            "hit_rate_pct": 45.45,
+            "roi_pct": 121.82
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 5,
+            "hits": 2,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 12000,
+            "return_yen": 3440,
+            "profit_yen": -8560,
+            "hit_rate_pct": 40.0,
+            "roi_pct": 28.67
+          },
+          "holdout": {
+            "races": 11,
+            "hits": 5,
+            "high5_hits": 2,
+            "manshu_hits": 2,
+            "stake_yen": 26400,
+            "return_yen": 46900,
+            "profit_yen": 20500,
+            "hit_rate_pct": 45.45,
+            "roi_pct": 177.65
+          }
+        }
+      }
+    },
+    "F3R3": {
+      "training_races": 0,
+      "holdout_races": 1,
+      "proposed_policy": "top24",
+      "selection_reason": "insufficient_training_races",
+      "train": {
+        "baseline": {
+          "races": 0,
+          "hits": 0,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 0,
+          "return_yen": 0,
+          "profit_yen": 0,
+          "hit_rate_pct": null,
+          "roi_pct": null
+        },
+        "candidate": {
+          "races": 0,
+          "hits": 0,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 0,
+          "return_yen": 0,
+          "profit_yen": 0,
+          "hit_rate_pct": null,
+          "roi_pct": null
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "races": 1,
+          "hits": 0,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 2400,
+          "return_yen": 0,
+          "profit_yen": -2400,
+          "hit_rate_pct": 0.0,
+          "roi_pct": 0.0
+        },
+        "candidate": {
+          "races": 1,
+          "hits": 0,
+          "high5_hits": 0,
+          "manshu_hits": 0,
+          "stake_yen": 2400,
+          "return_yen": 0,
+          "profit_yen": -2400,
+          "hit_rate_pct": 0.0,
+          "roi_pct": 0.0
+        }
+      },
+      "all_fixed_policy_comparisons": {
+        "top24": {
+          "train": {
+            "races": 0,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 0,
+            "return_yen": 0,
+            "profit_yen": 0,
+            "hit_rate_pct": null,
+            "roi_pct": null
+          },
+          "holdout": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          }
+        },
+        "head18_mid6": {
+          "train": {
+            "races": 0,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 0,
+            "return_yen": 0,
+            "profit_yen": 0,
+            "hit_rate_pct": null,
+            "roi_pct": null
+          },
+          "holdout": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          }
+        },
+        "head12_mid12": {
+          "train": {
+            "races": 0,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 0,
+            "return_yen": 0,
+            "profit_yen": 0,
+            "hit_rate_pct": null,
+            "roi_pct": null
+          },
+          "holdout": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          }
+        },
+        "head12_mid6_tail6": {
+          "train": {
+            "races": 0,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 0,
+            "return_yen": 0,
+            "profit_yen": 0,
+            "hit_rate_pct": null,
+            "roi_pct": null
+          },
+          "holdout": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          }
+        },
+        "head6_mid18": {
+          "train": {
+            "races": 0,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 0,
+            "return_yen": 0,
+            "profit_yen": 0,
+            "hit_rate_pct": null,
+            "roi_pct": null
+          },
+          "holdout": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          }
+        },
+        "head6_mid6_tail12": {
+          "train": {
+            "races": 0,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 0,
+            "return_yen": 0,
+            "profit_yen": 0,
+            "hit_rate_pct": null,
+            "roi_pct": null
+          },
+          "holdout": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          }
+        },
+        "spread_6x4": {
+          "train": {
+            "races": 0,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 0,
+            "return_yen": 0,
+            "profit_yen": 0,
+            "hit_rate_pct": null,
+            "roi_pct": null
+          },
+          "holdout": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          }
+        },
+        "wide_6x4": {
+          "train": {
+            "races": 0,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 0,
+            "return_yen": 0,
+            "profit_yen": 0,
+            "hit_rate_pct": null,
+            "roi_pct": null
+          },
+          "holdout": {
+            "races": 1,
+            "hits": 0,
+            "high5_hits": 0,
+            "manshu_hits": 0,
+            "stake_yen": 2400,
+            "return_yen": 0,
+            "profit_yen": -2400,
+            "hit_rate_pct": 0.0,
+            "roi_pct": 0.0
+          }
+        }
+      }
+    }
+  },
+  "warning": "分割はレース日付順だが、元データに事後復元/取得時刻の未立証データを含む。未来の実運用成績を示す前向き検証ではない。候補選択には前半データのみを使用し、後半7日は評価専用。ホールドアウトの成績を見て再選択しない。F0R0は専用AI非発動で購入対象外。購入ロジック・現行24点は変更しない。"
+}
