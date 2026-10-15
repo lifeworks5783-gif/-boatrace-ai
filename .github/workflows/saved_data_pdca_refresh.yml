@@ -257,6 +257,53 @@ jobs:
           python -u collectors/evaluate_buying_strategy_pdca.py
           test -s evaluations/pdca_buying_strategy/latest/summary.json
 
+      - name: 保存済み朝入力が無い場合は過去情報だけで分析専用に復元
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIGINAL="daily_inputs/$YEAR/$MONTH/$DAY/prediction_input_enriched_morning_$TARGET_DATE.json"
+          if [ -s "$ORIGINAL" ] || [ -s "data/prediction_input_enriched_morning_$TARGET_DATE.json" ]; then
+            echo "ORIGINAL_MORNING_ANALYSIS_INPUT_PRESENT"
+            exit 0
+          fi
+          # Earlier V4 saved scores but not the enriched morning input.
+          # Reconstruct ANALYSIS-ONLY input from immutable morning program and
+          # archived history strictly older than the target day.
+          echo "ANALYSIS_ONLY_MORNING_INPUT_RECONSTRUCTION $TARGET_DATE"
+          BASE="daily_inputs/$YEAR/$MONTH/$DAY/base"
+          cp "$BASE/program_races_$TARGET_DATE.csv" data/
+          cp "$BASE/program_entries_$TARGET_DATE.csv" data/
+          python -u collectors/build_history_features.py --as-of "$TARGET_DATE"
+          python -u collectors/build_prediction_input.py --date "$TARGET_DATE" --stage morning
+          python -u collectors/enrich_prediction_input.py --date "$TARGET_DATE" --stage morning
+          test -s "data/prediction_input_enriched_morning_$TARGET_DATE.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=os.environ['TARGET_DATE']
+          root=Path('evaluations')/d[:4]/d[4:6]/d[6:8]/'data_quality'
+          payload=json.loads(Path(f'data/prediction_input_enriched_validation_morning_{d}.json').read_text())
+          if payload.get('status')!='PASS':
+              raise SystemExit('Reconstructed analysis input failed validation')
+          hist=json.loads(Path('features/history_features_manifest.json').read_text())
+          if str(hist.get('as_of_date','')).replace('-','') != d:
+              raise SystemExit('Historical feature as_of mismatch')
+          history_max=str(hist.get('history_max_date') or '').replace('-','')
+          if history_max and history_max >= d:
+              raise SystemExit('Outcome leakage: history is not strictly older than prediction day')
+          root.mkdir(parents=True,exist_ok=True)
+          (root/f'morning_analysis_input_provenance_{d}.json').write_text(
+              json.dumps({'date':d,'status':'analysis_only_reconstructed',
+                 'not_original_pre_race_snapshot':True,
+                 'production_predictions_modified':False,
+                 'history_as_of':hist.get('as_of_date'),
+                 'history_max_date':hist.get('history_max_date'),
+                 'source':'saved morning program + pre-date history only',
+                 'limitation':'May differ from the original morning feature snapshot; do not claim pre-deadline observation'},
+                 ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('ANALYSIS_ONLY_PRE_DATE_HISTORY_RECONSTRUCTION_PASS',d)
+          PY
+
       - name: 単体要素と直前要素の分析を日別保存
         run: |
           python -u collectors/prepare_live_analysis_input.py --date "$TARGET_DATE"
