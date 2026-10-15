@@ -74,6 +74,15 @@ jobs:
           python -u collectors/build_prediction_input.py --stage "$MODE"
           python -u collectors/enrich_prediction_input.py --date "$DAY" --stage "$MODE"
           if [ "$MODE" = morning ]; then
+            # Preserve the actual morning feature input for later analysis.
+            # The source was computed BEFORE race results and must not be
+            # retroactively replaced by a historical reconstruction.
+            INPUT_SAVE="daily_inputs/${DAY:0:4}/${DAY:4:2}/${DAY:6:2}"
+            mkdir -p "$INPUT_SAVE"
+            for name in prediction_input_morning prediction_input_enriched_morning prediction_input_enriched_validation_morning; do
+              test -s "data/${name}_$DAY.json"
+              cp "data/${name}_$DAY.json" "$INPUT_SAVE/"
+            done
             OUT="predictions/$(echo "$DAY" | cut -c1-4)/$(echo "$DAY" | cut -c5-6)/$(echo "$DAY" | cut -c7-8)"
             mkdir -p "$OUT"
             if [ -s "$OUT/morning_predictions_$DAY.json" ]; then
@@ -133,7 +142,12 @@ jobs:
           git config user.email boatrace-v4-research-bot@users.noreply.github.com
           git add "$OUT" predictions/latest.json predictions/latest.md \
             predictions/latest_by_deadline.json predictions/latest_by_deadline.md
-          if [ "$V4_MODE" = morning ]; then git add features; fi
+          if [ "$V4_MODE" = morning ]; then
+            INPUT_SAVE="daily_inputs/${DAY:0:4}/${DAY:4:2}/${DAY:6:2}"
+            git add features "$INPUT_SAVE/prediction_input_morning_$DAY.json" \
+              "$INPUT_SAVE/prediction_input_enriched_morning_$DAY.json" \
+              "$INPUT_SAVE/prediction_input_enriched_validation_morning_$DAY.json"
+          fi
           if git diff --cached --quiet; then
             echo "No changed outputs"
             exit 0

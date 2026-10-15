@@ -1,0 +1,58 @@
+name: PDCA morning historical analysis regression
+on:
+  pull_request:
+    paths:
+      - .github/workflows/saved_data_pdca_refresh.yml
+      - .github/workflows/v4_stage3_predict.yml
+      - .github/workflows/pdca_morning_analysis_regression.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -q requests beautifulsoup4 lhafile pandas numpy scipy
+      - name: Audit immutable V4 morning-save and leak-free fallback contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source=Path('.github/workflows/v4_stage3_predict.yml').read_text()
+          assert 'cp "data/${name}_$DAY.json" "$INPUT_SAVE/"' in source
+          assert 'prediction_input_enriched_validation_morning' in source
+          history=Path('.github/workflows/saved_data_pdca_refresh.yml').read_text()
+          assert '--as-of "$TARGET_DATE"' in history
+          assert "'not_original_pre_race_snapshot':True" in history
+          assert "history_max >= d" in history
+          assert 'python -u collectors/prepare_live_analysis_input.py --date "$TARGET_DATE"' in history
+          PY
+      - name: Historical analysis-only source 20261015 full smoke
+        run: |
+          set -euo pipefail
+          cp daily_inputs/2026/10/15/base/program_races_20261015.csv data/
+          cp daily_inputs/2026/10/15/base/program_entries_20261015.csv data/
+          python -u collectors/build_history_features.py --as-of 20261015 > /tmp/historical-features.log
+          python -u collectors/build_prediction_input.py --date 20261015 --stage morning > /tmp/morning-input.log
+          python -u collectors/enrich_prediction_input.py --date 20261015 --stage morning > /tmp/morning-enrich.log
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('features/history_features_manifest.json').read_text())
+          d='20261015'
+          assert str(a['as_of_date']).replace('-','')==d
+          assert str(a['history_max_date']).replace('-','')<d
+          v=json.loads(Path('data/prediction_input_enriched_validation_morning_20261015.json').read_text())
+          assert v['status']=='PASS'
+          print('NO_POST_RESULT_HISTORY_LEAKAGE_PASS', a['history_max_date'])
+          PY
+          python -u collectors/prepare_live_analysis_input.py --date 20261015
+          python -u collectors/analyze_score_components.py --date 20261015 > /tmp/score-analysis.log
+          python -u collectors/analyze_live_factors.py --date 20261015 > /tmp/live-analysis.log
+          test -s evaluations/2026/10/15/score_component_analysis_20261015.json
+          test -s evaluations/2026/10/15/live_factor_analysis_20261015.json
+          echo "MORNING_INPUT_AND_COMPONENT_ANALYSIS_COMPLETE"
