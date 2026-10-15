@@ -1,0 +1,54 @@
+name: Cloudflare D1 official capture received (staged)
+on:
+  repository_dispatch:
+    types: [cloudflare_beforeinfo_ready]
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: cloudflare-d1-official-event
+  cancel-in-progress: false
+jobs:
+  verify-and-dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Validate official capture identity, age and D1 readiness
+        id: verify
+        env:
+          EVENT_JSON: ${{ toJson(github.event.client_payload) }}
+        run: |
+          python3 - <<'PY'
+          import json,os,re,datetime
+          from urllib.parse import urlencode
+          from urllib.request import Request,urlopen
+          p=json.loads(os.environ["EVENT_JSON"])
+          day=str(p.get("date") or "")
+          ids=p.get("race_ids") or []
+          today=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y%m%d")
+          if day!=today or not isinstance(ids,list) or not 1<=len(ids)<=4 or len(ids)!=len(set(ids)):
+              raise SystemExit("Invalid or expired D1 event")
+          if any(not re.fullmatch(day+r"-\\d{2}-(0[1-9]|1[0-2])",str(x)) for x in ids):
+              raise SystemExit("Invalid official race IDs")
+          base="https://boatrace-v2-collector.life-works5782.workers.dev/public/official-beforeinfo"
+          req=Request(base+"?"+urlencode({"date":day,"race_ids":",".join(ids)}),
+                     headers={"Accept":"application/json","User-Agent":"boatrace-repository-dispatch-verified"})
+          with urlopen(req,timeout=12) as r: x=json.loads(r.read(600000))
+          if x.get("date")!=day or x.get("schema")!="boatrace-public-official-beforeinfo-v1":
+              raise SystemExit("Cloudflare D1 identity mismatch")
+          found=[r["race_id"] for r in x.get("snapshots",[])]
+          if not found:
+              print("Cloudflare event expired or official data not yet transferable; no new calculation",flush=True)
+              with open(os.environ["GITHUB_OUTPUT"],"a") as f:f.write("ready=false\\n")
+          else:
+              print("CLOUDFLARE_D1_VERIFIED",day,len(found),flush=True)
+              with open(os.environ["GITHUB_OUTPUT"],"a") as f:f.write("ready=true\\n")
+          PY
+      - name: Start existing full AI and Fujin/Raijin calculation chain
+        if: steps.verify.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run fast_live_collection_v3.yml --repo "$GITHUB_REPOSITORY" --ref main -f quick_mode=true
+          echo "CLOUDFLARE_TRIGGERED_EXISTING_LIVE_PIPELINE"
