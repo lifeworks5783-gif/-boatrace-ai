@@ -59,14 +59,6 @@ jobs:
             done
           fi
 
-      - name: 家族共有の朝予測ページを更新
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh workflow run family_prediction_page.yml --ref main
-          echo "朝予測の家族共有ページ更新を開始しました。"
-
       - name: 履歴特徴量と朝予測入力を生成
         run: |
           python -u collectors/build_history_features.py --as-of "$TARGET_DATE"
@@ -107,3 +99,18 @@ jobs:
             git pull --rebase origin main
             git push origin main
           fi
+      - name: 保存完了後に当日最新予想を軽量公開
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Publish only AFTER the canonical morning/formation prediction has
+          # been saved. Heavy historical PDCA must never delay current page.
+          CANONICAL="predictions/${YEAR}/${MONTH}/${DAY}/live/formation_predictions_final_${TARGET_DATE}.json"
+          git fetch origin main
+          git show "origin/main:${CANONICAL}" >/dev/null || {
+            echo "::error::Saved canonical missing after morning commit: ${CANONICAL}"
+            exit 1
+          }
+          gh workflow run fast_family_prediction_page.yml --ref main -f target_date="${TARGET_DATE}"
+          echo "朝予測の最新ページ（${TARGET_DATE}）優先公開を開始しました"
