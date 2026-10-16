@@ -41,12 +41,29 @@ def preserve_closed_prediction(previous: dict, proposed: dict, now: datetime) ->
                 return previous
         return proposed
     proposed_time = _time(proposed.get("generated_at"))
-    if (
-        previous.get("prediction_type") == "朝"
-        and proposed.get("prediction_type") == "直前"
-        and proposed_time
+    current_quality = proposed.get("prediction_quality") or {}
+    prior_quality = previous.get("prediction_quality") or {}
+    # A previously published "直前・補完" is NOT genuine live evidence.
+    # Do not freeze a morning-derived placeholder when verified real live
+    # scores were calculated before the original deadline (e.g. race 08-04).
+    # This restores the contemporaneous live record, not a later simulation.
+    genuine_live = (
+        proposed.get("prediction_type") == "直前"
+        and proposed_time is not None
         and proposed_time <= deadline
+        and current_quality.get("status") == "normal"
+        and not current_quality.get("signal_blocked")
+        and not current_quality.get("recovery_needed")
+        and len(proposed.get("boats") or []) == 6
+        and all(
+            b.get("score") is not None and not b.get("score_fallback")
+            for b in (proposed.get("boats") or [])
+        )
+    )
+    if genuine_live and (
+        previous.get("prediction_type") == "朝"
+        or prior_quality.get("fallback_source") == "saved_morning_prediction"
+        or prior_quality.get("signal_blocked") is True
     ):
-        # Originally captured live prediction can be restored without fabrication.
         return proposed
     return previous
