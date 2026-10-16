@@ -116,8 +116,26 @@ jobs:
 
           git commit -m "Archive morning prediction data ${TARGET_DATE}"
 
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push origin HEAD:"${GITHUB_REF_NAME}"
+          # Another morning writer may advance main between pull and push.
+          # Rebase and retry safely; never force-push or overwrite the canonical score.
+          PUSH_OK=0
+          for attempt in 1 2 3 4; do
+            git fetch origin "${GITHUB_REF_NAME}"
+            if ! git rebase "origin/${GITHUB_REF_NAME}"; then
+              git rebase --abort || true
+              echo "::error::Morning archive conflicted with a newer canonical commit"
+              exit 1
+            fi
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              PUSH_OK=1
+              break
+            fi
+            sleep "$((attempt * 2))"
+          done
+          if [ "$PUSH_OK" -ne 1 ]; then
+            echo "::error::Morning archive Git push failed after bounded safe retries"
+            exit 1
+          fi
 
           echo "========================================"
           echo "朝版prediction_input保存完了"
