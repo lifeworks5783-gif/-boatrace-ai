@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "model_version": "formation_gap_flow_v2",
   "target_date": "20261016",
-  "generated_at": "2026-10-16T17:58:26+09:00",
+  "generated_at": "2026-10-16T18:02:17+09:00",
   "race_count": 156,
   "simulation_rule": "3連単各組み合わせ100円固定",
   "races": [
@@ -10422,9 +10422,9 @@
         "recovery_needed": false,
         "signal_blocked": false,
         "verified_scratched_boats": [],
-        "original_score_generated_at": "2026-10-16T17:26:00+09:00"
+        "original_score_generated_at": "2026-10-16T18:02:17+09:00"
       },
-      "generated_at": "2026-10-16T17:26:00+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -15601,7 +15601,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -28097,53 +28097,82 @@
       "venue_name": "桐生",
       "race": 7,
       "deadline": "2026-10-16T18:17:00+09:00",
-      "prediction_type": "朝",
+      "prediction_type": "直前",
       "prediction_quality": {
         "status": "normal",
         "mark": "",
         "label": "正常",
         "recovery_needed": false,
+        "signal_blocked": false,
+        "verified_scratched_boats": [],
+        "boat_fallbacks": [],
         "reason": [],
-        "fallback_source": null
+        "fallback_source": null,
+        "request_started_before_deadline": true,
+        "request_grace_used": false,
+        "recorded_at": "2026-10-16T18:02:17+09:00"
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
           "boat": 5,
           "racer_name": "深川和仁",
-          "score": 64.8,
-          "morning_score_reference": null,
+          "score": 62.84,
+          "morning_score_reference": 64.8,
           "score_fallback": false,
           "score_fallback_reasons": [],
           "grade": "B1",
           "registration_no": 4220,
           "motor_no": 48,
           "boat_no": 31,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 5,
+          "exhibition_time": 6.7,
+          "exhibition_st": 0.17,
+          "exhibition_f": false,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.6
+              "raw_score_0_1": 0.6,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.2
+              "raw_score_0_1": 0.2,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.84
+              "raw_score_0_1": 0.84,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 1.0
+              "raw_score_0_1": 1.0,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 1.0
+              "raw_score_0_1": 1.0,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.648,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 1.0,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 0.357417,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -28154,6 +28183,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 17,
               "finish_samples": 16,
@@ -28259,8 +28289,75 @@
               "venue_code": "01",
               "features": null
             },
-            "course_used": 5,
-            "neutral_rank_features": [],
+            "racer_course": {
+              "available": true,
+              "current_course": 5,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 2,
+                  "finish_samples": 2,
+                  "avg_finish": 1.0,
+                  "win_rate": 1.0,
+                  "top2_rate": 1.0,
+                  "top3_rate": 1.0,
+                  "st_samples": 2,
+                  "avg_st": 0.105,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 2,
+                  "avg_exhibition": 6.825
+                },
+                "d90": {
+                  "starts": 9,
+                  "finish_samples": 9,
+                  "avg_finish": 3.44444,
+                  "win_rate": 0.22222,
+                  "top2_rate": 0.22222,
+                  "top3_rate": 0.33333,
+                  "st_samples": 9,
+                  "avg_st": 0.13444,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 9,
+                  "avg_exhibition": 6.88222
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.77778,
+                  "top2_rate_30v90": 0.77778,
+                  "top3_rate_30v90": 0.66667,
+                  "avg_finish_30v90": -2.44444,
+                  "avg_st_30v90": -0.02944,
+                  "avg_exhibition_30v90": -0.05722
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 5,
+              "exhibition_time": 6.7,
+              "exhibition_st_raw": ".17",
+              "exhibition_st": 0.17,
+              "exhibition_f": false,
+              "tilt": -0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "曇り",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 21.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 4,
+                "wind_direction": "東北東",
+                "wave_height_cm": 3.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -28299,8 +28396,20 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "曇り",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 21.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 4,
+                    "wind_direction": "東北東",
+                    "wave_height_cm": 3.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
@@ -28310,38 +28419,61 @@
           "rank": 2,
           "boat": 1,
           "racer_name": "尾崎雄二",
-          "score": 63.5,
-          "morning_score_reference": null,
+          "score": 60.0,
+          "morning_score_reference": 63.5,
           "score_fallback": false,
           "score_fallback_reasons": [],
           "grade": "A2",
           "registration_no": 4695,
           "motor_no": 25,
           "boat_no": 50,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 1,
+          "exhibition_time": 6.72,
+          "exhibition_st": -0.06,
+          "exhibition_f": true,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.9
+              "raw_score_0_1": 0.9,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.8
+              "raw_score_0_1": 0.8,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.2
+              "raw_score_0_1": 0.2,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.3
+              "raw_score_0_1": 0.3,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.4
+              "raw_score_0_1": 0.4,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.635,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 0.4,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -28352,6 +28484,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 20,
               "finish_samples": 20,
@@ -28498,8 +28631,75 @@
                 }
               }
             },
-            "course_used": 1,
-            "neutral_rank_features": [],
+            "racer_course": {
+              "available": true,
+              "current_course": 1,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 4,
+                  "finish_samples": 4,
+                  "avg_finish": 2.0,
+                  "win_rate": 0.5,
+                  "top2_rate": 0.75,
+                  "top3_rate": 0.75,
+                  "st_samples": 4,
+                  "avg_st": 0.14,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 4,
+                  "avg_exhibition": 6.86
+                },
+                "d90": {
+                  "starts": 12,
+                  "finish_samples": 12,
+                  "avg_finish": 1.66667,
+                  "win_rate": 0.58333,
+                  "top2_rate": 0.83333,
+                  "top3_rate": 0.91667,
+                  "st_samples": 12,
+                  "avg_st": 0.14333,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 12,
+                  "avg_exhibition": 6.8725
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": -0.08333,
+                  "top2_rate_30v90": -0.08333,
+                  "top3_rate_30v90": -0.16667,
+                  "avg_finish_30v90": 0.33333,
+                  "avg_st_30v90": -0.00333,
+                  "avg_exhibition_30v90": -0.0125
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 1,
+              "exhibition_time": 6.72,
+              "exhibition_st_raw": "F.06",
+              "exhibition_st": -0.06,
+              "exhibition_f": true,
+              "tilt": -0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "曇り",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 21.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 4,
+                "wind_direction": "東北東",
+                "wave_height_cm": 3.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -28538,8 +28738,20 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "曇り",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 21.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 4,
+                    "wind_direction": "東北東",
+                    "wave_height_cm": 3.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
@@ -28549,38 +28761,61 @@
           "rank": 3,
           "boat": 4,
           "racer_name": "内山文典",
-          "score": 60.5,
-          "morning_score_reference": null,
+          "score": 56.5,
+          "morning_score_reference": 60.5,
           "score_fallback": false,
           "score_fallback_reasons": [],
           "grade": "B1",
           "registration_no": 3105,
           "motor_no": 64,
           "boat_no": 54,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 4,
+          "exhibition_time": 6.91,
+          "exhibition_st": 0.14,
+          "exhibition_f": false,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.6
+              "raw_score_0_1": 0.6,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.4
+              "raw_score_0_1": 0.4,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.8
+              "raw_score_0_1": 0.8,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.7
+              "raw_score_0_1": 0.7,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.6
+              "raw_score_0_1": 0.6,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.605,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 0.578333,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -28591,6 +28826,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 16,
               "finish_samples": 16,
@@ -28696,8 +28932,75 @@
               "venue_code": "01",
               "features": null
             },
-            "course_used": 4,
-            "neutral_rank_features": [],
+            "racer_course": {
+              "available": true,
+              "current_course": 4,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 3,
+                  "finish_samples": 3,
+                  "avg_finish": 3.0,
+                  "win_rate": 0.33333,
+                  "top2_rate": 0.66667,
+                  "top3_rate": 0.66667,
+                  "st_samples": 3,
+                  "avg_st": 0.06,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 3,
+                  "avg_exhibition": 6.80667
+                },
+                "d90": {
+                  "starts": 8,
+                  "finish_samples": 8,
+                  "avg_finish": 3.75,
+                  "win_rate": 0.125,
+                  "top2_rate": 0.375,
+                  "top3_rate": 0.375,
+                  "st_samples": 8,
+                  "avg_st": 0.13875,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 8,
+                  "avg_exhibition": 6.84125
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.20833,
+                  "top2_rate_30v90": 0.29167,
+                  "top3_rate_30v90": 0.29167,
+                  "avg_finish_30v90": -0.75,
+                  "avg_st_30v90": -0.07875,
+                  "avg_exhibition_30v90": -0.03458
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 4,
+              "exhibition_time": 6.91,
+              "exhibition_st_raw": ".14",
+              "exhibition_st": 0.14,
+              "exhibition_f": false,
+              "tilt": -0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "曇り",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 21.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 4,
+                "wind_direction": "東北東",
+                "wave_height_cm": 3.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -28736,8 +29039,20 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "曇り",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 21.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 4,
+                    "wind_direction": "東北東",
+                    "wave_height_cm": 3.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
@@ -28747,38 +29062,61 @@
           "rank": 4,
           "boat": 3,
           "racer_name": "金子賢志",
-          "score": 60.3,
-          "morning_score_reference": null,
+          "score": 56.24,
+          "morning_score_reference": 60.3,
           "score_fallback": false,
           "score_fallback_reasons": [],
           "grade": "A1",
           "registration_no": 4539,
           "motor_no": 74,
           "boat_no": 59,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 3,
+          "exhibition_time": 6.89,
+          "exhibition_st": -0.03,
+          "exhibition_f": true,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.54
+              "raw_score_0_1": 0.54,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 1.0
+              "raw_score_0_1": 1.0,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.16
+              "raw_score_0_1": 0.16,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.7
+              "raw_score_0_1": 0.7,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.8
+              "raw_score_0_1": 0.8,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.603,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.4,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 0.4,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -28789,6 +29127,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 22,
               "finish_samples": 22,
@@ -28935,8 +29274,75 @@
                 }
               }
             },
-            "course_used": 3,
-            "neutral_rank_features": [],
+            "racer_course": {
+              "available": true,
+              "current_course": 3,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 2,
+                  "finish_samples": 2,
+                  "avg_finish": 3.5,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.5,
+                  "top3_rate": 0.5,
+                  "st_samples": 2,
+                  "avg_st": 0.12,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 2,
+                  "avg_exhibition": 6.71
+                },
+                "d90": {
+                  "starts": 15,
+                  "finish_samples": 15,
+                  "avg_finish": 3.53333,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.26667,
+                  "top3_rate": 0.66667,
+                  "st_samples": 15,
+                  "avg_st": 0.12733,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 15,
+                  "avg_exhibition": 6.786
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.23333,
+                  "top3_rate_30v90": -0.16667,
+                  "avg_finish_30v90": -0.03333,
+                  "avg_st_30v90": -0.00733,
+                  "avg_exhibition_30v90": -0.076
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 3,
+              "exhibition_time": 6.89,
+              "exhibition_st_raw": "F.03",
+              "exhibition_st": -0.03,
+              "exhibition_f": true,
+              "tilt": 0.0,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "曇り",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 21.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 4,
+                "wind_direction": "東北東",
+                "wave_height_cm": 3.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -28975,8 +29381,20 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "曇り",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 21.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 4,
+                    "wind_direction": "東北東",
+                    "wave_height_cm": 3.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
@@ -28986,38 +29404,61 @@
           "rank": 5,
           "boat": 2,
           "racer_name": "西尾亮輔",
-          "score": 29.3,
-          "morning_score_reference": null,
+          "score": 38.64,
+          "morning_score_reference": 29.3,
           "score_fallback": false,
           "score_fallback_reasons": [],
           "grade": "B1",
           "registration_no": 4752,
           "motor_no": 28,
           "boat_no": 19,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 2,
+          "exhibition_time": 6.9,
+          "exhibition_st": 0.0,
+          "exhibition_f": false,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.2
+              "raw_score_0_1": 0.2,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.6
+              "raw_score_0_1": 0.6,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.24
+              "raw_score_0_1": 0.24,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.3
+              "raw_score_0_1": 0.3,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.2
+              "raw_score_0_1": 0.2,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.293,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.2,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 1.0,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -29028,6 +29469,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 21,
               "finish_samples": 21,
@@ -29133,8 +29575,75 @@
               "venue_code": "01",
               "features": null
             },
-            "course_used": 2,
-            "neutral_rank_features": [],
+            "racer_course": {
+              "available": true,
+              "current_course": 2,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 1,
+                  "finish_samples": 1,
+                  "avg_finish": 2.0,
+                  "win_rate": 0.0,
+                  "top2_rate": 1.0,
+                  "top3_rate": 1.0,
+                  "st_samples": 1,
+                  "avg_st": 0.06,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 1,
+                  "avg_exhibition": 6.88
+                },
+                "d90": {
+                  "starts": 7,
+                  "finish_samples": 7,
+                  "avg_finish": 4.28571,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.14286,
+                  "top3_rate": 0.14286,
+                  "st_samples": 7,
+                  "avg_st": 0.13857,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 7,
+                  "avg_exhibition": 6.84571
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": 0.0,
+                  "top2_rate_30v90": 0.85714,
+                  "top3_rate_30v90": 0.85714,
+                  "avg_finish_30v90": -2.28571,
+                  "avg_st_30v90": -0.07857,
+                  "avg_exhibition_30v90": 0.03429
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 2,
+              "exhibition_time": 6.9,
+              "exhibition_st_raw": ".00",
+              "exhibition_st": 0.0,
+              "exhibition_f": false,
+              "tilt": -0.5,
+              "change_parts": ""
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "曇り",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 21.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 4,
+                "wind_direction": "東北東",
+                "wave_height_cm": 3.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -29173,8 +29682,20 @@
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "曇り",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 21.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 4,
+                    "wind_direction": "東北東",
+                    "wave_height_cm": 3.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
@@ -29184,38 +29705,61 @@
           "rank": 6,
           "boat": 6,
           "racer_name": "幸野史明",
-          "score": 21.6,
-          "morning_score_reference": null,
+          "score": 36.08,
+          "morning_score_reference": 21.6,
           "score_fallback": false,
           "score_fallback_reasons": [],
           "grade": "B1",
           "registration_no": 4406,
           "motor_no": 49,
           "boat_no": 72,
-          "exhibition_course": null,
-          "exhibition_time": null,
-          "exhibition_st": null,
-          "exhibition_f": null,
+          "exhibition_course": 6,
+          "exhibition_time": 6.71,
+          "exhibition_st": 0.04,
+          "exhibition_f": false,
           "components": {
             "racer_course": {
               "weight": 40,
-              "raw_score_0_1": 0.16
+              "raw_score_0_1": 0.16,
+              "available": true
             },
             "grade": {
               "weight": 20,
-              "raw_score_0_1": 0.0
+              "raw_score_0_1": 0.0,
+              "available": true
             },
             "motor": {
               "weight": 20,
-              "raw_score_0_1": 0.76
+              "raw_score_0_1": 0.76,
+              "available": true
             },
             "boat": {
               "weight": 5,
-              "raw_score_0_1": 0.0
+              "raw_score_0_1": 0.0,
+              "available": true
             },
             "national_top2": {
               "weight": 15,
-              "raw_score_0_1": 0.0
+              "raw_score_0_1": 0.0,
+              "available": true
+            },
+            "structural": {
+              "weight": 80,
+              "raw_score_0_1": 0.216,
+              "available": true
+            },
+            "exTime": {
+              "weight": 6,
+              "raw_score_0_1": 0.8,
+              "available": true
+            },
+            "exST": {
+              "weight": 14,
+              "raw_score_0_1": 1.0,
+              "available": true,
+              "method": "personal_d90_st_delta",
+              "delta_full_scale_seconds": 0.06,
+              "f_score": 0.4
             }
           },
           "input_trace": {
@@ -29226,6 +29770,7 @@
               "history_stale_days": 0,
               "leakage_guard": "Only rows with result date < as_of_date are used."
             },
+            "structural_course_fallback": null,
             "racer_30d": {
               "starts": 9,
               "finish_samples": 9,
@@ -29372,8 +29917,75 @@
                 }
               }
             },
-            "course_used": 6,
-            "neutral_rank_features": [],
+            "racer_course": {
+              "available": true,
+              "current_course": 6,
+              "reason_if_unavailable": "",
+              "features": {
+                "d30": {
+                  "starts": 0,
+                  "finish_samples": 0,
+                  "avg_finish": null,
+                  "win_rate": null,
+                  "top2_rate": null,
+                  "top3_rate": null,
+                  "st_samples": 0,
+                  "avg_st": null,
+                  "f_count": 0,
+                  "f_rate": null,
+                  "l_count": 0,
+                  "l_rate": null,
+                  "exhibition_samples": 0,
+                  "avg_exhibition": null
+                },
+                "d90": {
+                  "starts": 5,
+                  "finish_samples": 5,
+                  "avg_finish": 4.2,
+                  "win_rate": 0.0,
+                  "top2_rate": 0.2,
+                  "top3_rate": 0.2,
+                  "st_samples": 5,
+                  "avg_st": 0.136,
+                  "f_count": 0,
+                  "f_rate": 0.0,
+                  "l_count": 0,
+                  "l_rate": 0.0,
+                  "exhibition_samples": 5,
+                  "avg_exhibition": 6.82
+                },
+                "trend_30v90": {
+                  "win_rate_30v90": null,
+                  "top2_rate_30v90": null,
+                  "top3_rate_30v90": null,
+                  "avg_finish_30v90": null,
+                  "avg_st_30v90": null,
+                  "avg_exhibition_30v90": null
+                }
+              }
+            },
+            "beforeinfo": {
+              "exhibition_course": 6,
+              "exhibition_time": 6.71,
+              "exhibition_st_raw": ".04",
+              "exhibition_st": 0.04,
+              "exhibition_f": false,
+              "tilt": -0.5,
+              "change_parts": "ピストン×２;リング×３"
+            },
+            "weather_water": {
+              "weather": {
+                "weather": "曇り",
+                "air_temperature_c": 21.0,
+                "water_temperature_c": 21.0,
+                "wind_speed_mps": 4.0,
+                "wind_direction_code": 4,
+                "wind_direction": "東北東",
+                "wave_height_cm": 3.0,
+                "stabilizer": false
+              },
+              "fixed_course": false
+            },
             "official_f_count": null,
             "official_l_count": null,
             "official_avg_st": null,
@@ -29407,13 +30019,25 @@
                 "active_in_score": false
               },
               "parts_exchange": {
-                "available": false,
-                "value": "",
+                "available": true,
+                "value": "ピストン×２;リング×３",
                 "active_in_score": false
               },
               "weather_water": {
-                "available": false,
-                "value": {},
+                "available": true,
+                "value": {
+                  "weather": {
+                    "weather": "曇り",
+                    "air_temperature_c": 21.0,
+                    "water_temperature_c": 21.0,
+                    "wind_speed_mps": 4.0,
+                    "wind_direction_code": 4,
+                    "wind_direction": "東北東",
+                    "wave_height_cm": 3.0,
+                    "stabilizer": false
+                  },
+                  "fixed_course": false
+                },
                 "active_in_score": false
               }
             }
@@ -29423,9 +30047,9 @@
       "formation": {
         "model_version": "formation_gap_flow_v2",
         "formation_type": "混戦",
-        "gap_1_2": 1.3,
-        "gap_2_3": 3.0,
-        "gap_3_4": 0.2,
+        "gap_1_2": 2.84,
+        "gap_2_3": 3.5,
+        "gap_3_4": 0.26,
         "first_candidates": [
           5,
           1
@@ -29446,14 +30070,14 @@
         "combinations": [
           "5-1-4",
           "5-1-3",
-          "1-5-4",
-          "1-5-3",
           "5-4-1",
           "5-3-1",
-          "1-4-5",
-          "1-3-5",
+          "1-5-4",
+          "1-5-3",
           "5-4-3",
           "5-3-4",
+          "1-4-5",
+          "1-3-5",
           "1-4-3",
           "1-3-4"
         ],
@@ -30892,1067 +31516,1789 @@
         "position_scores": [
           {
             "boat": 1,
-            "first_score": 65.63,
-            "second_score": 60.73,
-            "third_score": 54.23
+            "first_score": 57.28,
+            "second_score": 59.23,
+            "third_score": 60.91
           },
           {
             "boat": 2,
-            "first_score": 29.93,
-            "second_score": 30.95,
-            "third_score": 29.95
+            "first_score": 45.79,
+            "second_score": 40.32,
+            "third_score": 35.47
           },
           {
             "boat": 3,
-            "first_score": 61.49,
-            "second_score": 62.47,
-            "third_score": 59.89
+            "first_score": 52.99,
+            "second_score": 55.02,
+            "third_score": 56.65
           },
           {
             "boat": 4,
-            "first_score": 59.79,
-            "second_score": 60.09,
-            "third_score": 62.29
+            "first_score": 53.06,
+            "second_score": 54.49,
+            "third_score": 55.28
           },
           {
             "boat": 5,
-            "first_score": 63.02,
-            "second_score": 64.94,
-            "third_score": 70.14
+            "first_score": 61.54,
+            "second_score": 63.16,
+            "third_score": 64.84
           },
           {
             "boat": 6,
-            "first_score": 20.13,
-            "second_score": 20.81,
-            "third_score": 23.49
+            "first_score": 47.58,
+            "second_score": 40.14,
+            "third_score": 34.07
           }
         ],
         "first_candidates": [
-          1,
           5,
-          3
+          1,
+          4
         ],
         "second_candidates": [
           5,
-          3,
           1,
+          3,
           4
         ],
         "third_candidates": [
           5,
-          4,
-          3,
           1,
+          3,
+          4,
           2
         ],
         "boundary_gaps": {},
         "combinations": [
           {
-            "combination": "1-3-5",
-            "score": 66.005
+            "combination": "5-1-3",
+            "score": 59.106
           },
           {
-            "combination": "1-4-5",
-            "score": 65.156
-          },
-          {
-            "combination": "1-5-4",
-            "score": 64.27
-          },
-          {
-            "combination": "4-3-5",
-            "score": 63.987
-          },
-          {
-            "combination": "3-1-5",
-            "score": 63.982
-          },
-          {
-            "combination": "3-4-5",
-            "score": 63.756
-          },
-          {
-            "combination": "1-3-4",
-            "score": 63.445
+            "combination": "5-3-1",
+            "score": 59.082
           },
           {
             "combination": "1-5-3",
-            "score": 63.434
+            "score": 58.959
+          },
+          {
+            "combination": "1-3-5",
+            "score": 58.901
+          },
+          {
+            "combination": "5-4-1",
+            "score": 58.892
+          },
+          {
+            "combination": "4-5-1",
+            "score": 58.88
+          },
+          {
+            "combination": "3-5-1",
+            "score": 58.854
+          },
+          {
+            "combination": "4-1-5",
+            "score": 58.846
           }
         ],
         "base_120_combinations": [
           {
-            "combination": "1-3-5",
-            "score": 66.005
-          },
-          {
-            "combination": "1-4-5",
-            "score": 65.156
-          },
-          {
-            "combination": "1-5-4",
-            "score": 64.27
-          },
-          {
-            "combination": "4-3-5",
-            "score": 63.987
-          },
-          {
-            "combination": "3-1-5",
-            "score": 63.982
-          },
-          {
-            "combination": "3-4-5",
-            "score": 63.756
-          },
-          {
-            "combination": "1-3-4",
-            "score": 63.445
-          },
-          {
-            "combination": "1-5-3",
-            "score": 63.434
-          },
-          {
-            "combination": "4-1-5",
-            "score": 63.387
-          },
-          {
-            "combination": "3-5-4",
-            "score": 62.89
-          },
-          {
-            "combination": "5-3-4",
-            "score": 62.593
-          },
-          {
-            "combination": "5-1-4",
-            "score": 62.006
-          },
-          {
-            "combination": "1-4-3",
-            "score": 61.814
-          },
-          {
-            "combination": "3-1-4",
-            "score": 61.5
-          },
-          {
-            "combination": "4-5-3",
-            "score": 61.494
-          },
-          {
             "combination": "5-1-3",
-            "score": 61.199
-          },
-          {
-            "combination": "5-4-3",
-            "score": 60.983
-          },
-          {
-            "combination": "4-1-3",
-            "score": 60.135
-          },
-          {
-            "combination": "3-5-1",
-            "score": 60.051
+            "score": 59.106
           },
           {
             "combination": "5-3-1",
-            "score": 59.767
+            "score": 59.082
           },
           {
-            "combination": "4-5-1",
-            "score": 59.492
+            "combination": "1-5-3",
+            "score": 58.959
+          },
+          {
+            "combination": "1-3-5",
+            "score": 58.901
           },
           {
             "combination": "5-4-1",
-            "score": 58.998
+            "score": 58.892
           },
           {
-            "combination": "4-3-1",
-            "score": 58.728
+            "combination": "4-5-1",
+            "score": 58.88
           },
           {
-            "combination": "3-4-1",
-            "score": 58.517
+            "combination": "3-5-1",
+            "score": 58.854
           },
           {
-            "combination": "1-2-5",
-            "score": 52.229
+            "combination": "4-1-5",
+            "score": 58.846
           },
           {
-            "combination": "3-2-5",
-            "score": 51.107
+            "combination": "3-1-5",
+            "score": 58.82
           },
           {
-            "combination": "2-3-5",
-            "score": 50.806
+            "combination": "1-4-5",
+            "score": 58.711
           },
           {
-            "combination": "4-2-5",
-            "score": 50.631
+            "combination": "5-1-4",
+            "score": 58.626
           },
           {
-            "combination": "1-5-2",
-            "score": 50.351
+            "combination": "1-5-4",
+            "score": 58.48
           },
           {
-            "combination": "2-1-5",
-            "score": 50.33
+            "combination": "5-4-3",
+            "score": 57.485
           },
           {
-            "combination": "1-2-4",
-            "score": 50.203
+            "combination": "4-5-3",
+            "score": 57.474
           },
           {
-            "combination": "2-4-5",
-            "score": 50.152
+            "combination": "4-3-5",
+            "score": 57.417
           },
           {
-            "combination": "1-3-2",
-            "score": 49.704
+            "combination": "3-4-5",
+            "score": 57.207
           },
           {
-            "combination": "1-2-3",
-            "score": 49.549
+            "combination": "5-3-4",
+            "score": 57.203
           },
           {
-            "combination": "5-2-4",
-            "score": 49.528
-          },
-          {
-            "combination": "2-5-4",
-            "score": 49.47
-          },
-          {
-            "combination": "3-5-2",
-            "score": 49.269
-          },
-          {
-            "combination": "3-2-4",
-            "score": 49.124
-          },
-          {
-            "combination": "1-4-2",
-            "score": 49.064
-          },
-          {
-            "combination": "5-3-2",
-            "score": 49.036
-          },
-          {
-            "combination": "5-2-3",
-            "score": 48.884
-          },
-          {
-            "combination": "2-3-4",
-            "score": 48.835
-          },
-          {
-            "combination": "2-5-3",
-            "score": 48.827
-          },
-          {
-            "combination": "4-5-2",
-            "score": 48.81
-          },
-          {
-            "combination": "5-1-2",
-            "score": 48.576
-          },
-          {
-            "combination": "5-4-2",
-            "score": 48.405
-          },
-          {
-            "combination": "2-1-4",
-            "score": 48.377
-          },
-          {
-            "combination": "4-3-2",
-            "score": 48.184
-          },
-          {
-            "combination": "3-1-2",
-            "score": 48.18
-          },
-          {
-            "combination": "4-2-3",
-            "score": 48.034
-          },
-          {
-            "combination": "3-4-2",
-            "score": 48.01
-          },
-          {
-            "combination": "2-1-3",
-            "score": 47.748
-          },
-          {
-            "combination": "4-1-2",
-            "score": 47.732
-          },
-          {
-            "combination": "2-4-3",
-            "score": 47.58
-          },
-          {
-            "combination": "5-2-1",
-            "score": 47.293
-          },
-          {
-            "combination": "2-5-1",
-            "score": 47.237
-          },
-          {
-            "combination": "3-2-1",
-            "score": 46.907
-          },
-          {
-            "combination": "2-3-1",
-            "score": 46.631
-          },
-          {
-            "combination": "4-2-1",
-            "score": 46.47
-          },
-          {
-            "combination": "1-5-6",
-            "score": 46.434
-          },
-          {
-            "combination": "2-4-1",
-            "score": 46.031
-          },
-          {
-            "combination": "1-3-6",
-            "score": 45.837
-          },
-          {
-            "combination": "1-6-5",
-            "score": 45.756
-          },
-          {
-            "combination": "3-5-6",
-            "score": 45.436
-          },
-          {
-            "combination": "1-4-6",
-            "score": 45.248
-          },
-          {
-            "combination": "5-3-6",
-            "score": 45.221
-          },
-          {
-            "combination": "4-5-6",
-            "score": 45.013
-          },
-          {
-            "combination": "5-1-6",
-            "score": 44.798
-          },
-          {
-            "combination": "3-6-5",
-            "score": 44.773
-          },
-          {
-            "combination": "5-4-6",
-            "score": 44.64
-          },
-          {
-            "combination": "6-3-5",
-            "score": 44.514
-          },
-          {
-            "combination": "4-3-6",
-            "score": 44.435
-          },
-          {
-            "combination": "3-1-6",
-            "score": 44.432
-          },
-          {
-            "combination": "4-6-5",
-            "score": 44.356
-          },
-          {
-            "combination": "3-4-6",
-            "score": 44.275
-          },
-          {
-            "combination": "6-1-5",
-            "score": 44.097
-          },
-          {
-            "combination": "4-1-6",
-            "score": 44.019
-          },
-          {
-            "combination": "1-6-4",
-            "score": 43.981
-          },
-          {
-            "combination": "6-4-5",
-            "score": 43.941
-          },
-          {
-            "combination": "1-6-3",
-            "score": 43.409
-          },
-          {
-            "combination": "5-6-4",
-            "score": 43.39
-          },
-          {
-            "combination": "6-5-4",
-            "score": 43.344
-          },
-          {
-            "combination": "3-6-4",
-            "score": 43.036
-          },
-          {
-            "combination": "5-6-3",
-            "score": 42.825
-          },
-          {
-            "combination": "6-3-4",
-            "score": 42.787
-          },
-          {
-            "combination": "6-5-3",
-            "score": 42.78
-          },
-          {
-            "combination": "6-1-4",
-            "score": 42.386
-          },
-          {
-            "combination": "4-6-3",
-            "score": 42.081
-          },
-          {
-            "combination": "6-1-3",
-            "score": 41.834
-          },
-          {
-            "combination": "6-4-3",
-            "score": 41.687
-          },
-          {
-            "combination": "5-6-1",
-            "score": 41.431
+            "combination": "3-5-4",
+            "score": 56.982
           },
           {
             "combination": "6-5-1",
-            "score": 41.387
+            "score": 56.779
           },
           {
-            "combination": "3-6-1",
-            "score": 41.093
+            "combination": "6-1-5",
+            "score": 56.746
+          },
+          {
+            "combination": "4-1-3",
+            "score": 56.256
+          },
+          {
+            "combination": "4-3-1",
+            "score": 56.233
+          },
+          {
+            "combination": "1-4-3",
+            "score": 56.127
+          },
+          {
+            "combination": "2-5-1",
+            "score": 56.058
+          },
+          {
+            "combination": "3-4-1",
+            "score": 56.027
+          },
+          {
+            "combination": "2-1-5",
+            "score": 56.025
+          },
+          {
+            "combination": "1-3-4",
+            "score": 55.851
+          },
+          {
+            "combination": "3-1-4",
+            "score": 55.774
+          },
+          {
+            "combination": "6-5-3",
+            "score": 55.423
+          },
+          {
+            "combination": "6-3-5",
+            "score": 55.368
+          },
+          {
+            "combination": "6-4-5",
+            "score": 55.19
+          },
+          {
+            "combination": "6-5-4",
+            "score": 54.972
+          },
+          {
+            "combination": "2-5-3",
+            "score": 54.719
+          },
+          {
+            "combination": "2-3-5",
+            "score": 54.665
+          },
+          {
+            "combination": "2-4-5",
+            "score": 54.489
+          },
+          {
+            "combination": "2-5-4",
+            "score": 54.274
+          },
+          {
+            "combination": "6-1-3",
+            "score": 54.249
           },
           {
             "combination": "6-3-1",
-            "score": 40.856
-          },
-          {
-            "combination": "4-6-1",
-            "score": 40.711
+            "score": 54.226
           },
           {
             "combination": "6-4-1",
-            "score": 40.33
+            "score": 54.052
           },
           {
-            "combination": "1-2-6",
-            "score": 36.27
+            "combination": "6-1-4",
+            "score": 53.808
           },
           {
-            "combination": "5-2-6",
-            "score": 35.783
+            "combination": "2-1-3",
+            "score": 53.56
           },
           {
-            "combination": "2-5-6",
-            "score": 35.741
+            "combination": "2-3-1",
+            "score": 53.538
           },
           {
-            "combination": "3-2-6",
-            "score": 35.491
+            "combination": "2-4-1",
+            "score": 53.365
           },
           {
-            "combination": "2-3-6",
-            "score": 35.282
+            "combination": "5-2-1",
+            "score": 53.267
+          },
+          {
+            "combination": "5-6-1",
+            "score": 53.187
+          },
+          {
+            "combination": "2-1-4",
+            "score": 53.124
+          },
+          {
+            "combination": "1-2-5",
+            "score": 53.103
+          },
+          {
+            "combination": "1-6-5",
+            "score": 53.024
+          },
+          {
+            "combination": "6-4-3",
+            "score": 52.761
+          },
+          {
+            "combination": "6-3-4",
+            "score": 52.501
+          },
+          {
+            "combination": "2-4-3",
+            "score": 52.091
+          },
+          {
+            "combination": "5-2-3",
+            "score": 51.995
+          },
+          {
+            "combination": "5-6-3",
+            "score": 51.917
+          },
+          {
+            "combination": "2-3-4",
+            "score": 51.835
+          },
+          {
+            "combination": "4-2-5",
+            "score": 51.766
+          },
+          {
+            "combination": "3-2-5",
+            "score": 51.743
+          },
+          {
+            "combination": "4-6-5",
+            "score": 51.689
+          },
+          {
+            "combination": "3-6-5",
+            "score": 51.666
+          },
+          {
+            "combination": "5-2-4",
+            "score": 51.572
+          },
+          {
+            "combination": "5-6-4",
+            "score": 51.495
+          },
+          {
+            "combination": "1-2-3",
+            "score": 50.766
+          },
+          {
+            "combination": "4-2-1",
+            "score": 50.698
+          },
+          {
+            "combination": "1-6-3",
+            "score": 50.691
+          },
+          {
+            "combination": "3-2-1",
+            "score": 50.676
+          },
+          {
+            "combination": "4-6-1",
+            "score": 50.623
+          },
+          {
+            "combination": "3-6-1",
+            "score": 50.6
+          },
+          {
+            "combination": "5-1-2",
+            "score": 50.565
+          },
+          {
+            "combination": "1-5-2",
+            "score": 50.439
+          },
+          {
+            "combination": "1-2-4",
+            "score": 50.354
+          },
+          {
+            "combination": "1-6-4",
+            "score": 50.279
           },
           {
             "combination": "6-2-5",
-            "score": 35.223
+            "score": 49.919
+          },
+          {
+            "combination": "5-1-6",
+            "score": 49.891
+          },
+          {
+            "combination": "1-5-6",
+            "score": 49.767
+          },
+          {
+            "combination": "4-2-3",
+            "score": 49.488
+          },
+          {
+            "combination": "4-6-3",
+            "score": 49.414
+          },
+          {
+            "combination": "5-3-2",
+            "score": 49.338
           },
           {
             "combination": "2-6-5",
-            "score": 35.219
+            "score": 49.211
           },
           {
-            "combination": "4-2-6",
-            "score": 35.161
+            "combination": "5-4-2",
+            "score": 49.179
           },
           {
-            "combination": "2-1-6",
-            "score": 34.951
+            "combination": "4-5-2",
+            "score": 49.169
           },
           {
-            "combination": "2-4-6",
-            "score": 34.828
+            "combination": "3-5-2",
+            "score": 49.147
           },
           {
-            "combination": "1-6-2",
-            "score": 34.455
+            "combination": "3-2-4",
+            "score": 49.064
           },
           {
-            "combination": "5-6-2",
-            "score": 33.992
-          },
-          {
-            "combination": "6-5-2",
-            "score": 33.956
-          },
-          {
-            "combination": "6-2-4",
-            "score": 33.856
-          },
-          {
-            "combination": "2-6-4",
-            "score": 33.853
-          },
-          {
-            "combination": "3-6-2",
-            "score": 33.715
-          },
-          {
-            "combination": "6-3-2",
-            "score": 33.52
-          },
-          {
-            "combination": "6-2-3",
-            "score": 33.416
-          },
-          {
-            "combination": "2-6-3",
-            "score": 33.413
-          },
-          {
-            "combination": "4-6-2",
-            "score": 33.401
-          },
-          {
-            "combination": "6-1-2",
-            "score": 33.206
-          },
-          {
-            "combination": "6-4-2",
-            "score": 33.089
+            "combination": "3-6-4",
+            "score": 48.991
           },
           {
             "combination": "6-2-1",
-            "score": 32.328
+            "score": 48.889
+          },
+          {
+            "combination": "5-3-6",
+            "score": 48.68
+          },
+          {
+            "combination": "5-4-6",
+            "score": 48.523
+          },
+          {
+            "combination": "4-5-6",
+            "score": 48.513
+          },
+          {
+            "combination": "3-5-6",
+            "score": 48.492
           },
           {
             "combination": "2-6-1",
-            "score": 32.325
+            "score": 48.196
+          },
+          {
+            "combination": "1-3-2",
+            "score": 48.172
+          },
+          {
+            "combination": "4-1-2",
+            "score": 48.127
+          },
+          {
+            "combination": "3-1-2",
+            "score": 48.106
+          },
+          {
+            "combination": "1-4-2",
+            "score": 48.017
+          },
+          {
+            "combination": "6-2-3",
+            "score": 47.722
+          },
+          {
+            "combination": "1-3-6",
+            "score": 47.53
+          },
+          {
+            "combination": "4-1-6",
+            "score": 47.485
+          },
+          {
+            "combination": "3-1-6",
+            "score": 47.465
+          },
+          {
+            "combination": "6-5-2",
+            "score": 47.414
+          },
+          {
+            "combination": "1-4-6",
+            "score": 47.377
+          },
+          {
+            "combination": "6-2-4",
+            "score": 47.334
+          },
+          {
+            "combination": "2-6-3",
+            "score": 47.045
+          },
+          {
+            "combination": "4-3-2",
+            "score": 46.959
+          },
+          {
+            "combination": "3-4-2",
+            "score": 46.787
+          },
+          {
+            "combination": "2-6-4",
+            "score": 46.663
+          },
+          {
+            "combination": "6-1-2",
+            "score": 46.41
+          },
+          {
+            "combination": "4-3-6",
+            "score": 46.333
+          },
+          {
+            "combination": "2-5-6",
+            "score": 46.188
+          },
+          {
+            "combination": "3-4-6",
+            "score": 46.163
+          },
+          {
+            "combination": "6-3-2",
+            "score": 45.283
+          },
+          {
+            "combination": "2-1-6",
+            "score": 45.209
+          },
+          {
+            "combination": "6-4-2",
+            "score": 45.137
+          },
+          {
+            "combination": "5-6-2",
+            "score": 44.415
+          },
+          {
+            "combination": "2-3-6",
+            "score": 44.112
+          },
+          {
+            "combination": "2-4-6",
+            "score": 43.97
+          },
+          {
+            "combination": "5-2-6",
+            "score": 43.888
+          },
+          {
+            "combination": "1-6-2",
+            "score": 43.366
+          },
+          {
+            "combination": "1-2-6",
+            "score": 42.851
+          },
+          {
+            "combination": "4-6-2",
+            "score": 42.274
+          },
+          {
+            "combination": "3-6-2",
+            "score": 42.255
+          },
+          {
+            "combination": "4-2-6",
+            "score": 41.772
+          },
+          {
+            "combination": "3-2-6",
+            "score": 41.754
           }
         ],
         "all_120_combinations": [
           {
-            "combination": "1-3-5",
-            "score": 66.005
-          },
-          {
-            "combination": "1-4-5",
-            "score": 65.156
-          },
-          {
-            "combination": "1-5-4",
-            "score": 64.27
-          },
-          {
-            "combination": "4-3-5",
-            "score": 63.987
-          },
-          {
-            "combination": "3-1-5",
-            "score": 63.982
-          },
-          {
-            "combination": "3-4-5",
-            "score": 63.756
-          },
-          {
-            "combination": "1-3-4",
-            "score": 63.445
-          },
-          {
-            "combination": "1-5-3",
-            "score": 63.434
-          },
-          {
-            "combination": "4-1-5",
-            "score": 63.387
-          },
-          {
-            "combination": "3-5-4",
-            "score": 62.89
-          },
-          {
-            "combination": "5-3-4",
-            "score": 62.593
-          },
-          {
-            "combination": "5-1-4",
-            "score": 62.006
-          },
-          {
-            "combination": "1-4-3",
-            "score": 61.814
-          },
-          {
-            "combination": "3-1-4",
-            "score": 61.5
-          },
-          {
-            "combination": "4-5-3",
-            "score": 61.494
-          },
-          {
             "combination": "5-1-3",
-            "score": 61.199
-          },
-          {
-            "combination": "5-4-3",
-            "score": 60.983
-          },
-          {
-            "combination": "4-1-3",
-            "score": 60.135
-          },
-          {
-            "combination": "3-5-1",
-            "score": 60.051
+            "score": 59.106
           },
           {
             "combination": "5-3-1",
-            "score": 59.767
+            "score": 59.082
           },
           {
-            "combination": "4-5-1",
-            "score": 59.492
+            "combination": "1-5-3",
+            "score": 58.959
+          },
+          {
+            "combination": "1-3-5",
+            "score": 58.901
           },
           {
             "combination": "5-4-1",
-            "score": 58.998
+            "score": 58.892
           },
           {
-            "combination": "4-3-1",
-            "score": 58.728
+            "combination": "4-5-1",
+            "score": 58.88
           },
           {
-            "combination": "3-4-1",
-            "score": 58.517
+            "combination": "3-5-1",
+            "score": 58.854
           },
           {
-            "combination": "1-2-5",
-            "score": 52.229
+            "combination": "4-1-5",
+            "score": 58.846
           },
           {
-            "combination": "3-2-5",
-            "score": 51.107
+            "combination": "3-1-5",
+            "score": 58.82
           },
           {
-            "combination": "2-3-5",
-            "score": 50.806
+            "combination": "1-4-5",
+            "score": 58.711
           },
           {
-            "combination": "4-2-5",
-            "score": 50.631
+            "combination": "5-1-4",
+            "score": 58.626
           },
           {
-            "combination": "1-5-2",
-            "score": 50.351
+            "combination": "1-5-4",
+            "score": 58.48
           },
           {
-            "combination": "2-1-5",
-            "score": 50.33
+            "combination": "5-4-3",
+            "score": 57.485
           },
           {
-            "combination": "1-2-4",
-            "score": 50.203
+            "combination": "4-5-3",
+            "score": 57.474
           },
           {
-            "combination": "2-4-5",
-            "score": 50.152
+            "combination": "4-3-5",
+            "score": 57.417
           },
           {
-            "combination": "1-3-2",
-            "score": 49.704
+            "combination": "3-4-5",
+            "score": 57.207
           },
           {
-            "combination": "1-2-3",
-            "score": 49.549
+            "combination": "5-3-4",
+            "score": 57.203
           },
           {
-            "combination": "5-2-4",
-            "score": 49.528
-          },
-          {
-            "combination": "2-5-4",
-            "score": 49.47
-          },
-          {
-            "combination": "3-5-2",
-            "score": 49.269
-          },
-          {
-            "combination": "3-2-4",
-            "score": 49.124
-          },
-          {
-            "combination": "1-4-2",
-            "score": 49.064
-          },
-          {
-            "combination": "5-3-2",
-            "score": 49.036
-          },
-          {
-            "combination": "5-2-3",
-            "score": 48.884
-          },
-          {
-            "combination": "2-3-4",
-            "score": 48.835
-          },
-          {
-            "combination": "2-5-3",
-            "score": 48.827
-          },
-          {
-            "combination": "4-5-2",
-            "score": 48.81
-          },
-          {
-            "combination": "5-1-2",
-            "score": 48.576
-          },
-          {
-            "combination": "5-4-2",
-            "score": 48.405
-          },
-          {
-            "combination": "2-1-4",
-            "score": 48.377
-          },
-          {
-            "combination": "4-3-2",
-            "score": 48.184
-          },
-          {
-            "combination": "3-1-2",
-            "score": 48.18
-          },
-          {
-            "combination": "4-2-3",
-            "score": 48.034
-          },
-          {
-            "combination": "3-4-2",
-            "score": 48.01
-          },
-          {
-            "combination": "2-1-3",
-            "score": 47.748
-          },
-          {
-            "combination": "4-1-2",
-            "score": 47.732
-          },
-          {
-            "combination": "2-4-3",
-            "score": 47.58
-          },
-          {
-            "combination": "5-2-1",
-            "score": 47.293
-          },
-          {
-            "combination": "2-5-1",
-            "score": 47.237
-          },
-          {
-            "combination": "3-2-1",
-            "score": 46.907
-          },
-          {
-            "combination": "2-3-1",
-            "score": 46.631
-          },
-          {
-            "combination": "4-2-1",
-            "score": 46.47
-          },
-          {
-            "combination": "1-5-6",
-            "score": 46.434
-          },
-          {
-            "combination": "2-4-1",
-            "score": 46.031
-          },
-          {
-            "combination": "1-3-6",
-            "score": 45.837
-          },
-          {
-            "combination": "1-6-5",
-            "score": 45.756
-          },
-          {
-            "combination": "3-5-6",
-            "score": 45.436
-          },
-          {
-            "combination": "1-4-6",
-            "score": 45.248
-          },
-          {
-            "combination": "5-3-6",
-            "score": 45.221
-          },
-          {
-            "combination": "4-5-6",
-            "score": 45.013
-          },
-          {
-            "combination": "5-1-6",
-            "score": 44.798
-          },
-          {
-            "combination": "3-6-5",
-            "score": 44.773
-          },
-          {
-            "combination": "5-4-6",
-            "score": 44.64
-          },
-          {
-            "combination": "6-3-5",
-            "score": 44.514
-          },
-          {
-            "combination": "4-3-6",
-            "score": 44.435
-          },
-          {
-            "combination": "3-1-6",
-            "score": 44.432
-          },
-          {
-            "combination": "4-6-5",
-            "score": 44.356
-          },
-          {
-            "combination": "3-4-6",
-            "score": 44.275
-          },
-          {
-            "combination": "6-1-5",
-            "score": 44.097
-          },
-          {
-            "combination": "4-1-6",
-            "score": 44.019
-          },
-          {
-            "combination": "1-6-4",
-            "score": 43.981
-          },
-          {
-            "combination": "6-4-5",
-            "score": 43.941
-          },
-          {
-            "combination": "1-6-3",
-            "score": 43.409
-          },
-          {
-            "combination": "5-6-4",
-            "score": 43.39
-          },
-          {
-            "combination": "6-5-4",
-            "score": 43.344
-          },
-          {
-            "combination": "3-6-4",
-            "score": 43.036
-          },
-          {
-            "combination": "5-6-3",
-            "score": 42.825
-          },
-          {
-            "combination": "6-3-4",
-            "score": 42.787
-          },
-          {
-            "combination": "6-5-3",
-            "score": 42.78
-          },
-          {
-            "combination": "6-1-4",
-            "score": 42.386
-          },
-          {
-            "combination": "4-6-3",
-            "score": 42.081
-          },
-          {
-            "combination": "6-1-3",
-            "score": 41.834
-          },
-          {
-            "combination": "6-4-3",
-            "score": 41.687
-          },
-          {
-            "combination": "5-6-1",
-            "score": 41.431
+            "combination": "3-5-4",
+            "score": 56.982
           },
           {
             "combination": "6-5-1",
-            "score": 41.387
+            "score": 56.779
           },
           {
-            "combination": "3-6-1",
-            "score": 41.093
+            "combination": "6-1-5",
+            "score": 56.746
+          },
+          {
+            "combination": "4-1-3",
+            "score": 56.256
+          },
+          {
+            "combination": "4-3-1",
+            "score": 56.233
+          },
+          {
+            "combination": "1-4-3",
+            "score": 56.127
+          },
+          {
+            "combination": "2-5-1",
+            "score": 56.058
+          },
+          {
+            "combination": "3-4-1",
+            "score": 56.027
+          },
+          {
+            "combination": "2-1-5",
+            "score": 56.025
+          },
+          {
+            "combination": "1-3-4",
+            "score": 55.851
+          },
+          {
+            "combination": "3-1-4",
+            "score": 55.774
+          },
+          {
+            "combination": "6-5-3",
+            "score": 55.423
+          },
+          {
+            "combination": "6-3-5",
+            "score": 55.368
+          },
+          {
+            "combination": "6-4-5",
+            "score": 55.19
+          },
+          {
+            "combination": "6-5-4",
+            "score": 54.972
+          },
+          {
+            "combination": "2-5-3",
+            "score": 54.719
+          },
+          {
+            "combination": "2-3-5",
+            "score": 54.665
+          },
+          {
+            "combination": "2-4-5",
+            "score": 54.489
+          },
+          {
+            "combination": "2-5-4",
+            "score": 54.274
+          },
+          {
+            "combination": "6-1-3",
+            "score": 54.249
           },
           {
             "combination": "6-3-1",
-            "score": 40.856
-          },
-          {
-            "combination": "4-6-1",
-            "score": 40.711
+            "score": 54.226
           },
           {
             "combination": "6-4-1",
-            "score": 40.33
+            "score": 54.052
           },
           {
-            "combination": "1-2-6",
-            "score": 36.27
+            "combination": "6-1-4",
+            "score": 53.808
           },
           {
-            "combination": "5-2-6",
-            "score": 35.783
+            "combination": "2-1-3",
+            "score": 53.56
           },
           {
-            "combination": "2-5-6",
-            "score": 35.741
+            "combination": "2-3-1",
+            "score": 53.538
           },
           {
-            "combination": "3-2-6",
-            "score": 35.491
+            "combination": "2-4-1",
+            "score": 53.365
           },
           {
-            "combination": "2-3-6",
-            "score": 35.282
+            "combination": "5-2-1",
+            "score": 53.267
+          },
+          {
+            "combination": "5-6-1",
+            "score": 53.187
+          },
+          {
+            "combination": "2-1-4",
+            "score": 53.124
+          },
+          {
+            "combination": "1-2-5",
+            "score": 53.103
+          },
+          {
+            "combination": "1-6-5",
+            "score": 53.024
+          },
+          {
+            "combination": "6-4-3",
+            "score": 52.761
+          },
+          {
+            "combination": "6-3-4",
+            "score": 52.501
+          },
+          {
+            "combination": "2-4-3",
+            "score": 52.091
+          },
+          {
+            "combination": "5-2-3",
+            "score": 51.995
+          },
+          {
+            "combination": "5-6-3",
+            "score": 51.917
+          },
+          {
+            "combination": "2-3-4",
+            "score": 51.835
+          },
+          {
+            "combination": "4-2-5",
+            "score": 51.766
+          },
+          {
+            "combination": "3-2-5",
+            "score": 51.743
+          },
+          {
+            "combination": "4-6-5",
+            "score": 51.689
+          },
+          {
+            "combination": "3-6-5",
+            "score": 51.666
+          },
+          {
+            "combination": "5-2-4",
+            "score": 51.572
+          },
+          {
+            "combination": "5-6-4",
+            "score": 51.495
+          },
+          {
+            "combination": "1-2-3",
+            "score": 50.766
+          },
+          {
+            "combination": "4-2-1",
+            "score": 50.698
+          },
+          {
+            "combination": "1-6-3",
+            "score": 50.691
+          },
+          {
+            "combination": "3-2-1",
+            "score": 50.676
+          },
+          {
+            "combination": "4-6-1",
+            "score": 50.623
+          },
+          {
+            "combination": "3-6-1",
+            "score": 50.6
+          },
+          {
+            "combination": "5-1-2",
+            "score": 50.565
+          },
+          {
+            "combination": "1-5-2",
+            "score": 50.439
+          },
+          {
+            "combination": "1-2-4",
+            "score": 50.354
+          },
+          {
+            "combination": "1-6-4",
+            "score": 50.279
           },
           {
             "combination": "6-2-5",
-            "score": 35.223
+            "score": 49.919
+          },
+          {
+            "combination": "5-1-6",
+            "score": 49.891
+          },
+          {
+            "combination": "1-5-6",
+            "score": 49.767
+          },
+          {
+            "combination": "4-2-3",
+            "score": 49.488
+          },
+          {
+            "combination": "4-6-3",
+            "score": 49.414
+          },
+          {
+            "combination": "5-3-2",
+            "score": 49.338
           },
           {
             "combination": "2-6-5",
-            "score": 35.219
+            "score": 49.211
           },
           {
-            "combination": "4-2-6",
-            "score": 35.161
+            "combination": "5-4-2",
+            "score": 49.179
           },
           {
-            "combination": "2-1-6",
-            "score": 34.951
+            "combination": "4-5-2",
+            "score": 49.169
           },
           {
-            "combination": "2-4-6",
-            "score": 34.828
+            "combination": "3-5-2",
+            "score": 49.147
           },
           {
-            "combination": "1-6-2",
-            "score": 34.455
+            "combination": "3-2-4",
+            "score": 49.064
           },
           {
-            "combination": "5-6-2",
-            "score": 33.992
-          },
-          {
-            "combination": "6-5-2",
-            "score": 33.956
-          },
-          {
-            "combination": "6-2-4",
-            "score": 33.856
-          },
-          {
-            "combination": "2-6-4",
-            "score": 33.853
-          },
-          {
-            "combination": "3-6-2",
-            "score": 33.715
-          },
-          {
-            "combination": "6-3-2",
-            "score": 33.52
-          },
-          {
-            "combination": "6-2-3",
-            "score": 33.416
-          },
-          {
-            "combination": "2-6-3",
-            "score": 33.413
-          },
-          {
-            "combination": "4-6-2",
-            "score": 33.401
-          },
-          {
-            "combination": "6-1-2",
-            "score": 33.206
-          },
-          {
-            "combination": "6-4-2",
-            "score": 33.089
+            "combination": "3-6-4",
+            "score": 48.991
           },
           {
             "combination": "6-2-1",
-            "score": 32.328
+            "score": 48.889
+          },
+          {
+            "combination": "5-3-6",
+            "score": 48.68
+          },
+          {
+            "combination": "5-4-6",
+            "score": 48.523
+          },
+          {
+            "combination": "4-5-6",
+            "score": 48.513
+          },
+          {
+            "combination": "3-5-6",
+            "score": 48.492
           },
           {
             "combination": "2-6-1",
-            "score": 32.325
+            "score": 48.196
+          },
+          {
+            "combination": "1-3-2",
+            "score": 48.172
+          },
+          {
+            "combination": "4-1-2",
+            "score": 48.127
+          },
+          {
+            "combination": "3-1-2",
+            "score": 48.106
+          },
+          {
+            "combination": "1-4-2",
+            "score": 48.017
+          },
+          {
+            "combination": "6-2-3",
+            "score": 47.722
+          },
+          {
+            "combination": "1-3-6",
+            "score": 47.53
+          },
+          {
+            "combination": "4-1-6",
+            "score": 47.485
+          },
+          {
+            "combination": "3-1-6",
+            "score": 47.465
+          },
+          {
+            "combination": "6-5-2",
+            "score": 47.414
+          },
+          {
+            "combination": "1-4-6",
+            "score": 47.377
+          },
+          {
+            "combination": "6-2-4",
+            "score": 47.334
+          },
+          {
+            "combination": "2-6-3",
+            "score": 47.045
+          },
+          {
+            "combination": "4-3-2",
+            "score": 46.959
+          },
+          {
+            "combination": "3-4-2",
+            "score": 46.787
+          },
+          {
+            "combination": "2-6-4",
+            "score": 46.663
+          },
+          {
+            "combination": "6-1-2",
+            "score": 46.41
+          },
+          {
+            "combination": "4-3-6",
+            "score": 46.333
+          },
+          {
+            "combination": "2-5-6",
+            "score": 46.188
+          },
+          {
+            "combination": "3-4-6",
+            "score": 46.163
+          },
+          {
+            "combination": "6-3-2",
+            "score": 45.283
+          },
+          {
+            "combination": "2-1-6",
+            "score": 45.209
+          },
+          {
+            "combination": "6-4-2",
+            "score": 45.137
+          },
+          {
+            "combination": "5-6-2",
+            "score": 44.415
+          },
+          {
+            "combination": "2-3-6",
+            "score": 44.112
+          },
+          {
+            "combination": "2-4-6",
+            "score": 43.97
+          },
+          {
+            "combination": "5-2-6",
+            "score": 43.888
+          },
+          {
+            "combination": "1-6-2",
+            "score": 43.366
+          },
+          {
+            "combination": "1-2-6",
+            "score": 42.851
+          },
+          {
+            "combination": "4-6-2",
+            "score": 42.274
+          },
+          {
+            "combination": "3-6-2",
+            "score": 42.255
+          },
+          {
+            "combination": "4-2-6",
+            "score": 41.772
+          },
+          {
+            "combination": "3-2-6",
+            "score": 41.754
           }
         ],
         "valid_combination_count": 120,
         "rerank_verified": true,
         "note": "AIスコア予測はシグナル非依存。風神雷神シグナルは表示・保存・分析だけに使用し、AI再順位付け・点数変更は行わない。"
       },
-      "signal_ai_prediction": null,
+      "signal_ai_prediction": {
+        "model_version": "signal_ai_revalue_v1_20261008",
+        "logic_effective_date": "20261008",
+        "logic_config_source": "config/signal_ai/signal_ai_corrections_v1_20261008.json",
+        "correction_config_sha256": "009d151b299697c581e1d7dc97db5005b918c24887acb9537a614d6fffbec0ba",
+        "logic_identity": {
+          "model_version": "fujin_raijin_pipeline_v2_20261011",
+          "config_path": "config/logic/fujin_raijin.json",
+          "config_sha256": "30261bb494bf3784f5082218d67c0c68cac6796b0ab12d4bec3e3ecc0e2db6cb",
+          "effective_date": "20261011"
+        },
+        "status": "active_signal_ai",
+        "normal_prediction_unchanged": true,
+        "signal_key": "F0R2",
+        "fujin_level": 0,
+        "raijin_level": 2,
+        "rule": {
+          "fujin": null,
+          "raijin": {
+            "multiplier": 1.75,
+            "level_profile": "flat",
+            "rank_attenuation": "flat"
+          },
+          "source": "best_20260930_20261007"
+        },
+        "points": 24,
+        "investment_100yen": 2400,
+        "boat_scores": [
+          {
+            "boat": 1,
+            "normal_rank": 2,
+            "normal_score": 60.0,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 60.0,
+            "morning_to_current_delta": -3.5,
+            "signal_ai_rank": 3
+          },
+          {
+            "boat": 2,
+            "normal_rank": 5,
+            "normal_score": 38.64,
+            "signal_adjustment": 16.345,
+            "signal_ai_score": 54.985,
+            "morning_to_current_delta": 9.34,
+            "signal_ai_rank": 6
+          },
+          {
+            "boat": 3,
+            "normal_rank": 4,
+            "normal_score": 56.24,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 56.24,
+            "morning_to_current_delta": -4.06,
+            "signal_ai_rank": 5
+          },
+          {
+            "boat": 4,
+            "normal_rank": 3,
+            "normal_score": 56.5,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 56.5,
+            "morning_to_current_delta": -4.0,
+            "signal_ai_rank": 4
+          },
+          {
+            "boat": 5,
+            "normal_rank": 1,
+            "normal_score": 62.84,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 62.84,
+            "morning_to_current_delta": -1.96,
+            "signal_ai_rank": 1
+          },
+          {
+            "boat": 6,
+            "normal_rank": 6,
+            "normal_score": 36.08,
+            "signal_adjustment": 25.34,
+            "signal_ai_score": 61.42,
+            "morning_to_current_delta": 14.48,
+            "signal_ai_rank": 2
+          }
+        ],
+        "signal_ai_ranking": [
+          {
+            "boat": 5,
+            "normal_rank": 1,
+            "normal_score": 62.84,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 62.84,
+            "morning_to_current_delta": -1.96,
+            "signal_ai_rank": 1
+          },
+          {
+            "boat": 6,
+            "normal_rank": 6,
+            "normal_score": 36.08,
+            "signal_adjustment": 25.34,
+            "signal_ai_score": 61.42,
+            "morning_to_current_delta": 14.48,
+            "signal_ai_rank": 2
+          },
+          {
+            "boat": 1,
+            "normal_rank": 2,
+            "normal_score": 60.0,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 60.0,
+            "morning_to_current_delta": -3.5,
+            "signal_ai_rank": 3
+          },
+          {
+            "boat": 4,
+            "normal_rank": 3,
+            "normal_score": 56.5,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 56.5,
+            "morning_to_current_delta": -4.0,
+            "signal_ai_rank": 4
+          },
+          {
+            "boat": 3,
+            "normal_rank": 4,
+            "normal_score": 56.24,
+            "signal_adjustment": 0.0,
+            "signal_ai_score": 56.24,
+            "morning_to_current_delta": -4.06,
+            "signal_ai_rank": 5
+          },
+          {
+            "boat": 2,
+            "normal_rank": 5,
+            "normal_score": 38.64,
+            "signal_adjustment": 16.345,
+            "signal_ai_score": 54.985,
+            "morning_to_current_delta": 9.34,
+            "signal_ai_rank": 6
+          }
+        ],
+        "combinations": [
+          {
+            "combination": "5-6-1",
+            "score": 61.846
+          },
+          {
+            "combination": "5-1-6",
+            "score": 61.704
+          },
+          {
+            "combination": "6-5-1",
+            "score": 61.562
+          },
+          {
+            "combination": "6-1-5",
+            "score": 61.278
+          },
+          {
+            "combination": "5-6-4",
+            "score": 61.146
+          },
+          {
+            "combination": "1-5-6",
+            "score": 61.136
+          },
+          {
+            "combination": "5-6-3",
+            "score": 61.094
+          },
+          {
+            "combination": "1-6-5",
+            "score": 60.994
+          },
+          {
+            "combination": "6-5-4",
+            "score": 60.862
+          },
+          {
+            "combination": "5-6-2",
+            "score": 60.843
+          },
+          {
+            "combination": "6-5-3",
+            "score": 60.81
+          },
+          {
+            "combination": "5-1-4",
+            "score": 60.72
+          },
+          {
+            "combination": "5-1-3",
+            "score": 60.668
+          },
+          {
+            "combination": "5-4-6",
+            "score": 60.654
+          },
+          {
+            "combination": "5-3-6",
+            "score": 60.576
+          },
+          {
+            "combination": "6-5-2",
+            "score": 60.559
+          },
+          {
+            "combination": "5-1-2",
+            "score": 60.417
+          },
+          {
+            "combination": "5-4-1",
+            "score": 60.37
+          },
+          {
+            "combination": "5-3-1",
+            "score": 60.292
+          },
+          {
+            "combination": "6-4-5",
+            "score": 60.228
+          },
+          {
+            "combination": "5-2-6",
+            "score": 60.2
+          },
+          {
+            "combination": "1-5-4",
+            "score": 60.152
+          },
+          {
+            "combination": "6-3-5",
+            "score": 60.15
+          },
+          {
+            "combination": "1-5-3",
+            "score": 60.1
+          }
+        ],
+        "all_120_combinations": [
+          {
+            "combination": "5-6-1",
+            "score": 61.846
+          },
+          {
+            "combination": "5-1-6",
+            "score": 61.704
+          },
+          {
+            "combination": "6-5-1",
+            "score": 61.562
+          },
+          {
+            "combination": "6-1-5",
+            "score": 61.278
+          },
+          {
+            "combination": "5-6-4",
+            "score": 61.146
+          },
+          {
+            "combination": "1-5-6",
+            "score": 61.136
+          },
+          {
+            "combination": "5-6-3",
+            "score": 61.094
+          },
+          {
+            "combination": "1-6-5",
+            "score": 60.994
+          },
+          {
+            "combination": "6-5-4",
+            "score": 60.862
+          },
+          {
+            "combination": "5-6-2",
+            "score": 60.843
+          },
+          {
+            "combination": "6-5-3",
+            "score": 60.81
+          },
+          {
+            "combination": "5-1-4",
+            "score": 60.72
+          },
+          {
+            "combination": "5-1-3",
+            "score": 60.668
+          },
+          {
+            "combination": "5-4-6",
+            "score": 60.654
+          },
+          {
+            "combination": "5-3-6",
+            "score": 60.576
+          },
+          {
+            "combination": "6-5-2",
+            "score": 60.559
+          },
+          {
+            "combination": "5-1-2",
+            "score": 60.417
+          },
+          {
+            "combination": "5-4-1",
+            "score": 60.37
+          },
+          {
+            "combination": "5-3-1",
+            "score": 60.292
+          },
+          {
+            "combination": "6-4-5",
+            "score": 60.228
+          },
+          {
+            "combination": "5-2-6",
+            "score": 60.2
+          },
+          {
+            "combination": "1-5-4",
+            "score": 60.152
+          },
+          {
+            "combination": "6-3-5",
+            "score": 60.15
+          },
+          {
+            "combination": "1-5-3",
+            "score": 60.1
+          },
+          {
+            "combination": "6-1-4",
+            "score": 60.01
+          },
+          {
+            "combination": "6-1-3",
+            "score": 59.958
+          },
+          {
+            "combination": "5-2-1",
+            "score": 59.916
+          },
+          {
+            "combination": "1-5-2",
+            "score": 59.849
+          },
+          {
+            "combination": "6-2-5",
+            "score": 59.773
+          },
+          {
+            "combination": "1-6-4",
+            "score": 59.726
+          },
+          {
+            "combination": "6-1-2",
+            "score": 59.707
+          },
+          {
+            "combination": "1-6-3",
+            "score": 59.674
+          },
+          {
+            "combination": "6-4-1",
+            "score": 59.66
+          },
+          {
+            "combination": "5-4-3",
+            "score": 59.618
+          },
+          {
+            "combination": "5-3-4",
+            "score": 59.592
+          },
+          {
+            "combination": "6-3-1",
+            "score": 59.582
+          },
+          {
+            "combination": "1-4-5",
+            "score": 59.518
+          },
+          {
+            "combination": "1-3-5",
+            "score": 59.44
+          },
+          {
+            "combination": "1-6-2",
+            "score": 59.423
+          },
+          {
+            "combination": "4-5-6",
+            "score": 59.386
+          },
+          {
+            "combination": "5-4-2",
+            "score": 59.367
+          },
+          {
+            "combination": "5-3-2",
+            "score": 59.289
+          },
+          {
+            "combination": "3-5-6",
+            "score": 59.256
+          },
+          {
+            "combination": "4-6-5",
+            "score": 59.244
+          },
+          {
+            "combination": "1-4-6",
+            "score": 59.234
+          },
+          {
+            "combination": "5-2-4",
+            "score": 59.216
+          },
+          {
+            "combination": "6-2-1",
+            "score": 59.206
+          },
+          {
+            "combination": "5-2-3",
+            "score": 59.163
+          },
+          {
+            "combination": "1-3-6",
+            "score": 59.156
+          },
+          {
+            "combination": "3-6-5",
+            "score": 59.114
+          },
+          {
+            "combination": "4-5-1",
+            "score": 59.102
+          },
+          {
+            "combination": "1-2-5",
+            "score": 59.064
+          },
+          {
+            "combination": "3-5-1",
+            "score": 58.972
+          },
+          {
+            "combination": "6-4-3",
+            "score": 58.908
+          },
+          {
+            "combination": "6-3-4",
+            "score": 58.882
+          },
+          {
+            "combination": "4-1-5",
+            "score": 58.818
+          },
+          {
+            "combination": "1-2-6",
+            "score": 58.779
+          },
+          {
+            "combination": "3-1-5",
+            "score": 58.688
+          },
+          {
+            "combination": "4-6-1",
+            "score": 58.676
+          },
+          {
+            "combination": "6-4-2",
+            "score": 58.657
+          },
+          {
+            "combination": "2-5-6",
+            "score": 58.628
+          },
+          {
+            "combination": "6-3-2",
+            "score": 58.579
+          },
+          {
+            "combination": "3-6-1",
+            "score": 58.546
+          },
+          {
+            "combination": "4-1-6",
+            "score": 58.534
+          },
+          {
+            "combination": "6-2-4",
+            "score": 58.505
+          },
+          {
+            "combination": "2-6-5",
+            "score": 58.486
+          },
+          {
+            "combination": "6-2-3",
+            "score": 58.454
+          },
+          {
+            "combination": "3-1-6",
+            "score": 58.404
+          },
+          {
+            "combination": "4-5-3",
+            "score": 58.35
+          },
+          {
+            "combination": "2-5-1",
+            "score": 58.344
+          },
+          {
+            "combination": "3-5-4",
+            "score": 58.272
+          },
+          {
+            "combination": "1-4-3",
+            "score": 58.198
+          },
+          {
+            "combination": "1-3-4",
+            "score": 58.172
+          },
+          {
+            "combination": "4-5-2",
+            "score": 58.099
+          },
+          {
+            "combination": "2-1-5",
+            "score": 58.061
+          },
+          {
+            "combination": "3-5-2",
+            "score": 57.969
+          },
+          {
+            "combination": "1-4-2",
+            "score": 57.947
+          },
+          {
+            "combination": "4-6-3",
+            "score": 57.924
+          },
+          {
+            "combination": "2-6-1",
+            "score": 57.918
+          },
+          {
+            "combination": "1-3-2",
+            "score": 57.869
+          },
+          {
+            "combination": "3-6-4",
+            "score": 57.846
+          },
+          {
+            "combination": "1-2-4",
+            "score": 57.796
+          },
+          {
+            "combination": "2-1-6",
+            "score": 57.776
+          },
+          {
+            "combination": "1-2-3",
+            "score": 57.743
+          },
+          {
+            "combination": "4-3-5",
+            "score": 57.69
+          },
+          {
+            "combination": "4-6-2",
+            "score": 57.673
+          },
+          {
+            "combination": "2-5-4",
+            "score": 57.644
+          },
+          {
+            "combination": "3-4-5",
+            "score": 57.638
+          },
+          {
+            "combination": "2-5-3",
+            "score": 57.593
+          },
+          {
+            "combination": "3-6-2",
+            "score": 57.543
+          },
+          {
+            "combination": "4-1-3",
+            "score": 57.498
+          },
+          {
+            "combination": "3-1-4",
+            "score": 57.42
+          },
+          {
+            "combination": "4-3-6",
+            "score": 57.406
+          },
+          {
+            "combination": "3-4-6",
+            "score": 57.354
+          },
+          {
+            "combination": "4-2-5",
+            "score": 57.314
+          },
+          {
+            "combination": "4-1-2",
+            "score": 57.247
+          },
+          {
+            "combination": "2-6-4",
+            "score": 57.218
+          },
+          {
+            "combination": "3-2-5",
+            "score": 57.183
+          },
+          {
+            "combination": "2-6-3",
+            "score": 57.166
+          },
+          {
+            "combination": "4-3-1",
+            "score": 57.122
+          },
+          {
+            "combination": "3-1-2",
+            "score": 57.117
+          },
+          {
+            "combination": "3-4-1",
+            "score": 57.07
+          },
+          {
+            "combination": "4-2-6",
+            "score": 57.029
+          },
+          {
+            "combination": "2-4-5",
+            "score": 57.01
+          },
+          {
+            "combination": "2-3-5",
+            "score": 56.933
+          },
+          {
+            "combination": "3-2-6",
+            "score": 56.899
+          },
+          {
+            "combination": "2-1-4",
+            "score": 56.793
+          },
+          {
+            "combination": "4-2-1",
+            "score": 56.745
+          },
+          {
+            "combination": "2-1-3",
+            "score": 56.74
+          },
+          {
+            "combination": "2-4-6",
+            "score": 56.726
+          },
+          {
+            "combination": "2-3-6",
+            "score": 56.648
+          },
+          {
+            "combination": "3-2-1",
+            "score": 56.615
+          },
+          {
+            "combination": "2-4-1",
+            "score": 56.442
+          },
+          {
+            "combination": "2-3-1",
+            "score": 56.364
+          },
+          {
+            "combination": "4-3-2",
+            "score": 56.119
+          },
+          {
+            "combination": "3-4-2",
+            "score": 56.067
+          },
+          {
+            "combination": "4-2-3",
+            "score": 55.993
+          },
+          {
+            "combination": "3-2-4",
+            "score": 55.915
+          },
+          {
+            "combination": "2-4-3",
+            "score": 55.691
+          },
+          {
+            "combination": "2-3-4",
+            "score": 55.665
+          }
+        ],
+        "valid_combination_count": 120,
+        "combination_method": "first 0.50 + second 0.30 + third 0.20",
+        "note": "通常予測は変更せず、風神雷神シグナル別補正で6艇を再評価した買い目専用AI。全シグナル組合せで上位24通りを候補保存。"
+      },
       "up_signal": {
         "available": true,
-        "active": false,
-        "level": 0,
+        "active": true,
+        "level": 2,
         "rule_version": "raijin_signal_v1_20261008",
         "system_name": "風神雷神シグナル",
         "signal_name": "雷神",
@@ -31966,8 +33312,21 @@
           "outside_live_top3": false,
           "level3_priority": true
         },
-        "candidates": [],
-        "max_rise": null,
+        "candidates": [
+          {
+            "boat": 2,
+            "rank": 5,
+            "rise": 9.34,
+            "score": 38.64
+          },
+          {
+            "boat": 6,
+            "rank": 6,
+            "rise": 14.48,
+            "score": 36.08
+          }
+        ],
+        "max_rise": 14.48,
         "has_score50_candidate": false,
         "ai_effect": false,
         "formation_effect": false,
@@ -31976,12 +33335,38 @@
         "unverified_non_trigger": false
       },
       "down_signal": {
-        "available": false,
+        "available": true,
         "active": false,
         "level": 0,
         "rule_version": "down_signal_v0_20261007",
         "reasons": [],
-        "suppressed_reason": "missing_morning_reference"
+        "criteria": [
+          {
+            "id": "rank1_drop_5",
+            "label": "直前1位が朝比-5点以下",
+            "met": false
+          },
+          {
+            "id": "top3_total_drop_10",
+            "label": "直前TOP3合計が朝比-10点以下",
+            "met": false
+          },
+          {
+            "id": "rank1_drop_close_gap",
+            "label": "直前1位が朝比-3点以下かつ1-2位差5点以内",
+            "met": false
+          }
+        ],
+        "metrics": {
+          "rank1_delta": -1.96,
+          "top3_delta_sum": -9.46,
+          "gap_1_2": 2.84
+        },
+        "ai_effect": false,
+        "formation_effect": false,
+        "status": "provisional_analysis_only",
+        "uses_fallback": false,
+        "unverified_non_trigger": false
       },
       "signal_system_name": "風神雷神シグナル",
       "signal_logic_identity": {
@@ -32019,7 +33404,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -35809,7 +37194,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -39599,7 +40984,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -43418,7 +44803,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -47223,7 +48608,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -130379,7 +131764,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -133871,7 +135256,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -137336,7 +138721,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -140834,7 +142219,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -357784,7 +359169,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -366691,7 +368076,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -370182,7 +371567,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -373647,7 +375032,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -414296,7 +415681,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -417032,7 +418417,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -420517,7 +421902,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -423996,7 +425381,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -427469,7 +428854,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -430219,7 +431604,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -433691,7 +435076,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -447276,7 +448661,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -450026,7 +451411,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -467853,7 +469238,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -517011,7 +518396,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -520471,9 +521856,9 @@
         "fallback_source": null,
         "request_started_before_deadline": true,
         "request_grace_used": false,
-        "recorded_at": "2026-10-16T17:58:26+09:00"
+        "recorded_at": "2026-10-16T18:02:17+09:00"
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -525670,7 +527055,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -529460,7 +530845,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -533306,7 +534691,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -537137,7 +538522,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -540942,7 +542327,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -544720,7 +546105,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -548592,7 +549977,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -552409,7 +553794,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -556240,7 +557625,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -560071,7 +561456,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -573956,7 +575341,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -577436,7 +578821,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -591748,20 +593133,20 @@
       "deadline": "2026-10-16T18:02:00+09:00",
       "prediction_type": "直前",
       "prediction_quality": {
-        "status": "normal",
-        "mark": "",
-        "label": "正常",
+        "status": "recovered_observation",
+        "mark": "↻",
+        "label": "公式直前情報から事後再計算",
+        "provenance": "saved_pre_deadline_official_beforeinfo",
+        "source": "daily_inputs/2026/10/16/live/raw/20261016_180135/beforeinfo_entries_20261016.csv",
+        "result_leakage": false,
+        "prediction_generated_after_deadline": true,
+        "retrospective_simulation_only": true,
         "recovery_needed": false,
         "signal_blocked": false,
         "verified_scratched_boats": [],
-        "boat_fallbacks": [],
-        "reason": [],
-        "fallback_source": null,
-        "request_started_before_deadline": true,
-        "request_grace_used": false,
-        "recorded_at": "2026-10-16T17:58:26+09:00"
+        "original_score_generated_at": "2026-10-16T18:02:17+09:00"
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -597151,7 +598536,12 @@
         "config_path": "config/logic/live.json",
         "config_sha256": "d4a2f10fc55d1beab3cfd19f7d73b103fdc70e3c3c4aef913987795d69905b81",
         "effective_date": "20261007"
-      }
+      },
+      "retrospective_score_recovery": true,
+      "retrospective_signal_recovery": true,
+      "signal_recovery_provenance": "saved_pre_deadline_official_beforeinfo",
+      "signal_detected_at_original_deadline": false,
+      "historical_bet_preserved": true
     },
     {
       "target_date": "20261016",
@@ -597169,7 +598559,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -601191,7 +602581,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -605215,7 +606605,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -609237,7 +610627,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -613261,7 +614651,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -628095,7 +629485,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -631548,7 +632938,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -651295,7 +652685,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -686530,7 +687920,7 @@
         "mark": "↻",
         "verified_scratched_boats": []
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -695377,9 +696767,9 @@
         "recovery_needed": false,
         "signal_blocked": false,
         "verified_scratched_boats": [],
-        "original_score_generated_at": "2026-10-16T17:26:00+09:00"
+        "original_score_generated_at": "2026-10-16T18:02:17+09:00"
       },
-      "generated_at": "2026-10-16T17:26:00+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -710314,7 +711704,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -714338,7 +715728,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -718348,7 +719738,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -722370,7 +723760,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
@@ -726406,7 +727796,7 @@
         "reason": [],
         "fallback_source": null
       },
-      "generated_at": "2026-10-16T17:58:26+09:00",
+      "generated_at": "2026-10-16T18:02:17+09:00",
       "boats": [
         {
           "rank": 1,
