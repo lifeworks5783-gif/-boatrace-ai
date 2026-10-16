@@ -526,6 +526,11 @@ jobs:
                   proven_upgrade(rid,"latest_by_deadline",deadline_records.get(rid))
               if q.get("signal_blocked"):
                   for name,payload in (("live",live),("formation",formation),("deadline",deadline)):
+                      # Once verified official six-boat scores supersede the
+                      # neutral source, the placeholder ▲ must disappear.
+                      # Keep the ▲ only on surfaces still marked fallback.
+                      if name != "live" and rid not in flagged(payload):
+                          continue
                       record=next((r for r in payload.get("races") or [] if r.get("race_id")==rid),None)
                       if record is None:
                           raise SystemExit(f"ERROR: {rid} {name} に予測が無い")
