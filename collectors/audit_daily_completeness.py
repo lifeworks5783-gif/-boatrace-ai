@@ -58,6 +58,13 @@ def main():
     expected={norm(r.get("race_id")) for r in program if norm(r.get("race_id"))}
     schedule={norm(r.get("race_id")):str(r.get("deadline") or "").strip() for r in program}
     now_jst=datetime.now(timezone(timedelta(hours=9)))
+    # Official result collection is scheduled separately from manual research.
+    # Schedule presence proves configuration, not that every run fires on time.
+    result_scheduler=Path(".github/workflows/research_compare_every_15min.yml")
+    schedule_code=result_scheduler.read_text(encoding="utf-8") if result_scheduler.is_file() else ""
+    result_schedule_configured=("cron:" in schedule_code and "intraday_compare.yml" in schedule_code
+                                and Path(".github/workflows/intraday_compare.yml").is_file())
+    result_auto_today=result_schedule_configured and d==now_jst.strftime("%Y%m%d")
     entry_count={}
     for r in entries:
         rid=norm(r.get("race_id"))
@@ -196,8 +203,10 @@ def main():
             pending_results.append({
                 "race_id": rid,
                 "deadline_jst": deadline,
-                "status": "AWAITING_MANUAL_RESULT_COLLECTION",
-                "automatic_collection_enabled": False,
+                "status": ("AWAITING_SCHEDULED_RESULT_COLLECTION"
+                           if result_auto_today else "AWAITING_MANUAL_RESULT_COLLECTION"),
+                "automatic_collection_enabled": bool(result_auto_today),
+                "scheduler_health_verified": False,
                 "time_after_deadline_is_not_error": True,
             })
             continue
@@ -273,7 +282,15 @@ def main():
         }
     report["research_audit"] = research
     report["collection_mode"] = policy["mode"]
+    # Legacy automatic_collection_enabled describes manual *research* only.
     report["automatic_collection_enabled"] = False
+    report["official_result_collection_scheduler_configured"] = bool(result_schedule_configured)
+    report["official_result_collection_auto_selected"] = bool(result_auto_today)
+    report["official_result_collection_scheduler"] = (
+        "research_compare_every_15min.yml -> intraday_compare.yml"
+        if result_schedule_configured else None
+    )
+    report["official_result_scheduler_health_verified"] = False
     report["result_collection_progress"] = collection_progress
     report["unfinished_races_are_not_audit_failures"] = True
     report["late_official_capture_is_valid_for_research"] = True

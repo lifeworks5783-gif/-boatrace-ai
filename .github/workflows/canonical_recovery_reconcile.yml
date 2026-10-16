@@ -124,9 +124,14 @@ jobs:
               raise SystemExit("Research manual mode lost")
           if report.get("status") == "INCOMPLETE" and not report.get("issues"):
               raise SystemExit("Uncollected results must not count as audit errors")
+          expected_pending = ("AWAITING_SCHEDULED_RESULT_COLLECTION"
+                              if report.get("official_result_collection_auto_selected")
+                              else "AWAITING_MANUAL_RESULT_COLLECTION")
           for pending in report.get("pending_result_details") or []:
-              if pending.get("status") != "AWAITING_MANUAL_RESULT_COLLECTION":
-                  raise SystemExit(f"Incorrect automatic collection audit: {pending}")
+              if pending.get("status") != expected_pending:
+                  raise SystemExit(f"Official result pending-mode mismatch: {pending}")
+              if pending.get("automatic_collection_enabled") != bool(report.get("official_result_collection_auto_selected")):
+                  raise SystemExit(f"Official result scheduler metadata mismatch: {pending}")
           if research.get("research_status") not in ("PASS","MANUAL_RECONCILIATION_PENDING"):
               raise SystemExit(f"Research audit is invalid: {research}")
           print("MANUAL_RESEARCH_AUDIT", research.get("research_status"),
