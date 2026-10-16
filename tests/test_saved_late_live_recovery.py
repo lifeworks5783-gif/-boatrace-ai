@@ -195,5 +195,28 @@ class SavedLateLiveRecoveryTests(unittest.TestCase):
         self.assertIs(original_score[target], fake_early)
 
 
+    def test_verified_predeadline_live_replaces_morning_placeholder_but_never_late_replay(self):
+        cutoff = "2026-10-16T11:44:00+09:00"
+        original = {
+            "race_id": "20261016-08-04",
+            "prediction_type": "直前",
+            "deadline": cutoff,
+            "generated_at": "2026-10-16T11:39:00+09:00",
+            "prediction_quality": {"status": "fallback", "signal_blocked": True,
+                                   "fallback_source": "saved_morning_prediction"},
+            "boats": [{"boat": n, "score": float(n), "score_fallback": True} for n in range(1, 7)],
+        }
+        real = {**original, "generated_at": "2026-10-16T11:40:51+09:00",
+                "prediction_quality": {"status": "normal", "signal_blocked": False,
+                                       "recovery_needed": False},
+                "boats": [{"boat": n, "score": float(n), "score_fallback": False} for n in range(1, 7)]}
+        now = datetime(2026, 10, 16, 15, 39, tzinfo=timezone(timedelta(hours=9)))
+        self.assertIs(preserve_closed_prediction(original, real, now), real)
+        after = {**real, "generated_at": "2026-10-16T11:44:01+09:00"}
+        self.assertIs(preserve_closed_prediction(original, after, now), original)
+        incomplete = {**real, "boats": real["boats"][:5]}
+        self.assertIs(preserve_closed_prediction(original, incomplete, now), original)
+
+
 if __name__ == "__main__":
     unittest.main()
