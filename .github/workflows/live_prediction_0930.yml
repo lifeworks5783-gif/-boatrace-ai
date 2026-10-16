@@ -478,14 +478,52 @@ jobs:
           live_flags=flagged(live)
           formation_flags=flagged(formation)
           deadline_flags=flagged(deadline)
+          formation_records={str(x.get("race_id")):x for x in formation.get("races") or []}
+          deadline_records={str(x.get("race_id")):x for x in deadline.get("races") or []}
+
+          def proven_upgrade(rid, name, record):
+              # A stale *source* fallback may be replaced, but ONLY by:
+              # 1) an actual six-boat prediction generated BEFORE deadline,
+              # 2) an explicitly verified official retrospective replay.
+              # Results never certify a pre-deadline prediction.
+              from datetime import datetime
+              if record is None:
+                  raise SystemExit(f"ERROR: {rid} {name} に予測が無い")
+              quality=record.get("prediction_quality") or {}
+              if quality.get("recovery_needed") or quality.get("signal_blocked"):
+                  raise SystemExit(f"ERROR: {rid} {name} で未検証補完の警告が消失")
+              boats=record.get("boats") or []
+              if len(boats)!=6 or any(b.get("score") is None or b.get("score_fallback") for b in boats):
+                  raise SystemExit(f"ERROR: {rid} {name} 未完成の6艇スコアなのに補完マークなし")
+              if quality.get("status") == "normal":
+                  try:
+                      generated=datetime.fromisoformat(record["generated_at"].replace("Z","+00:00"))
+                      cutoff=datetime.fromisoformat(record["deadline"].replace("Z","+00:00"))
+                      if not (generated.tzinfo and cutoff.tzinfo and generated<=cutoff):
+                          raise ValueError("not a verified pre-deadline score")
+                  except (KeyError,TypeError,ValueError) as exc:
+                      raise SystemExit(f"ERROR: {rid} {name} 直前予測の時刻証明不足: {exc}")
+              elif quality.get("status") == "recovered_observation":
+                  if (not quality.get("retrospective_simulation_only")
+                      or quality.get("provenance") not in (
+                          "post_result_official_beforeinfo",
+                          "saved_pre_deadline_official_beforeinfo",
+                          "saved_after_deadline_official_beforeinfo")):
+                      raise SystemExit(f"ERROR: {rid} {name} 復元情報の監査証明なし")
+              else:
+                  raise SystemExit(f"ERROR: {rid} {name} 補完マーク不正消失: {quality}")
+              if (record.get("up_signal") or {}).get("available") is not True:
+                  raise SystemExit(f"ERROR: {rid} {name} 雷神再判定未完了")
+              if (record.get("down_signal") or {}).get("available") is not True:
+                  raise SystemExit(f"ERROR: {rid} {name} 風神再判定未完了")
 
           for rid,q in live_flags.items():
               if q.get("mark")!="⚠" or q.get("label")!="補完あり":
                   raise SystemExit(f"ERROR: {rid} 補完マーク定義不正: {q}")
               if rid not in formation_flags:
-                  raise SystemExit(f"ERROR: {rid} 補完マークがformationで消失")
+                  proven_upgrade(rid,"formation",formation_records.get(rid))
               if rid not in deadline_flags:
-                  raise SystemExit(f"ERROR: {rid} 補完マークがlatest_by_deadlineで消失")
+                  proven_upgrade(rid,"latest_by_deadline",deadline_records.get(rid))
               if q.get("signal_blocked"):
                   for name,payload in (("live",live),("formation",formation),("deadline",deadline)):
                       record=next((r for r in payload.get("races") or [] if r.get("race_id")==rid),None)
