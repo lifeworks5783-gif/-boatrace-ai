@@ -59,7 +59,12 @@ jobs:
         run: |
           TARGET_DATE="$INPUT_DATE"
           if [ -z "$TARGET_DATE" ] && [ "${{ github.event_name }}" = "push" ]; then
-            TARGET_DATE="$(grep -oE 'target_date=[0-9]{8}' config/run_reconcile_live_now.txt 2>/dev/null | tail -n 1 | cut -d= -f2 || true)"
+            # The marker may contain a historical test date. Honor it ONLY
+            # when this particular push changed that marker, otherwise the
+            # code/recovery push must reconcile JST today, not an old day.
+            if jq -e '([.head_commit.modified[]?, .head_commit.added[]?, .commits[]?.modified[]?, .commits[]?.added[]?] | index("config/run_reconcile_live_now.txt")) != null' "$GITHUB_EVENT_PATH" >/dev/null; then
+              TARGET_DATE="$(grep -oE 'target_date=[0-9]{8}' config/run_reconcile_live_now.txt 2>/dev/null | tail -n 1 | cut -d= -f2 || true)"
+            fi
           fi
           TARGET_DATE="${TARGET_DATE:-$(TZ=Asia/Tokyo date +%Y%m%d)}"
           if ! [[ "$TARGET_DATE" =~ ^[0-9]{8}$ ]]; then
