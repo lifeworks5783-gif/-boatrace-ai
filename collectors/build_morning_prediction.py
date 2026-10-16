@@ -50,7 +50,9 @@ def rank_lower_is_better(values):
 def _rank6(values,lower=False):
     # 履歴が無い艇だけ中立0.5で補完。配点自体は変更しない。
     valid=[(k,v) for k,v in values.items() if v is not None]
-    if not valid: return {}
+    # Missing history is ranked neutrally (0.5), never as a losing zero.
+    # Also handle the case where the entire field has no observed values.
+    if not valid: return {k:0.5 for k in values}
     valid.sort(key=lambda x:((x[1] if lower else -x[1]),x[0]))
     if len(valid)==1:
         ranked={valid[0][0]:0.5}
@@ -167,19 +169,20 @@ def _raw_race_features(race,course_overrides=None):
         }
     return raw
 
-def provisional_details(race,public_store=None,course_overrides=None):
+def provisional_details(race,public_store=None,course_overrides=None,neutral_missing=False):
     raw=_raw_race_features(race,course_overrides)
     keys=["course_win","course_top2","course_top3","course_avg_st","grade","national_top2","motor_win","motor_top3","boat_top2","boat_top3"]
     ranks={k:_rank6({b:v[k] for b,v in raw.items()},lower=(k=="course_avg_st")) for k in keys}
     expected=len(raw)
     missing=[k for k,v in ranks.items() if len(v)!=expected]
     if missing: return {},missing
-    # 6艇すべてについて基礎5要素の計算材料が揃った場合だけ予測を生成する。
-    # 欠損を0点扱いして順位を歪めることは禁止。
+    # Normal/live scoring keeps the strict historic-input contract. Only the
+    # explicit morning builder may use the pre-existing 0.5 rank neutral rule.
+    # No missing rate/ST is fabricated; exact missing keys remain in output.
     for b, values in raw.items():
-        required = ("course_win","course_top2","course_top3","course_avg_st","grade","national_top2","motor_win","motor_top3","boat_top2","boat_top3")
-        if any(values.get(k) is None for k in required):
-            return {}, [f"{b}号艇:{k}" for k in required if values.get(k) is None]
+        gaps=[k for k in keys if values.get(k) is None]
+        if gaps and not neutral_missing:
+            return {}, [f"{b}号艇:{k}" for k in gaps]
     out={}
     for b in raw:
         sub = MORNING_LOGIC["subweights"]
@@ -198,6 +201,8 @@ def provisional_details(race,public_store=None,course_overrides=None):
             "boat":boat,
             "national_top2":ranks["national_top2"][b],
             "course":(course_overrides or {}).get(b,b),
+            "missing_features":[k for k in keys if raw[b].get(k) is None],
+            "data_coverage_pct":round(100.0*sum(raw[b].get(k) is not None for k in keys)/len(keys),1),
         }
     return out,[]
 
@@ -257,17 +262,19 @@ def main():
         if violations: raise RuntimeError(f"当日結果データ混入: {violations[:5]}")
         races=payload.get("races")
         if not isinstance(races,list): raise RuntimeError("racesが不正です")
-        prediction_races=[]; rows=[]; scores=[]
+        prediction_races=[]; rows=[]; scores=[]; neutral_boats=0; neutral_fields=0
         for race in races:
             boats=race.get("boats")
             if not isinstance(boats,list) or len(boats)!=6: raise RuntimeError(f"6艇ではないレース: {race.get('race_id')}")
-            details,missing=provisional_details(race)
+            details,missing=provisional_details(race,neutral_missing=True)
             if missing: raise RuntimeError(f"履歴特徴量不足 {race.get('race_id')}: {','.join(missing)}")
             scored=[]
             for boat in boats:
                 lane=to_int(boat.get("boat")); d=details[lane]; racer=boat.get("racer") or {}; motor=boat.get("motor") or {}; bm=boat.get("boat_machine") or {}
                 history=boat.get("history") or {}
-                row={"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(d["score"],2),"base_score":round(d["score"],2),"trend_adjustment_points":0.0,"f_l_penalty_points":0.0,"data_coverage_pct":100.0,"components":{"racer_course":{"weight":MORNING_WEIGHTS["racer_course"],"raw_score_0_1":round(d["racer_course"],6)},"grade":{"weight":MORNING_WEIGHTS["grade"],"raw_score_0_1":round(d["grade"],6)},"motor":{"weight":MORNING_WEIGHTS["motor"],"raw_score_0_1":round(d["motor"],6)},"boat":{"weight":MORNING_WEIGHTS["boat"],"raw_score_0_1":round(d["boat"],6)},"national_top2":{"weight":MORNING_WEIGHTS["national_top2"],"raw_score_0_1":round(d["national_top2"],6)}},"input_trace":{"history_feature_manifest":payload.get("history_feature_manifest"),"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"course_used":d.get("course"),"official_f_count":racer.get("official_f_count"),"official_l_count":racer.get("official_l_count"),"official_avg_st":racer.get("official_avg_st"),"official_fl_available":racer.get("official_fl_available",False),"candidate_components":{"f_l_holdings":{"available":racer.get("official_fl_available",False),"f_count":racer.get("official_f_count"),"l_count":racer.get("official_l_count"),"active_in_score":False},"motor_30d":{"available":history.get("motor_30d_available",False),"features":history.get("motor_30d"),"active_in_score":False},"parts_exchange":{"available":False,"value":"","active_in_score":False},"weather_water":{"available":False,"value":{},"active_in_score":False}}}}
+                if d["missing_features"]:
+                    neutral_boats+=1; neutral_fields+=len(d["missing_features"])
+                row={"boat":lane,"registration_no":racer.get("registration_no"),"racer_name":racer.get("name"),"grade":racer.get("grade"),"motor_no":motor.get("motor_no"),"boat_no":bm.get("boat_no"),"score":round(d["score"],2),"base_score":round(d["score"],2),"trend_adjustment_points":0.0,"f_l_penalty_points":0.0,"data_coverage_pct":d["data_coverage_pct"],"components":{"racer_course":{"weight":MORNING_WEIGHTS["racer_course"],"raw_score_0_1":round(d["racer_course"],6)},"grade":{"weight":MORNING_WEIGHTS["grade"],"raw_score_0_1":round(d["grade"],6)},"motor":{"weight":MORNING_WEIGHTS["motor"],"raw_score_0_1":round(d["motor"],6)},"boat":{"weight":MORNING_WEIGHTS["boat"],"raw_score_0_1":round(d["boat"],6)},"national_top2":{"weight":MORNING_WEIGHTS["national_top2"],"raw_score_0_1":round(d["national_top2"],6)}},"input_trace":{"history_feature_manifest":payload.get("history_feature_manifest"),"racer_30d":history.get("racer_30d"),"racer_90d":history.get("racer_90d"),"motor_30d":history.get("motor_30d"),"motor_90d":history.get("motor_90d"),"boat_30d":history.get("boat_30d"),"boat_90d":history.get("boat_90d"),"racer_venue":history.get("racer_venue"),"course_used":d.get("course"),"neutral_rank_features":d["missing_features"],"official_f_count":racer.get("official_f_count"),"official_l_count":racer.get("official_l_count"),"official_avg_st":racer.get("official_avg_st"),"official_fl_available":racer.get("official_fl_available",False),"candidate_components":{"f_l_holdings":{"available":racer.get("official_fl_available",False),"f_count":racer.get("official_f_count"),"l_count":racer.get("official_l_count"),"active_in_score":False},"motor_30d":{"available":history.get("motor_30d_available",False),"features":history.get("motor_30d"),"active_in_score":False},"parts_exchange":{"available":False,"value":"","active_in_score":False},"weather_water":{"available":False,"value":{},"active_in_score":False}}}}
                 scored.append(row)
             scored.sort(key=lambda x:(-x["score"],x["boat"]))
             for rank,row in enumerate(scored,1):
@@ -277,9 +284,9 @@ def main():
         result={"schema_version":"1.0","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","generated_at":datetime.now(JST).isoformat(),"score_note":"現行本番配点は維持。入力追跡情報として30/90日履歴・場適性等を保存し、未検証要素は勝手に加点しない。対象日結果は不使用。","weights":MORNING_WEIGHTS,"logic_identity":logic_identity(MORNING_LOGIC),"race_count":len(prediction_races),"boat_count":len(rows),"races":prediction_races}
         oj.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8"); write_csv(oc,rows)
         if len(prediction_races)!=len(races) or len(rows)!=len(races)*6: raise RuntimeError("予測件数不一致")
-        validation={"status":"PASS","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","race_count":len(prediction_races),"boat_count":len(rows),"score_min":round(min(scores),2),"score_max":round(max(scores),2),"score_average":round(sum(scores)/len(scores),2),"average_data_coverage_pct":100.0,"current_day_result_leakage":0,"course_used":False,"exhibition_used":False,"weights":MORNING_WEIGHTS,"logic_identity":logic_identity(MORNING_LOGIC),"external_public_csv_used":False}
+        validation={"status":"PASS","model_version":MODEL_VERSION,"target_date":target_date,"prediction_stage":"morning","race_count":len(prediction_races),"boat_count":len(rows),"score_min":round(min(scores),2),"score_max":round(max(scores),2),"score_average":round(sum(scores)/len(scores),2),"average_data_coverage_pct":round(sum(row["data_coverage_pct"] for row in rows)/len(rows),2),"neutral_rank_boats":neutral_boats,"neutral_rank_fields":neutral_fields,"current_day_result_leakage":0,"course_used":False,"exhibition_used":False,"weights":MORNING_WEIGHTS,"logic_identity":logic_identity(MORNING_LOGIC),"external_public_csv_used":False}
         vj.write_text(json.dumps(validation,ensure_ascii=False,indent=2),encoding="utf-8")
-        print("朝予測生成: PASS",len(prediction_races),"R",len(rows),"艇"); return 0
+        print("朝予測生成: PASS",len(prediction_races),"R",len(rows),"艇; 中立順位補完",neutral_boats,"艇",neutral_fields,"項目"); return 0
     except Exception as exc:
         vj.write_text(json.dumps({"status":"FAIL","model_version":MODEL_VERSION,"target_date":target_date,"error":str(exc),"generated_at":datetime.now(JST).isoformat()},ensure_ascii=False,indent=2),encoding="utf-8")
         print(f"ERROR: {exc}",file=sys.stderr); return 1
