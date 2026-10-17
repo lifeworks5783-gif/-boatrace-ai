@@ -2,22 +2,14 @@
   "date": "20261017",
   "status": "PASS",
   "expected_races": 168,
-  "result_races": 154,
+  "result_races": 156,
   "audited_races": 168,
-  "complete_races": 154,
-  "original_pre_race_complete_races": 128,
-  "post_result_recovered_complete_races": 26,
+  "complete_races": 156,
+  "original_pre_race_complete_races": 129,
+  "post_result_recovered_complete_races": 27,
   "incomplete_races": 0,
-  "pending_races": 14,
+  "pending_races": 12,
   "pending_result_details": [
-    {
-      "race_id": "20261017-01-10",
-      "deadline_jst": "19:48",
-      "status": "AWAITING_SCHEDULED_RESULT_COLLECTION",
-      "automatic_collection_enabled": true,
-      "scheduler_health_verified": false,
-      "time_after_deadline_is_not_error": true
-    },
     {
       "race_id": "20261017-01-11",
       "deadline_jst": "20:17",
@@ -29,14 +21,6 @@
     {
       "race_id": "20261017-01-12",
       "deadline_jst": "20:45",
-      "status": "AWAITING_SCHEDULED_RESULT_COLLECTION",
-      "automatic_collection_enabled": true,
-      "scheduler_health_verified": false,
-      "time_after_deadline_is_not_error": true
-    },
-    {
-      "race_id": "20261017-19-06",
-      "deadline_jst": "19:56",
       "status": "AWAITING_SCHEDULED_RESULT_COLLECTION",
       "automatic_collection_enabled": true,
       "scheduler_health_verified": false,
@@ -123,7 +107,7 @@
       "time_after_deadline_is_not_error": true
     }
   ],
-  "audit_asof_jst": "2026-10-17T19:48:32.911834+09:00",
+  "audit_asof_jst": "2026-10-17T20:08:57.561929+09:00",
   "needs_recollection": false,
   "issues": [],
   "recovered_after_result": [
@@ -662,6 +646,33 @@
       ]
     },
     {
+      "race_id": "20261017-19-06",
+      "fields": [
+        "boat1:exhibition_course",
+        "boat1:exhibition_st_raw",
+        "boat1:exhibition_time",
+        "boat2:exhibition_course",
+        "boat2:exhibition_st_raw",
+        "boat2:exhibition_time",
+        "boat3:exhibition_course",
+        "boat3:exhibition_st_raw",
+        "boat3:exhibition_time",
+        "boat4:exhibition_course",
+        "boat4:exhibition_st_raw",
+        "boat4:exhibition_time",
+        "boat5:exhibition_course",
+        "boat5:exhibition_st_raw",
+        "boat5:exhibition_time",
+        "boat6:exhibition_course",
+        "boat6:exhibition_st_raw",
+        "boat6:exhibition_time",
+        "race:air_temperature_c",
+        "race:water_temperature_c",
+        "race:wave_height_cm",
+        "race:wind_speed_mps"
+      ]
+    },
+    {
       "race_id": "20261017-20-03",
       "fields": [
         "boat1:exhibition_course",
@@ -850,8 +861,8 @@
   "research_audit": {
     "mode": "manual_research",
     "automatic_collection_enabled": false,
-    "result_races": 154,
-    "valid_research_races": 154,
+    "result_races": 156,
+    "valid_research_races": 155,
     "valid_research_race_ids": [
       "20261017-01-01",
       "20261017-01-02",
@@ -862,6 +873,7 @@
       "20261017-01-07",
       "20261017-01-08",
       "20261017-01-09",
+      "20261017-01-10",
       "20261017-02-01",
       "20261017-02-02",
       "20261017-02-03",
@@ -1061,10 +1073,15 @@
       "20261017-24-07",
       "20261017-24-09"
     ],
-    "requires_manual_completion": 0,
-    "research_incomplete": [],
-    "not_yet_finished_races_excluded_from_error": 14,
-    "research_status": "PASS",
+    "requires_manual_completion": 1,
+    "research_incomplete": [
+      {
+        "race_id": "20261017-19-06",
+        "reason": "live_score_fallback"
+      }
+    ],
+    "not_yet_finished_races_excluded_from_error": 12,
+    "research_status": "MANUAL_RECONCILIATION_PENDING",
     "historical_bet_claimed_for_recovered_scores": false,
     "timestamp_is_not_a_research_validity_failure": true
   },
